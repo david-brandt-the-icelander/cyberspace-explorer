@@ -23,6 +23,7 @@
     --rule: #c9d3d5; --grid: #d9e1e3; --edge: #81939b; --hot: #1d2b33;
     --k-component: #2c6e8e; --k-deployment: #a26a14; --k-class: #527a31; --k-state: #8b4a8c;
     --k-use-case: #bb5430; --k-capability: #4f58b0; --k-feature: #b0456f; --k-operation: #5b6a72;
+    --k-user-journey: #1f7f74; --k-knowledge: #7a5f36;
     --sans: "Barlow", "Avenir Next", system-ui, sans-serif;
     --semi: "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif;
     --cond: "Barlow Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif;
@@ -36,6 +37,7 @@
       --rule: #2a3a42; --grid: #22333b; --edge: #6f858e; --hot: #eef4f4;
       --k-component: #6cb2d6; --k-deployment: #e0a54a; --k-class: #9bc472; --k-state: #cb8cd3;
       --k-use-case: #ee8f66; --k-capability: #97a0ea; --k-feature: #e58aae; --k-operation: #a7b6bd;
+      --k-user-journey: #5cc4b6; --k-knowledge: #d2b585;
     }
   }
   .kind-component { --k: var(--k-component); }
@@ -46,6 +48,8 @@
   .kind-capability { --k: var(--k-capability); }
   .kind-feature { --k: var(--k-feature); }
   .kind-operation { --k: var(--k-operation); }
+  .kind-user-journey { --k: var(--k-user-journey); }
+  .kind-knowledge { --k: var(--k-knowledge); }
 
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
@@ -162,6 +166,7 @@
   .crumbs a { color: var(--ink2); text-decoration: none; }
   .crumbs a:hover { color: var(--ink); text-decoration: underline; }
   .crumbs .sep { color: var(--rule); }
+  .folder-head .purpose { max-width: 76ch; margin: 10px 0 0; font-size: 17px; color: var(--ink2); }
   .folder-head h1 { font: 700 clamp(38px, 4.6vw, 56px)/1 var(--cond); margin: 0; letter-spacing: -.005em; overflow-wrap: anywhere; }
   /* One tab per kind of view in the folder; the content area shows the chosen kind alone. */
   .ktabs { display: flex; flex-wrap: wrap; align-items: stretch; gap: 2px; margin: 26px 0 0; border-bottom: 1px solid var(--rule); scroll-margin-top: 62px; font: 500 15px/1.3 var(--semi); }
@@ -256,6 +261,7 @@
   td .sel-link { background: none; border: 0; padding: 0; font: 600 15px/1.3 var(--semi); cursor: pointer; text-align: left; color: var(--ink); }
   td .sel-link:hover { color: var(--k); text-decoration: underline; }
   td code { color: var(--ink2); }
+  .faint { color: var(--ink3); }
   .from { margin-top: 12px; font-size: 14px; color: var(--ink3); }
 
   /* Views that are written rather than drawn: one card per entity, facts beside their labels. */
@@ -269,7 +275,38 @@
   .src { display: block; }
   .src .d { color: var(--ink2); }
   .pill { display: inline-block; padding: 2px 9px; border-radius: 99px; font: 600 13px/1.4 var(--semi); background: color-mix(in srgb, var(--k) 14%, var(--plate)); color: var(--k); }
+  /* Knowledge files: grouped as the catalogue groups them, a card per record. */
+  .kgroup { margin-top: 34px; }
+  .dpanel > .kgroup:first-child { margin-top: 22px; }
+  .kgroup > h2 { display: flex; align-items: center; gap: 9px; font: 700 15px/1.2 var(--semi); letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); margin: 0; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+  .kgroup > h2 .ic { color: var(--k); width: 18px; height: 18px; }
+  .kgroup section.diagram { margin-top: 22px; }
+  .kgroup .dhead h2 { font-size: 22px; }
+  .entity[data-rec] { scroll-margin-top: 80px; }
+  .entity.pulse { animation: flash 1.4s ease-out 1; }
+  @keyframes flash { 0% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--k) 45%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+  .entity .hrow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+  .entity .rid { font: 400 12.5px/1.2 var(--mono); color: var(--ink3); }
+  .badges { display: inline-flex; flex-wrap: wrap; gap: 5px; }
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 99px; font: 600 12.5px/1.45 var(--semi); border: 1px solid var(--rule); color: var(--ink2); background: var(--sheet); white-space: nowrap; }
+  .badge.st { color: var(--k); border-color: color-mix(in srgb, var(--k) 45%, var(--rule)); background: color-mix(in srgb, var(--k) 10%, var(--plate)); }
+  .badge.ev-source-verified { color: #2c6e3a; border-color: color-mix(in srgb, #2c6e3a 45%, var(--rule)); }
+  .badge.ev-proposed { border-style: dashed; }
+  @media (prefers-color-scheme: dark) { .badge.ev-source-verified { color: #8fd39d; border-color: color-mix(in srgb, #8fd39d 40%, var(--rule)); } }
+  .md { max-width: 76ch; margin: 8px 0 0; font-size: 15px; }
+  .md p, .md ul, .md ol { margin: 0 0 8px; }
+  .md ul, .md ol { padding-left: 1.3em; }
+  .facts .kv { display: block; }
+  .facts .kv b { font: 600 13.5px/1.4 var(--semi); color: var(--ink3); margin-right: 6px; }
+  .facts .rel { color: var(--ink3); font: 500 14px/1.3 var(--semi); margin-right: 6px; }
+  .kfoot { margin: 10px 0 0; font-size: 14px; color: var(--ink3); }
+  .wait-link { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 7px 10px; border-radius: 8px; text-decoration: none; font: 600 15px/1.2 var(--semi); color: var(--ink); background: color-mix(in srgb, var(--k-knowledge) 12%, var(--plate)); border: 1px solid color-mix(in srgb, var(--k-knowledge) 35%, var(--rule)); }
+  .wait-link .ic { color: var(--k-knowledge); width: 17px; height: 17px; }
+  .wait-link.current { box-shadow: inset 0 0 0 1px var(--k-knowledge); }
+  .wait-link .n { margin-left: auto; font: 600 13px/1 var(--semi); color: var(--ink2); }
   .scroll { overflow-x: auto; margin-top: 14px; }
+  /* Who and where are short: they keep their words whole, and the long columns give way. */
+  .waiting td:nth-child(2), .waiting td:nth-child(3) { overflow-wrap: break-word; min-width: 120px; }
   .scroll table { min-width: 860px; }
   .scroll td:first-child { min-width: 190px; }
   .scroll .pill { white-space: nowrap; }
@@ -319,13 +356,13 @@
 
 <section id="landing" hidden>
   <h1>See how a repository is put together</h1>
-  <p class="lede">Give the address of a GitHub or GitLab repository, or of a folder in one. The browser draws the diagrams and lists the use cases, capabilities, features and operations kept in its <code>.dev/</code> folders, and you walk from one folder into the next by clicking the parts in the drawings.</p>
+  <p class="lede">Give the address of a GitHub or GitLab repository, or of a folder in one. The browser draws the diagrams, lists the behavior views and shows the knowledge files kept in its <code>.dev/</code> folders, and you walk from one folder into the next by clicking the parts in the drawings.</p>
   <form id="pick">
     <label for="repo-url" hidden>Repository address</label>
     <input id="repo-url" type="url" required placeholder="https://github.com/owner/repository" autocomplete="url">
     <button class="primary" type="submit">Browse</button>
   </form>
-  <p class="example">Or open <a href="?url=https%3A%2F%2Fgithub.com%2Fdavid-brandt-the-icelander%2Fretro-games">retro-games</a> as an example. The diagrams follow the <a href="https://github.com/david-brandt-the-icelander/processes/tree/main/Agents/Skills">diagram skills</a>.</p>
+  <p class="example">Or open <a href="?url=https%3A%2F%2Fgithub.com%2Fdavid-brandt-the-icelander%2Fretro-games">retro-games</a> as an example. The views follow the <a href="https://github.com/david-brandt-the-icelander/human-assisted-software-development/tree/main/Agents/Skills">skills</a> and the <a href="https://github.com/david-brandt-the-icelander/human-assisted-software-development/tree/main/Agents/Knowledge">knowledge catalogue</a> of human-assisted software development.</p>
   <p class="example">A private repository needs an access token. Give its address and the browser will ask for one; the token stays in this browser and goes to that host alone.</p>
   <div class="kinds">
     <div class="kind-component"><span class="tile"><svg class="ic"><use href="#i-kind-component"/></svg></span><h2>Component</h2><p>What a folder is made of, and what each part depends on.</p></div>
@@ -336,6 +373,8 @@
     <div class="kind-capability"><span class="tile"><svg class="ic"><use href="#i-kind-capability"/></svg></span><h2>Capability</h2><p>What a part of the system can do, and who may ask for it.</p></div>
     <div class="kind-feature"><span class="tile"><svg class="ic"><use href="#i-kind-feature"/></svg></span><h2>Feature</h2><p>The behavior offered, its outcome and the limits on it.</p></div>
     <div class="kind-operation"><span class="tile"><svg class="ic"><use href="#i-kind-operation"/></svg></span><h2>Operation</h2><p>The callable entrypoints: what each does, who may call it and how it can fail.</p></div>
+    <div class="kind-user-journey"><span class="tile"><svg class="ic"><use href="#i-kind-user-journey"/></svg></span><h2>User journey</h2><p>A person's way toward a goal over time, stage by stage, across touchpoints.</p></div>
+    <div class="kind-knowledge"><span class="tile"><svg class="ic"><use href="#i-kind-knowledge"/></svg></span><h2>Knowledge</h2><p>What a folder knows about itself: vision, backlog, decisions, requirements, delivery and operation.</p></div>
   </div>
 </section>
 
@@ -343,6 +382,7 @@
 <div id="layout" hidden>
   <nav id="side" aria-label="Folders with diagrams">
     <label class="filter"><svg class="ic"><use href="#i-search"/></svg><input id="filter" type="search" placeholder="Filter folders and parts" aria-label="Filter folders and parts"></label>
+    <a class="wait-link" id="waiting" href="#~waiting" hidden></a>
     <ul id="tree"></ul>
   </nav>
   <main id="view"></main>
@@ -354,10 +394,27 @@
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 // Structural diagrams first, then the functional views, which describe behavior.
-const KIND_ORDER = { component: 0, deployment: 1, class: 2, state: 3, "use-case": 4, capability: 5, feature: 6, operation: 7 };
-const KIND_NAME = { component: "Component diagram", deployment: "Deployment diagram", class: "Class diagram", state: "State diagram", "use-case": "Use case", capability: "Capability", feature: "Feature", operation: "Operations" };
-/** "2 class diagrams", "1 feature". */
-const kindCount = (k, n) => `${n} ${KIND_ORDER[k] < 4 ? k + " diagram" : k.replace("-", " ")}${n > 1 ? "s" : ""}`;
+const KIND_ORDER = { component: 0, deployment: 1, class: 2, state: 3, "use-case": 4, "user-journey": 5, capability: 6, feature: 7, operation: 8 };
+const KIND_NAME = { component: "Component diagram", deployment: "Deployment diagram", class: "Class diagram", state: "State diagram", "use-case": "Use case", "user-journey": "User journey", capability: "Capability", feature: "Feature", operation: "Operations" };
+// The knowledge catalogue (Agents/Knowledge): every kind, in its group, in the catalogue's order.
+// A folder shows all its knowledge files under one tab, grouped like this.
+const KNOWLEDGE_GROUPS = [
+  ["Direction", "g-direction", [["vision", "Vision"], ["stakeholders", "Stakeholders"], ["risks", "Risks"], ["roadmap", "Roadmap"]]],
+  ["Requirements", "g-requirements", [["requirements", "Requirements"], ["quality-requirements", "Quality requirements"], ["glossary", "Glossary"]]],
+  ["Work", "g-work", [["backlog", "Backlog"], ["plan", "Plan"], ["estimation", "Estimation"], ["tasks", "Tasks"], ["decisions", "Decisions"], ["blockers", "Blockers"]]],
+  ["Structure", "folder", [["folder", "Folder"], ["contracts", "Contracts"]]],
+  ["Verification", "g-verification", [["verification", "Verification"]]],
+  ["Delivery", "package", [["pipeline", "Pipeline"], ["delivery", "Delivery"], ["versions", "Versions"]]],
+  ["Operation", "g-operation", [["configuration", "Configuration"], ["observability", "Observability"], ["runbooks", "Runbooks"], ["limitations", "Limitations"], ["contacts", "Contacts"]]],
+  ["Reference", "g-reference", [["references", "References"]]],
+];
+/** knowledge kind → { name, group, icon, order }. */
+const KNOWLEDGE = Object.fromEntries(KNOWLEDGE_GROUPS.flatMap(([group, icon, kinds], g) => kinds.map(([k, name], j) => [k, { name, group, icon, order: 100 + g * 10 + j }])));
+/** The tab a file is shown under: its kind, or "knowledge" for every knowledge kind. */
+const tabOf = (d) => (d.kind in KNOWLEDGE ? "knowledge" : d.kind);
+const orderOf = (d) => KIND_ORDER[d.kind] ?? KNOWLEDGE[d.kind]?.order ?? 999;
+/** "2 class diagrams", "1 feature", "3 knowledge files". */
+const kindCount = (k, n) => `${n} ${k === "knowledge" ? "knowledge file" : KIND_ORDER[k] < 4 ? k + " diagram" : k.replace("-", " ")}${n > 1 ? "s" : ""}`;
 const DAGRE = "https://cdn.jsdelivr.net/npm/@dagrejs/dagre@3.1.3/+esm";
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -404,6 +461,16 @@ const ICONS = {
   "kind-capability": `<rect x="3.5" y="3.5" width="17" height="17" rx="4.2" ${F}/><rect x="3.5" y="3.5" width="17" height="17" rx="4.2"/><path d="M13.2 6.8 9 12.6h3.6L10.8 17.4" stroke-width="1.8"/>`,
   "kind-feature": `<path d="M12 3.2l2.5 5.3 5.8.8-4.2 4 1 5.8-5.1-2.8-5.1 2.8 1-5.8-4.2-4 5.8-.8z" ${F}/><path d="M12 3.2l2.5 5.3 5.8.8-4.2 4 1 5.8-5.1-2.8-5.1 2.8 1-5.8-4.2-4 5.8-.8z"/>`,
   "kind-operation": `<path d="M9 4H8a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h1M15 4h1a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h-1"/><circle cx="12" cy="12" r="1.4" ${S}/>`,
+  "kind-user-journey": `<circle cx="5" cy="18.5" r="2.2" ${S}/><path d="M7.2 18.5h6.3a3.25 3.25 0 0 0 0-6.5h-3a3.25 3.25 0 0 1 0-6.5H16.5"/><path d="M16.5 3.2h4l-1.1 1.7 1.1 1.7h-4z" ${F}/><path d="M16.5 9V3.2h4l-1.1 1.7 1.1 1.7h-4"/>`,
+  "kind-knowledge": `<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z" ${F}/><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/><path d="M6.6 8h2M6.6 11h2M15.4 8h2M15.4 11h2"/>`,
+  // Knowledge groups
+  "g-direction": `<circle cx="12" cy="12" r="8.6"/><path d="M15.6 8.4 13.3 13.3 8.4 15.6l2.3-4.9z" ${F}/><path d="M15.6 8.4 13.3 13.3 8.4 15.6l2.3-4.9z"/><circle cx="12" cy="12" r=".9" ${S}/>`,
+  "g-requirements": `<rect x="5" y="4.5" width="14" height="16.5" rx="2" ${F}/><rect x="5" y="4.5" width="14" height="16.5" rx="2"/><rect x="9" y="3" width="6" height="3.2" rx="1" ${S}/><path d="M8 11.5l1.4 1.4 2.4-2.6M8 16.5l1.4 1.4 2.4-2.6M14 12h2.5M14 17h2.5"/>`,
+  "g-work": `<rect x="3.5" y="4" width="17" height="16" rx="2.4"/><path d="M9.2 4v16M14.8 4v16"/><rect x="5" y="6.5" width="2.7" height="3.5" rx=".6" ${S}/><rect x="10.6" y="6.5" width="2.7" height="3.5" rx=".6" ${F}/><rect x="10.6" y="11.5" width="2.7" height="3.5" rx=".6" ${F}/><rect x="16.2" y="6.5" width="2.7" height="3.5" rx=".6" ${F}/>`,
+  "g-verification": `<path d="M12 3 19 6v5.5c0 4.3-3 7.7-7 9.5-4-1.8-7-5.2-7-9.5V6z" ${F}/><path d="M12 3 19 6v5.5c0 4.3-3 7.7-7 9.5-4-1.8-7-5.2-7-9.5V6z"/><path d="M8.8 12.2l2.2 2.2 4.2-4.4"/>`,
+  "g-operation": `<path d="M4 16.5a8 8 0 0 1 16 0z" ${F}/><path d="M4 16.5a8 8 0 0 1 16 0"/><path d="M12 16.5 15.5 10.5"/><circle cx="12" cy="16.5" r="1.5" ${S}/><path d="M6.6 11.6l1 .8M17.4 11.6l-1 .8M12 8.5v1.3"/>`,
+  "g-reference": `<path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z" ${F}/><path d="M5 19.5v-15A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5 1.5 1.5 0 0 0 6.5 21H19"/><path d="M9 7.5h6"/>`,
+  hourglass: `<path d="M7 3.5h10M7 20.5h10"/><path d="M8 3.5c0 4 4 5.5 4 8.5s-4 4.5-4 8.5h8c0-4-4-5.5-4-8.5s4-4.5 4-8.5z"/><path d="M9.6 19h4.8c-.4-1.8-2.4-2.6-2.4-4c0 1.4-2 2.2-2.4 4z" ${S}/>`,
   person: `<circle cx="12" cy="8" r="4" ${F}/><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5v-1a5.5 5.5 0 0 1 5.5-5.5h4a5.5 5.5 0 0 1 5.5 5.5v1"/>`,
   branch: `<circle cx="6" cy="5.5" r="2.3"/><circle cx="6" cy="18.5" r="2.3"/><circle cx="18" cy="9" r="2.3" ${F}/><circle cx="18" cy="9" r="2.3"/><path d="M6 7.8v8.4M18 11.3c0 3.8-6.5 1.8-12 5.4"/>`,
   // Component parts, chosen from the part's name
@@ -708,8 +775,8 @@ async function load(address) {
   $("repo").insertAdjacentHTML("beforeend", `<span class="ref" title="Branch, tag or commit">${esc(repo.ref)}</span>`);
   const prefix = repo.path ? repo.path.replace(/\/$/, "") + "/" : "";
   const wanted = paths.filter((p) => /(^|\/)\.dev\/[^/]+\.json$/.test(p) && p.startsWith(prefix));
-  if (!wanted.length) { status(`${repo.host.label(repo)}${repo.path ? "/" + repo.path : ""} has no .dev/*.json diagrams at ${repo.ref}. The diagram skills describe how to add them.`, "error"); return; }
-  status(`Reading ${wanted.length} diagrams…`, "loading");
+  if (!wanted.length) { status(`${repo.host.label(repo)}${repo.path ? "/" + repo.path : ""} has no .dev/*.json views or knowledge files at ${repo.ref}. The skills describe how to add them.`, "error"); return; }
+  status(`Reading ${wanted.length} .dev files…`, "loading");
   const problems = [];
   await pool(wanted, 12, async (path) => {
     try {
@@ -717,8 +784,8 @@ async function load(address) {
       const res = await fetch(url, { headers: { ...headers, ...auth(repo) } });
       if (!res.ok) throw new Error(`${res.status}`);
       const doc = await res.json();
-      if (!doc || !(doc.kind in KIND_ORDER)) throw new Error("not a diagram");
-      const folder = typeof doc.folder === "string" ? doc.folder : path.split("/").slice(0, -2).join("/");
+      if (!doc || !(doc.kind in KIND_ORDER || doc.kind in KNOWLEDGE)) throw new Error(`no view or knowledge kind ${JSON.stringify(doc?.kind ?? null)}`);
+      const folder = typeof doc.folder === "string" ? normFolder(doc.folder) : path.split("/").slice(0, -2).join("/");
       doc._path = path;
       doc._folder = folder;
       byPath.set(path, doc);
@@ -726,7 +793,7 @@ async function load(address) {
       byFolder.get(folder).push(doc);
     } catch (e) { problems.push(`${path} (${e.message})`); }
   });
-  for (const docs of byFolder.values()) docs.sort((a, b) => KIND_ORDER[a.kind] - KIND_ORDER[b.kind] || a._path.localeCompare(b._path));
+  for (const docs of byFolder.values()) docs.sort((a, b) => orderOf(a) - orderOf(b) || a._path.localeCompare(b._path));
   await drawing;
   await Promise.race([Promise.all([F_NAME, F_HEAD, F_LABEL].map((f) => document.fonts.load(f))), new Promise((r) => setTimeout(r, 1500))]).catch(() => {});
   const notes = [];
@@ -736,6 +803,7 @@ async function load(address) {
   status(notes.join(" "));
   $("layout").hidden = false;
   showTree();
+  showWaitingLink();
   route();
   // A web font that arrives after the first drawing changes the text widths: draw again.
   document.fonts.addEventListener("loadingdone", () => { current = null; route(); }, { once: true });
@@ -743,6 +811,8 @@ async function load(address) {
 
 // ── Folders ──────────────────────────────────────────────────────────────
 
+/** Knowledge files name the repository root ".", the views "": both are "" here. */
+const normFolder = (f) => (f === "." ? "" : String(f ?? "").replace(/\/$/, ""));
 const folders = () => [...byFolder.keys()].sort((a, b) => a.localeCompare(b));
 const depth = (f) => (f ? f.split("/").length : 0);
 /** The nearest folder above f that has diagrams, or null. */
@@ -763,7 +833,7 @@ const rel = (f, base) => (base && f.startsWith(base + "/") ? f.slice(base.length
 
 function pips(docs) {
   const counts = new Map();
-  for (const d of docs) counts.set(d.kind, (counts.get(d.kind) ?? 0) + 1);
+  for (const d of docs) counts.set(tabOf(d), (counts.get(tabOf(d)) ?? 0) + 1);
   return `<span class="pips">${[...counts].map(([k, n]) => `<span class="pip kind-${k}" title="${kindCount(k, n)}">${ic("kind-" + k)}${n > 1 ? `<sub>${n}</sub>` : ""}</span>`).join("")}</span>`;
 }
 
@@ -779,7 +849,7 @@ function showTree() {
 
 $("filter").addEventListener("input", () => {
   const q = $("filter").value.trim().toLowerCase();
-  const hit = (f) => !q || f.toLowerCase().includes(q) || byFolder.get(f).some((d) => JSON.stringify([d.title, d.components?.map((c) => c.name), d.types?.map((t) => t.name), d.states?.map((s) => s.id), d.nodes?.map((n) => n.name), d.entities?.map((e) => e.name)]).toLowerCase().includes(q));
+  const hit = (f) => !q || f.toLowerCase().includes(q) || byFolder.get(f).some((d) => JSON.stringify([d.title, d.components?.map((c) => c.name), d.types?.map((t) => t.name), d.states?.map((s) => s.id), d.nodes?.map((n) => n.name), d.entities?.map((e) => [e.name, e.title, e.id])]).toLowerCase().includes(q));
   const keep = new Set();
   for (const f of folders()) if (hit(f)) for (let p = f; p !== null; p = parentOf(p)) keep.add(p);
   for (const li of $("tree").querySelectorAll("li")) li.classList.toggle("miss", !keep.has(li.dataset.folder));
@@ -789,6 +859,12 @@ let current = null;
 function route() {
   if (!byFolder.size) return;
   const [rawFolder, rawFocus] = location.hash.slice(1).split("|");
+  $("waiting").classList.toggle("current", rawFolder === WAITING);
+  if (rawFolder === WAITING) {
+    for (const a of $("tree").querySelectorAll("a")) a.classList.remove("current");
+    if (current !== WAITING) { closeInspector(); current = WAITING; showWaiting(); window.scrollTo({ top: 0 }); }
+    return;
+  }
   const want = decodeURI(rawFolder ?? "");
   const folder = byFolder.has(want) ? want : folders().slice().sort((a, b) => depth(a) - depth(b) || a.localeCompare(b))[0];
   const focus = rawFocus ? decodeURIComponent(rawFocus) : null;
@@ -846,7 +922,7 @@ const HEADER = 34;   // the band at the top of a cluster
 const loopRoom = (n) => (n.loops ? 22 + n.loops * 23 : 0);
 
 /** What a click on a part leads to: another folder, or null. */
-function navFor(folder, focus) { return folder && folder !== current && byFolder.has(folder) ? folderHash(folder, focus) : null; }
+function navFor(folder, focus) { const f = normFolder(folder); return folder && f !== current && byFolder.has(f) ? folderHash(f, focus) : null; }
 
 function plateNode({ key, glyph, name, sub, nav, ext, tip, info, minW = 156, maxText = 186, maxLines = 2 }) {
   const lines = wrap(name, F_NAME, maxText, maxLines);
@@ -884,7 +960,7 @@ function clusterNode({ key, glyph, name, sub, nav, ext, tip, info }) {
 const item = (kind, title, sub, body) => ({ kind, title, sub, body });
 const sel = (key, text) => `<button class="sel-link" data-sel="${esc(key)}">${esc(text)}</button>`;
 const fileLink = (path) => `<a href="${esc(repo.host.blob(repo, path))}" target="_blank" rel="noopener"><code>${esc(path)}</code></a>`;
-const folderLink = (f) => (byFolder.has(f) ? `<a href="${esc(folderHash(f))}">${esc(f)}</a>` : `<code>${esc(f)}</code>`);
+const folderLink = (f) => { const n = normFolder(f); return byFolder.has(n) ? `<a href="${esc(folderHash(n))}">${esc(n || "/")}</a>` : `<code>${esc(f)}</code>`; };
 const relList = (title, rows) => rows.length ? `<h4>${esc(title)}</h4><ul>${rows.map((r) => `<li>${r}</li>`).join("")}</ul>` : "";
 const navTip = (nav) => `<span class="hint">${nav ? "Click to open its diagrams" : "Click for details"}</span>`;
 
@@ -1108,7 +1184,27 @@ function useCaseModel(d) {
   return { dir: "TB", nodes, edges, pack: true };
 }
 
-const MODELS = { component: componentModel, deployment: deploymentModel, class: classModel, state: stateModel, "use-case": useCaseModel };
+/** A user journey's stages in order, left to right: what the person does at each touchpoint, and what comes of it. */
+function journeyModel(d) {
+  const nodes = [], edges = [];
+  const jump = (e, id) => `${e.id}:${id}`;
+  for (const e of d.entities ?? []) {
+    const stages = e.stages ?? [];
+    stages.forEach((st, i) => {
+      const next = stages[i + 1], prev = stages[i - 1];
+      const info = item("user-journey", `${i + 1}. ${st.touchpoint}`, `Stage of ${e.name ?? e.id}`,
+        `<h4>When</h4><p>${esc(st.context)}</p><h4>Does</h4><p>${esc(st.action)}</p><h4>Then</h4><p>${esc(st.outcome)}</p>`
+        + (st.sources?.length ? `<h4>Sources</h4>${symRefs(st.sources)}` : "")
+        + relList("Before", prev ? [sel(jump(e, prev.id), `${i}. ${prev.touchpoint}`)] : [])
+        + relList("After", next ? [sel(jump(e, next.id), `${i + 2}. ${next.touchpoint}`)] : []));
+      nodes.push(plateNode({ key: jump(e, st.id), glyph: "person", name: st.action, sub: `${i + 1} · ${st.touchpoint}`, tip: `<b>${esc(st.touchpoint)}</b>${esc(st.action)}<span class="hint">${esc(st.outcome)}</span>`, info, minW: 200, maxText: 250, maxLines: 3 }));
+      if (prev) edges.push({ key: `n${edges.length}`, from: jump(e, prev.id), to: jump(e, st.id), marker: "arr", tip: `<b>Then</b>${esc(prev.outcome)}` });
+    });
+  }
+  return { dir: "LR", nodes, edges, pack: true };
+}
+
+const MODELS = { component: componentModel, deployment: deploymentModel, class: classModel, state: stateModel, "use-case": useCaseModel, "user-journey": journeyModel };
 
 // ── Layout ───────────────────────────────────────────────────────────────
 
@@ -1357,6 +1453,10 @@ const LEGENDS = {
     [`<svg width="34" height="10"><path d="M1 5h26" stroke="var(--edge)" stroke-width="1.4" stroke-dasharray="6 4" marker-end="url(#m-arr)"/></svg>`, "otherwise"],
     [`<svg width="26" height="18"><rect x="1" y="1" width="24" height="16" rx="4" fill="none" stroke="currentColor" stroke-dasharray="4 3"/></svg>`, "alternative outcome"],
   ],
+  "user-journey": [
+    [`<svg width="34" height="10"><path d="M1 5h26" stroke="var(--edge)" stroke-width="1.4" marker-end="url(#m-arr)"/></svg>`, "next stage"],
+    [`<svg width="18" height="18" style="color:var(--k)"><use href="#i-person" width="18" height="18"/></svg>`, "what the person does at a touchpoint: click for the context and the outcome"],
+  ],
   state: [
     [`<svg width="16" height="16"><circle cx="8" cy="8" r="6" fill="var(--ink)"/></svg>`, "start"],
     [`<svg width="34" height="18"><rect x="1" y="1" width="32" height="16" rx="8" fill="none" stroke="currentColor"/><rect x="4" y="4" width="26" height="10" rx="5" fill="none" stroke="currentColor"/></svg>`, "final state"],
@@ -1378,14 +1478,18 @@ function showFolder(folder) {
   const crumbs = segs.slice(0, -1).map((s, i) => { const p = segs.slice(0, i + 1).join("/"); return byFolder.has(p) ? `<a href="${esc(folderHash(p))}">${esc(s)}</a>` : `<span>${esc(s)}</span>`; });
   const kids = childrenOf(folder);
   const counts = new Map();
-  docs.forEach((d, i) => { if (!counts.has(d.kind)) counts.set(d.kind, []); counts.get(d.kind).push(i); });
+  docs.forEach((d, i) => { const t = tabOf(d); if (!counts.has(t)) counts.set(t, []); counts.get(t).push(i); });
+  // A folder's knowledge says what it is for: that goes under its name.
+  const self = docs.find((d) => d.kind === "folder")?.entities?.[0];
+  const purpose = self?.purpose ?? self?.summary;
   const kinds = [...counts.keys()];
   // Stay on the kind being read when the next folder has it too; otherwise open the first.
   if (!counts.has(shownKind)) shownKind = kinds[0] ?? null;
-  const panel = (k) => `<div class="dpanel" role="tabpanel" id="panel-${k}" data-kind="${k}" aria-labelledby="tab-${k}"${k === shownKind ? "" : " hidden"}>${counts.get(k).map((i) => diagramSection(docs[i], i)).join("")}</div>`;
+  const panel = (k) => `<div class="dpanel" role="tabpanel" id="panel-${k}" data-kind="${k}" aria-labelledby="tab-${k}"${k === shownKind ? "" : " hidden"}>${k === "knowledge" ? knowledgePanel(counts.get(k).map((i) => [docs[i], i])) : counts.get(k).map((i) => diagramSection(docs[i], i)).join("")}</div>`;
   view.innerHTML = `<div class="folder-head">
       ${crumbs.length ? `<div class="crumbs">${crumbs.join(`<span class="sep">/</span>`)}<span class="sep">/</span></div>` : ""}
       <h1>${esc(segs[segs.length - 1] || "/")}</h1>
+      ${purpose ? `<p class="purpose">${esc(purpose)}</p>` : ""}
       ${kids.length ? `<div class="inside"><span>Inside</span>${kids.map((k) => `<a class="chip" href="${esc(folderHash(k))}">${ic("folder")}${esc(rel(k, folder))}${pips(byFolder.get(k))}</a>`).join("")}</div>` : ""}
     </div>
     <div class="ktabs" role="tablist" aria-label="Kinds of view in this folder">${kinds.map((k) => `<button class="ktab kind-${k}" role="tab" id="tab-${k}" data-kind="${k}" aria-controls="panel-${k}" aria-selected="${k === shownKind}" tabindex="${k === shownKind ? 0 : -1}">${ic("kind-" + k)}${kindCount(k, counts.get(k).length)}</button>`).join("")}</div>`
@@ -1535,7 +1639,7 @@ function wire(entry) {
 
 /** The one moment of motion: the clicked part grows into the page, and the folder it stands for opens. */
 function drill(el, hash) {
-  const kind = el.closest("section")?.className.match(/kind-\w+/)?.[0];
+  const kind = el.closest("section")?.className.match(/kind-[\w-]+/)?.[0];
   if (reducedMotion.matches) { location.hash = hash; return; }
   const from = (el.querySelector(".plate, .box") ?? el).getBoundingClientRect(), to = $("view").getBoundingClientRect();
   const z = document.createElement("div");
@@ -1576,6 +1680,19 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("insp
 /** Opens a part named in the address: "class:Controls" is the type Controls in this folder's class diagram. */
 function focusPart(focus) {
   const [kind, ...restOf] = focus.split(":"), name = restOf.join(":");
+  if (kind === "entity") {
+    // "entity:backlog.json#failure-alarm" is one record in a knowledge file; without "#…" it is the file.
+    const at = name.indexOf("#"), file = at < 0 ? name : name.slice(0, at), id = at < 0 ? null : name.slice(at + 1);
+    const sec = [...$("view").querySelectorAll("section[data-file]")].find((x) => x.dataset.file === file);
+    if (!sec) return;
+    selectKind(sec.closest(".dpanel").dataset.kind);
+    const target = (id && [...sec.querySelectorAll("[data-rec]")].find((x) => x.dataset.rec === id)) || sec;
+    requestAnimationFrame(() => {
+      target.scrollIntoView({ block: "start", behavior: reducedMotion.matches ? "auto" : "smooth" });
+      if (target !== sec && !reducedMotion.matches) { target.classList.remove("pulse"); target.getBoundingClientRect(); target.classList.add("pulse"); }
+    });
+    return;
+  }
   if (kind === "view") {
     const sec = [...$("view").querySelectorAll("section[data-file]")].find((x) => x.dataset.file === name);
     if (!sec) return;
@@ -1606,12 +1723,16 @@ const facts = (pairs) => { const rows = pairs.filter(([, v]) => v); return rows.
 const bullets = (list) => list?.length ? `<ul>${list.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
 const card = (e, body) => `<article class="entity"><h3>${esc(e.name)}</h3>${e.description ? `<p>${esc(e.description)}</p>` : ""}${body}</article>`;
 
+/** The other people and outside systems a use case or journey involves, each with its actor file. */
+const supporting = (e) => (e.supportingActors ?? []).map((a) => `<span class="src">${esc(a.name)}${a.actorDocument ? ` ${fileLink(a.actorDocument)}` : ""}</span>`).join("");
+
 /** The views that are written rather than drawn; a use case shows its framing here, above its flow. */
 function cards(d) {
   const all = d.entities ?? [];
   if (d.kind === "feature") return all.map((e) => card(e, facts([["Behavior", esc(e.behavior)], ["Outcome", esc(e.outcome)], ["Constraints", bullets(e.constraints)], ["Implemented in", symRefs(e.implementation)]]))).join("");
   if (d.kind === "capability") return all.map((e) => card(e, facts([["Responsibility", esc(e.responsibility)], ["Access", bullets(e.access)], ["Operations", symRefs(e.operations)]]))).join("");
-  if (d.kind === "use-case") return all.map((e) => card(e, facts([["Actor", esc(e.actor) + (e.actorDocument ? `<span class="src">${fileLink(e.actorDocument)}</span>` : "")], ["Goal", esc(e.goal)], ["Before", bullets(e.preconditions)], ["After", bullets(e.postconditions)]]))).join("");
+  if (d.kind === "use-case") return all.map((e) => card(e, facts([["Actor", esc(e.actor) + (e.actorDocument ? `<span class="src">${fileLink(e.actorDocument)}</span>` : "")], ["Also involved", supporting(e)], ["Goal", esc(e.goal)], ["Before", bullets(e.preconditions)], ["After", bullets(e.postconditions)]]))).join("");
+  if (d.kind === "user-journey") return all.map((e) => card(e, facts([["Persona", esc(e.persona) + (e.actorDocument ? `<span class="src">${fileLink(e.actorDocument)}</span>` : "")], ["Also involved", supporting(e)], ["Goal", esc(e.goal)]]))).join("");
   if (d.kind === "operation") {
     return `<div class="scroll">${table(["Operation", "Action", "Entrypoint", "Authorization", "Result", "Can fail when"], all.map((e) => [
       esc(e.name), `<span class="pill">${esc(e.action)}</span>`, e.entrypoint ? symRefs([e.entrypoint]) : "", esc(e.authorization), esc(e.result), bullets(e.failures)]))}</div>`;
@@ -1650,6 +1771,11 @@ function details(d, i) {
       + table(["Step", "Participant", "Action", "Sources"], (e.flow ?? []).map((st, k) => [`${k + 1}`, pick(`${e.id}:${st.id}`, st.actor) + ` <span class="faint">(${esc(st.participantKind)})</span>`, esc(st.action), symRefs(st.sources)]))
       + ((e.alternatives ?? []).length ? `<h4>Otherwise</h4>` + table(["At step", "When", "Then", "Sources"], e.alternatives.map((a) => [esc(`${(e.flow ?? []).findIndex((st) => st.id === a.atStep) + 1}`), esc(a.condition), esc(a.outcome), symRefs(a.sources)])) : "")).join("");
   }
+  if (d.kind === "user-journey") {
+    what = "Stages";
+    main = (d.entities ?? []).map((e) => `<h4>${esc(e.name)}</h4>`
+      + table(["Stage", "Touchpoint", "When", "Does", "Then", "Sources"], (e.stages ?? []).map((st, k) => [`${k + 1}`, pick(`${e.id}:${st.id}`, st.touchpoint), esc(st.context), esc(st.action), esc(st.outcome), symRefs(st.sources)]))).join("");
+  }
   const written = ["feature", "capability", "operation"].includes(d.kind);
   const summary = written ? "Related views and sources" : `${what}, relationships and sources, in full`;
   return `<details class="parts"><summary>${summary}</summary>${written ? "" : `<h4>${what}</h4>${main}`}${rels.length ? `<h4>Relationships</h4>` + table(["From", "Kind", "To", "Description"], rels) : ""}${related.length ? `<h4>Related views</h4>` + table(["Kind", "View", "Why"], related) : ""}${sources.length ? `<h4>Read from</h4>` + table(["File", "Symbol"], sources) : ""}<p class="from">This view is ${fileLink(d._path)}.</p></details>`;
@@ -1662,6 +1788,167 @@ $("view").addEventListener("click", (e) => {
   entry.wrap.scrollIntoView({ block: "center", behavior: reducedMotion.matches ? "auto" : "smooth" });
   select(entry, b.dataset.pick, true);
 });
+
+// ── Knowledge files: the catalogue's records, written out ─────────────────
+
+/** The fields every record may have; everything else is the kind's own, and shown as it comes. */
+const COMMON = new Set(["id", "title", "summary", "details", "status", "origin", "evidenceStatus", "sources", "links", "relationships", "name", "description"]);
+const EVIDENCE = { "source-verified": "Checked against the code it cites", documented: "Written down, not checked against the code", proposed: "Intended, not yet true" };
+/** A field name as a label: "unblockWhen" is "Unblock when". */
+const label = (k) => { const s = String(k).replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[-_]+/g, " ").toLowerCase(); return s.charAt(0).toUpperCase() + s.slice(1); };
+const isUrl = (s) => /^https?:\/\//i.test(String(s));
+const urlLink = (url, text) => `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text ?? url)}</a>`;
+const fileName = (path) => path.split("/").pop();
+/** Where a record is shown: its folder, its file and its ID. */
+const recordHash = (d, id) => folderHash(d._folder, "entity:" + fileName(d._path) + (id ? "#" + id : ""));
+
+/** A repository path: a .dev file this page read opens here, at the record if one is named; anything else opens on the host. */
+function pathLink(path, entityId, text) {
+  const p = String(path).replace(/^\.\//, "").replace(/\/$/, "");
+  const t = byPath.get(p);
+  if (t) {
+    const e = entityId ? (t.entities ?? []).find((x) => x.id === entityId) : null;
+    const name = text ?? (e ? e.title ?? e.name ?? entityId : t.title ?? p);
+    const h = t.kind in KNOWLEDGE ? recordHash(t, e ? entityId : null) : folderHash(t._folder, "view:" + fileName(p));
+    return `<a href="${esc(h)}">${esc(name)}</a>${entityId && !e ? ` <code>#${esc(entityId)}</code>` : ""}`;
+  }
+  const f = normFolder(p);
+  if (byFolder.has(f)) return `<a href="${esc(folderHash(f))}">${esc(text ?? (f || "/"))}</a>`;
+  return `<a href="${esc(repo.host.blob(repo, p || "."))}" target="_blank" rel="noopener"><code>${esc(p || "/")}</code></a>${entityId ? ` <code>#${esc(entityId)}</code>` : ""}`;
+}
+
+/** Markdown, the safe part of it: paragraphs, lists, headings as bold lines, inline code, bold and links. HTML stays text. */
+function md(text) {
+  const inline = (t) => String(t).split(/(`[^`]+`|\[[^\]]+\]\([^)\s]+\))/).map((x, i) => {
+    if (i % 2 === 0) return esc(x).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    if (x.startsWith("`")) return `<code>${esc(x.slice(1, -1))}</code>`;
+    const [, words, href] = x.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
+    if (isUrl(href) || /^mailto:/i.test(href)) return urlLink(href, words);
+    if (/^[a-z][a-z0-9+.-]*:/i.test(href)) return esc(words);
+    return pathLink(href.replace(/^\//, "").replace(/#.*$/, ""), null, words);
+  }).join("");
+  const out = [];
+  for (const block of String(text).replace(/\r/g, "").split(/\n\s*\n/)) {
+    let para = [], list = null;
+    const flushPara = () => { if (para.length) out.push(`<p>${inline(para.join(" "))}</p>`); para = []; };
+    const flushList = () => { if (list) out.push(`<${list.tag}>${list.items.map((x) => `<li>${inline(x)}</li>`).join("")}</${list.tag}>`); list = null; };
+    for (const raw of block.split("\n")) {
+      const line = raw.trim();
+      if (!line) continue;
+      const m = line.match(/^([-*+]|\d+[.)])\s+(.*)$/), h = line.match(/^#{1,6}\s+(.*)$/);
+      if (m) {
+        const tag = /\d/.test(m[1]) ? "ol" : "ul";
+        flushPara();
+        if (list && list.tag !== tag) flushList();
+        (list ??= { tag, items: [] }).items.push(m[2]);
+      } else if (h) { flushPara(); flushList(); out.push(`<p><strong>${inline(h[1])}</strong></p>`); }
+      else if (list && /^\s/.test(raw)) list.items[list.items.length - 1] += " " + line;
+      else { flushList(); para.push(line); }
+    }
+    flushPara(); flushList();
+  }
+  return out.join("");
+}
+
+/** Any field's value, readably: lists as lists, references as links, other objects as their fields. */
+function value(v) {
+  if (v === null || v === undefined || v === "") return "";
+  if (typeof v === "boolean") return v ? "yes" : "no";
+  if (typeof v === "number") return esc(String(v));
+  if (typeof v === "string") return isUrl(v) ? urlLink(v) : esc(v);
+  if (Array.isArray(v)) {
+    const items = v.map(value).filter(Boolean);
+    return items.length === 1 && typeof v[0] !== "object" ? items[0] : items.length ? `<ul>${items.map((x) => `<li>${x}</li>`).join("")}</ul>` : "";
+  }
+  const note = v.description ? ` <span class="d">${esc(v.description)}</span>` : "";
+  if (typeof v.path === "string") return pathLink(v.path, v.entityId, v.label ?? v.title) + (v.symbol ? ` <code>${esc(v.symbol)}</code>` : "") + note;
+  if (typeof v.url === "string" && isUrl(v.url)) return urlLink(v.url, v.label ?? v.title ?? v.url) + note;
+  const head = v.title ?? v.name;
+  const rest = Object.entries(v).filter(([k, x]) => !(head && (k === "title" || k === "name")) && x !== null && x !== undefined && x !== "");
+  return (head ? `<strong>${esc(head)}</strong>` : "") + rest.map(([k, x]) => `<span class="kv"><b>${esc(label(k))}</b>${value(x)}</span>`).join("");
+}
+
+/** Where a record came from: a sentence, or who and when, with the reference as a link where it is one. */
+function originText(o) {
+  if (typeof o !== "object" || o === null) return esc(o);
+  const head = [o.kind, o.by, o.date].filter(Boolean).map(esc).join(" · ");
+  const r = o.reference;
+  // A reference is a URL, a repository path ("path#id" names one record in it), or words.
+  const [rp, rid] = String(r ?? "").split("#");
+  const ref = !r ? "" : isUrl(r) ? urlLink(r) : byPath.has(rp) || /^[\w.-]+(\/[\w.-]+)+$/.test(rp) ? pathLink(rp, rid || null) : esc(r);
+  const rest = Object.entries(o).filter(([k]) => !["kind", "by", "date", "reference", "description"].includes(k));
+  return [head, ref, o.description ? esc(o.description) : "", ...rest.map(([k, x]) => `<b>${esc(label(k))}</b> ${value(x)}`)].filter(Boolean).map((x) => `<span class="src">${x}</span>`).join("");
+}
+
+/** One record: title, badges and summary first, then its details, its own fields, and where it came from. */
+function recordCard(d, e) {
+  const st = e.status ? `<span class="badge st" title="Status">${esc(e.status)}</span>` : "";
+  const ev = e.evidenceStatus ? `<span class="badge ev-${esc(e.evidenceStatus)}" title="${esc(EVIDENCE[e.evidenceStatus] ?? "Evidence")}">${esc(e.evidenceStatus)}</span>` : "";
+  const own = Object.entries(e).filter(([k]) => !COMMON.has(k)).map(([k, v]) => [label(k), value(v)]);
+  const rels = (e.relationships ?? []).map((r) => `<span class="src"><span class="rel">${esc(label(r.relation ?? r.kind ?? "relates-to"))}</span>${r.path ? pathLink(r.path, r.entityId) : esc(r.entityId)}${r.description ? ` <span class="d">${esc(r.description)}</span>` : ""}</span>`).join("");
+  const srcs = (e.sources ?? []).map((x) => `<span class="src">${value(x)}</span>`).join("");
+  const links = (e.links ?? []).map((x) => `<span class="src">${value(x)}</span>`).join("");
+  const summary = e.summary ?? e.description;
+  return `<article class="entity" data-rec="${esc(e.id)}">
+      <div class="hrow"><h3>${esc(e.title ?? e.name ?? e.id)}</h3><span class="badges">${st}${ev}</span><span class="rid">${esc(e.id)}</span></div>
+      ${summary ? `<p>${esc(summary)}</p>` : ""}
+      ${e.details ? `<div class="md">${md(e.details)}</div>` : ""}
+      ${facts([...own, ["Origin", e.origin ? originText(e.origin) : ""], ["Relationships", rels], ["Read from", srcs], ["Links", links]])}
+    </article>`;
+}
+
+/** One knowledge file: its heading, then a card per record. */
+const knowledgeSection = (d, i) => `
+    <section class="diagram kind-knowledge" id="d${i}" data-file="${esc(fileName(d._path))}">
+      <div class="dhead"><span class="tile">${ic(KNOWLEDGE[d.kind].icon)}</span><div><h2>${esc(d.title ?? KNOWLEDGE[d.kind].name)}</h2><p class="what">${esc(KNOWLEDGE[d.kind].name)}</p></div></div>
+      ${d.description ? `<p class="ddesc">${esc(d.description)}</p>` : ""}
+      ${(Array.isArray(d.entities) ? d.entities : []).filter((e) => e && typeof e === "object").map((e) => recordCard(d, e)).join("")}
+      <p class="kfoot">This file is ${fileLink(d._path)}.</p>
+    </section>`;
+
+/** A folder's knowledge files, grouped as the catalogue groups them. `items` are [file, index in the folder]. */
+function knowledgePanel(items) {
+  return KNOWLEDGE_GROUPS.map(([group, icon, kinds]) => {
+    const here = items.filter(([d]) => kinds.some(([k]) => k === d.kind));
+    return here.length ? `<div class="kgroup kind-knowledge"><h2>${ic(icon)}${esc(group)}</h2>${here.map(([d, i]) => knowledgeSection(d, i)).join("")}</div>` : "";
+  }).join("");
+}
+
+// ── Waiting: open decisions and blockers, across the repository ──────────
+
+const WAITING = "~waiting";
+const DONE = /^(resolved|done|closed|removed|unblocked|cancell?ed)$/i;
+function waitingRecords() {
+  const decisions = [], blockers = [];
+  for (const f of folders()) for (const d of byFolder.get(f)) {
+    for (const e of Array.isArray(d.entities) ? d.entities : []) {
+      if (d.kind === "decisions" && String(e.status ?? "").toLowerCase() === "open") decisions.push([d, e]);
+      if (d.kind === "blockers" && !DONE.test(String(e.status ?? ""))) blockers.push([d, e]);
+    }
+  }
+  return { decisions, blockers };
+}
+
+function showWaitingLink() {
+  const { decisions, blockers } = waitingRecords(), n = decisions.length + blockers.length;
+  const a = $("waiting");
+  a.hidden = !n;
+  a.innerHTML = `${ic("hourglass")}Waiting<span class="n" title="${decisions.length} open decisions, ${blockers.length} blockers">${n}</span>`;
+}
+
+function showWaiting() {
+  const { decisions, blockers } = waitingRecords();
+  const rec = (d, e) => `<a href="${esc(recordHash(d, e.id))}">${esc(e.title ?? e.id)}</a>${e.summary ? `<br><span class="faint">${esc(e.summary)}</span>` : ""}`;
+  const where = (d) => folderLink(d._folder);
+  $("view").innerHTML = `<div class="folder-head"><h1>Waiting</h1>
+      <p class="purpose">Decisions that are still open and work that is blocked, everywhere in ${esc(repo.host.label(repo))}, from its <code>decisions.json</code> and <code>blockers.json</code> files.</p></div>
+    <div class="kgroup kind-knowledge"><h2>${ic("g-work")}Open decisions</h2>
+      ${decisions.length ? `<div class="scroll waiting">${table(["Decision", "Folder", "Waits on", "Blocks", "Context"], decisions.map(([d, e]) => [rec(d, e), where(d), value(e.waitingOn), value(e.blocks), esc(e.context)]))}</div>` : `<p class="ddesc">No decision is open.</p>`}
+    </div>
+    <div class="kgroup kind-knowledge"><h2>${ic("hourglass")}Blockers</h2>
+      ${blockers.length ? `<div class="scroll waiting">${table(["Blocker", "Folder", "Who can unblock it", "Blocks", "Unblocked when"], blockers.map(([d, e]) => [rec(d, e), where(d), value(e.canUnblock), value(e.blocked), esc(e.unblockWhen)]))}</div>` : `<p class="ddesc">Nothing is blocked.</p>`}
+    </div>`;
+}
 
 // ── Start: the address comes from ?url=; the form is only for choosing one ──
 
