@@ -1,0 +1,64 @@
+{
+  "$schema": "../../Agents/Knowledge/schemas/references.schema.json",
+  "kind": "references",
+  "title": "What the browser builds on",
+  "folder": "software-system-browser",
+  "entities": [
+    {
+      "id": "dagre",
+      "title": "dagre",
+      "summary": "The layout library that places parts and routes lines.",
+      "url": "https://github.com/dagrejs/dagre",
+      "relevance": "Version 3.1.3 is loaded from jsDelivr; the page uses its compound graphs, ranks and edge points."
+    },
+    {
+      "id": "barlow",
+      "title": "Barlow on Fontsource",
+      "summary": "The typeface family, in three widths.",
+      "url": "https://fontsource.org/fonts/barlow",
+      "relevance": "Barlow, Barlow Semi Condensed and Barlow Condensed are loaded from Fontsource's packages on jsDelivr."
+    },
+    {
+      "id": "github-trees",
+      "title": "GitHub REST API: get a tree",
+      "summary": "How a GitHub repository is listed.",
+      "url": "https://docs.github.com/en/rest/git/trees",
+      "relevance": "The page lists a repository with one recursive tree call, which GitHub may truncate."
+    },
+    {
+      "id": "github-contents",
+      "title": "GitHub REST API: repository contents",
+      "summary": "How a file is read with a token.",
+      "url": "https://docs.github.com/en/rest/repos/contents",
+      "relevance": "With a token, files are read here with Accept: application/vnd.github.raw."
+    },
+    {
+      "id": "github-limits",
+      "title": "GitHub REST API rate limits",
+      "summary": "60 requests an hour without a token, 5,000 with one.",
+      "url": "https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api",
+      "relevance": "Sets how many repositories a reader without a token can open."
+    },
+    {
+      "id": "gitlab-tree",
+      "title": "GitLab API: repository tree",
+      "summary": "How a GitLab project is listed.",
+      "url": "https://docs.gitlab.com/ee/api/repositories.html",
+      "relevance": "The page lists a project's tree, a hundred entries to a page."
+    },
+    {
+      "id": "gitlab-files",
+      "title": "GitLab API: repository files",
+      "summary": "How a GitLab file is read.",
+      "url": "https://docs.gitlab.com/ee/api/repository_files.html",
+      "relevance": "Each .dev file is read raw, with the token as PRIVATE-TOKEN."
+    },
+    {
+      "id": "aria-tabs",
+      "title": "WAI-ARIA Authoring Practices: tabs",
+      "summary": "The keyboard pattern the kind tabs follow.",
+      "url": "https://www.w3.org/WAI/ARIA/apg/patterns/tabs/",
+      "relevance": "Arrow keys, Home and End move between tabs; only the open tab is in the tab order."
+    }
+  ]
+}

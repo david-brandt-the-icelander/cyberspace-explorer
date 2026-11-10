@@ -1,0 +1,236 @@
+{
+  "$schema": "../../Agents/Knowledge/schemas/decisions.schema.json",
+  "kind": "decisions",
+  "title": "How the browser is built and looks",
+  "folder": "software-system-browser",
+  "entities": [
+    {
+      "id": "one-file",
+      "title": "One HTML file, no build, no server",
+      "summary": "The page is a single file that runs in the reader's browser.",
+      "status": "accepted",
+      "context": "The browser has to be easy to host, copy and trust with a private repository.",
+      "decision": "Markup, styles, script and icons are in index.html. It talks to the repository's host straight from the browser, and loads only dagre and the typefaces from jsDelivr.",
+      "rationale": "Any static host serves it, there is nothing to build, and no server ever sees a repository or a token.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/README.md",
+          "symbol": "How it works"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "DAGRE"
+        }
+      ]
+    },
+    {
+      "id": "own-drawing",
+      "title": "The page draws its own diagrams",
+      "summary": "dagre places parts; the page draws everything.",
+      "status": "accepted",
+      "context": "Each kind of diagram reads best with its own shapes, and a general diagramming library would set the look.",
+      "decision": "dagre 3.1.3 only positions parts and routes lines. Shapes, lines, arrowheads, labels and icons are SVG written by the page, one drawing per kind, sharing one layout and one renderer.",
+      "rationale": "The drawings look like one family and like the rest of the page, and only one library is needed.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "layoutOne"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "drawSvg"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "MODELS"
+        }
+      ]
+    },
+    {
+      "id": "survey-sheet",
+      "title": "A survey sheet: cool paper and slate ink",
+      "summary": "The page's look is a surveyor's sheet.",
+      "status": "accepted",
+      "context": "The page is read for long stretches and is mostly drawings and tables.",
+      "decision": "Light: paper #edf1f1, sheet #f8fafa, plates #ffffff, ink #1d2b33 with #56666e and #84949b for secondary and faint text, rules #c9d3d5. Dark: paper #10181d, sheet #152128, plates #1b2a32, ink #dce5e5. Drawings sit on the sheet with a small cross at every 24-unit grid point, and parts are white plates with a soft shadow in their kind's colour.",
+      "rationale": "Quiet surfaces let the one colour per kind carry the meaning.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": ":root"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "p-grid"
+        }
+      ]
+    },
+    {
+      "id": "colour-per-kind",
+      "title": "One colour per kind",
+      "summary": "Each kind of view has one colour, used everywhere that kind appears.",
+      "status": "accepted",
+      "context": "A reader moves between ten kinds of view and needs to know at a glance which one they are in.",
+      "decision": "Component #2c6e8e, deployment #a26a14, class #527a31, state #8b4a8c, use case #bb5430, capability #4f58b0, feature #b0456f, operation #5b6a72, user journey #1f7f74, knowledge #7a5f36, each with a lighter value for dark mode. The colour marks the kind's icon, pips, tab underline, plate outlines and tints, card edges and the inspector.",
+      "rationale": "The kind is recognisable from any part of the page without reading.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "--k-component"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "kind-component"
+        }
+      ]
+    },
+    {
+      "id": "barlow",
+      "title": "Barlow in three widths",
+      "summary": "One type family, in three widths, with a system monospace.",
+      "status": "accepted",
+      "context": "The page sets long names in narrow places: tree rows, plates, tabs, table headers.",
+      "decision": "Barlow (400, 500) for reading text at 16 px; Barlow Semi Condensed (500, 600) for labels, tabs, headings, the tree and inside drawings; Barlow Condensed (600, 700) for the brand, the landing headline and a folder's name, set large. Paths, IDs and symbols are in the system monospace.",
+      "rationale": "Condensed widths fit more of a name in a plate or a row while staying one family.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "--sans"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "F_NAME"
+        }
+      ]
+    },
+    {
+      "id": "own-icons",
+      "title": "Icons drawn for the page",
+      "summary": "Every icon is drawn for this page on a 24-unit grid.",
+      "status": "accepted",
+      "context": "Icons mark kinds, groups and parts, and a part's icon should say what it is.",
+      "decision": "Strokes of 1.6 with round ends, and one tinted shape per glyph so each reads as a small solid object. A component's icon is chosen from its name (an engine gets a gear, a renderer a screen, a database a cylinder, and so on, with a cube when nothing matches); a deployment node's from its kind; a type's from its kind.",
+      "rationale": "The drawings say something before they are read, and the icons match the drawings.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "ICONS"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "GLYPH_RULES"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "glyphFor"
+        }
+      ]
+    },
+    {
+      "id": "tabs-by-kind",
+      "title": "A folder shows one kind at a time",
+      "summary": "Tabs by kind, with all knowledge under one tab.",
+      "status": "accepted",
+      "context": "A folder can have a dozen views and knowledge files, and drawings need room.",
+      "decision": "A tab per kind, in a fixed order; the open kind stays open from folder to folder. Every knowledge file shares one tab, grouped as the catalogue groups them.",
+      "rationale": "A reader sees one kind at full width, and following one kind through the tree keeps them on it.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showFolder"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "selectKind"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "knowledgePanel"
+        }
+      ]
+    },
+    {
+      "id": "tables-always",
+      "title": "Every view is also tables",
+      "summary": "A drawing is a way in, not the only way.",
+      "status": "accepted",
+      "context": "A drawing can fail to load, be too dense, or hide a detail.",
+      "decision": "Under each drawing a disclosure holds the view in full as tables: parts, relationships or transitions, related views and sources, with the file itself linked.",
+      "rationale": "Nothing a view says is only in a picture.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "details"
+        }
+      ]
+    },
+    {
+      "id": "one-motion",
+      "title": "One moment of motion",
+      "summary": "Opening a folder through a drawing is the page's one animation.",
+      "status": "accepted",
+      "context": "Motion should say something.",
+      "decision": "The badged part grows into the page as its folder opens. Beyond that the page only pulses a part or flashes a record it has moved to, fades what is not lit and ticks while loading; all of it is off with reduced motion.",
+      "rationale": "The one movement explains where the reader has gone: into the part.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "drill"
+        }
+      ]
+    },
+    {
+      "id": "address-is-state",
+      "title": "The address is the state",
+      "summary": "Once a repository is open, the address says what is shown.",
+      "status": "accepted",
+      "context": "Links are how readers share what they see.",
+      "decision": "The repository is in ?url= and the place in it after #. The landing page's form only sets ?url=; there is no address field once a repository is open, and Choose another repository returns to the landing page.",
+      "rationale": "Every place can be linked to, and back and forward work.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "address"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "route"
+        }
+      ]
+    },
+    {
+      "id": "tokens-in-browser",
+      "title": "Tokens stay in the reader's browser, by scope",
+      "summary": "Each token is kept under the host and scope it is for.",
+      "status": "accepted",
+      "context": "Readers have private repositories on several hosts and accounts, and must not leak a token to the wrong host.",
+      "decision": "Tokens are kept in sessionStorage, or localStorage when asked, under a scope; the narrowest scope around a repository wins. GitHub files are read from raw.githubusercontent.com without a token and through the API with one, because raw.githubusercontent.com turns away an Authorization header.",
+      "rationale": "No server holds anyone's access, and several accounts work side by side.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "TOKENS"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "tokenScope"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "github"
+        }
+      ]
+    }
+  ]
+}

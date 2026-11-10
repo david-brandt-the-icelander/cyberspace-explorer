@@ -1,0 +1,679 @@
+{
+  "$schema": "../../Agents/Skills/describe-feature/schema.json",
+  "kind": "feature",
+  "title": "What the browser offers",
+  "folder": "software-system-browser",
+  "description": "Every feature a reader meets, with the limits it works within. Together they are what a design of the page has to carry.",
+  "sources": [
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "load"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "showFolder"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "drawDiagram"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "recordCard"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "showWaiting"
+    }
+  ],
+  "entities": [
+    {
+      "id": "open-by-address",
+      "name": "Open any repository by its address",
+      "description": "The browser reads a GitHub or GitLab repository from the address alone.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "parseAddress"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "resolveRef"
+        }
+      ],
+      "behavior": "The landing page takes an address; a link can carry it as ?url=. It may be a repository, a branch, tag or commit (/tree/<ref>, slashes in the name included), or a folder in one, which limits the browser to that folder. git@ addresses are read as https. Anything not on github.com is tried as a GitLab, on gitlab.com or a self-hosted one.",
+      "outcome": "A reader needs nothing but the address, and a link opens straight on the repository.",
+      "constraints": [
+        "GitHub and GitLab only: a plain git server cannot be listed from a browser.",
+        "A self-hosted GitLab must allow the page's origin.",
+        "Once a repository is open there is no address field: Choose another repository goes back to the landing page."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "parseAddress"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "resolveRef"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "load"
+        }
+      ]
+    },
+    {
+      "id": "tokens",
+      "name": "Access tokens that stay with the reader",
+      "description": "Private repositories are read with the reader's own token, which never leaves their browser except to its host.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "openTokenPanel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "saveToken"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "tokenScope"
+        }
+      ],
+      "behavior": "When a host refuses, the status line offers to add a token. The panel takes a token, a scope (every repository on the host, everything under an owner or group, or one repository) and whether to keep it after the tab closes. A repository uses the narrowest token around it, so tokens for several accounts can sit side by side. The bar's button shows when a token is in use, and the panel lists every token kept, marks the one in use and forgets any of them.",
+      "outcome": "Readers can browse private repositories without trusting a server with their access.",
+      "constraints": [
+        "A token is sent only to the host it was saved for.",
+        "Tokens are kept in sessionStorage, or localStorage when asked, under architecture-browser.tokens.",
+        "Saving or forgetting the token in use reloads the page."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "openTokenPanel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "saveToken"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "tokenScope"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "heldTokens"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showTokenButton"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "auth"
+        }
+      ]
+    },
+    {
+      "id": "folder-tree",
+      "name": "A tree of the folders that have views",
+      "description": "The left column lists the folders with .dev files, nested under the nearest such folder above them.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showTree"
+        }
+      ],
+      "behavior": "Each folder shows its name relative to its parent in the tree, and a small icon in its kind's colour for each kind of view it holds, with a count when there is more than one. The folder being read is marked and scrolled into sight. A filter narrows the tree to folders whose name, view titles, or part names and IDs match, keeping their parents.",
+      "outcome": "A reader sees at a glance where in the repository there is something to read, and of what kind.",
+      "constraints": [
+        "Folders without .dev files are not shown; a folder with views under a folder without them hangs from the nearest one above that has them.",
+        "The filter matches names, titles and IDs, not summaries or details.",
+        "Under 860 px wide the column moves above the content and takes at most a third of the screen."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showTree"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "pips"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "parentOf"
+        }
+      ]
+    },
+    {
+      "id": "folder-head",
+      "name": "A folder's head",
+      "description": "Above the tabs, a folder says where it is, what it is for and what is inside it.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showFolder"
+        }
+      ],
+      "behavior": "Crumbs link the folders above that have views. The folder's name is set large, with its folder.json purpose under it. The folders inside it that have views are chips, each with its kind icons.",
+      "outcome": "A reader knows where they are and where they can go before reading any view.",
+      "constraints": [
+        "The purpose comes from the first record of the folder's folder.json; without one there is none."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showFolder"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "childrenOf"
+        }
+      ]
+    },
+    {
+      "id": "kind-tabs",
+      "name": "One kind of view at a time",
+      "description": "A folder shows one kind of view at a time, under a tab per kind.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showFolder"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "selectKind"
+        }
+      ],
+      "behavior": "Each tab names its kind and how many of it the folder has, in that kind's colour. The open kind stays open when the reader moves to another folder that has it. Arrow keys, Home and End move between tabs. All knowledge files share one Knowledge tab. Opening a tab scrolls the tabs back into sight if the page was scrolled past them.",
+      "outcome": "A folder with many views stays readable, and a reader following one kind through the tree stays on it.",
+      "constraints": [
+        "Structural diagrams come first, then use cases, journeys, capabilities, features and operations, then knowledge."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showFolder"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "selectKind"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "KIND_ORDER"
+        }
+      ]
+    },
+    {
+      "id": "drawings",
+      "name": "Drawn diagrams",
+      "description": "Component, deployment, class and state diagrams are drawn as SVG on a sheet of grid crosses.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "componentModel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "deploymentModel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "classModel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "stateModel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "drawSvg"
+        }
+      ],
+      "behavior": "Components are plates with an icon chosen from their names, nested in the plate of the part that contains them; external ones are dashed. Deployment nodes are plates, and a host is a frame around what it runs, with its artifacts inside. Classes are cards with their members. A state machine has a start point, states as rounded plates, final states with a double ring, transitions to the same state looped above it, and each transition labelled with what fires it. A legend under each drawing says what its lines and marks mean. Separate pieces are packed in rows; state and deployment diagrams are laid out left to right or top to bottom, whichever is drawn larger.",
+      "outcome": "A reader sees the shape of a folder before reading its parts.",
+      "constraints": [
+        "dagre places the parts; everything else is drawn by the page.",
+        "A drawing is laid out when its tab first opens, and again when a late web font changes the text widths.",
+        "Labels are measured in the Barlow typefaces and wrapped to two lines, three for use-case steps and journey stages."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "componentModel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "deploymentModel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "classModel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "stateModel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "layout"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "drawSvg"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "LEGENDS"
+        }
+      ]
+    },
+    {
+      "id": "behavior-drawings",
+      "name": "Use cases and journeys drawn as flows",
+      "description": "Use cases and user journeys go through the same drawing as the diagrams.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "useCaseModel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "journeyModel"
+        }
+      ],
+      "behavior": "A use case is its steps from top to bottom, a person's or outside system's steps apart from the system's by their icon, each alternative branching off its step as a dashed outcome with its condition on the line. A journey is its stages from left to right, each what the person does at a touchpoint. Above the drawing, a card names the actor or persona, anyone else involved, the goal and, for a use case, what holds before and after.",
+      "outcome": "A reader follows a flow in order and sees where it can go another way.",
+      "constraints": [
+        "Several use cases or journeys in one file are laid out as separate pieces."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "useCaseModel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "journeyModel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "cards"
+        }
+      ]
+    },
+    {
+      "id": "pan-zoom",
+      "name": "Pan and zoom",
+      "description": "Each drawing has its own camera.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "camera"
+        }
+      ],
+      "behavior": "A drawing is fitted to the page's width, between 55% and 100%, and is as tall as it needs, up to a screen and a half. Dragging pans it; ⌘ or Ctrl with the wheel, or a pinch, zooms about the pointer, between 30% and 250%; three buttons in its corner zoom out, zoom in and fit again. The camera keeps the drawing in its frame.",
+      "outcome": "Large drawings stay usable without leaving the page.",
+      "constraints": [
+        "A plain scroll wheel scrolls the page, not the drawing.",
+        "A drawing that fits its frame can't be dragged."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "camera"
+        }
+      ]
+    },
+    {
+      "id": "inspect",
+      "name": "Hover, select and inspect parts",
+      "description": "A drawing answers the pointer and the keyboard.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "wire"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "select"
+        }
+      ],
+      "behavior": "Hovering a part lights it and its neighbours and fades everything else; hovering a line lights it and its ends and says what the relationship is. A tooltip says what is under the pointer and what a click does. Clicking a part, or Enter or Space on it, opens the inspector at the right with everything the view says about it, its neighbours as links; following one moves to that part and pulses it. Escape or the close button closes it. Under each drawing, a disclosure lists the view in full as tables, and a part's name there selects it in the drawing.",
+      "outcome": "A reader learns about one part without losing the whole.",
+      "constraints": [
+        "Parts are reachable with Tab; lines are not.",
+        "The inspector covers the right of the page and moves no focus."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "wire"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "light"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showTip"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "select"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "closeInspector"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "details"
+        }
+      ]
+    },
+    {
+      "id": "drill-down",
+      "name": "Walk into a folder through a drawing",
+      "description": "The drawings are the way around the repository.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "navFor"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "drill"
+        }
+      ],
+      "behavior": "A part with a round badge stands for a folder with views of its own: a sub-component, the folder an artifact is built from, or the folder that declares an external type. Clicking it grows its outline into the page and opens that folder.",
+      "outcome": "A reader moves from the whole to its parts by clicking what they are looking at.",
+      "constraints": [
+        "This is the page's one deliberate animation; with reduced motion the folder opens at once."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "navFor"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "drill"
+        }
+      ]
+    },
+    {
+      "id": "written-views",
+      "name": "Capabilities, features and operations written out",
+      "description": "The views that are not drawn are written as cards and a table.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "cards"
+        }
+      ],
+      "behavior": "A capability card gives its responsibility, who may use it and its operations; a feature card its behavior, outcome, constraints and where it is implemented; the operations of a folder are one table of action (a command or query pill), entrypoint, authorization, result and what can make it fail. Each links to the source symbol it was read from.",
+      "outcome": "A reader reads behavior as prose, with the code a click away.",
+      "constraints": [
+        "The operations table is at least 860 px wide, and scrolls sideways in a narrower space."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "cards"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "symRefs"
+        }
+      ]
+    },
+    {
+      "id": "related-views",
+      "name": "Related views",
+      "description": "Every view lists the views it relates to.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "details"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "viewHash"
+        }
+      ],
+      "behavior": "Under each view, its related views are links that open the other view in its own folder, with why they are related, which is the way from a feature to the operations and capability that carry it out.",
+      "outcome": "A reader moves between the angles on one piece of behavior.",
+      "constraints": [
+        "A related view the page did not read links to the file on the host."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "details"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "viewHash"
+        }
+      ]
+    },
+    {
+      "id": "knowledge-cards",
+      "name": "Knowledge files as cards",
+      "description": "A folder's knowledge files share one tab, grouped as the catalogue groups them.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "knowledgePanel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "recordCard"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "md"
+        }
+      ],
+      "behavior": "The groups are direction, requirements, work, structure, verification, delivery, operation and reference, each headed with its icon. Each file has a heading, and each record is a card: its title, a status badge in the kind's colour, an evidence badge (source-verified in green, documented plain, proposed dashed) and its ID; then its summary, its details as Markdown, every other field it carries with its name as the label, and where it came from, its relationships, its sources and its links. A path to another .dev file opens that file here, at the record it names; any other path opens on the host.",
+      "outcome": "Everything an agent recorded is visible, including fields no schema names.",
+      "constraints": [
+        "Only the safe part of Markdown is rendered: paragraphs, lists, headings as bold lines, bold, inline code and links. HTML stays text.",
+        "A field's value is shown as it comes: lists as lists, objects as their fields, paths and URLs as links."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "knowledgePanel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "knowledgeSection"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "recordCard"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "md"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "value"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "originText"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "pathLink"
+        }
+      ]
+    },
+    {
+      "id": "waiting",
+      "name": "Waiting",
+      "description": "One view of everything in the repository that waits on someone.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "waitingRecords"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showWaiting"
+        }
+      ],
+      "behavior": "Above the tree, Waiting counts the open decisions and blockers in the whole repository. It opens a view with two tables: open decisions, with their folder, who they wait on, what they block and their context; and blockers, with their folder, who can unblock them, what they block and when they are unblocked. Each row links to its record.",
+      "outcome": "Nothing an agent is waiting on stays hidden in a folder nobody opens.",
+      "constraints": [
+        "Shown only when something is waiting.",
+        "A blocker counts until its status is resolved, done, closed, removed, unblocked or cancelled."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "waitingRecords"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showWaitingLink"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showWaiting"
+        }
+      ]
+    },
+    {
+      "id": "deep-links",
+      "name": "Addresses for everything",
+      "description": "Every place in the browser has an address that can be shared.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "route"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "focusPart"
+        }
+      ],
+      "behavior": "#<folder> opens a folder; |<kind>:<part> after it opens that part in its drawing; |view:<file> scrolls to a view; |entity:<file>#<id> scrolls to a record and flashes it; #~waiting opens Waiting. Back and forward move through them.",
+      "outcome": "A reader can point anyone at exactly what they are looking at.",
+      "constraints": [
+        "Selecting a part with the pointer does not change the address; only links do."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "route"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "focusPart"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "folderHash"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "recordHash"
+        }
+      ]
+    },
+    {
+      "id": "status-line",
+      "name": "One line for what is happening",
+      "description": "Progress, problems and what was skipped are said in one line under the bar.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "status"
+        }
+      ],
+      "behavior": "The line says what the page is doing, with a small ticking square while it works; turns red when something went wrong; and carries at most one button, for the one thing worth doing about it. When the repository is shown, it notes what was left out and why, or is empty.",
+      "outcome": "A reader always knows why they see what they see.",
+      "constraints": [
+        "Problems with single files are listed in that one line, however many there are."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "status"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "load"
+        }
+      ]
+    },
+    {
+      "id": "light-dark",
+      "name": "Light and dark, wide and narrow",
+      "description": "The page follows the reader's system.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "prefers-color-scheme: dark"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "max-width: 860px"
+        }
+      ],
+      "behavior": "Colours follow the system's light or dark setting. Under 860 px the folder column moves above the content and the bar drops the ref and shortens Choose another repository to Choose; under 560 px the brand keeps only its mark. With reduced motion the drill, pulses, flashes, ticking and fades are off and scrolling jumps.",
+      "outcome": "The page reads well at night, in a narrowed window, and for readers who turn motion off.",
+      "constraints": [
+        "There is no switch on the page for light or dark: the system decides."
+      ],
+      "implementation": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "prefers-color-scheme: dark"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "max-width: 860px"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "prefers-reduced-motion: reduce"
+        }
+      ]
+    }
+  ],
+  "relatedViews": [
+    {
+      "kind": "capability",
+      "folder": "software-system-browser",
+      "path": "software-system-browser/.dev/capability.json",
+      "relationship": "The capabilities these features make up."
+    },
+    {
+      "kind": "operation",
+      "folder": "software-system-browser",
+      "path": "software-system-browser/.dev/operation.json",
+      "relationship": "The entrypoints that reach them."
+    },
+    {
+      "kind": "use-case",
+      "folder": "software-system-browser",
+      "path": "software-system-browser/.dev/use-case.json",
+      "relationship": "What readers do with them."
+    },
+    {
+      "kind": "component",
+      "folder": "software-system-browser",
+      "path": "software-system-browser/.dev/component-diagram.json",
+      "relationship": "The parts of the page that carry them out."
+    }
+  ]
+}

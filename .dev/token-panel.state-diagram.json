@@ -1,0 +1,77 @@
+{
+  "$schema": "../../Agents/Skills/describe-state-diagram/schema.json",
+  "kind": "state",
+  "title": "The token panel",
+  "description": "How the token panel opens, saves and forgets. Saving or forgetting the token in use reloads the page, so that every request is made again with it.",
+  "sources": [
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "openTokenPanel"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "saveToken"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "showTokenButton"
+    }
+  ],
+  "machine": "Token panel",
+  "initialState": "closed",
+  "states": [
+    {
+      "id": "closed",
+      "description": "Not shown. The bar's Tokens button shows only once a repository is open and at least one token is kept; it reads 'Token added' when one covers this repository and 'Tokens' when none does."
+    },
+    {
+      "id": "open",
+      "description": "Under the bar at the right: the tokens kept, each with its scope, 'in use' on the one this repository uses, where it is kept (this tab or this browser) and Forget; what kind of token the host wants and that it goes to that host alone; a password field; 'Use it for' with every repository on the host, everything under each owner or group, or only this repository; 'Keep it on this browser after the tab closes'; Save and reload, and Cancel."
+    },
+    {
+      "id": "reloading",
+      "description": "The page reloads to read the repository again with the token now in force.",
+      "terminal": true
+    }
+  ],
+  "transitions": [
+    {
+      "from": "closed",
+      "to": "open",
+      "trigger": "the Tokens button, or Add a token on the status line",
+      "action": "the token field takes the focus; an owner or group is chosen as the scope unless a token is already in use"
+    },
+    {
+      "from": "open",
+      "to": "closed",
+      "trigger": "Cancel, Escape, the Tokens button, or a click outside the panel"
+    },
+    {
+      "from": "open",
+      "to": "closed",
+      "trigger": "Save and reload",
+      "guard": "the field is empty"
+    },
+    {
+      "from": "open",
+      "to": "reloading",
+      "trigger": "Save and reload, or Enter in the field",
+      "guard": "a token was pasted",
+      "action": "the token replaces any other for that scope, in this tab or, if asked, this browser"
+    },
+    {
+      "from": "open",
+      "to": "reloading",
+      "trigger": "Forget",
+      "guard": "it is the token in use"
+    },
+    {
+      "from": "open",
+      "to": "open",
+      "trigger": "Forget",
+      "guard": "another token",
+      "action": "the list is drawn again without it"
+    }
+  ],
+  "folder": "software-system-browser"
+}

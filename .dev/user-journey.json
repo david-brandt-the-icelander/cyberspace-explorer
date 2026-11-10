@@ -1,0 +1,369 @@
+{
+  "$schema": "../../Agents/Skills/describe-user-journey/schema.json",
+  "kind": "user-journey",
+  "title": "A reader's journeys",
+  "folder": "software-system-browser",
+  "description": "How a reader's time with the browser goes, from the link they are given to the thing they came for.",
+  "sources": [
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "load"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "openTokenPanel"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "showWaiting"
+    }
+  ],
+  "entities": [
+    {
+      "id": "first-look",
+      "name": "First look at a repository",
+      "description": "Someone has been sent a link to a repository in the browser and wants to understand it.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "load"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "route"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "drill"
+        }
+      ],
+      "persona": "Reader",
+      "actorDocument": "Actors/reader.md",
+      "goal": "Understand how the repository is put together, and point a colleague at one part of it.",
+      "stages": [
+        {
+          "id": "link",
+          "context": "A message or a document links to the browser with ?url= and maybe a folder after #.",
+          "touchpoint": "Shared link",
+          "action": "Opens the link.",
+          "outcome": "The page names the repository in the bar and says it is listing it.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "load"
+            }
+          ]
+        },
+        {
+          "id": "wait",
+          "context": "Two requests to list the repository, then one per .dev file.",
+          "touchpoint": "Status line",
+          "action": "Waits.",
+          "outcome": "The tree and the linked folder appear, or the shallowest folder if none was named.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "load"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "route"
+            }
+          ]
+        },
+        {
+          "id": "orient",
+          "context": "The folder's name, its purpose, the folders inside it and a tab per kind of view.",
+          "touchpoint": "Folder view",
+          "action": "Reads the head of the folder and picks a tab.",
+          "outcome": "One kind of view is open; its drawing is laid out.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "showFolder"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "selectKind"
+            }
+          ]
+        },
+        {
+          "id": "explore",
+          "context": "A drawing with a legend under it.",
+          "touchpoint": "Drawing and inspector",
+          "action": "Hovers parts to see their neighbours, clicks one to read about it.",
+          "outcome": "They know what the part does and what it depends on.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "wire"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "select"
+            }
+          ]
+        },
+        {
+          "id": "descend",
+          "context": "A part with a round badge stands for a folder with views of its own.",
+          "touchpoint": "Drawing",
+          "action": "Clicks it.",
+          "outcome": "The part grows into the page and the folder opens on the same kind of view, if it has one.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "drill"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "showFolder"
+            }
+          ]
+        },
+        {
+          "id": "share",
+          "context": "The address now names the folder, and a part, view or record when one was opened from a link.",
+          "touchpoint": "Address bar",
+          "action": "Copies the address and sends it on.",
+          "outcome": "Whoever opens it lands where they were.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "folderHash"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "focusPart"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "private-repository",
+      "name": "Reading a private repository",
+      "description": "A reader opens a repository the host does not show to everyone, and comes back to it later.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "getJson"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "openTokenPanel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "saveToken"
+        }
+      ],
+      "persona": "Reader",
+      "actorDocument": "Actors/reader.md",
+      "goal": "Read their own private repository without giving their access to anyone else.",
+      "stages": [
+        {
+          "id": "refused",
+          "context": "The host answers 404 or 401: to a stranger a private repository does not exist.",
+          "touchpoint": "Status line",
+          "action": "Reads why, and presses Add a token.",
+          "outcome": "The token panel opens, saying which token the host wants and that it goes to that host alone.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "getJson"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "tokenOffer"
+            }
+          ]
+        },
+        {
+          "id": "make-token",
+          "context": "They need a token they don't have yet.",
+          "touchpoint": "The host's settings, outside the browser",
+          "action": "Makes a token with the right permission.",
+          "outcome": "They have a token to paste.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "github"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "gitlab"
+            }
+          ]
+        },
+        {
+          "id": "save",
+          "context": "The panel suggests the owner or group as the token's scope.",
+          "touchpoint": "Token panel",
+          "action": "Pastes it, keeps or changes the scope, ticks Keep it on this browser if it is their own machine, and saves.",
+          "outcome": "The page reloads and reads the repository.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "openTokenPanel"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "saveToken"
+            }
+          ]
+        },
+        {
+          "id": "browse",
+          "context": "The bar's button now reads Token added.",
+          "touchpoint": "Bar",
+          "action": "Browses as with any repository.",
+          "outcome": "Every request to the host carries the token.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "showTokenButton"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "auth"
+            }
+          ]
+        },
+        {
+          "id": "return",
+          "context": "Days later, from a bookmark.",
+          "touchpoint": "Shared link",
+          "action": "Opens it again.",
+          "outcome": "A token kept on the browser is used at once; one kept for the tab is gone, and they are asked again.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "tokenScope"
+            }
+          ]
+        },
+        {
+          "id": "expired",
+          "context": "The token has expired or been revoked.",
+          "touchpoint": "Status line",
+          "action": "Reads that the host refused the token for that scope, and presses Replace or add a token.",
+          "outcome": "They paste a new one, or forget the old one in the panel.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "getJson"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "openTokenPanel"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "review-agent-work",
+      "name": "Reviewing what agents have written",
+      "description": "The owner of a repository whose .dev files agents keep checks what waits on them and how far to trust what is written.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showWaiting"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "recordCard"
+        }
+      ],
+      "persona": "Reader",
+      "actorDocument": "Actors/reader.md",
+      "goal": "Take the decisions only they can take, and catch what an agent got wrong.",
+      "stages": [
+        {
+          "id": "waiting",
+          "context": "Waiting above the tree shows how many records wait.",
+          "touchpoint": "Waiting view",
+          "action": "Opens Waiting and reads who each decision waits on and what it blocks.",
+          "outcome": "They know what is theirs to decide.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "showWaitingLink"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "showWaiting"
+            }
+          ]
+        },
+        {
+          "id": "decision",
+          "context": "A decision record with its context, its options and their consequences.",
+          "touchpoint": "Knowledge card",
+          "action": "Opens the record from the table and reads it.",
+          "outcome": "They can decide, and tell an agent to record the decision.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "focusPart"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "recordCard"
+            }
+          ]
+        },
+        {
+          "id": "trust",
+          "context": "Each record says whether it was checked against the code (source-verified), only written down (documented) or is intent (proposed).",
+          "touchpoint": "Evidence badge",
+          "action": "Hovers the badge to see what it means, and reads the record with that in mind.",
+          "outcome": "They know which claims to check.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "recordCard"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "EVIDENCE"
+            }
+          ]
+        },
+        {
+          "id": "check",
+          "context": "Read from lists the files and symbols a record or view was read from.",
+          "touchpoint": "Source links",
+          "action": "Opens a source on the host.",
+          "outcome": "The code is in a new tab, at the file the record cites.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "fileLink"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "value"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "relatedViews": [
+    {
+      "kind": "use-case",
+      "folder": "software-system-browser",
+      "path": "software-system-browser/.dev/use-case.json",
+      "relationship": "The use cases each stage relies on."
+    },
+    {
+      "kind": "feature",
+      "folder": "software-system-browser",
+      "path": "software-system-browser/.dev/feature.json",
+      "relationship": "The features each touchpoint offers."
+    }
+  ]
+}

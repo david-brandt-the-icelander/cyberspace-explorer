@@ -1,0 +1,139 @@
+{
+  "$schema": "../../Agents/Skills/describe-deployment-diagram/schema.json",
+  "kind": "deployment",
+  "title": "Where the browser runs",
+  "description": "A static page served by icelander.net that runs entirely in the reader's browser and reads repositories straight from their hosts. There is no server of its own.",
+  "sources": [
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "github"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "gitlab"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "DAGRE"
+    },
+    {
+      "path": "software-system-browser/README.md",
+      "symbol": "Publishing"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "browser",
+      "name": "Reader's browser",
+      "kind": "client",
+      "description": "Any current browser, on a laptop or a desktop monitor.",
+      "actor": "Actors/reader.md"
+    },
+    {
+      "id": "page",
+      "name": "Software system browser",
+      "kind": "process",
+      "description": "The page and its script, running in the browser tab."
+    },
+    {
+      "id": "storage",
+      "name": "Browser storage",
+      "kind": "database",
+      "description": "sessionStorage and localStorage, holding the reader's tokens under architecture-browser.tokens.",
+      "condition": "a token has been saved"
+    },
+    {
+      "id": "site",
+      "name": "icelander.net",
+      "kind": "host",
+      "description": "Serves the page at /v1/apps/architecture-browser as a static file."
+    },
+    {
+      "id": "jsdelivr",
+      "name": "jsDelivr",
+      "kind": "external-service",
+      "description": "Serves dagre and the Barlow typefaces."
+    },
+    {
+      "id": "github-api",
+      "name": "GitHub API",
+      "kind": "external-service",
+      "description": "api.github.com: the default branch, the recursive tree, and files when a token is in use.",
+      "condition": "the address is on github.com"
+    },
+    {
+      "id": "github-raw",
+      "name": "raw.githubusercontent.com",
+      "kind": "external-service",
+      "description": "Files of a GitHub repository read without a token.",
+      "condition": "the address is on github.com and no token covers it"
+    },
+    {
+      "id": "gitlab",
+      "name": "GitLab API",
+      "kind": "external-service",
+      "description": "/api/v4 on gitlab.com or a self-hosted GitLab that allows the page's origin.",
+      "condition": "the address is not on github.com"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "index",
+      "name": "index.html",
+      "source": "software-system-browser/index.html",
+      "deployedTo": "site",
+      "description": "The whole page: markup, styles, script and icons. Copied to the icelander.net repository as site/apps/architecture-browser.html."
+    }
+  ],
+  "relationships": [
+    {
+      "from": "browser",
+      "to": "page",
+      "kind": "hosts",
+      "description": "Runs the page."
+    },
+    {
+      "from": "browser",
+      "to": "storage",
+      "kind": "hosts",
+      "description": "Keeps the storage for the page's origin."
+    },
+    {
+      "from": "browser",
+      "to": "site",
+      "kind": "connects-to",
+      "description": "Loads the page over HTTPS."
+    },
+    {
+      "from": "page",
+      "to": "jsdelivr",
+      "kind": "connects-to",
+      "description": "Loads the typefaces and the layout library."
+    },
+    {
+      "from": "page",
+      "to": "github-api",
+      "kind": "connects-to",
+      "description": "Lists the repository; with a token, reads files too."
+    },
+    {
+      "from": "page",
+      "to": "github-raw",
+      "kind": "connects-to",
+      "description": "Reads each .dev file."
+    },
+    {
+      "from": "page",
+      "to": "gitlab",
+      "kind": "connects-to",
+      "description": "Lists the project and reads each .dev file."
+    },
+    {
+      "from": "page",
+      "to": "storage",
+      "kind": "connects-to",
+      "description": "Reads and writes the reader's tokens."
+    }
+  ],
+  "folder": "software-system-browser"
+}

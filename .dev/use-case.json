@@ -1,0 +1,796 @@
+{
+  "$schema": "../../Agents/Skills/describe-use-case/schema.json",
+  "kind": "use-case",
+  "title": "What a reader does with the browser",
+  "folder": "software-system-browser",
+  "description": "Each thing a reader sets out to do, step by step, with what happens when it goes another way.",
+  "sources": [
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "load"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "route"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "openTokenPanel"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "select"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "focusPart"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "showWaiting"
+    }
+  ],
+  "entities": [
+    {
+      "id": "browse-repository",
+      "name": "Open a repository and find a folder",
+      "description": "A reader gives an address and reaches the folder they want to read.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "parseAddress"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "load"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showTree"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "route"
+        }
+      ],
+      "actor": "Reader",
+      "actorDocument": "Actors/reader.md",
+      "goal": "See a repository's views and knowledge, folder by folder.",
+      "preconditions": [
+        "The page is open in a browser that can reach the repository's host."
+      ],
+      "postconditions": [
+        "A folder is shown, and the address names it, so it can be shared or bookmarked."
+      ],
+      "flow": [
+        {
+          "id": "give-address",
+          "actor": "Reader",
+          "action": "Gives the address of a GitHub or GitLab repository, a branch, tag or commit, or a folder, on the landing page; or opens a link that carries one.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "parseAddress"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "split",
+          "actor": "Browser",
+          "action": "Splits the address into the host, the repository, the ref and the folder.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "parseAddress"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "resolveRef"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "list",
+          "actor": "Browser",
+          "action": "Lists the repository's files at the ref, and keeps the .dev/*.json files under the folder.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "github"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "gitlab"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "load"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "read",
+          "actor": "Browser",
+          "action": "Reads every file, twelve at a time, keeps the ones whose kind it knows and sorts each folder's files by kind.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "load"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "pool"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "show",
+          "actor": "Browser",
+          "action": "Shows the folder tree and the folder the address names, or the shallowest folder, with its first kind of view open.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "showTree"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "route"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "showFolder"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "filter",
+          "actor": "Reader",
+          "action": "Narrows the tree by typing part of a folder's name, a view's title, or the name or ID of something in it.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "showTree"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "pick-folder",
+          "actor": "Reader",
+          "action": "Opens a folder from the tree, from the chips under Inside, or from the crumbs above its name.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "showFolder"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "pick-kind",
+          "actor": "Reader",
+          "action": "Opens the tab for the kind of view they want; the same kind stays open as they move between folders that have it.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "selectKind"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        }
+      ],
+      "alternatives": [
+        {
+          "atStep": "split",
+          "condition": "The address is not http or https, or names no repository.",
+          "outcome": "The landing page stays, and the status line says what is wrong with the address.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "parseAddress"
+            }
+          ]
+        },
+        {
+          "atStep": "list",
+          "condition": "The host refuses, or has no such repository or ref.",
+          "outcome": "The status line says why, and offers Add a token when a token could help.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "getJson"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "tokenOffer"
+            }
+          ]
+        },
+        {
+          "atStep": "list",
+          "condition": "No .dev/*.json file is under the folder.",
+          "outcome": "The status line says so, and that the skills describe how to add them.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "load"
+            }
+          ]
+        },
+        {
+          "atStep": "list",
+          "condition": "GitHub cuts the tree short because the repository is too large.",
+          "outcome": "The folders found are shown, and the status line warns that some may be missing.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "load"
+            }
+          ]
+        },
+        {
+          "atStep": "read",
+          "condition": "A file can't be read, or is of a kind the page doesn't know.",
+          "outcome": "It is left out, and the status line names it and why.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "load"
+            }
+          ]
+        },
+        {
+          "atStep": "read",
+          "condition": "The drawing library doesn't load.",
+          "outcome": "Every view is shown as its tables, and the status line says so.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "drawDiagram"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "add-token",
+      "name": "Add a token for a private repository",
+      "description": "A reader gives the browser their own access token so it can read a repository the host does not show to everyone.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "openTokenPanel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "saveToken"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "tokenScope"
+        }
+      ],
+      "actor": "Reader",
+      "actorDocument": "Actors/reader.md",
+      "goal": "Read a private repository, or one behind GitHub's hourly limit.",
+      "preconditions": [
+        "The reader has an access token that can read the repository: on GitHub, fine-grained with Contents: read; on GitLab, with read_api."
+      ],
+      "postconditions": [
+        "The token is kept in this tab, or in this browser if they asked, under the scope they chose.",
+        "Every request to that host carries it; no request to any other host does."
+      ],
+      "flow": [
+        {
+          "id": "refuse",
+          "actor": "Browser",
+          "action": "Says why the host refused, and puts Add a token after the message.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "getJson"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "tokenOffer"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "open-panel",
+          "actor": "Reader",
+          "action": "Opens the token panel from that button, or from the Tokens button in the bar.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "openTokenPanel"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "paste",
+          "actor": "Reader",
+          "action": "Pastes the token, chooses what it is for (every repository on the host, everything under an owner or group, or only this repository) and whether to keep it after the tab closes.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "openTokenPanel"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "save",
+          "actor": "Browser",
+          "action": "Keeps the token under that scope, replacing any other for it, and reloads.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "saveToken"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "use",
+          "actor": "Browser",
+          "action": "Sends the token with every request to the repository's host, choosing the narrowest scope that covers the repository.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "tokenScope"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "auth"
+            }
+          ],
+          "participantKind": "system"
+        }
+      ],
+      "alternatives": [
+        {
+          "atStep": "paste",
+          "condition": "Nothing is pasted.",
+          "outcome": "Save closes the panel and nothing changes.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "openTokenPanel"
+            }
+          ]
+        },
+        {
+          "atStep": "save",
+          "condition": "The browser won't store anything.",
+          "outcome": "The status line says the token can't be kept, so it can't be used.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "saveToken"
+            }
+          ]
+        },
+        {
+          "atStep": "use",
+          "condition": "The host refuses the token.",
+          "outcome": "The status line names the scope whose token was refused and says it may be wrong, expired or for another account, and offers Replace or add a token.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "getJson"
+            }
+          ]
+        },
+        {
+          "atStep": "use",
+          "condition": "The token is for another account that can't see this repository.",
+          "outcome": "The status line suggests adding a narrower token for it.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "getJson"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "inspect-part",
+      "name": "Find out about a part of a drawing",
+      "description": "A reader learns what one part of a diagram, use case or journey is, what it touches, and where it leads.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "wire"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "select"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "drill"
+        }
+      ],
+      "actor": "Reader",
+      "actorDocument": "Actors/reader.md",
+      "goal": "Understand a part and move to what is around or inside it.",
+      "preconditions": [
+        "A folder with a drawn view is open on that view's tab."
+      ],
+      "postconditions": [
+        "The part's inspector is open, or the folder it stands for is."
+      ],
+      "flow": [
+        {
+          "id": "hover",
+          "actor": "Reader",
+          "action": "Points at a part or a line.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "wire"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "light",
+          "actor": "Browser",
+          "action": "Lights the part and its neighbours, fades the rest, and shows a tooltip saying what it is and what a click will do.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "lightPart"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "showTip"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "click",
+          "actor": "Reader",
+          "action": "Clicks the part, or presses Enter or Space on it.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "wire"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "inspect",
+          "actor": "Browser",
+          "action": "Pins the part and opens the inspector with everything the view says about it, its neighbours as links.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "select"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "follow",
+          "actor": "Reader",
+          "action": "Follows a neighbour in the inspector, or a row in the tables under the drawing.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "select"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "move",
+          "actor": "Browser",
+          "action": "Brings that part into view, pins it and pulses it.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "select"
+            }
+          ],
+          "participantKind": "system"
+        }
+      ],
+      "alternatives": [
+        {
+          "atStep": "click",
+          "condition": "The part has a round badge: it stands for a folder with views of its own.",
+          "outcome": "The part grows into the page and that folder opens.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "drill"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "navFor"
+            }
+          ]
+        },
+        {
+          "atStep": "hover",
+          "condition": "The drawing is larger than its frame and the reader drags it.",
+          "outcome": "It pans; the click that ends the drag selects nothing.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "camera"
+            }
+          ]
+        },
+        {
+          "atStep": "inspect",
+          "condition": "The reader presses Escape, the close button or the empty drawing.",
+          "outcome": "The inspector closes and the drawing rests.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "closeInspector"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "follow-knowledge",
+      "name": "Read a folder's knowledge and follow a link",
+      "description": "A reader reads the knowledge files of a folder and follows a record's link to another.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "knowledgePanel"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "recordCard"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "pathLink"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "focusPart"
+        }
+      ],
+      "actor": "Reader",
+      "actorDocument": "Actors/reader.md",
+      "goal": "Read what a folder knows about itself, and what it points to.",
+      "preconditions": [
+        "The folder has at least one knowledge file."
+      ],
+      "postconditions": [
+        "The record linked to is in view."
+      ],
+      "flow": [
+        {
+          "id": "open-tab",
+          "actor": "Reader",
+          "action": "Opens the Knowledge tab.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "selectKind"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "group",
+          "actor": "Browser",
+          "action": "Shows the files grouped as the catalogue groups them, and each record as a card: title, status and evidence badges, ID, summary, details, its own fields, origin, relationships, sources and links.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "knowledgePanel"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "recordCard"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "link",
+          "actor": "Reader",
+          "action": "Follows a relationship or a link in the details to another knowledge file.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "pathLink"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "land",
+          "actor": "Browser",
+          "action": "Opens that folder on its Knowledge tab, scrolls to the record and flashes it.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "focusPart"
+            }
+          ],
+          "participantKind": "system"
+        }
+      ],
+      "alternatives": [
+        {
+          "atStep": "link",
+          "condition": "The path is not a .dev file the page read, nor a folder it shows.",
+          "outcome": "It opens on the repository's host in a new tab.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "pathLink"
+            }
+          ]
+        },
+        {
+          "atStep": "link",
+          "condition": "The record the link names isn't in the file.",
+          "outcome": "The link goes to the file, and the missing ID is shown after it.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "pathLink"
+            }
+          ]
+        },
+        {
+          "atStep": "link",
+          "condition": "The path is a view, not a knowledge file.",
+          "outcome": "That view's tab opens, scrolled to it.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "pathLink"
+            },
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "focusPart"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "see-waiting",
+      "name": "See what is waiting",
+      "description": "A reader looks at every open decision and blocker in the repository at once.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "waitingRecords"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showWaiting"
+        }
+      ],
+      "actor": "Reader",
+      "actorDocument": "Actors/reader.md",
+      "goal": "Know what waits on whom, and what it holds up.",
+      "preconditions": [
+        "The repository has a decision with status open, or a blocker that is not resolved, done, closed, removed, unblocked or cancelled."
+      ],
+      "postconditions": [
+        "The record the reader chose is shown in its folder."
+      ],
+      "flow": [
+        {
+          "id": "count",
+          "actor": "Browser",
+          "action": "Shows Waiting above the tree, with how many records wait.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "showWaitingLink"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "open",
+          "actor": "Reader",
+          "action": "Opens Waiting.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "route"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "tables",
+          "actor": "Browser",
+          "action": "Shows two tables: open decisions (folder, who it waits on, what it blocks, context) and blockers (folder, who can unblock it, what it blocks, when it is unblocked).",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "showWaiting"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "pick",
+          "actor": "Reader",
+          "action": "Opens a record from either table.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "recordHash"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        }
+      ],
+      "alternatives": [
+        {
+          "atStep": "count",
+          "condition": "Nothing is waiting.",
+          "outcome": "There is no Waiting link.",
+          "sources": [
+            {
+              "path": "software-system-browser/index.html",
+              "symbol": "showWaitingLink"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "relatedViews": [
+    {
+      "kind": "user-journey",
+      "folder": "software-system-browser",
+      "path": "software-system-browser/.dev/user-journey.json",
+      "relationship": "The journeys these use cases make up."
+    },
+    {
+      "kind": "feature",
+      "folder": "software-system-browser",
+      "path": "software-system-browser/.dev/feature.json",
+      "relationship": "The features each step uses."
+    },
+    {
+      "kind": "state",
+      "folder": "software-system-browser",
+      "path": "software-system-browser/.dev/page.state-diagram.json",
+      "relationship": "Every state the page passes through while a repository opens."
+    }
+  ]
+}

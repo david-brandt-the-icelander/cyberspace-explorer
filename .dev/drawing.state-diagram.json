@@ -1,0 +1,112 @@
+{
+  "$schema": "../../Agents/Skills/describe-state-diagram/schema.json",
+  "kind": "state",
+  "title": "A drawing under the pointer",
+  "description": "How one drawing responds to the reader. It is laid out the first time its tab opens, and fitted to the width of the page until the reader moves it.",
+  "sources": [
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "camera"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "wire"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "select"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "drill"
+    }
+  ],
+  "machine": "A drawing",
+  "initialState": "unlaid",
+  "states": [
+    {
+      "id": "unlaid",
+      "description": "Its tab has not been opened, so it has no width to be laid out in."
+    },
+    {
+      "id": "resting",
+      "description": "Fitted to the width, at between 55% and 100%, as tall as it needs up to a screen and a half; the zoom out, zoom in and fit buttons sit in its top right corner, and the legend under it."
+    },
+    {
+      "id": "hovering",
+      "description": "The part or line under the pointer and its neighbours are lit, everything else fades to a fifth, and a dark tooltip names it and says what a click will do."
+    },
+    {
+      "id": "selected",
+      "description": "A part is pinned: its outline is thicker, its neighbours stay lit, it is moved into view if it was outside, and the inspector at the right holds what the view says about it."
+    },
+    {
+      "id": "panning",
+      "description": "The drawing follows a drag of five pixels or more; the pointer is a closed hand and tooltips are hidden."
+    },
+    {
+      "id": "opening",
+      "description": "A part with a round badge grows from where it is to fill the content area, and after about a quarter of a second the folder it stands for opens. With reduced motion the folder opens at once.",
+      "terminal": true
+    }
+  ],
+  "transitions": [
+    {
+      "from": "unlaid",
+      "to": "resting",
+      "trigger": "its tab opens",
+      "action": "laid out; a state or deployment diagram is laid out both ways and the larger kept"
+    },
+    {
+      "from": "resting",
+      "to": "hovering",
+      "trigger": "the pointer moves over a part or a line, or a part takes the keyboard focus"
+    },
+    {
+      "from": "hovering",
+      "to": "resting",
+      "trigger": "the pointer leaves"
+    },
+    {
+      "from": "hovering",
+      "to": "selected",
+      "trigger": "a click on a part, or Enter or Space on a focused one",
+      "guard": "the part has no badge"
+    },
+    {
+      "from": "hovering",
+      "to": "opening",
+      "trigger": "a click on a part, or Enter or Space on a focused one",
+      "guard": "the part has a badge"
+    },
+    {
+      "from": "selected",
+      "to": "selected",
+      "trigger": "a neighbour in the inspector, a row in the tables under the drawing, or another part",
+      "action": "the new part pulses twice"
+    },
+    {
+      "from": "selected",
+      "to": "resting",
+      "trigger": "the inspector's close button, Escape, a click on the empty drawing, another tab or another folder"
+    },
+    {
+      "from": "resting",
+      "to": "panning",
+      "trigger": "a drag on a drawing larger than its frame"
+    },
+    {
+      "from": "panning",
+      "to": "resting",
+      "trigger": "the drag ends",
+      "action": "the click that ends a drag selects nothing"
+    },
+    {
+      "from": "resting",
+      "to": "resting",
+      "trigger": "the zoom buttons, the wheel with ⌘ or Ctrl, or a pinch",
+      "action": "zoomed between 30% and 250% about the pointer; fit returns it to the width"
+    }
+  ],
+  "folder": "software-system-browser"
+}
