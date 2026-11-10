@@ -105,6 +105,18 @@
   #pick input:focus { outline: none; border-color: var(--k-component); box-shadow: 0 0 0 4px color-mix(in srgb, var(--k-component) 16%, transparent); }
   .primary { padding: 12px 22px; border: 0; border-radius: 10px; background: var(--ink); color: var(--paper); font: 600 17px/1.2 var(--semi); cursor: pointer; }
   .primary:hover { background: var(--k-component); }
+  #pick { position: relative; }
+  #pick .combo { position: relative; flex: 1 1 380px; display: flex; }
+  #pick .combo input { flex: 1 1 auto; min-width: 0; padding-right: 40px; }
+  #pick .combo .drop { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); padding: 8px 10px; border: 0; background: none; color: var(--ink2); cursor: pointer; font-size: 14px; }
+  #repo-list { position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 6px); max-height: 340px; overflow: auto; margin: 0; padding: 4px; list-style: none; background: var(--plate); border: 1px solid var(--rule); border-radius: 10px; box-shadow: 0 14px 40px -16px #0007; }
+  #repo-list li { display: flex; gap: 10px; align-items: baseline; padding: 8px 10px; border-radius: 7px; cursor: pointer; font: 400 15px/1.3 var(--mono); color: var(--ink); }
+  #repo-list li[aria-selected="true"], #repo-list li:hover { background: color-mix(in srgb, var(--k-component) 14%, transparent); }
+  #repo-list .when { margin-left: auto; font: 400 13px/1 var(--sans); color: var(--ink3); white-space: nowrap; }
+  #repo-list .priv { font: 500 12px/1 var(--semi); padding: 2px 6px; border-radius: 99px; border: 1px solid var(--rule); color: var(--ink3); }
+  #repo-list .none { cursor: default; color: var(--ink3); font-family: var(--sans); }
+  #signin .err { color: #b3261e; }
+  #signin { margin-top: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; color: var(--ink2); font-size: 15px; }
   #landing .example { margin: 14px 0 0; color: var(--ink2); font-size: 15px; }
   .kinds { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0; margin-top: 64px; border-top: 1px solid var(--rule); }
   .kinds div { padding: 20px 22px 4px 0; }
@@ -320,11 +332,16 @@
 <section id="landing" hidden>
   <h1>See how a repository is put together</h1>
   <p class="lede">Give the address of a GitHub or GitLab repository, or of a folder in one. The browser draws the diagrams and lists the use cases, capabilities, features and operations kept in its <code>.dev/</code> folders, and you walk from one folder into the next by clicking the parts in the drawings.</p>
-  <form id="pick">
+  <form id="pick" autocomplete="off">
     <label for="repo-url" hidden>Repository address</label>
-    <input id="repo-url" type="url" required placeholder="https://github.com/owner/repository" autocomplete="url">
+    <div class="combo">
+      <input id="repo-url" type="text" required placeholder="https://github.com/owner/repository" role="combobox" aria-expanded="false" aria-controls="repo-list" aria-autocomplete="list" spellcheck="false">
+      <button class="drop" type="button" id="repo-drop" aria-label="Show my repositories" hidden>▾</button>
+    </div>
     <button class="primary" type="submit">Browse</button>
+    <ul id="repo-list" role="listbox" aria-label="Your GitHub repositories" hidden></ul>
   </form>
+  <div id="signin"></div>
   <p class="example">Or open <a href="?url=https%3A%2F%2Fgithub.com%2Fdavid-brandt-the-icelander%2Fretro-games">retro-games</a> as an example. The diagrams follow the <a href="https://github.com/david-brandt-the-icelander/processes/tree/main/Agents/Skills">diagram skills</a>.</p>
   <p class="example">A private repository needs an access token. Give its address and the browser will ask for one; the token stays in this browser and goes to that host alone.</p>
   <div class="kinds">
@@ -1663,6 +1680,104 @@ $("view").addEventListener("click", (e) => {
   select(entry, b.dataset.pick, true);
 });
 
+// ── Optional GitHub sign-in and the repository drop-down ─────────────────
+// A static page can't finish GitHub's OAuth flow (it needs a client secret), so signing in means
+// giving a personal access token. It is kept like any other token, for the whole of github.com,
+// so it also opens private repositories. Signing in is optional: an address can always be pasted.
+
+/** Repositories are listed by last update; flip to false for the newest first. */
+const OLDEST_FIRST = true;
+let myRepos = [], me = null;
+
+const githubToken = () => { for (const a of stores().map(held)) if (a["github.com"]) return a["github.com"]; return null; };
+async function ghGet(path, token) {
+  const res = await fetch(`https://api.github.com${path}`, { headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" } });
+  if (!res.ok) throw Object.assign(new Error(res.status === 401 ? "GitHub refused the token." : `GitHub answered ${res.status}.`), { status: res.status });
+  return res.json();
+}
+async function loadMyRepos(token) {
+  me = (await ghGet("/user", token)).login;
+  const all = [];
+  for (let n = 1; n <= 10; n++) {
+    const page = await ghGet(`/user/repos?sort=updated&direction=desc&per_page=100&affiliation=owner,collaborator,organization_member&page=${n}`, token);
+    all.push(...page);
+    if (page.length < 100) break;
+  }
+  const at = (r) => Date.parse(r.updated_at) || 0;
+  myRepos = all.sort((a, b) => OLDEST_FIRST ? at(a) - at(b) : at(b) - at(a));
+}
+function ago(iso) {
+  const d = (Date.now() - Date.parse(iso)) / 864e5;
+  return d < 1 ? "today" : d < 31 ? `${Math.floor(d)}d ago` : d < 365 ? `${Math.floor(d / 30)}mo ago` : `${Math.floor(d / 365)}y ago`;
+}
+
+function showSignIn(error = "") {
+  const el = $("signin");
+  if (me) {
+    el.innerHTML = `<span>Signed in to GitHub as <b>${esc(me)}</b>. Your repositories are in the list, oldest update first.</span><button class="quiet" type="button" id="signout">Sign out</button>`;
+    $("signout").addEventListener("click", () => { saveToken("github.com", null, false); location.reload(); });
+    return;
+  }
+  el.innerHTML = `${error ? `<span class="err">${esc(error)}</span>` : ""}<button class="quiet" type="button" id="signin-open">${ic("key")}Sign in with GitHub (optional)</button>
+    <span id="signin-form" hidden><input id="signin-token" type="password" autocomplete="off" spellcheck="false" placeholder="Paste a GitHub personal access token" aria-label="GitHub token" style="padding:7px 10px;font:400 14px var(--mono);border:1.5px solid var(--rule);border-radius:8px;background:var(--plate);color:var(--ink);min-width:260px">
+    <label class="keep" style="margin:0 6px"><input id="signin-keep" type="checkbox"> remember</label><button class="quiet" type="button" id="signin-go">Sign in</button></span>
+    <span style="flex-basis:100%;font-size:14px;color:var(--ink3)">${esc(github.tokenHelp)} It is kept in this browser and sent to GitHub alone.</span>`;
+  $("signin-open").addEventListener("click", () => { $("signin-form").hidden = false; $("signin-token").focus(); });
+  const go = async () => {
+    const t = $("signin-token").value.trim();
+    if (!t) return;
+    try { await loadMyRepos(t); } catch (e) { me = null; showSignIn(e.message); return; }
+    saveToken("github.com", t, $("signin-keep").checked);
+    showSignIn(); setupCombo();
+  };
+  $("signin-go").addEventListener("click", go);
+  $("signin-token").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); go(); } });
+}
+
+/** What the box holds, as a filter: an address is cut down to owner/repository. */
+function filterText(v) {
+  v = v.trim().toLowerCase();
+  const m = v.match(/^(?:https?:\/\/)?(?:www\.)?github\.com\/([^/]+)(?:\/([^/?#]+))?/) ?? v.match(/^git@github\.com:([^/]+)\/([^/]+?)(?:\.git)?$/);
+  return m ? [m[1], m[2]].filter(Boolean).join("/").replace(/\.git$/, "") : v;
+}
+
+let comboReady = false, active = -1, shown = [];
+function setupCombo() {
+  const input = $("repo-url"), list = $("repo-list"), drop = $("repo-drop");
+  drop.hidden = !myRepos.length;
+  const close = () => { list.hidden = true; input.setAttribute("aria-expanded", "false"); active = -1; };
+  const render = () => {
+    const f = filterText(input.value);
+    shown = myRepos.filter((r) => r.full_name.toLowerCase().includes(f));
+    list.innerHTML = shown.length
+      ? shown.map((r, i) => `<li role="option" data-i="${i}" aria-selected="${i === active}">${esc(r.full_name)}${r.private ? `<span class="priv">private</span>` : ""}<span class="when">${esc(ago(r.updated_at))}</span></li>`).join("")
+      : `<li class="none">No repository of yours matches. Press Browse to open the address as typed.</li>`;
+    list.hidden = false; input.setAttribute("aria-expanded", "true");
+    list.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: "nearest" });
+  };
+  if (comboReady) return;
+  comboReady = true;
+  const pick = (r) => { input.value = r.html_url; close(); $("pick").requestSubmit(); };
+  input.addEventListener("input", () => { active = -1; if (myRepos.length) render(); });
+  input.addEventListener("focus", () => { if (myRepos.length) render(); });
+  drop.addEventListener("click", () => (list.hidden ? (input.value = "", render(), input.focus()) : close()));
+  list.addEventListener("mousedown", (e) => {
+    const li = e.target.closest("[data-i]");
+    if (li) { e.preventDefault(); pick(shown[+li.dataset.i]); }
+  });
+  input.addEventListener("keydown", (e) => {
+    if (!myRepos.length) return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (list.hidden) render();
+      active = (active + (e.key === "ArrowDown" ? 1 : -1) + shown.length) % (shown.length || 1);
+      render();
+    } else if (e.key === "Enter" && active >= 0 && shown[active]) { e.preventDefault(); pick(shown[active]); }
+    else if (e.key === "Escape") close();
+  });
+  document.addEventListener("click", (e) => { if (!e.composedPath().some((n) => n.id === "pick")) close(); });
+}
+
 // ── Start: the address comes from ?url=; the form is only for choosing one ──
 
 const address = new URLSearchParams(location.search).get("url");
@@ -1672,9 +1787,14 @@ if (address) {
   $("landing").hidden = false;
   $("pick").addEventListener("submit", (e) => {
     e.preventDefault();
-    location.search = new URLSearchParams({ url: $("repo-url").value.trim() }).toString();
+    let v = $("repo-url").value.trim();
+    if (/^[\w.-]+\/[\w.-]+$/.test(v)) v = `https://github.com/${v}`;
+    location.search = new URLSearchParams({ url: v }).toString();
   });
   $("repo-url").focus();
+  showSignIn();
+  const t = githubToken();
+  if (t) loadMyRepos(t).then(() => { showSignIn(); setupCombo(); }).catch((e) => { me = null; showSignIn(e.message); });
 }
 </script>
 </body>
