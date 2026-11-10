@@ -1,9 +1,9 @@
 name: Cyberspace explorer
 
 # Pull requests run the tests. Every push to main tests it and deploys it to
-# icelander.net/v1/apps/cyberspace-explorer (README.md, "Deploying").
+# https://cyberspace-explorer.com (README.md, "Deploying").
 # Needs the repository secret CLOUDFLARE_API_TOKEN (Account → Workers Scripts: Edit, and Zone → Workers Routes: Edit
-# on icelander.net). The Worker's own secrets are set once, on Cloudflare, and are not touched by a deploy.
+# on cyberspace-explorer.com). The Worker's own secrets are set once, on Cloudflare, and are not touched by a deploy.
 
 on:
   pull_request:
@@ -42,5 +42,5 @@ jobs:
       - name: Check that it answers
         run: |
           sleep 5
-          curl --fail --silent --show-error --location https://icelander.net/v1/apps/cyberspace-explorer | grep -q "Cyberspace explorer"
-          curl --fail --silent --show-error https://icelander.net/v1/apps/cyberspace-explorer/auth/me
+          curl --fail --silent --show-error --location https://cyberspace-explorer.com/ | grep -q "Cyberspace explorer"
+          curl --fail --silent --show-error https://cyberspace-explorer.com/auth/me

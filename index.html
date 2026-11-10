@@ -644,7 +644,7 @@ function saveToken(scope, value, keep) {
 const auth = (r) => { if (viaService(r)) return {}; const t = tokenFor(r); return t ? r.host.authHeader(t) : {}; };
 
 // ── The server ───────────────────────────────────────────────────────────
-// On icelander.net a Worker serves this page and signs readers in with GitHub (OAuth). Their token stays
+// On cyberspace-explorer.com a Worker serves this page and signs readers in with GitHub (OAuth). Their token stays
 // on the server, in a cookie the page can't read, and GitHub is asked through the Worker. Served as a
 // plain file (or from a disk) there is no such server, and the access tokens above are the way in.
 
@@ -1877,7 +1877,7 @@ function showSignIn(error = "") {
   if (service) {
     if (service.user) {
       el.innerHTML = `<span>Signed in to GitHub as <b>${esc(service.user.login)}</b>. Your repositories are in the list, oldest update first.</span><button class="quiet" type="button" id="signout">Sign out</button>`;
-      $("signout").addEventListener("click", async () => { await fetch(`${service.base}/auth/sign-out`, { method: "POST" }); location.href = service.base; });
+      $("signout").addEventListener("click", async () => { await fetch(`${service.base}/auth/sign-out`, { method: "POST" }); location.href = service.base || "/"; });
     } else {
       el.innerHTML = `${error ? `<span class="err">${esc(error)}</span>` : ""}<a class="quiet" id="signin-open" href="${esc(signInUrl())}">${ic("key")}Sign in with GitHub (optional)</a>
         <label class="keep" style="margin:0"><input id="signin-private" type="checkbox"> include my private repositories</label>`;

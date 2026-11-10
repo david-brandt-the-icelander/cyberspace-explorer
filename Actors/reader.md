@@ -11,7 +11,7 @@
 
 ## How they reach it
 
-The page at icelander.net/v1/apps/cyberspace-explorer in any current browser, on a laptop or a desktop monitor: by giving an address on its landing page, or by opening a link that already carries `?url=` and often a `#` naming a folder, part or record. The page knows nothing about who they are; the repository's host decides what their token can read.
+The page at cyberspace-explorer.com in any current browser, on a laptop or a desktop monitor: by giving an address on its landing page, or by opening a link that already carries `?url=` and often a `#` naming a folder, part or record. The page knows nothing about who they are; the repository's host decides what their token can read.
 
 ## Not to be confused with
 

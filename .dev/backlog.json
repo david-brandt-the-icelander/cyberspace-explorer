@@ -70,33 +70,6 @@
           "symbol": "load"
         }
       ]
-    },
-    {
-      "id": "rename-address",
-      "title": "Serve the page under its new name",
-      "type": "change",
-      "status": "accepted",
-      "summary": "Serve the page at /v1/apps/cyberspace-explorer on icelander.net, to match its name.",
-      "details": "The page was renamed from cyberspace explorer to cyberspace explorer, but it is still served at /v1/apps/cyberspace-explorer, from site/apps/cyberspace-explorer.html in the icelander.net repository. Links already shared use the old address (see the [page's address](.dev/contracts.json)), and the README names it. The token storage key keeps the old name on purpose and is not part of this.",
-      "origin": {
-        "kind": "request",
-        "by": "owner",
-        "description": "Part of renaming the cyberspace explorer to the cyberspace explorer."
-      },
-      "relationships": [
-        {
-          "relation": "depends-on",
-          "path": ".dev/contracts.json",
-          "entityId": "page-address"
-        }
-      ],
-      "evidenceStatus": "proposed",
-      "sources": [
-        {
-          "path": "README.md",
-          "symbol": "Publishing"
-        }
-      ]
     }
   ]
 }

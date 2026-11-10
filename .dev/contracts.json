@@ -14,7 +14,7 @@
         "Readers' bookmarks"
       ],
       "guarantees": [
-        "The page is served at icelander.net/v1/apps/cyberspace-explorer.",
+        "The page is served at https://cyberspace-explorer.com/.",
         "?url=<address> opens a repository: https://github.com/<owner>/<repository>, a GitLab project, either followed by /tree/<ref> and a folder.",
         "#<folder> opens a folder; the repository root is the empty folder.",
         "#<folder>|<kind>:<part ID or name> opens a part in that kind's drawing.",

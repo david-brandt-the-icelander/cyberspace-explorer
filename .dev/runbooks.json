@@ -52,14 +52,14 @@
     {
       "id": "publish",
       "title": "Publish a new version",
-      "summary": "Copy the page to icelander.net and deploy it.",
+      "summary": "Merge the change to main; GitHub Actions deploys it.",
       "purpose": "deploy",
       "when": "When the owner wants a change live.",
       "steps": [
-        "Copy index.html to site/apps/cyberspace-explorer.html in the icelander.net repository",
-        "Deploy icelander.net as that repository describes"
+        "Merge the change to main",
+        "Wait for the Cyberspace explorer workflow to test and deploy it, or run it by hand from the Actions tab"
       ],
-      "verify": "icelander.net/v1/apps/cyberspace-explorer shows the change.",
+      "verify": "https://cyberspace-explorer.com shows the change; the workflow's last step checks that the page and /auth/me answer.",
       "evidenceStatus": "documented",
       "sources": [
         {

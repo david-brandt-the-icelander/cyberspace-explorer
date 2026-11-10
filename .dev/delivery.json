@@ -6,17 +6,17 @@
   "entities": [
     {
       "id": "production",
-      "title": "icelander.net",
-      "summary": "The copy people use, at icelander.net/v1/apps/cyberspace-explorer.",
+      "title": "cyberspace-explorer.com",
+      "summary": "The copy people use, at https://cyberspace-explorer.com.",
       "environment": "production",
       "purpose": "The page readers open and links point to.",
-      "deployedBy": "The owner: copying index.html to site/apps/cyberspace-explorer.html in the icelander.net repository and deploying that site.",
-      "rollback": "No rollback is recorded. Going back means copying an earlier index.html from git history and deploying the site again.",
+      "deployedBy": "GitHub Actions (.github/workflows/cyberspace-explorer.yml): every push to main is tested and deployed to Cloudflare with wrangler deploy.",
+      "rollback": "No rollback is recorded. Going back means reverting the change on main, which deploys the earlier version.",
       "evidenceStatus": "documented",
       "sources": [
         {
           "path": "README.md",
-          "symbol": "Publishing"
+          "symbol": "Deploying"
         }
       ]
     }

@@ -13,7 +13,7 @@
         "It reads .dev files; it never writes to a repository.",
         "It runs entirely in the reader's browser: no server, no build step, one HTML file.",
         "What it reads is defined by the skills in Meta/Agents/Skills and the catalogue in Meta/Agents/Knowledge; when they change, the page follows them.",
-        "The copy people use is published on icelander.net; this folder is its source."
+        "The copy people use is deployed to cyberspace-explorer.com; this repository is its source."
       ],
       "details": "The folder holds `index.html`, the whole page, and `README.md`, which says how to use it and how it works. Its `.dev/` folder describes the browser itself, as fully as a designer needs to make a pass at it: start with the [design pass](.dev/backlog.json) item, which says what to read in what order.",
       "relationships": [

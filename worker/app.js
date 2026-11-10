@@ -2,7 +2,8 @@
 // flow with PKCE) and reads GitHub for them. The access token never reaches the page: it is kept in an
 // encrypted HttpOnly cookie and added to the GitHub calls here. No dependencies; runs in Workers and Node.
 
-export const BASE = "/v1/apps/cyberspace-explorer";
+// The app has a host of its own, so it lives at the root: BASE prefixes its routes, HOME is the page.
+export const BASE = "", HOME = "/";
 const SESSION = "explorer_session", PENDING = "explorer_oauth";
 const SESSION_DAYS = 7;
 
@@ -36,9 +37,9 @@ function cookies(request) {
   }
   return out;
 }
-const setCookie = (name, value, { path = BASE, maxAge } = {}) =>
+const setCookie = (name, value, { path = HOME, maxAge } = {}) =>
   `${name}=${value}; Path=${path}; HttpOnly; Secure; SameSite=Lax${maxAge === undefined ? "" : `; Max-Age=${maxAge}`}`;
-const clear = (name, path = BASE) => setCookie(name, "", { path, maxAge: 0 });
+const clear = (name, path = HOME) => setCookie(name, "", { path, maxAge: 0 });
 
 const configured = (env) => !!(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET && env.SESSION_SECRET);
 const origin = (request, env) => env.PUBLIC_ORIGIN || new URL(request.url).origin;
@@ -52,14 +53,13 @@ function redirect(location, cookiesToSet = []) {
   return new Response(null, { status: 303, headers: h });
 }
 
-/** Only a path inside this app, so a sign-in can't be used to send anyone elsewhere. */
+/** Only a path on this app's own host, so a sign-in can't be used to send anyone elsewhere. */
 export function safeReturn(raw, site) {
   try {
-    const u = new URL(raw ?? BASE, site);
-    if (u.origin !== new URL(site).origin) return BASE;
-    if (u.pathname !== BASE && !u.pathname.startsWith(`${BASE}/`)) return BASE;
+    const u = new URL(raw ?? HOME, site);
+    if (u.origin !== new URL(site).origin) return HOME;
     return u.pathname + u.search;
-  } catch { return BASE; }
+  } catch { return HOME; }
 }
 
 async function session(request, env) {
@@ -94,7 +94,7 @@ async function callback(request, env, fetcher) {
   const pending = sealed && (await unseal(sealed, env.SESSION_SECRET));
   const gone = [clear(PENDING, `${BASE}/auth`)];
   if (!pending || pending.x < Date.now() || !url.searchParams.get("state") || url.searchParams.get("state") !== pending.state) {
-    return redirect(`${BASE}?signin=failed`, gone);
+    return redirect(`${HOME}?signin=failed`, gone);
   }
   const code = url.searchParams.get("code");
   if (!code) return redirect(`${pending.ret}${pending.ret.includes("?") ? "&" : "?"}signin=denied`, gone);
@@ -104,10 +104,10 @@ async function callback(request, env, fetcher) {
     body: JSON.stringify({ client_id: env.GITHUB_CLIENT_ID, client_secret: env.GITHUB_CLIENT_SECRET, code, redirect_uri: `${site}${BASE}/auth/github/callback`, code_verifier: pending.verifier }),
   });
   const got = res.ok ? await res.json().catch(() => ({})) : {};
-  if (!got.access_token) return redirect(`${BASE}?signin=failed`, gone);
+  if (!got.access_token) return redirect(`${HOME}?signin=failed`, gone);
   const me = await fetcher("https://api.github.com/user", { headers: { authorization: `Bearer ${got.access_token}`, accept: "application/vnd.github+json", "user-agent": "cyberspace-explorer" } });
   const who = me.ok ? await me.json().catch(() => ({})) : {};
-  if (!who.login) return redirect(`${BASE}?signin=failed`, gone);
+  if (!who.login) return redirect(`${HOME}?signin=failed`, gone);
   const value = await seal({ t: got.access_token, l: who.login, a: who.avatar_url ?? "", x: Date.now() + SESSION_DAYS * 864e5 }, env.SESSION_SECRET);
   return redirect(pending.ret, [...gone, setCookie(SESSION, value, { maxAge: SESSION_DAYS * 86400 })]);
 }
@@ -156,7 +156,7 @@ export function createHandler(html, fetcher = (...a) => fetch(...a)) {
   return async function handle(request, env = {}) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
-    if (path === BASE || path === `${BASE}/index.html`) {
+    if (path === HOME || path === `${BASE}/index.html`) {
       if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405, headers: { allow: "GET, HEAD" } });
       return new Response(request.method === "HEAD" ? null : html, { headers: {
         "content-type": "text/html; charset=utf-8", "cache-control": "no-cache",

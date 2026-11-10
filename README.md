@@ -1,13 +1,13 @@
 # Cyberspace explorer
 
-A web page, served by a small Cloudflare Worker on icelander.net, that shows a repository's architecture, behavior and knowledge from the JSON files in its `.dev/` folders. Four are diagrams, described by the skills in [Meta/Agents/Skills](Meta/Agents/Skills/README.md): component, class, state and deployment. Five describe behavior, with skills of their own: use-case, user-journey, capability, feature and operation. The rest are the knowledge files of the [knowledge catalogue](Meta/Agents/Knowledge/README.md): vision, backlog, decisions, requirements, delivery, operation and the other kinds. A folder can have any mix of them. A public repository needs nothing; a private one needs the reader to sign in with GitHub (OAuth, on icelander.net) or to give an access token, which stays in their browser.
+A web page, served by a small Cloudflare Worker at cyberspace-explorer.com, that shows a repository's architecture, behavior and knowledge from the JSON files in its `.dev/` folders. Four are diagrams, described by the skills in [Meta/Agents/Skills](Meta/Agents/Skills/README.md): component, class, state and deployment. Five describe behavior, with skills of their own: use-case, user-journey, capability, feature and operation. The rest are the knowledge files of the [knowledge catalogue](Meta/Agents/Knowledge/README.md): vision, backlog, decisions, requirements, delivery, operation and the other kinds. A folder can have any mix of them. A public repository needs nothing; a private one needs the reader to sign in with GitHub (OAuth, on icelander.net) or to give an access token, which stays in their browser.
 
-Live at <https://icelander.net/v1/apps/cyberspace-explorer>. For example, [retro-games](https://icelander.net/v1/apps/cyberspace-explorer?url=https://github.com/david-brandt-the-icelander/retro-games).
+Live at <https://cyberspace-explorer.com>. For example, [retro-games](https://cyberspace-explorer.com/?url=https://github.com/david-brandt-the-icelander/retro-games).
 
 ## Using it
 
 - Open the page and give the address of a repository, or of a folder in one. After that the address field is gone: the page shows that repository until the address changes.
-- Signing in with GitHub is optional. On icelander.net, "Sign in with GitHub" runs GitHub's OAuth flow (code flow with PKCE); tick "include my private repositories" first to ask for the `repo` scope, GitHub's only way to read private repositories. The access token never reaches the page: it is sealed in an HttpOnly cookie, and the page reads GitHub through the Worker, which adds the token and allows only the reads it needs. Signed in, your repositories fill a drop-down on the address box, listed by last update, oldest first (`OLDEST_FIRST` in the page flips it). The box doubles as the filter: type part of a name, or paste a GitHub address and the list narrows to that owner/repository. Pick one, or paste any address and press Browse. Opened as a plain file, or anywhere without the Worker, there is no OAuth and the sign-in is a pasted personal access token, kept like the other tokens below.
+- Signing in with GitHub is optional. On cyberspace-explorer.com, "Sign in with GitHub" runs GitHub's OAuth flow (code flow with PKCE); tick "include my private repositories" first to ask for the `repo` scope, GitHub's only way to read private repositories. The access token never reaches the page: it is sealed in an HttpOnly cookie, and the page reads GitHub through the Worker, which adds the token and allows only the reads it needs. Signed in, your repositories fill a drop-down on the address box, listed by last update, oldest first (`OLDEST_FIRST` in the page flips it). The box doubles as the filter: type part of a name, or paste a GitHub address and the list narrows to that owner/repository. Pick one, or paste any address and press Browse. Opened as a plain file, or anywhere without the Worker, there is no OAuth and the sign-in is a pasted personal access token, kept like the other tokens below.
 - Or pass the address in the query string: `?url=https://github.com/owner/repo`. It takes a repository, a branch or tag (`/tree/<ref>`, slashes in the name included) and a folder (`/tree/<ref>/<folder>`).
 - A private repository, or one behind a rate limit, answers with an error and a button beside it: open the panel, paste an access token and the page reloads with it. GitHub wants a fine-grained token with Contents: read, GitLab one with the `read_api` scope. The token is kept for the tab, or on the browser if you ask, under the host it belongs to, and is only ever sent there, so a GitHub token can never reach a self-hosted GitLab.
 - There can be a token per account. When you add one you choose what it is for: every repository on the host, everything under an owner or group, or one repository. A repository uses the narrowest token that covers it, so tokens for several accounts on one host can be kept side by side. The bar shows when one is in use, and its panel lists every token kept, marks the one in use and forgets any of them.
@@ -37,7 +37,7 @@ dagre and the Barlow typefaces are loaded from jsDelivr. If dagre can't load, th
 
 ## The service
 
-`worker/` is a Cloudflare Worker named `cyberspace-explorer`, routed at `icelander.net/v1/apps/cyberspace-explorer*` (`wrangler.jsonc`), so it runs instead of the site's own Worker for those paths, as the login service does for `/accounts`. It serves `index.html` and these routes under that path:
+`worker/` is a Cloudflare Worker named `cyberspace-explorer`, on its own domain, `cyberspace-explorer.com`, as a Workers custom domain (`wrangler.jsonc`): Cloudflare creates the DNS record and the certificate when it deploys. It serves `index.html` at `/` and these routes:
 
 | Route | What it does |
 | --- | --- |
@@ -47,11 +47,11 @@ dagre and the Barlow typefaces are loaded from jsDelivr. If dagre can't load, th
 | `POST /auth/sign-out` | Forgets the session; only from the app's own origin |
 | `GET /api/github/<path>` | GitHub's API with the reader's token, for `user`, `user/repos`, a repository, its trees and its contents only; read only; the token is never sent to the page |
 
-The session is `explorer_session`, `Path=/v1/apps/cyberspace-explorer; HttpOnly; Secure; SameSite=Lax`, 7 days, AES-GCM sealed with a key derived from `SESSION_SECRET`. It is separate from icelander.net's own sign-in (`site_session`): it exists to read GitHub, not to say who the reader is on the site. Without the three secrets below the routes answer that sign-in isn't set up and the page falls back to pasted tokens. Nothing is logged about a sign-in. `npm test` runs the Worker's tests.
+The session is `explorer_session`, `Path=/; HttpOnly; Secure; SameSite=Lax`, 7 days, AES-GCM sealed with a key derived from `SESSION_SECRET`. It has nothing to do with icelander.net's own sign-in: it exists to read GitHub, not to say who the reader is. Without the three secrets below the routes answer that sign-in isn't set up and the page falls back to pasted tokens. Nothing is logged about a sign-in. `npm test` runs the Worker's tests.
 
 ### Setting it up once (the owner)
 
-1. On GitHub, **Settings → Developer settings → OAuth Apps → New OAuth App**: name "Cyberspace explorer", homepage `https://icelander.net/v1/apps/cyberspace-explorer`, authorization callback URL `https://icelander.net/v1/apps/cyberspace-explorer/auth/github/callback`. Generate a client secret.
+1. On GitHub, **Settings → Developer settings → OAuth Apps → New OAuth App**: name "Cyberspace explorer", homepage `https://cyberspace-explorer.com`, authorization callback URL `https://cyberspace-explorer.com/auth/github/callback`. Generate a client secret.
 2. Put the three secrets on the Worker (the first deploy creates it; run these after it, or deploy once by hand):
 
    ```bash
@@ -67,11 +67,11 @@ The session is `explorer_session`, `Path=/v1/apps/cyberspace-explorer; HttpOnly;
    ```
 
    `SESSION_SECRET` is any long random string (for example `openssl rand -base64 48`). Changing it signs everyone out.
-3. Add the repository secret `CLOUDFLARE_API_TOKEN` to this repository (**Settings → Secrets and variables → Actions**): an API token with **Account → Workers Scripts: Edit** and **Zone → Workers Routes: Edit** for icelander.net. Optionally add a required reviewer to the `production` environment to hold deploys for approval.
+3. Add the repository secret `CLOUDFLARE_API_TOKEN` to this repository (**Settings → Secrets and variables → Actions**): an API token with **Account → Workers Scripts: Edit** and **Zone → Workers Routes: Edit** and **Zone → DNS: Edit** for cyberspace-explorer.com. Optionally add a required reviewer to the `production` environment to hold deploys for approval.
 
 ## Deploying
 
-`.github/workflows/cyberspace-explorer.yml` tests the Worker on every pull request, and on a push to `main` it tests and then deploys with `wrangler deploy`, then checks that the live page answers. "Run workflow" in the Actions tab redeploys by hand. There is nothing to copy to the icelander.net repository: that repository only links to the app (its Apps page) and its Worker is left alone by this one.
+`.github/workflows/cyberspace-explorer.yml` tests the Worker on every pull request, and on a push to `main` it tests and then deploys with `wrangler deploy`, then checks that the live page answers. "Run workflow" in the Actions tab redeploys by hand. The icelander.net repository only links to the app, from its Apps page.
 
 ## Its own description
 

@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createHandler, seal, unseal, safeReturn, allowedPath, BASE } from "../worker/app.js";
+import { createHandler, seal, unseal, safeReturn, allowedPath, BASE, HOME } from "../worker/app.js";
 
-const SITE = "https://icelander.net";
+const SITE = "https://cyberspace-explorer.com";
 const env = { GITHUB_CLIENT_ID: "cid", GITHUB_CLIENT_SECRET: "sec", SESSION_SECRET: "s3cret-s3cret", PUBLIC_ORIGIN: SITE };
 const calls = [];
 const fakeFetch = async (url, init = {}) => {
@@ -18,7 +18,7 @@ const cookieOf = (res, name) => res.headers.getSetCookie().find((c) => c.startsW
 const value = (c) => c.split(";")[0];
 
 async function signIn() {
-  const start = await handle(req(`${BASE}/auth/github/start?return=${encodeURIComponent(`${BASE}?url=https://github.com/o/r`)}`), env);
+  const start = await handle(req(`${BASE}/auth/github/start?return=${encodeURIComponent(`${HOME}?url=https://github.com/o/r`)}`), env);
   const auth = new URL(start.headers.get("location"));
   const cookie = value(cookieOf(start, "explorer_oauth"));
   const done = await handle(req(`${BASE}/auth/github/callback?code=good&state=${auth.searchParams.get("state")}`, { headers: { cookie } }), env);
@@ -26,7 +26,7 @@ async function signIn() {
 }
 
 test("serves the page", async () => {
-  for (const p of [BASE, `${BASE}/`, `${BASE}/index.html`]) {
+  for (const p of [HOME, `${BASE}/index.html`, `${BASE}/index.html/`]) {
     const res = await handle(req(p), env);
     assert.equal(res.status, 200);
     assert.equal(await res.text(), "<html>page</html>");
@@ -48,7 +48,7 @@ test("sign-in goes to GitHub with PKCE and a state bound to the browser", async 
   assert.equal(auth.searchParams.get("code_challenge_method"), "S256");
   assert.equal(auth.searchParams.get("scope"), "");
   const c = cookieOf(start, "explorer_oauth");
-  assert.match(c, /HttpOnly/); assert.match(c, /Secure/); assert.match(c, /Path=\/v1\/apps\/cyberspace-explorer\/auth/);
+  assert.match(c, /HttpOnly/); assert.match(c, /Secure/); assert.match(c, /Path=\/auth;/);
 });
 
 test("private repositories are asked for only when chosen", async () => {
@@ -59,7 +59,7 @@ test("private repositories are asked for only when chosen", async () => {
 test("the callback opens a sealed, HttpOnly session and returns to the page", async () => {
   const { done, session } = await signIn();
   assert.equal(done.status, 303);
-  assert.equal(done.headers.get("location"), `${BASE}?url=https://github.com/o/r`);
+  assert.equal(done.headers.get("location"), `${HOME}?url=https://github.com/o/r`);
   const c = cookieOf(done, "explorer_session");
   assert.match(c, /HttpOnly/); assert.doesNotMatch(c, /gho_token/);
   const me = await (await handle(req(`${BASE}/auth/me`, { headers: { cookie: session } }), env)).json();
@@ -118,9 +118,9 @@ test("sign-out only from the page's own origin", async () => {
   assert.match(cookieOf(ok, "explorer_session"), /Max-Age=0/);
 });
 
-test("the return path stays inside the app", () => {
-  assert.equal(safeReturn(`${BASE}?url=x`, SITE), `${BASE}?url=x`);
-  for (const bad of ["https://evil.example/", "//evil.example", "/games/", "/v1/apps/cyberspace-explorer-evil", undefined]) assert.equal(safeReturn(bad, SITE), BASE);
+test("the return path stays on the app's host", () => {
+  assert.equal(safeReturn(`${HOME}?url=x`, SITE), `${HOME}?url=x`);
+  for (const bad of ["https://evil.example/", "//evil.example", "https://icelander.net/", "javascript:alert(1)", undefined]) assert.equal(safeReturn(bad, SITE), HOME);
 });
 
 test("the proxy's allowlist", () => {

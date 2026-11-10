@@ -1,6 +1,6 @@
-// The cyberspace explorer, a Worker of its own on a path of icelander.net (README.md, "Deploying").
-// The route is more specific than the site's own Worker, so it runs instead of it for these paths.
-// GitHub Actions deploys it on every push to main that changes this folder (.github/workflows/cyberspace-explorer.yml).
+// The cyberspace explorer, a Worker on a domain of its own, cyberspace-explorer.com (README.md, "Deploying").
+// A custom domain: Cloudflare creates the DNS record and the certificate on deploy.
+// GitHub Actions deploys it on every push to main that changes this repository (.github/workflows/cyberspace-explorer.yml).
 // No secrets belong in this file.
 {
   "name": "cyberspace-explorer",
@@ -9,10 +9,10 @@
   "compatibility_date": "2026-09-22",
   "workers_dev": false,
   "preview_urls": false,
-  "routes": [{ "pattern": "icelander.net/v1/apps/cyberspace-explorer*", "zone_name": "icelander.net" }],
+  "routes": [{ "pattern": "cyberspace-explorer.com", "custom_domain": true }],
   "vars": {
-    // The OAuth App's registered callback is ${PUBLIC_ORIGIN}/v1/apps/cyberspace-explorer/auth/github/callback.
-    "PUBLIC_ORIGIN": "https://icelander.net"
+    // The OAuth App's registered callback is ${PUBLIC_ORIGIN}/auth/github/callback.
+    "PUBLIC_ORIGIN": "https://cyberspace-explorer.com"
   },
   // Secrets, set with `wrangler secret put … -c wrangler.jsonc`, never here:
   //   GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET   the GitHub OAuth App; sign-in is off without them

@@ -2,7 +2,7 @@
   "$schema": "../Meta/Agents/Skills/describe-deployment-diagram/schema.json",
   "kind": "deployment",
   "title": "Where the browser runs",
-  "description": "A static page served by icelander.net that runs entirely in the reader's browser and reads repositories straight from their hosts. There is no server of its own.",
+  "description": "A page served by a Worker at cyberspace-explorer.com that runs entirely in the reader's browser and reads public repositories straight from their hosts; signed in, it reads GitHub through the Worker.",
   "sources": [
     {
       "path": "index.html",
@@ -44,9 +44,9 @@
     },
     {
       "id": "site",
-      "name": "icelander.net",
+      "name": "cyberspace-explorer.com",
       "kind": "host",
-      "description": "Serves the page at /v1/apps/cyberspace-explorer as a static file."
+      "description": "A Cloudflare Worker that serves the page at / and, when configured, the optional GitHub sign-in."
     },
     {
       "id": "jsdelivr",
@@ -82,7 +82,7 @@
       "name": "index.html",
       "source": "index.html",
       "deployedTo": "site",
-      "description": "The whole page: markup, styles, script and icons. Copied to the icelander.net repository as site/apps/cyberspace-explorer.html."
+      "description": "The whole page: markup, styles, script and icons. Served by the Worker in worker/."
     }
   ],
   "relationships": [
