@@ -26,7 +26,7 @@
       "id": "browser",
       "name": "Reader's browser",
       "kind": "client",
-      "description": "Any current browser, on a desk or a phone.",
+      "description": "Any current browser, on a laptop or a desktop monitor.",
       "actor": "Actors/reader.md"
     },
     {

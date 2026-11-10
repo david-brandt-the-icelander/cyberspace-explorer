@@ -32,7 +32,7 @@
         },
         {
           "type": "manual",
-          "description": "Open the same page in dark mode, at 375 px wide, and with reduced motion."
+          "description": "Open the same page in dark mode, with reduced motion, and in full browser windows at about 1440 × 900, 2560 × 1440 and 3440 × 1440."
         },
         {
           "type": "manual",
