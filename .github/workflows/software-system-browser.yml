@@ -1,0 +1,49 @@
+name: Software system browser
+
+# Pull requests run the tests. Every push to main that changes the browser tests it and deploys it to
+# icelander.net/v1/apps/architecture-browser (software-system-browser/README.md, "Deploying").
+# Needs the repository secret CLOUDFLARE_API_TOKEN (Account → Workers Scripts: Edit, and Zone → Workers Routes: Edit
+# on icelander.net). The Worker's own secrets are set once, on Cloudflare, and are not touched by a deploy.
+
+on:
+  pull_request:
+    paths: ["software-system-browser/**", ".github/workflows/software-system-browser.yml"]
+  push:
+    branches: [main]
+    paths: ["software-system-browser/**", ".github/workflows/software-system-browser.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: software-system-browser-${{ github.event_name == 'pull_request' && github.ref || 'deploy' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm test
+        working-directory: software-system-browser
+
+  deploy:
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Deploy the Worker
+        run: npx --yes wrangler@4.156.1 deploy --config software-system-browser/wrangler.jsonc
+      - name: Check that it answers
+        run: |
+          sleep 5
+          curl --fail --silent --show-error --location https://icelander.net/v1/apps/architecture-browser | grep -q "Software system browser"
+          curl --fail --silent --show-error https://icelander.net/v1/apps/architecture-browser/auth/me
