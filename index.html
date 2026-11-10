@@ -1,0 +1,1681 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Software system browser</title>
+<meta name="description" content="Browse a repository's architecture and behavior from the JSON views in its .dev folders.">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/barlow@5/400.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/barlow@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/barlow-semi-condensed@5/500.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/barlow-semi-condensed@5/600.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/barlow-condensed@5/600.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/barlow-condensed@5/700.css">
+<style>
+  /* ── Tokens ─────────────────────────────────────────────────────────────
+     Cool survey-sheet paper and slate ink. Each diagram kind has one colour,
+     used for its icon, its plates and its pips in the folder tree. */
+  :root {
+    color-scheme: light dark;
+    --paper: #edf1f1; --sheet: #f8fafa; --plate: #ffffff;
+    --ink: #1d2b33; --ink2: #56666e; --ink3: #84949b;
+    --rule: #c9d3d5; --grid: #d9e1e3; --edge: #81939b; --hot: #1d2b33;
+    --k-component: #2c6e8e; --k-deployment: #a26a14; --k-class: #527a31; --k-state: #8b4a8c;
+    --k-use-case: #bb5430; --k-capability: #4f58b0; --k-feature: #b0456f; --k-operation: #5b6a72;
+    --sans: "Barlow", "Avenir Next", system-ui, sans-serif;
+    --semi: "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif;
+    --cond: "Barlow Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --k: var(--k-component);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #10181d; --sheet: #152128; --plate: #1b2a32;
+      --ink: #dce5e5; --ink2: #9aabb1; --ink3: #6c7f87;
+      --rule: #2a3a42; --grid: #22333b; --edge: #6f858e; --hot: #eef4f4;
+      --k-component: #6cb2d6; --k-deployment: #e0a54a; --k-class: #9bc472; --k-state: #cb8cd3;
+      --k-use-case: #ee8f66; --k-capability: #97a0ea; --k-feature: #e58aae; --k-operation: #a7b6bd;
+    }
+  }
+  .kind-component { --k: var(--k-component); }
+  .kind-deployment { --k: var(--k-deployment); }
+  .kind-class { --k: var(--k-class); }
+  .kind-state { --k: var(--k-state); }
+  .kind-use-case { --k: var(--k-use-case); }
+  .kind-capability { --k: var(--k-capability); }
+  .kind-feature { --k: var(--k-feature); }
+  .kind-operation { --k: var(--k-operation); }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { background: var(--paper); }
+  body { margin: 0; font: 400 16px/1.55 var(--sans); color: var(--ink); background: var(--paper); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); text-underline-offset: .18em; }
+  a:hover { text-decoration-color: currentColor; }
+  code, .mono { font-family: var(--mono); font-size: .86em; }
+  :focus-visible { outline: 2px solid var(--k); outline-offset: 2px; border-radius: 4px; }
+  button { font: inherit; color: inherit; }
+  .ic { width: 1em; height: 1em; flex: none; vertical-align: -.14em; }
+
+  /* ── Bar ─────────────────────────────────────────────────────────────── */
+  .bar { display: flex; align-items: center; gap: 14px; padding: 0 20px; height: 54px; border-bottom: 1px solid var(--rule); background: var(--sheet); position: sticky; top: 0; z-index: 20; }
+  .brand { display: flex; align-items: center; gap: 9px; font: 700 21px/1 var(--cond); letter-spacing: .01em; text-decoration: none; white-space: nowrap; }
+  .brand .ic { width: 26px; height: 26px; color: var(--k-component); }
+  .repo { display: flex; align-items: center; gap: 8px; min-width: 0; font: 500 15px/1 var(--semi); color: var(--ink2); }
+  .repo::before { content: ""; width: 1px; height: 22px; background: var(--rule); margin-right: 6px; }
+  .repo a { color: var(--ink); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .repo a:hover { text-decoration: underline; }
+  .ref { font: 500 12px/1 var(--mono); padding: 4px 7px; border-radius: 99px; background: color-mix(in srgb, var(--ink) 7%, transparent); color: var(--ink2); white-space: nowrap; }
+  .bar .spacer { flex: 1; }
+  .quiet { background: none; border: 1px solid var(--rule); border-radius: 7px; padding: 5px 10px; font: 500 14px/1.2 var(--semi); color: var(--ink2); cursor: pointer; text-decoration: none; white-space: nowrap; }
+  .quiet:hover { color: var(--ink); border-color: var(--ink3); }
+  .quiet .ic { width: 15px; height: 15px; margin-right: 5px; vertical-align: -.16em; }
+  #token { color: var(--ink); border-color: color-mix(in srgb, var(--k-component) 60%, var(--rule)); }
+  #token .ic { color: var(--k-component); }
+
+  /* ── Token ───────────────────────────────────────────────────────────── */
+  #token-panel { position: fixed; z-index: 40; top: 62px; right: 20px; width: min(430px, calc(100vw - 40px)); padding: 18px; border: 1px solid var(--rule); border-radius: 12px; background: var(--sheet); box-shadow: 0 18px 50px rgb(0 0 0 / .3); }
+  #token-panel h2 { font: 600 18px/1.2 var(--semi); margin: 0 0 8px; }
+  #token-panel p { margin: 0 0 13px; font-size: 14px; line-height: 1.5; color: var(--ink2); }
+  #token-panel input[type="password"] { width: 100%; padding: 10px 12px; font: 400 14px/1.2 var(--mono); color: var(--ink); background: var(--plate); border: 1.5px solid var(--rule); border-radius: 8px; }
+  #token-panel input[type="password"]:focus { outline: none; border-color: var(--k-component); }
+  #token-panel .held { list-style: none; margin: 0 0 14px; padding: 0; border: 1px solid var(--rule); border-radius: 8px; }
+  #token-panel .held li { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 11px; font-size: 13px; }
+  #token-panel .held li + li { border-top: 1px solid var(--rule); }
+  #token-panel .held code { flex: 1; min-width: 0; font: 400 13px/1.3 var(--mono); color: var(--ink); overflow-wrap: anywhere; }
+  #token-panel .held .using { font: 500 12px/1 var(--semi); padding: 3px 7px; border-radius: 99px; color: var(--k-component); background: color-mix(in srgb, var(--k-component) 14%, transparent); }
+  #token-panel .held .where { color: var(--ink3); white-space: nowrap; }
+  #token-panel .held .quiet { padding: 3px 8px; font-size: 13px; }
+  #token-panel .scope { border: 0; padding: 0; margin: 12px 0 0; display: grid; gap: 6px; font-size: 14px; color: var(--ink2); }
+  #token-panel .scope legend { padding: 0; margin-bottom: 6px; font: 600 14px/1.2 var(--semi); color: var(--ink); }
+  #token-panel .scope label { display: flex; align-items: center; gap: 8px; overflow-wrap: anywhere; }
+  #token-panel .keep { display: flex; align-items: center; gap: 8px; margin: 12px 0 14px; font-size: 14px; color: var(--ink2); }
+  #token-panel .row { display: flex; gap: 8px; align-items: center; }
+  #token-panel .row .spacer { flex: 1; }
+  #token-panel .primary { padding: 8px 16px; font-size: 15px; border-radius: 8px; }
+  #status .quiet { margin-left: 8px; }
+
+  /* ── Landing ─────────────────────────────────────────────────────────── */
+  #landing { max-width: 980px; padding: 9vh 28px 60px; margin: 0 auto; }
+  #landing h1 { font: 700 clamp(42px, 6.4vw, 76px)/.95 var(--cond); letter-spacing: -.01em; margin: 0 0 22px; max-width: 13ch; }
+  #landing .lede { font-size: 19px; line-height: 1.6; color: var(--ink2); max-width: 60ch; margin: 0 0 30px; }
+  #pick { display: flex; gap: 10px; flex-wrap: wrap; max-width: 760px; }
+  #pick input { flex: 1 1 380px; padding: 13px 15px; font: 400 16px/1.2 var(--mono); color: var(--ink); background: var(--plate); border: 1.5px solid var(--rule); border-radius: 10px; }
+  #pick input:focus { outline: none; border-color: var(--k-component); box-shadow: 0 0 0 4px color-mix(in srgb, var(--k-component) 16%, transparent); }
+  .primary { padding: 12px 22px; border: 0; border-radius: 10px; background: var(--ink); color: var(--paper); font: 600 17px/1.2 var(--semi); cursor: pointer; }
+  .primary:hover { background: var(--k-component); }
+  #landing .example { margin: 14px 0 0; color: var(--ink2); font-size: 15px; }
+  .kinds { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0; margin-top: 64px; border-top: 1px solid var(--rule); }
+  .kinds div { padding: 20px 22px 4px 0; }
+  .kinds .tile { margin-bottom: 12px; }
+  .kinds h2 { font: 600 19px/1.2 var(--semi); margin: 0 0 4px; }
+  .kinds p { margin: 0; color: var(--ink2); font-size: 15px; }
+
+  /* An icon on a tinted square, in the kind's colour. */
+  .tile { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: color-mix(in srgb, var(--k) 14%, var(--plate)); color: var(--k); flex: none; }
+  .tile .ic { width: 26px; height: 26px; }
+  .tile.sm { width: 28px; height: 28px; border-radius: 7px; }
+  .tile.sm .ic { width: 18px; height: 18px; }
+
+  /* ── Status ──────────────────────────────────────────────────────────── */
+  #status { margin: 0; padding: 10px 20px; font: 500 14px/1.4 var(--semi); color: var(--ink2); }
+  #status:empty { display: none; }
+  #status.error { color: #b3261e; }
+  @media (prefers-color-scheme: dark) { #status.error { color: #ff8a80; } }
+  #status.loading::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 9px; border-radius: 2px; background: var(--k-component); animation: tick 1s steps(4) infinite; vertical-align: 0; }
+  @keyframes tick { to { transform: rotate(360deg); } }
+
+  /* ── Layout ──────────────────────────────────────────────────────────── */
+  #layout { display: grid; grid-template-columns: 290px minmax(0, 1fr); min-height: calc(100vh - 54px); }
+  #side { border-right: 1px solid var(--rule); background: var(--sheet); position: sticky; top: 54px; height: calc(100vh - 54px); overflow: auto; padding: 14px 10px 30px 14px; }
+  #view { padding: 26px clamp(18px, 3vw, 44px) 80px; min-width: 0; }
+  @media (max-width: 860px) {
+    #layout { grid-template-columns: 1fr; }
+    #side { position: static; height: auto; max-height: 44vh; border-right: 0; border-bottom: 1px solid var(--rule); }
+    .repo .ref, .bar .quiet span { display: none; }
+    #side { max-height: 32vh; }
+  }
+  @media (max-width: 560px) {
+    .brand span { display: none; }
+    .bar { gap: 10px; padding: 0 14px; }
+  }
+
+  /* ── Folder tree ─────────────────────────────────────────────────────── */
+  .filter { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--plate); color: var(--ink3); margin-bottom: 12px; }
+  .filter input { border: 0; background: none; outline: none; font: 500 15px/1.2 var(--semi); color: var(--ink); width: 100%; }
+  .filter:focus-within { border-color: var(--k-component); }
+  #tree, #tree ul { list-style: none; margin: 0; padding: 0; }
+  #tree ul { margin-left: 11px; padding-left: 9px; border-left: 1px solid var(--rule); }
+  #tree a { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 6px; text-decoration: none; font: 500 15.5px/1.25 var(--semi); color: var(--ink2); }
+  #tree a:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--ink); }
+  #tree a.current { background: var(--plate); color: var(--ink); box-shadow: inset 0 0 0 1px var(--rule); font-weight: 600; }
+  #tree .nm { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .pips { display: inline-flex; gap: 3px; flex: none; }
+  .pip { display: inline-flex; align-items: center; color: var(--k); }
+  .pip .ic { width: 13px; height: 13px; }
+  .pip sub { font: 600 10px/1 var(--semi); bottom: 0; margin-left: 1px; color: var(--ink3); }
+  #tree li.miss { display: none; }
+
+  /* ── Folder view ─────────────────────────────────────────────────────── */
+  .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font: 500 15px/1.3 var(--semi); color: var(--ink3); margin-bottom: 4px; }
+  .crumbs a { color: var(--ink2); text-decoration: none; }
+  .crumbs a:hover { color: var(--ink); text-decoration: underline; }
+  .crumbs .sep { color: var(--rule); }
+  .folder-head h1 { font: 700 clamp(38px, 4.6vw, 56px)/1 var(--cond); margin: 0; letter-spacing: -.005em; overflow-wrap: anywhere; }
+  /* One tab per kind of view in the folder; the content area shows the chosen kind alone. */
+  .ktabs { display: flex; flex-wrap: wrap; align-items: stretch; gap: 2px; margin: 26px 0 0; border-bottom: 1px solid var(--rule); scroll-margin-top: 62px; font: 500 15px/1.3 var(--semi); }
+  .ktab { display: inline-flex; align-items: center; gap: 7px; margin-bottom: -1px; padding: 9px 13px 10px; border: 0; border-bottom: 2px solid transparent; border-radius: 7px 7px 0 0; background: none; cursor: pointer; color: var(--ink2); font: inherit; }
+  .ktab .ic { width: 17px; height: 17px; color: var(--k); opacity: .55; }
+  .ktab:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--ink); }
+  .ktab:hover .ic, .ktab[aria-selected="true"] .ic { opacity: 1; }
+  .ktab[aria-selected="true"] { background: none; color: var(--ink); font-weight: 600; border-bottom-color: var(--k); }
+  .inside { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+  .inside > span { font: 500 15px/1 var(--semi); color: var(--ink3); margin-right: 2px; }
+  .chip { display: inline-flex; align-items: center; gap: 7px; padding: 5px 10px 5px 8px; border-radius: 8px; border: 1px solid var(--rule); background: var(--plate); text-decoration: none; font: 600 15px/1.2 var(--semi); }
+  .chip:hover { border-color: var(--ink3); }
+  .chip > .ic { color: var(--ink3); width: 16px; height: 16px; }
+
+  section.diagram { margin-top: 44px; scroll-margin-top: 70px; }
+  .dpanel > section.diagram:first-child { margin-top: 26px; }
+  .dhead { display: flex; gap: 14px; align-items: flex-start; }
+  .dhead h2 { font: 600 25px/1.15 var(--semi); margin: 0; }
+  .dhead .what { font: 500 15px/1.3 var(--semi); color: var(--k); margin: 2px 0 0; }
+  .ddesc { max-width: 76ch; color: var(--ink2); margin: 12px 0 16px; }
+
+  /* The drawing: a survey sheet with crosses at every grid intersection. */
+  .canvas { position: relative; border: 1px solid var(--rule); border-radius: 12px; background: var(--sheet); overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+  .canvas.grab { cursor: grab; }
+  .canvas.panning { cursor: grabbing; }
+  .canvas svg.dg { display: block; width: 100%; }
+  .canvas .msg { padding: 28px; color: var(--ink2); }
+  .tools { position: absolute; top: 10px; right: 10px; display: flex; gap: 2px; padding: 3px; border-radius: 9px; background: color-mix(in srgb, var(--plate) 88%, transparent); border: 1px solid var(--rule); backdrop-filter: blur(4px); }
+  .tools button { display: grid; place-items: center; width: 30px; height: 28px; border: 0; border-radius: 6px; background: none; cursor: pointer; color: var(--ink2); }
+  .tools button:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink); }
+  .tools .ic { width: 17px; height: 17px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 10px 2px 0; font: 500 14px/1.3 var(--semi); color: var(--ink2); }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend svg { flex: none; color: var(--k); }
+
+  /* ── Diagram drawing ─────────────────────────────────────────────────── */
+  .pg path { stroke: var(--grid); stroke-width: 1; }
+  .dg text { fill: var(--ink); }
+  .dg .sub { fill: var(--ink2); }
+  .dg .faint { fill: var(--ink3); }
+  .node { outline: none; }
+  .node .plate { fill: var(--plate); stroke: color-mix(in srgb, var(--k) 38%, var(--rule)); stroke-width: 1.2; }
+  .node .shadow { fill: color-mix(in srgb, var(--k) 10%, transparent); }
+  .node .tilebg { fill: color-mix(in srgb, var(--k) 14%, var(--plate)); }
+  .node .glyph { color: var(--k); }
+  .node.ext .plate { stroke-dasharray: 5 4; fill: color-mix(in srgb, var(--plate) 55%, transparent); }
+  .node.ext .shadow { display: none; }
+  .node { cursor: pointer; }
+  .node:hover .plate, .node:focus-visible .plate, .node.sel .plate { stroke: var(--k); stroke-width: 2; }
+  .node.sel .plate { stroke-width: 2.6; }
+  .node .drill circle { fill: var(--k); }
+  .node .drill use { color: var(--plate); }
+  .node.nav:hover .drill circle { fill: var(--ink); }
+  .node .div { stroke: color-mix(in srgb, var(--k) 25%, var(--rule)); stroke-width: 1; }
+  .node .head { fill: color-mix(in srgb, var(--k) 9%, var(--plate)); }
+  .node.state .plate { fill: color-mix(in srgb, var(--k) 7%, var(--plate)); }
+  .node.state .ring { fill: none; stroke: var(--k); stroke-width: 1.2; }
+  .node.point circle { fill: var(--ink); }
+  .node.point { cursor: default; }
+  .mem-f { fill: var(--ink2) !important; }
+  .cl .box { fill: color-mix(in srgb, var(--k) 5%, transparent); stroke: color-mix(in srgb, var(--k) 42%, var(--rule)); stroke-width: 1.2; }
+  .cl .band { fill: color-mix(in srgb, var(--k) 11%, transparent); }
+  .cl.ext .box { stroke-dasharray: 5 4; }
+  .cl .glyph { color: var(--k); }
+  .cl.nav .hd { cursor: pointer; }
+  .cl.nav .hd:hover text { text-decoration: underline; }
+  .cl .drill circle { fill: var(--k); }
+  .cl .drill use { color: var(--plate); }
+  .edge .line { fill: none; stroke: var(--edge); stroke-width: 1.4; }
+  .edge.dashed .line { stroke-dasharray: 6 4; }
+  .edge.dotted .line { stroke-dasharray: 1 4.5; stroke-linecap: round; stroke-width: 1.8; }
+  .edge .hit { fill: none; stroke: transparent; stroke-width: 14; }
+  .edge.hot .line { stroke: var(--hot); stroke-width: 2; }
+  .elabel rect { fill: var(--sheet); stroke: var(--rule); }
+  .elabel text { fill: var(--ink2); }
+  .elabel.hot rect { stroke: var(--hot); }
+  .elabel.hot text { fill: var(--ink); }
+  .loop .line { fill: none; }
+  .dg .node, .dg .edge, .dg .elabel { transition: opacity .16s; }
+  .dg.focus .node:not(.hot), .dg.focus .edge:not(.hot), .dg.focus .elabel:not(.hot) { opacity: .2; }
+  .node.pulse .plate { animation: pulse 1.1s ease-out 2; }
+  @keyframes pulse { 0% { stroke-width: 6; stroke: var(--k); } 100% { stroke-width: 2.6; } }
+
+  /* ── Details ─────────────────────────────────────────────────────────── */
+  details.parts { margin-top: 14px; }
+  details.parts summary { cursor: pointer; font: 600 15px/1.3 var(--semi); color: var(--ink2); width: fit-content; }
+  details.parts summary:hover { color: var(--ink); }
+  details.parts h4 { font: 600 16px/1.2 var(--semi); margin: 22px 0 6px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+  th { text-align: left; font: 600 13.5px/1.2 var(--semi); color: var(--ink3); padding: 6px 10px 6px 0; border-bottom: 1px solid var(--rule); }
+  td { text-align: left; vertical-align: top; border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); padding: 7px 14px 7px 0; overflow-wrap: anywhere; }
+  td .sel-link { background: none; border: 0; padding: 0; font: 600 15px/1.3 var(--semi); cursor: pointer; text-align: left; color: var(--ink); }
+  td .sel-link:hover { color: var(--k); text-decoration: underline; }
+  td code { color: var(--ink2); }
+  .from { margin-top: 12px; font-size: 14px; color: var(--ink3); }
+
+  /* Views that are written rather than drawn: one card per entity, facts beside their labels. */
+  .entity { max-width: 940px; margin-top: 14px; padding: 16px 18px 14px; border: 1px solid var(--rule); border-left: 3px solid var(--k); border-radius: 12px; background: var(--plate); }
+  .entity h3 { font: 600 19px/1.25 var(--semi); margin: 0 0 4px; }
+  .entity > p { margin: 0 0 8px; color: var(--ink2); }
+  .facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 7px 20px; margin: 10px 0 0; }
+  .facts dt { font: 600 14px/1.55 var(--semi); color: var(--ink3); }
+  .facts dd { margin: 0; overflow-wrap: anywhere; }
+  .facts ul, td ul { margin: 0; padding-left: 1.1em; }
+  .src { display: block; }
+  .src .d { color: var(--ink2); }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 99px; font: 600 13px/1.4 var(--semi); background: color-mix(in srgb, var(--k) 14%, var(--plate)); color: var(--k); }
+  .scroll { overflow-x: auto; margin-top: 14px; }
+  .scroll table { min-width: 860px; }
+  .scroll td:first-child { min-width: 190px; }
+  .scroll .pill { white-space: nowrap; }
+  @media (max-width: 560px) { .facts { grid-template-columns: 1fr; gap: 0; } .facts dt { margin-top: 8px; } }
+
+  /* ── Inspector ───────────────────────────────────────────────────────── */
+  #inspector { position: fixed; top: 66px; right: 14px; bottom: 14px; width: min(380px, calc(100vw - 28px)); z-index: 30; background: var(--plate); border: 1px solid var(--rule); border-radius: 14px; box-shadow: 0 18px 50px -18px color-mix(in srgb, #0a1418 45%, transparent); display: flex; flex-direction: column; overflow: hidden; }
+  #inspector .ihead { display: flex; gap: 12px; align-items: flex-start; padding: 16px 16px 12px; border-bottom: 1px solid var(--rule); }
+  #inspector h3 { font: 600 22px/1.15 var(--semi); margin: 0; overflow-wrap: anywhere; }
+  #inspector .isub { font: 500 14px/1.3 var(--semi); color: var(--k); margin-top: 2px; }
+  #inspector .x { margin-left: auto; border: 0; background: none; cursor: pointer; color: var(--ink3); padding: 4px; border-radius: 6px; }
+  #inspector .x:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent); }
+  #inspector .x .ic { width: 20px; height: 20px; }
+  #inspector .ibody { padding: 14px 16px 22px; overflow: auto; font-size: 15px; }
+  #inspector .ibody > p:first-child { margin-top: 0; }
+  #inspector h4 { font: 600 14.5px/1.2 var(--semi); color: var(--ink3); margin: 18px 0 6px; }
+  #inspector ul { list-style: none; padding: 0; margin: 0; }
+  #inspector li { padding: 6px 0; border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); }
+  #inspector li:last-child { border-bottom: 0; }
+  #inspector li .d { display: block; color: var(--ink2); font-size: 14px; }
+  #inspector .sel-link { background: none; border: 0; padding: 0; font: 600 15.5px/1.3 var(--semi); cursor: pointer; color: var(--ink); text-align: left; }
+  #inspector .sel-link:hover { color: var(--k); text-decoration: underline; }
+  #inspector .open { display: flex; align-items: center; gap: 9px; margin: 4px 0 6px; padding: 10px 12px; border-radius: 9px; background: color-mix(in srgb, var(--k) 12%, var(--plate)); color: var(--ink); text-decoration: none; font: 600 16px/1.2 var(--semi); }
+  #inspector .open .ic { color: var(--k); width: 20px; height: 20px; }
+  #inspector .open:hover { background: color-mix(in srgb, var(--k) 20%, var(--plate)); }
+  #inspector .members code { display: block; padding: 2px 0; font-size: 13px; color: var(--ink2); }
+  #inspector .kv { color: var(--ink3); font: 500 13.5px/1.3 var(--semi); }
+
+  /* ── Tooltip and drill transition ────────────────────────────────────── */
+  #tip { position: fixed; z-index: 40; max-width: 320px; padding: 9px 12px; border-radius: 9px; background: var(--ink); color: var(--paper); font: 400 14px/1.45 var(--sans); pointer-events: none; box-shadow: 0 10px 30px -12px #0008; }
+  #tip b { font: 600 15px/1.3 var(--semi); display: block; }
+  #tip .hint { display: block; margin-top: 4px; opacity: .65; font: 500 13px/1.3 var(--semi); }
+  .zoomer { position: fixed; z-index: 35; border: 2px solid var(--k); border-radius: 12px; background: color-mix(in srgb, var(--k) 8%, transparent); pointer-events: none; transition: all .32s cubic-bezier(.3, .7, .2, 1); }
+  @media (prefers-reduced-motion: reduce) { .zoomer { display: none; } .node.pulse .plate { animation: none; } #status.loading::before { animation: none; } .dg .node, .dg .edge, .dg .elabel { transition: none; } }
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="brand" href="./"><svg class="ic"><use href="#i-mark"/></svg><span>Software system browser</span></a>
+  <div class="repo" id="repo" hidden></div>
+  <span class="spacer"></span>
+  <button class="quiet" id="token" hidden></button>
+  <a class="quiet" id="change" href="?" hidden>Choose <span>another repository</span></a>
+</header>
+
+<div id="token-panel" role="dialog" aria-labelledby="token-title" hidden></div>
+
+<section id="landing" hidden>
+  <h1>See how a repository is put together</h1>
+  <p class="lede">Give the address of a GitHub or GitLab repository, or of a folder in one. The browser draws the diagrams and lists the use cases, capabilities, features and operations kept in its <code>.dev/</code> folders, and you walk from one folder into the next by clicking the parts in the drawings.</p>
+  <form id="pick">
+    <label for="repo-url" hidden>Repository address</label>
+    <input id="repo-url" type="url" required placeholder="https://github.com/owner/repository" autocomplete="url">
+    <button class="primary" type="submit">Browse</button>
+  </form>
+  <p class="example">Or open <a href="?url=https%3A%2F%2Fgithub.com%2Fdavid-brandt-the-icelander%2Fretro-games">retro-games</a> as an example. The diagrams follow the <a href="https://github.com/david-brandt-the-icelander/processes/tree/main/Agents/Skills">diagram skills</a>.</p>
+  <p class="example">A private repository needs an access token. Give its address and the browser will ask for one; the token stays in this browser and goes to that host alone.</p>
+  <div class="kinds">
+    <div class="kind-component"><span class="tile"><svg class="ic"><use href="#i-kind-component"/></svg></span><h2>Component</h2><p>What a folder is made of, and what each part depends on.</p></div>
+    <div class="kind-deployment"><span class="tile"><svg class="ic"><use href="#i-kind-deployment"/></svg></span><h2>Deployment</h2><p>Where the code runs: clients, hosts, processes and stores.</p></div>
+    <div class="kind-class"><span class="tile"><svg class="ic"><use href="#i-kind-class"/></svg></span><h2>Class</h2><p>The types a folder declares and how they relate.</p></div>
+    <div class="kind-state"><span class="tile"><svg class="ic"><use href="#i-kind-state"/></svg></span><h2>State</h2><p>Every state a machine can be in, and what moves it on.</p></div>
+    <div class="kind-use-case"><span class="tile"><svg class="ic"><use href="#i-kind-use-case"/></svg></span><h2>Use case</h2><p>Who does what, step by step, and what happens when it goes another way.</p></div>
+    <div class="kind-capability"><span class="tile"><svg class="ic"><use href="#i-kind-capability"/></svg></span><h2>Capability</h2><p>What a part of the system can do, and who may ask for it.</p></div>
+    <div class="kind-feature"><span class="tile"><svg class="ic"><use href="#i-kind-feature"/></svg></span><h2>Feature</h2><p>The behavior offered, its outcome and the limits on it.</p></div>
+    <div class="kind-operation"><span class="tile"><svg class="ic"><use href="#i-kind-operation"/></svg></span><h2>Operation</h2><p>The callable entrypoints: what each does, who may call it and how it can fail.</p></div>
+  </div>
+</section>
+
+<p id="status" role="status"></p>
+<div id="layout" hidden>
+  <nav id="side" aria-label="Folders with diagrams">
+    <label class="filter"><svg class="ic"><use href="#i-search"/></svg><input id="filter" type="search" placeholder="Filter folders and parts" aria-label="Filter folders and parts"></label>
+    <ul id="tree"></ul>
+  </nav>
+  <main id="view"></main>
+</div>
+<aside id="inspector" hidden aria-label="Selected part"></aside>
+<div id="tip" role="tooltip" hidden></div>
+
+<script type="module">
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+// Structural diagrams first, then the functional views, which describe behavior.
+const KIND_ORDER = { component: 0, deployment: 1, class: 2, state: 3, "use-case": 4, capability: 5, feature: 6, operation: 7 };
+const KIND_NAME = { component: "Component diagram", deployment: "Deployment diagram", class: "Class diagram", state: "State diagram", "use-case": "Use case", capability: "Capability", feature: "Feature", operation: "Operations" };
+/** "2 class diagrams", "1 feature". */
+const kindCount = (k, n) => `${n} ${KIND_ORDER[k] < 4 ? k + " diagram" : k.replace("-", " ")}${n > 1 ? "s" : ""}`;
+const DAGRE = "https://cdn.jsdelivr.net/npm/@dagrejs/dagre@3.1.3/+esm";
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+
+/** The line under the bar. `offer` puts a button after it, for the one thing worth doing about it. */
+function status(text, kind = "", offer = null) {
+  const el = $("status");
+  el.textContent = text; el.className = kind;
+  if (!offer) return;
+  const b = document.createElement("button");
+  b.className = "quiet"; b.textContent = offer.label;
+  // Without this the document handler below would see the click outside the panel and shut it again.
+  b.addEventListener("click", (e) => { e.stopPropagation(); offer.run(); });
+  el.append(" ", b);
+}
+
+// ── Icons ─────────────────────────────────────────────────────────────────
+// Drawn for this page on a 24-unit grid: 1.6 strokes with round ends, and
+// one tinted shape per glyph so each reads as a small solid object.
+
+const F = `fill="currentColor" fill-opacity=".22" stroke="none"`;
+const S = `fill="currentColor" stroke="none"`;
+
+function gear(cx, cy, ro, ri, n) {
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2, w = Math.PI / n;
+    for (const [r, da] of [[ri, -w * 0.62], [ro, -w * 0.36], [ro, w * 0.36], [ri, w * 0.62]]) pts.push([cx + r * Math.cos(a + da), cy + r * Math.sin(a + da)]);
+  }
+  return "M" + pts.map(([x, y]) => `${x.toFixed(2)} ${y.toFixed(2)}`).join("L") + "Z";
+}
+const cylinderTop = `<ellipse cx="12" cy="6" rx="7.5" ry="2.8"/>`;
+const cylinderBody = `M4.5 6v12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V6`;
+const windowFrame = `<rect x="3" y="4" width="18" height="4.6" rx="2.2" ${F}/><rect x="3" y="4" width="18" height="16" rx="2.2"/><path d="M3 8.6h18"/><circle cx="5.9" cy="6.3" r=".75" ${S}/><circle cx="8.2" cy="6.3" r=".75" ${S}/>`;
+
+const ICONS = {
+  // The browser's mark: a folder tree whose leaves are diagram plates.
+  mark: `<rect x="2.5" y="2.5" width="9" height="6.5" rx="1.8" ${S}/><path d="M7 9v9.75h5.5M7 12.25h5.5"/><rect x="12.5" y="9" width="9" height="6.5" rx="1.8" ${F}/><rect x="12.5" y="9" width="9" height="6.5" rx="1.8"/><rect x="12.5" y="15.5" width="9" height="6.5" rx="1.8"/>`,
+  // Diagram kinds
+  "kind-component": `<rect x="9.5" y="3" width="11.5" height="11.5" rx="2.6" ${F}/><rect x="9.5" y="3" width="11.5" height="11.5" rx="2.6"/><rect x="3" y="9.5" width="11.5" height="11.5" rx="2.6"/>`,
+  "kind-deployment": `<rect x="3.5" y="4" width="17" height="6.5" rx="1.8" ${F}/><rect x="3.5" y="4" width="17" height="6.5" rx="1.8"/><rect x="3.5" y="13.5" width="17" height="6.5" rx="1.8"/><circle cx="7" cy="7.25" r="1" ${S}/><circle cx="7" cy="16.75" r="1" ${S}/><path d="M11 7.25h6M11 16.75h6"/>`,
+  "kind-class": `<path d="M4 8.5V5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v3z" ${F}/><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M4 8.5h16M7.5 12h7M7.5 15h9M7.5 18h5"/>`,
+  "kind-state": `<circle cx="6.5" cy="17.5" r="3" ${S}/><circle cx="17.5" cy="6.5" r="3.2" ${F}/><circle cx="17.5" cy="6.5" r="3.2"/><path d="M7.8 14.6C8.4 9.6 10.6 6.8 14 6.5"/><path d="M12.2 4.6l2.1 1.9-2.1 1.9"/>`,
+  "kind-use-case": `<circle cx="8.5" cy="7.5" r="3.2" ${F}/><circle cx="8.5" cy="7.5" r="3.2"/><path d="M3 20v-1.2a4.8 4.8 0 0 1 4.8-4.8h1.4a4.8 4.8 0 0 1 4.8 4.8V20"/><path d="M15 8.5h5.5M18 5.8l2.7 2.7-2.7 2.7"/>`,
+  "kind-capability": `<rect x="3.5" y="3.5" width="17" height="17" rx="4.2" ${F}/><rect x="3.5" y="3.5" width="17" height="17" rx="4.2"/><path d="M13.2 6.8 9 12.6h3.6L10.8 17.4" stroke-width="1.8"/>`,
+  "kind-feature": `<path d="M12 3.2l2.5 5.3 5.8.8-4.2 4 1 5.8-5.1-2.8-5.1 2.8 1-5.8-4.2-4 5.8-.8z" ${F}/><path d="M12 3.2l2.5 5.3 5.8.8-4.2 4 1 5.8-5.1-2.8-5.1 2.8 1-5.8-4.2-4 5.8-.8z"/>`,
+  "kind-operation": `<path d="M9 4H8a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h1M15 4h1a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h-1"/><circle cx="12" cy="12" r="1.4" ${S}/>`,
+  person: `<circle cx="12" cy="8" r="4" ${F}/><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5v-1a5.5 5.5 0 0 1 5.5-5.5h4a5.5 5.5 0 0 1 5.5 5.5v1"/>`,
+  branch: `<circle cx="6" cy="5.5" r="2.3"/><circle cx="6" cy="18.5" r="2.3"/><circle cx="18" cy="9" r="2.3" ${F}/><circle cx="18" cy="9" r="2.3"/><path d="M6 7.8v8.4M18 11.3c0 3.8-6.5 1.8-12 5.4"/>`,
+  // Component parts, chosen from the part's name
+  module: `<path d="M12 3l8 4.5L12 12 4 7.5z" ${F}/><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5L12 12l8-4.5M12 12v9"/>`,
+  group: `<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 7.3h18"/><rect x="6.2" y="10" width="5.3" height="4.5" rx="1" ${F}/><rect x="6.2" y="10" width="5.3" height="4.5" rx="1"/><rect x="12.5" y="14" width="5.3" height="4.5" rx="1"/><path d="M11.5 12.25h3.6v1.75"/>`,
+  gear: `<path d="${gear(12, 12, 9, 6.6, 8)}" ${F}/><path d="${gear(12, 12, 9, 6.6, 8)}"/><circle cx="12" cy="12" r="2.6"/>`,
+  render: `<rect x="3" y="4" width="18" height="12.5" rx="2" ${F}/><rect x="3" y="4" width="18" height="12.5" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/><path d="M6.5 12.5c2-3 3.4-3.6 5-1.6s3 1.4 6-2.6" stroke-width="2"/>`,
+  sound: `<path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z" ${F}/><path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4z"/><path d="M15.5 9.2a4 4 0 0 1 0 5.6M18.2 6.6a7.6 7.6 0 0 1 0 10.8"/>`,
+  input: `<path d="M7.5 7.5h9a4.5 4.5 0 0 1 4.4 3.6l.9 4.6a2.6 2.6 0 0 1-4.5 2.2L15.6 16H8.4l-1.7 1.9a2.6 2.6 0 0 1-4.5-2.2l.9-4.6A4.5 4.5 0 0 1 7.5 7.5z" ${F}/><path d="M7.5 7.5h9a4.5 4.5 0 0 1 4.4 3.6l.9 4.6a2.6 2.6 0 0 1-4.5 2.2L15.6 16H8.4l-1.7 1.9a2.6 2.6 0 0 1-4.5-2.2l.9-4.6A4.5 4.5 0 0 1 7.5 7.5z"/><path d="M7.6 10.1v3.4M5.9 11.8h3.4"/><circle cx="15.4" cy="10.8" r="1" ${S}/><circle cx="17.6" cy="13" r="1" ${S}/>`,
+  network: `<circle cx="12" cy="12" r="9" ${F}/><circle cx="12" cy="12" r="9"/><path d="M9 7.5v9M6.8 9.9 9 7.6l2.2 2.3M15 16.5v-9M12.8 14.1l2.2 2.3 2.2-2.3"/>`,
+  trophy: `<path d="M7.5 4h9v5a4.5 4.5 0 0 1-9 0z" ${F}/><path d="M7.5 4h9v5a4.5 4.5 0 0 1-9 0z"/><path d="M7.5 6h-3v1.2a3.3 3.3 0 0 0 3.3 3.3M16.5 6h3v1.2a3.3 3.3 0 0 1-3.3 3.3M12 13.5V17M8.5 20.5h7M10 20.5l.6-3.5h2.8l.6 3.5"/>`,
+  link: `<circle cx="12" cy="6.3" r="2.7" ${S}/><circle cx="6" cy="17" r="2.7" ${F}/><circle cx="6" cy="17" r="2.7"/><circle cx="18" cy="17" r="2.7" ${F}/><circle cx="18" cy="17" r="2.7"/><path d="M10.6 8.7 7.4 14.6M13.4 8.7l3.2 5.9M8.7 17h6.6"/>`,
+  tag: `<path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1.4 1.4 0 0 1 0 2l-6.7 6.7a1.4 1.4 0 0 1-2 0z" ${F}/><path d="M3.5 12.2V4.5a1 1 0 0 1 1-1h7.7l8.3 8.3a1.4 1.4 0 0 1 0 2l-6.7 6.7a1.4 1.4 0 0 1-2 0z"/><circle cx="8" cy="8" r="1.6"/>`,
+  window: `${windowFrame}<path d="M6.5 12h6M6.5 15.5h11"/>`,
+  server: `<rect x="4" y="3" width="16" height="5" rx="1.5"/><rect x="4" y="9.5" width="16" height="5" rx="1.5" ${F}/><rect x="4" y="9.5" width="16" height="5" rx="1.5"/><rect x="4" y="16" width="16" height="5" rx="1.5"/><circle cx="7.3" cy="5.5" r=".9" ${S}/><circle cx="7.3" cy="12" r=".9" ${S}/><circle cx="7.3" cy="18.5" r=".9" ${S}/><path d="M11 5.5h5.5M11 12h5.5M11 18.5h5.5"/>`,
+  database: `<ellipse cx="12" cy="6" rx="7.5" ry="2.8" ${F}/>${cylinderTop}<path d="${cylinderBody}M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/>`,
+  cache: `<ellipse cx="12" cy="6" rx="7.5" ry="2.8" ${F}/>${cylinderTop}<path d="${cylinderBody}"/><path d="M13 10.2 10.2 14h3.3L11 17.8" stroke-width="1.8"/>`,
+  chip: `<rect x="6" y="6" width="12" height="12" rx="2" ${F}/><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx=".8"/><path d="M9 2.8V6M12 2.8V6M15 2.8V6M9 18v3.2M12 18v3.2M15 18v3.2M2.8 9H6M2.8 12H6M2.8 15H6M18 9h3.2M18 12h3.2M18 15h3.2"/>`,
+  flask: `<path d="M7.6 14.5h8.8l2.6 3.8a1.8 1.8 0 0 1-1.6 2.7H6.6A1.8 1.8 0 0 1 5 18.3z" ${F}/><path d="M9.5 3.5h5M10.5 3.5v5.2L5 18.3A1.8 1.8 0 0 0 6.6 21h10.8a1.8 1.8 0 0 0 1.6-2.7l-5.5-9.6V3.5"/>`,
+  sliders: `<path d="M5 3.5v17M12 3.5v17M19 3.5v17"/><rect x="2.8" y="13" width="4.4" height="3.4" rx="1.2" ${S}/><rect x="9.8" y="6" width="4.4" height="3.4" rx="1.2" ${S}/><rect x="16.8" y="11" width="4.4" height="3.4" rx="1.2" ${S}/>`,
+  dice: `<rect x="4" y="4" width="16" height="16" rx="3.5" ${F}/><rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="8.6" cy="8.6" r="1.3" ${S}/><circle cx="12" cy="12" r="1.3" ${S}/><circle cx="15.4" cy="15.4" r="1.3" ${S}/>`,
+  replay: `<circle cx="12" cy="12" r="8.2" ${F}/><path d="M4.4 9A8.2 8.2 0 1 1 3.8 12"/><path d="M3.6 4.6v4.6h4.6"/><path d="M10.4 9l4.6 3-4.6 3z" ${S}/>`,
+  key: `<circle cx="8" cy="15.5" r="4.4" ${F}/><circle cx="8" cy="15.5" r="4.4"/><path d="M11.1 12.4 19.5 4M16.6 6.9l2.6 2.6M14.2 9.3l2 2"/>`,
+  package: `<path d="M12 3l8 4-8 4-8-4z" ${F}/><path d="M12 3l8 4v10l-8 4-8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10M8 5l8 4"/>`,
+  document: `<path d="M14.5 3v4.5H19z" ${S}/><path d="M6 3h8.5L19 7.5V21H6z" ${F}/><path d="M6 3h8.5L19 7.5V21H6z"/><path d="M9 12h7M9 15.5h7M9 9h3"/>`,
+  external: `<circle cx="12" cy="12" r="6.4" ${F}/><circle cx="12" cy="12" r="6.4"/><ellipse cx="12" cy="12" rx="10.2" ry="3.4" transform="rotate(-22 12 12)"/><circle cx="20.3" cy="8.3" r="1.5" ${S}/>`,
+  // Deployment nodes
+  client: `${windowFrame}<path d="M11.5 11.2 18.5 14l-3 1.1 2.1 2.6-1.4 1.1-2.1-2.6-1.6 2.6z" ${S}/>`,
+  cloud: `<path d="M7.2 18.5h10.4a4 4 0 0 0 .5-7.96A6 6 0 0 0 6.6 9.3a4.62 4.62 0 0 0 .6 9.2z" ${F}/><path d="M7.2 18.5h10.4a4 4 0 0 0 .5-7.96A6 6 0 0 0 6.6 9.3a4.62 4.62 0 0 0 .6 9.2z"/>`,
+  process: `<path d="M12 2.8l8 4.6v9.2l-8 4.6-8-4.6V7.4z" ${F}/><path d="M12 2.8l8 4.6v9.2l-8 4.6-8-4.6V7.4z"/><path d="M8.6 9.4l3 2.6-3 2.6M13 15h3"/>`,
+  // Class kinds
+  "t-class": `<circle cx="12" cy="12" r="8.5" ${F}/><circle cx="12" cy="12" r="8.5"/><path d="M15.2 9.1a4.1 4.1 0 1 0 0 5.8" stroke-width="1.9"/>`,
+  "t-interface": `<circle cx="12" cy="8" r="4.6" ${F}/><circle cx="12" cy="8" r="4.6"/><path d="M12 12.6V21M8.3 21h7.4"/>`,
+  "t-record": `<rect x="3.5" y="5" width="17" height="14" rx="2.5" ${F}/><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M7 10h10M7 14h6"/>`,
+  "t-struct": `<rect x="8.8" y="8.3" width="6.4" height="7.4" rx="1.3" ${F}/><path d="M8 4H6.6A1.6 1.6 0 0 0 5 5.6v4L3.4 12 5 14.4v4A1.6 1.6 0 0 0 6.6 20H8M16 4h1.4A1.6 1.6 0 0 1 19 5.6v4l1.6 2.4-1.6 2.4v4a1.6 1.6 0 0 1-1.6 1.6H16"/><path d="M9.6 10.5h4.8M9.6 13.5h4.8"/>`,
+  "t-enum": `<rect x="4" y="3.6" width="16" height="4.6" rx="2.3" ${S}/><rect x="4" y="9.7" width="16" height="4.6" rx="2.3"/><rect x="4" y="15.8" width="16" height="4.6" rx="2.3"/>`,
+  "t-type": `<path d="M12 2.8 21.2 12 12 21.2 2.8 12z" ${F}/><path d="M12 2.8 21.2 12 12 21.2 2.8 12z"/><path d="M8.8 9.6h6.4M12 9.6v6"/>`,
+  // Interface
+  drill: `<path d="M9.6 6.4 15.2 12l-5.6 5.6" stroke-width="2.7"/>`,
+  folder: `<path d="M3.5 7.4A1.6 1.6 0 0 1 5.1 5.8h3.8l2.1 2.3h7.9a1.6 1.6 0 0 1 1.6 1.6v8.7a1.6 1.6 0 0 1-1.6 1.6H5.1a1.6 1.6 0 0 1-1.6-1.6z" ${F}/><path d="M3.5 7.4A1.6 1.6 0 0 1 5.1 5.8h3.8l2.1 2.3h7.9a1.6 1.6 0 0 1 1.6 1.6v8.7a1.6 1.6 0 0 1-1.6 1.6H5.1a1.6 1.6 0 0 1-1.6-1.6z"/>`,
+  plus: `<path d="M12 5.5v13M5.5 12h13"/>`,
+  minus: `<path d="M5.5 12h13"/>`,
+  fit: `<path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"/><rect x="8.5" y="8.5" width="7" height="7" rx="1.5" ${F}/>`,
+  close: `<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>`,
+  search: `<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/>`,
+};
+
+/** Which glyph a component gets, guessed from its name. Order matters: the first match wins. */
+const GLYPH_RULES = [
+  [/engine|\bcore\b|simulat|physics/, "gear"],
+  [/render|draw|graphic|canvas|display|paint|sprite/, "render"],
+  [/sound|audio|music|sfx|synth/, "sound"],
+  [/input|keyboard|gamepad|\bcontrols?\b|touch/, "input"],
+  [/online|multiplayer|lobby|\broom\b|lockstep|socket|relay/, "link"],
+  [/worker|server|backend|service|handler/, "server"],
+  [/\bnet\b|network|http|client|fetch|request|\bapi\b/, "network"],
+  [/cache/, "cache"],
+  [/\bd1\b|database|\bdb\b|storage|\bstore|persist|\bsql/, "database"],
+  [/\bzx\b|spectrum|\bchip|\bcpu\b|emulat|hardware|\brom\b/, "chip"],
+  [/\btest|\bspec\b|verif/, "flask"],
+  [/config|setting|tuning|option/, "sliders"],
+  [/random|\brng\b|\bseeds?\b|\bmath|determin/, "dice"],
+  [/replay|record|history/, "replay"],
+  [/\bauth|\bsign|login|session|token|\bkeys?\b/, "key"],
+  [/build|bundle|\bpack|asset/, "package"],
+  [/\bui\b|page|\bview|screen|scene|window|\bdom\b|menu|\bhud\b/, "window"],
+  [/score|leader|\brank|\btable/, "trophy"],
+  [/\bnames?\b|label|\btext\b|string|i18n|\bfont/, "tag"],
+];
+const glyphFor = (...texts) => texts.map((t) => GLYPH_RULES.find(([re]) => re.test(String(t ?? "").toLowerCase()))?.[1]).find(Boolean) ?? "module";
+const DEPLOY_GLYPH = { client: "client", host: "cloud", process: "process", database: "database", cache: "cache", "external-service": "external" };
+const DEPLOY_KIND = { client: "client", host: "host", process: "process", database: "database", cache: "cache", "external-service": "external service" };
+
+const ic = (name, cls = "ic") => `<svg class="${cls}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+
+document.body.insertAdjacentHTML("afterbegin", `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+${Object.entries(ICONS).map(([k, v]) => `<symbol id="i-${k}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${v}</symbol>`).join("\n")}
+<pattern id="p-grid" class="pg" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M12 9.5v5M9.5 12h5"/></pattern>
+<marker id="m-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1 1.2 9.4 5 1 8.8 2.6 5z" style="fill:var(--edge)"/></marker>
+<marker id="m-arr-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1 1.2 9.4 5 1 8.8 2.6 5z" style="fill:var(--hot)"/></marker>
+<marker id="m-open" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1.5 1.5 9 5 1.5 8.5" style="fill:none;stroke:var(--edge);stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round"/></marker>
+<marker id="m-open-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1.5 1.5 9 5 1.5 8.5" style="fill:none;stroke:var(--hot);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round"/></marker>
+<marker id="m-tri" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1 1.5 13 7 1 12.5z" style="fill:var(--plate);stroke:var(--edge);stroke-width:1.3;stroke-linejoin:round"/></marker>
+<marker id="m-tri-hot" viewBox="0 0 14 14" refX="13" refY="7" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1 1.5 13 7 1 12.5z" style="fill:var(--plate);stroke:var(--hot);stroke-width:1.6;stroke-linejoin:round"/></marker>
+</defs></svg>`);
+
+// ── The repository: GitHub or GitLab, from the address given ─────────────
+
+/** Splits an address into a host adapter, the repository and an optional ref and folder. */
+function parseAddress(raw) {
+  let s = raw.trim().replace(/^git@([^:]+):/, "https://$1/");
+  const url = new URL(s);
+  if (!/^https?:$/.test(url.protocol)) throw new Error("Give an http or https address.");
+  const parts = url.pathname.replace(/\.git$/, "").split("/").filter(Boolean).map(decodeURIComponent);
+  if (url.hostname === "github.com" || url.hostname === "www.github.com") {
+    if (parts.length < 2) throw new Error("A GitHub address needs an owner and a repository.");
+    const [owner, repo, mode, ...rest] = parts;
+    return { host: github, owner, repo, rest: mode === "tree" || mode === "blob" ? rest : [] };
+  }
+  // Anything else is tried as GitLab (gitlab.com or a self-hosted GitLab with CORS).
+  const dash = parts.indexOf("-");
+  const project = (dash >= 0 ? parts.slice(0, dash) : parts).join("/");
+  const rest = dash >= 0 && (parts[dash + 1] === "tree" || parts[dash + 1] === "blob") ? parts.slice(dash + 2) : [];
+  if (!project.includes("/")) throw new Error("Give the address of a GitHub or GitLab repository.");
+  return { host: gitlab, origin: url.origin, project, rest };
+}
+
+// ── Tokens ───────────────────────────────────────────────────────────────
+// A private repository needs the reader's own access token. It is kept in
+// their browser and sent to one host: a GitHub token must never reach a
+// self-hosted GitLab, so tokens are stored under the host they belong to.
+//
+// One reader can have several accounts on a host, each seeing different
+// repositories, so a token is kept under a scope: the host, an owner or group
+// on it, or one repository. A repository uses the narrowest scope around it.
+
+// The key keeps the page's earlier name, so tokens readers already saved are still found.
+const TOKENS = "architecture-browser.tokens";
+/** sessionStorage first: a token kept only for this tab wins over one left on the browser. */
+const store = (name) => { try { return window[name] ?? null; } catch { return null; } };
+const stores = () => [store("sessionStorage"), store("localStorage")].filter(Boolean);
+function held(store) { try { return JSON.parse(store.getItem(TOKENS) ?? "{}") ?? {}; } catch { return {}; } }
+/** Where a token for the repository could be kept, widest first: the host, each owner or group, the repository. */
+function scopes(r) {
+  const h = r.host.tokenHost(r), parts = r.host.label(r).split("/");
+  return [h, ...parts.map((_, i) => `${h}/${parts.slice(0, i + 1).join("/")}`)];
+}
+/** The token with the narrowest scope around the repository, and that scope; null without one. */
+function tokenScope(r) {
+  if (!r) return null;
+  const all = stores().map(held);
+  for (const scope of scopes(r).reverse()) for (const a of all) if (a[scope]) return { scope, token: a[scope] };
+  return null;
+}
+const tokenFor = (r) => tokenScope(r)?.token ?? null;
+/** Every token kept, by scope, with where it is kept. */
+function heldTokens() {
+  const out = new Map();
+  for (const [s, where] of [[store("sessionStorage"), "this tab"], [store("localStorage"), "this browser"]]) {
+    if (s) for (const scope of Object.keys(held(s))) if (!out.has(scope)) out.set(scope, where);
+  }
+  return [...out].sort(([a], [b]) => a.localeCompare(b));
+}
+/** Replaces the token for a scope everywhere; a null value forgets it. */
+function saveToken(scope, value, keep) {
+  for (const s of stores()) { const all = held(s); delete all[scope]; try { s.setItem(TOKENS, JSON.stringify(all)); } catch { /* blocked */ } }
+  if (!value) return;
+  const s = (keep ? store("localStorage") : store("sessionStorage")) ?? stores()[0];
+  if (!s) { status("This browser won't keep the token, so it can't be used.", "error"); return; }
+  const all = held(s); all[scope] = value;
+  try { s.setItem(TOKENS, JSON.stringify(all)); } catch { status("This browser wouldn't keep the token.", "error"); }
+}
+/** What authenticates a request to the repository's own host; nothing without a token. */
+const auth = (r) => { const t = tokenFor(r); return t ? r.host.authHeader(t) : {}; };
+
+function showTokenButton() {
+  const b = $("token"), using = repo && tokenScope(repo), any = heldTokens().length;
+  b.hidden = !repo || !any;
+  if (b.hidden) return;
+  b.innerHTML = `${ic("key")}${using ? "Token added" : "Tokens"}`;
+  b.title = using ? `The token for ${using.scope} is in use. Open to add, replace or forget tokens.` : "No token covers this repository. Open to add one or forget others.";
+}
+
+const closeTokenPanel = () => { $("token-panel").hidden = true; };
+
+function openTokenPanel() {
+  if (!repo) return;
+  const host = repo.host.tokenHost(repo), using = tokenScope(repo), all = scopes(repo), p = $("token-panel");
+  // An owner or group by default: that is what one account usually covers.
+  const chosen = using?.scope ?? all[Math.min(1, all.length - 1)];
+  const what = (s, i) => i === 0 ? `Every repository on ${s}` : i === all.length - 1 ? `Only ${s.slice(host.length + 1)}` : `Everything under ${s.slice(host.length + 1)}`;
+  const kept = heldTokens();
+  p.innerHTML = `<h2 id="token-title">Tokens</h2>
+    ${kept.length ? `<ul class="held">${kept.map(([s, where]) => `<li><code>${esc(s)}</code>${s === using?.scope ? `<span class="using">in use</span>` : ""}<span class="where">${where}</span><button class="quiet" data-forget="${esc(s)}">Forget</button></li>`).join("")}</ul>` : ""}
+    <p>${using ? `Replace the token for ${esc(using.scope)}, or add one` : "Add a token"} for ${esc(repo.host.label(repo))}. ${esc(repo.host.tokenHelp)} It is kept in this browser and sent to ${esc(host)} alone.</p>
+    <input id="token-value" type="password" autocomplete="off" spellcheck="false" placeholder="Paste the token" aria-label="Token for ${esc(host)}">
+    <fieldset class="scope"><legend>Use it for</legend>${all.map((s, i) => `<label><input type="radio" name="token-scope" value="${esc(s)}"${s === chosen ? " checked" : ""}> ${esc(what(s, i))}</label>`).join("")}</fieldset>
+    <label class="keep"><input id="token-keep" type="checkbox"> Keep it on this browser after the tab closes</label>
+    <div class="row"><button class="primary" id="token-save">Save and reload</button><span class="spacer"></span><button class="quiet" id="token-cancel">Cancel</button></div>`;
+  p.hidden = false;
+  $("token-value").focus();
+  const save = () => {
+    const v = $("token-value").value.trim();
+    if (!v) { closeTokenPanel(); return; }
+    saveToken(p.querySelector('input[name="token-scope"]:checked').value, v, $("token-keep").checked);
+    location.reload();
+  };
+  $("token-save").addEventListener("click", save);
+  for (const b of p.querySelectorAll("[data-forget]")) b.addEventListener("click", () => {
+    const s = b.dataset.forget;
+    saveToken(s, null, false);
+    if (s === using?.scope) location.reload(); else { openTokenPanel(); showTokenButton(); }
+  });
+  $("token-cancel").addEventListener("click", closeTokenPanel);
+  p.onkeydown = (e) => { if (e.key === "Escape") closeTokenPanel(); else if (e.key === "Enter" && e.target.id === "token-value") save(); };
+}
+$("token").addEventListener("click", () => ($("token-panel").hidden ? openTokenPanel() : closeTokenPanel()));
+document.addEventListener("click", (e) => { if (!$("token-panel").hidden && !e.composedPath().some((n) => n.id === "token-panel" || n.id === "token")) closeTokenPanel(); });
+
+/** The button to offer when a host refuses, or null when a token wouldn't help. */
+const tokenOffer = (st) => ([401, 403, 404].includes(st) ? { label: tokenFor(repo) ? "Replace or add a token" : "Add a token", run: openTokenPanel } : null);
+
+async function getJson(url, extra = {}) {
+  const res = await fetch(url, { headers: { Accept: "application/json", ...auth(repo), ...extra } });
+  if (!res.ok) {
+    const host = new URL(url).host, signed = tokenScope(repo)?.scope;
+    const e = new Error(
+      res.status === 401 ? `${host} refused the token${signed ? ` for ${signed}` : ""}. It may be wrong, expired, or for another account.`
+      : res.status === 403 && signed ? `${host} refused the request. The token for ${signed} may not cover this repository; a narrower one can be added for it.`
+      : res.status === 403 && host === "api.github.com" ? "GitHub allows 60 unauthenticated requests an hour from one address, and they are used up. A token raises that to 5,000, or try again in a while."
+      : res.status === 404 ? `${host} has no such repository, or ${signed ? "the token cannot see it" : "it is private"}.`
+      : `${res.status} ${res.statusText} from ${host}`);
+    e.status = res.status; throw e;
+  }
+  return res.json();
+}
+
+/** Tries ref = first segment, then first two, …, since a branch name may contain slashes. */
+async function resolveRef(rest, tryRef) {
+  for (let n = 1; n <= rest.length; n++) {
+    const ref = rest.slice(0, n).join("/");
+    try { return { ref, path: rest.slice(n).join("/"), data: await tryRef(ref) }; }
+    catch (e) { if (e.status !== 404 && e.status !== 422) throw e; }
+  }
+  throw new Error("No such branch, tag or commit.");
+}
+
+const github = {
+  name: "GitHub",
+  tokenHost: () => "github.com",
+  authHeader: (t) => ({ Authorization: `Bearer ${t}` }),
+  tokenHelp: "A fine-grained personal access token with Contents: read on the repository, made under Settings → Developer settings on GitHub.",
+  async list(r) {
+    const api = `https://api.github.com/repos/${encodeURIComponent(r.owner)}/${encodeURIComponent(r.repo)}`;
+    const tree = (ref) => getJson(`${api}/git/trees/${encodeURIComponent(ref)}?recursive=1`);
+    let found;
+    if (r.rest.length) found = await resolveRef(r.rest, tree);
+    else { const ref = (await getJson(api)).default_branch; found = { ref, path: "", data: await tree(ref) }; }
+    r.ref = found.ref; r.path = found.path;
+    r.truncated = !!found.data.truncated;
+    return found.data.tree.filter((e) => e.type === "blob").map((e) => e.path);
+  },
+  // raw.githubusercontent.com turns away an Authorization header at CORS, so a signed-in read goes
+  // through the API instead, which serves the file itself for this media type.
+  read(r, path) {
+    const p = path.split("/").map(encodeURIComponent).join("/");
+    return tokenFor(r)
+      ? [`https://api.github.com/repos/${encodeURIComponent(r.owner)}/${encodeURIComponent(r.repo)}/contents/${p}?ref=${encodeURIComponent(r.ref)}`, { Accept: "application/vnd.github.raw" }]
+      : [`https://raw.githubusercontent.com/${r.owner}/${r.repo}/${encodeURIComponent(r.ref)}/${p}`, {}];
+  },
+  blob: (r, path) => `https://github.com/${r.owner}/${r.repo}/blob/${r.ref}/${path}`,
+  home: (r) => `https://github.com/${r.owner}/${r.repo}`,
+  label: (r) => `${r.owner}/${r.repo}`,
+};
+
+const gitlab = {
+  name: "GitLab",
+  tokenHost: (r) => new URL(r.origin).host,
+  authHeader: (t) => ({ "PRIVATE-TOKEN": t }),
+  tokenHelp: "A personal access token with the read_api scope, made under Access tokens in your GitLab profile.",
+  async list(r) {
+    const api = `${r.origin}/api/v4/projects/${encodeURIComponent(r.project)}`;
+    const page = async (ref, n) => getJson(`${api}/repository/tree?recursive=true&per_page=100&page=${n}&ref=${encodeURIComponent(ref)}`);
+    let found;
+    if (r.rest.length) found = await resolveRef(r.rest, (ref) => page(ref, 1));
+    else { const ref = (await getJson(api)).default_branch; found = { ref, path: "", data: await page(ref, 1) }; }
+    r.ref = found.ref; r.path = found.path;
+    const all = [...found.data];
+    for (let n = 2, last = found.data; last.length === 100 && n <= 200; n++) { last = await page(r.ref, n); all.push(...last); }
+    return all.filter((e) => e.type === "blob").map((e) => e.path);
+  },
+  read: (r, path) => [`${r.origin}/api/v4/projects/${encodeURIComponent(r.project)}/repository/files/${encodeURIComponent(path)}/raw?ref=${encodeURIComponent(r.ref)}`, {}],
+  blob: (r, path) => `${r.origin}/${r.project}/-/blob/${r.ref}/${path}`,
+  home: (r) => `${r.origin}/${r.project}`,
+  label: (r) => r.project,
+};
+
+// ── Loading ──────────────────────────────────────────────────────────────
+
+let repo = null;
+/** folder → its diagrams, sorted by kind. */
+const byFolder = new Map();
+/** repository path of a .dev file → its view, for links between views. */
+const byPath = new Map();
+let dagre = null;
+
+/** Runs fn over items with at most n in flight: a repository can have hundreds of views. */
+async function pool(items, n, fn) {
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (next < items.length) await fn(items[next++]); }));
+}
+
+async function load(address) {
+  try { repo = parseAddress(address); } catch (e) { status(e.message, "error"); $("landing").hidden = false; return; }
+  $("repo").hidden = false; $("change").hidden = false;
+  showTokenButton();
+  $("repo").innerHTML = `<a href="${esc(address)}">${esc(repo.host.label(repo))}</a>`;
+  status(`Listing ${repo.host.label(repo)} on ${repo.host.name}…`, "loading");
+  const drawing = import(DAGRE).then((m) => (dagre = m)).catch(() => null);
+  let paths;
+  try { paths = await repo.host.list(repo); } catch (e) { status(`Couldn't list the repository. ${e.message}`, "error", tokenOffer(e.status)); return; }
+  $("repo").insertAdjacentHTML("beforeend", `<span class="ref" title="Branch, tag or commit">${esc(repo.ref)}</span>`);
+  const prefix = repo.path ? repo.path.replace(/\/$/, "") + "/" : "";
+  const wanted = paths.filter((p) => /(^|\/)\.dev\/[^/]+\.json$/.test(p) && p.startsWith(prefix));
+  if (!wanted.length) { status(`${repo.host.label(repo)}${repo.path ? "/" + repo.path : ""} has no .dev/*.json diagrams at ${repo.ref}. The diagram skills describe how to add them.`, "error"); return; }
+  status(`Reading ${wanted.length} diagrams…`, "loading");
+  const problems = [];
+  await pool(wanted, 12, async (path) => {
+    try {
+      const [url, headers] = repo.host.read(repo, path);
+      const res = await fetch(url, { headers: { ...headers, ...auth(repo) } });
+      if (!res.ok) throw new Error(`${res.status}`);
+      const doc = await res.json();
+      if (!doc || !(doc.kind in KIND_ORDER)) throw new Error("not a diagram");
+      const folder = typeof doc.folder === "string" ? doc.folder : path.split("/").slice(0, -2).join("/");
+      doc._path = path;
+      doc._folder = folder;
+      byPath.set(path, doc);
+      if (!byFolder.has(folder)) byFolder.set(folder, []);
+      byFolder.get(folder).push(doc);
+    } catch (e) { problems.push(`${path} (${e.message})`); }
+  });
+  for (const docs of byFolder.values()) docs.sort((a, b) => KIND_ORDER[a.kind] - KIND_ORDER[b.kind] || a._path.localeCompare(b._path));
+  await drawing;
+  await Promise.race([Promise.all([F_NAME, F_HEAD, F_LABEL].map((f) => document.fonts.load(f))), new Promise((r) => setTimeout(r, 1500))]).catch(() => {});
+  const notes = [];
+  if (repo.truncated) notes.push("The repository is too large to list in full, so some diagrams may be missing.");
+  if (problems.length) notes.push(`Skipped ${problems.join(", ")}.`);
+  if (!dagre) notes.push("The drawing library couldn't load, so each diagram is shown as tables.");
+  status(notes.join(" "));
+  $("layout").hidden = false;
+  showTree();
+  route();
+  // A web font that arrives after the first drawing changes the text widths: draw again.
+  document.fonts.addEventListener("loadingdone", () => { current = null; route(); }, { once: true });
+}
+
+// ── Folders ──────────────────────────────────────────────────────────────
+
+const folders = () => [...byFolder.keys()].sort((a, b) => a.localeCompare(b));
+const depth = (f) => (f ? f.split("/").length : 0);
+/** The nearest folder above f that has diagrams, or null. */
+function parentOf(f) {
+  const parts = f.split("/");
+  for (let n = parts.length - 1; n >= 0; n--) { const p = parts.slice(0, n).join("/"); if (p !== f && byFolder.has(p)) return p; }
+  return null;
+}
+const childrenOf = (f) => folders().filter((c) => c !== f && parentOf(c) === f);
+const folderHash = (f, focus) => "#" + encodeURI(f) + (focus ? "|" + encodeURIComponent(focus) : "");
+/** The deepest folder with diagrams that holds a path. */
+function folderOfPath(path) {
+  const parts = path.split("/");
+  for (let n = parts.length - 1; n >= 0; n--) { const p = parts.slice(0, n).join("/"); if (byFolder.has(p)) return p; }
+  return null;
+}
+const rel = (f, base) => (base && f.startsWith(base + "/") ? f.slice(base.length + 1) : f);
+
+function pips(docs) {
+  const counts = new Map();
+  for (const d of docs) counts.set(d.kind, (counts.get(d.kind) ?? 0) + 1);
+  return `<span class="pips">${[...counts].map(([k, n]) => `<span class="pip kind-${k}" title="${kindCount(k, n)}">${ic("kind-" + k)}${n > 1 ? `<sub>${n}</sub>` : ""}</span>`).join("")}</span>`;
+}
+
+function showTree() {
+  const roots = folders().filter((f) => parentOf(f) === null);
+  const item = (f) => {
+    const p = parentOf(f), kids = childrenOf(f);
+    const name = p === null ? f || "/" : rel(f, p);
+    return `<li data-folder="${esc(f)}"><a href="${esc(folderHash(f))}" data-folder="${esc(f)}"><span class="nm">${esc(name)}</span>${pips(byFolder.get(f))}</a>${kids.length ? `<ul>${kids.map(item).join("")}</ul>` : ""}</li>`;
+  };
+  $("tree").innerHTML = roots.map(item).join("");
+}
+
+$("filter").addEventListener("input", () => {
+  const q = $("filter").value.trim().toLowerCase();
+  const hit = (f) => !q || f.toLowerCase().includes(q) || byFolder.get(f).some((d) => JSON.stringify([d.title, d.components?.map((c) => c.name), d.types?.map((t) => t.name), d.states?.map((s) => s.id), d.nodes?.map((n) => n.name), d.entities?.map((e) => e.name)]).toLowerCase().includes(q));
+  const keep = new Set();
+  for (const f of folders()) if (hit(f)) for (let p = f; p !== null; p = parentOf(p)) keep.add(p);
+  for (const li of $("tree").querySelectorAll("li")) li.classList.toggle("miss", !keep.has(li.dataset.folder));
+});
+
+let current = null;
+function route() {
+  if (!byFolder.size) return;
+  const [rawFolder, rawFocus] = location.hash.slice(1).split("|");
+  const want = decodeURI(rawFolder ?? "");
+  const folder = byFolder.has(want) ? want : folders().slice().sort((a, b) => depth(a) - depth(b) || a.localeCompare(b))[0];
+  const focus = rawFocus ? decodeURIComponent(rawFocus) : null;
+  for (const a of $("tree").querySelectorAll("a")) a.classList.toggle("current", a.dataset.folder === folder);
+  if (folder !== current) {
+    closeInspector();
+    current = folder;
+    showFolder(folder);
+    if (!focus) window.scrollTo({ top: 0 });
+    $("tree").querySelector("a.current")?.scrollIntoView({ block: "nearest" });
+  }
+  if (focus) focusPart(focus);
+}
+window.addEventListener("hashchange", route);
+
+// ── Text measuring ───────────────────────────────────────────────────────
+
+const F_NAME = `600 15px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
+const F_HEAD = `600 15.5px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
+const F_LABEL = `500 12.5px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
+const F_SMALL = `500 12px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
+const F_MONO = `400 11.5px ui-monospace, "SF Mono", Menlo, Consolas, monospace`;
+const F_MEM = `400 12px ui-monospace, "SF Mono", Menlo, Consolas, monospace`;
+const measureCtx = document.createElement("canvas").getContext("2d");
+function tw(text, font) { measureCtx.font = font; return measureCtx.measureText(text).width; }
+function clip(text, font, max) {
+  if (tw(text, font) <= max) return text;
+  let lo = 0, hi = text.length;
+  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (tw(text.slice(0, mid) + "…", font) <= max) lo = mid; else hi = mid - 1; }
+  return text.slice(0, lo).trimEnd() + "…";
+}
+function wrap(text, font, max, maxLines = 2) {
+  const words = String(text).split(/\s+/), lines = [];
+  let line = "";
+  for (const w of words) {
+    const next = line ? line + " " + w : w;
+    if (line && tw(next, font) > max) { lines.push(line); line = w; } else line = next;
+  }
+  if (line) lines.push(line);
+  if (lines.length > maxLines) { lines.length = maxLines; lines[maxLines - 1] = clip(lines[maxLines - 1] + " …", font, max); }
+  return lines.map((l) => clip(l, font, max));
+}
+const T = (x, y, text, font, cls = "", anchor = "") => `<text x="${x}" y="${y}"${cls ? ` class="${cls}"` : ""}${anchor ? ` text-anchor="${anchor}"` : ""} style='font:${font}'>${esc(text)}</text>`;
+const use = (name, x, y, s, cls = "glyph") => `<use href="#i-${name}" x="${x}" y="${y}" width="${s}" height="${s}" class="${cls}"/>`;
+/** "Page (main.ts)" → ["Page", "main.ts"]. */
+function splitName(name) { const m = String(name).match(/^(.*?)\s*\(([^()]+)\)$/); return m ? [m[1], m[2]] : [String(name), ""]; }
+
+// ── Diagram models ───────────────────────────────────────────────────────
+// Each kind becomes the same shape: nodes with a size and a draw function,
+// clusters that hold other nodes, and edges. One layout and one renderer
+// serve all four.
+
+const HEADER = 34;   // the band at the top of a cluster
+/** Room above a state for its transitions back to itself. */
+const loopRoom = (n) => (n.loops ? 22 + n.loops * 23 : 0);
+
+/** What a click on a part leads to: another folder, or null. */
+function navFor(folder, focus) { return folder && folder !== current && byFolder.has(folder) ? folderHash(folder, focus) : null; }
+
+function plateNode({ key, glyph, name, sub, nav, ext, tip, info, minW = 156, maxText = 186, maxLines = 2 }) {
+  const lines = wrap(name, F_NAME, maxText, maxLines);
+  const subText = sub ? clip(sub, F_MONO, maxText) : "";
+  const textW = Math.max(...lines.map((l) => tw(l, F_NAME)), subText ? tw(subText, F_MONO) : 0);
+  const w = Math.max(minW, Math.ceil(54 + textW + (nav ? 30 : 16)));
+  const h = Math.max(56, 20 + lines.length * 18 + (subText ? 15 : 0));
+  return {
+    key, w, h, tip, info, nav,
+    cls: `node${ext ? " ext" : ""}${nav ? " nav" : ""}`,
+    draw() {
+      const block = lines.length * 18 + (subText ? 15 : 0), top = (h - block) / 2;
+      return `<rect class="shadow" x="2" y="3" width="${w}" height="${h}" rx="10"/><rect class="plate" width="${w}" height="${h}" rx="10"/>`
+        + `<rect class="tilebg" x="10" y="${(h - 34) / 2}" width="34" height="34" rx="8"/>${use(glyph, 15, (h - 24) / 2, 24)}`
+        + lines.map((l, i) => T(54, top + 13.5 + i * 18, l, F_NAME)).join("")
+        + (subText ? T(54, top + lines.length * 18 + 10.5, subText, F_MONO, "sub") : "")
+        + (nav ? `<g class="drill"><circle cx="${w - 15}" cy="15" r="9.5"/>${use("drill", w - 22, 8, 14, "")}</g>` : "");
+    },
+  };
+}
+
+function clusterNode({ key, glyph, name, sub, nav, ext, tip, info }) {
+  const nameW = tw(name, F_HEAD), subW = sub ? tw(sub, F_MONO) + 10 : 0;
+  return {
+    key, cluster: true, tip, info, nav, minW: 40 + nameW + subW + (nav ? 34 : 14),
+    cls: `cl${ext ? " ext" : ""}${nav ? " nav" : ""}`,
+    draw(w, h) {
+      return `<rect class="box" width="${w}" height="${h}" rx="14"/><path class="band" d="M0 14a14 14 0 0 1 14-14h${w - 28}a14 14 0 0 1 14 14v${HEADER - 14}H0z"/>`
+        + `<g class="hd">${use(glyph, 12, 8, 19)}${T(38, 22, name, F_HEAD)}${sub ? T(44 + nameW, 22, sub, F_MONO, "sub") : ""}`
+        + (nav ? `<g class="drill"><circle cx="${w - 19}" cy="17" r="9.5"/>${use("drill", w - 26, 10, 14, "")}</g>` : "") + `</g>`;
+    },
+  };
+}
+
+const item = (kind, title, sub, body) => ({ kind, title, sub, body });
+const sel = (key, text) => `<button class="sel-link" data-sel="${esc(key)}">${esc(text)}</button>`;
+const fileLink = (path) => `<a href="${esc(repo.host.blob(repo, path))}" target="_blank" rel="noopener"><code>${esc(path)}</code></a>`;
+const folderLink = (f) => (byFolder.has(f) ? `<a href="${esc(folderHash(f))}">${esc(f)}</a>` : `<code>${esc(f)}</code>`);
+const relList = (title, rows) => rows.length ? `<h4>${esc(title)}</h4><ul>${rows.map((r) => `<li>${r}</li>`).join("")}</ul>` : "";
+const navTip = (nav) => `<span class="hint">${nav ? "Click to open its diagrams" : "Click for details"}</span>`;
+
+function componentModel(d, folder) {
+  const comps = new Map(d.components.map((c) => [c.id, c]));
+  const contains = d.relationships.filter((r) => r.kind === "contains" && comps.has(r.from) && comps.has(r.to) && r.from !== r.to);
+  const owner = new Map(contains.map((r) => [r.to, r.from]));
+  const parents = new Set(contains.map((r) => r.from));
+  const deps = d.relationships.filter((r) => r.kind !== "contains" && comps.has(r.from) && comps.has(r.to));
+  const nameOf = (id) => splitName(comps.get(id).name)[0];
+  const nodes = d.components.map((c) => {
+    const [name, file] = splitName(c.name);
+    const target = c.diagram ? c.diagram.split("/").slice(0, -2).join("/") : c.folder;
+    const nav = c.external ? null : navFor(target);
+    const sub = file || (c.external ? "elsewhere" : c.folder && c.folder !== folder ? rel(c.folder, folder) + "/" : "");
+    const out = deps.filter((r) => r.from === c.id), inc = deps.filter((r) => r.to === c.id);
+    const info = item("component", c.name, c.external ? "Outside this repository" : "Component",
+      `<p>${esc(c.responsibility)}</p>`
+      + (nav ? `<a class="open" href="${esc(nav)}">${ic("drill")}Open ${esc(rel(target, folder))}</a>` : "")
+      + (c.folder ? `<h4>Folder</h4><p>${folderLink(c.folder)}</p>` : "")
+      + (c.diagram ? `<h4>Its diagram</h4><p>${fileLink(c.diagram)}</p>` : "")
+      + relList("Depends on", out.map((r) => `${sel(r.to, comps.get(r.to).name)}<span class="d">${esc(r.description)}</span>`))
+      + relList("Used by", inc.map((r) => `${sel(r.from, comps.get(r.from).name)}<span class="d">${esc(r.description)}</span>`))
+      + relList("Contains", contains.filter((r) => r.from === c.id).map((r) => sel(r.to, comps.get(r.to).name))));
+    const tip = `<b>${esc(c.name)}</b>${esc(c.responsibility)}${navTip(nav)}`;
+    const glyph = c.external ? "external" : parents.has(c.id) ? "group" : glyphFor(name, file, c.folder && c.folder !== folder ? c.folder.split("/").pop() : "");
+    const n = parents.has(c.id)
+      ? clusterNode({ key: c.id, glyph, name: c.name, sub: c.folder && c.folder !== folder ? rel(c.folder, folder) + "/" : "", nav, ext: c.external, tip, info })
+      : plateNode({ key: c.id, glyph, name, sub, nav, ext: c.external, tip, info });
+    n.parent = owner.get(c.id);
+    return n;
+  });
+  const edges = deps.map((r, i) => ({ key: "r" + i, from: r.from, to: r.to, marker: "arr", tip: `<b>${esc(nameOf(r.from))} depends on ${esc(nameOf(r.to))}</b>${esc(r.description)}` }));
+  return { dir: "LR", nodes, edges };
+}
+
+function deploymentModel(d, folder) {
+  const byId = new Map(d.nodes.map((n) => [n.id, n]));
+  const hostRels = d.relationships.filter((r) => r.kind === "hosts" && byId.has(r.from) && byId.has(r.to) && r.from !== r.to);
+  const hostedBy = new Map(hostRels.map((r) => [r.to, r.from]));
+  const artsOn = (id) => d.artifacts.filter((a) => a.deployedTo === id);
+  const clusters = new Set(d.nodes.filter((n) => hostRels.some((r) => r.from === n.id) || (n.kind === "host" && artsOn(n.id).length)).map((n) => n.id));
+  const links = d.relationships.filter((r) => r.kind !== "hosts" && byId.has(r.from) && byId.has(r.to));
+  const nodes = d.nodes.map((n) => {
+    const out = links.filter((r) => r.from === n.id), inc = links.filter((r) => r.to === n.id);
+    const info = item("deployment", n.name, DEPLOY_KIND[n.kind] ?? n.kind,
+      `<p>${esc(n.description)}</p>${n.condition ? `<p class="kv">Only when: ${esc(n.condition)}</p>` : ""}`
+      + (hostedBy.has(n.id) ? `<h4>Hosted by</h4><p>${sel(hostedBy.get(n.id), byId.get(hostedBy.get(n.id)).name)}</p>` : "")
+      + relList("Hosts", hostRels.filter((r) => r.from === n.id).map((r) => `${sel(r.to, byId.get(r.to).name)}<span class="d">${esc(r.description)}</span>`))
+      + relList("Runs", artsOn(n.id).map((a) => `${sel("art:" + a.id, a.name)}<span class="d">${esc(a.description)}</span>`))
+      + relList("Connects to", out.map((r) => `${sel(r.to, byId.get(r.to).name)} <span class="kv">${esc(r.kind.replace("-", " "))}</span><span class="d">${esc(r.description)}</span>`))
+      + relList("Reached from", inc.map((r) => `${sel(r.from, byId.get(r.from).name)} <span class="kv">${esc(r.kind.replace("-", " "))}</span><span class="d">${esc(r.description)}</span>`)));
+    const tip = `<b>${esc(n.name)}</b>${esc(n.description)}${n.condition ? `<br><i>Only when ${esc(n.condition)}</i>` : ""}`;
+    const args = { key: n.id, glyph: DEPLOY_GLYPH[n.kind] ?? "server", name: n.name, ext: !!n.condition || n.kind === "external-service", tip: tip + navTip(null), info };
+    const node = clusters.has(n.id) ? clusterNode({ ...args, sub: DEPLOY_KIND[n.kind] }) : plateNode({ ...args, sub: n.condition ? `when ${n.condition}` : DEPLOY_KIND[n.kind] ?? n.kind });
+    node.parent = hostedBy.get(n.id);
+    return node;
+  });
+  const edges = [];
+  for (const a of d.artifacts) {
+    const target = folderOfPath(a.source);
+    const nav = navFor(target);
+    const info = item("deployment", a.name, "Artifact",
+      `<p>${esc(a.description)}</p>` + (nav ? `<a class="open" href="${esc(nav)}">${ic("drill")}Open ${esc(rel(target, folder))}</a>` : "")
+      + `<h4>Built from</h4><p>${fileLink(a.source)}</p>` + (byId.has(a.deployedTo) ? `<h4>Deployed to</h4><p>${sel(a.deployedTo, byId.get(a.deployedTo).name)}</p>` : ""));
+    const node = plateNode({ key: "art:" + a.id, glyph: "document", name: a.name, sub: a.source.split("/").pop(), nav, tip: `<b>${esc(a.name)}</b>${esc(a.description)}${navTip(nav)}`, info, minW: 140 });
+    if (clusters.has(a.deployedTo)) node.parent = a.deployedTo;
+    else if (byId.has(a.deployedTo)) edges.push({ key: "dep:" + a.id, from: "art:" + a.id, to: a.deployedTo, cls: "dotted", tip: `<b>${esc(a.name)} runs on ${esc(byId.get(a.deployedTo).name)}</b>` });
+    nodes.push(node);
+  }
+  links.forEach((r, i) => {
+    const kind = r.kind.replace("-", " ");
+    edges.push({ key: "r" + i, from: r.from, to: r.to, marker: "arr", cls: r.kind === "routes" ? "dashed" : "", label: kind, tip: `<b>${esc(byId.get(r.from).name)} ${esc(kind)} ${esc(byId.get(r.to).name)}</b>${esc(r.description)}` });
+  });
+  return { dir: "LR", nodes, edges };
+}
+
+/** Where a type marked external is declared, found by its name in the other class diagrams. */
+function declaredIn(t) {
+  const hint = t.id.includes(".") ? t.id.split(".")[0] : "";
+  const found = [];
+  for (const [f, docs] of byFolder) for (const d of docs) if (d.kind === "class" && d.types.some((x) => x.name === t.name && !x.external)) found.push(f);
+  // Nearest first: a name like Game is declared in every game's engine, and the one beside this folder is meant.
+  const near = (f) => { const a = f.split("/"), b = (current ?? "").split("/"); let n = 0; while (n < a.length && a[n] === b[n]) n++; return n; };
+  found.sort((a, b) => (hint && b.split("/").pop() === hint) - (hint && a.split("/").pop() === hint) || near(b) - near(a));
+  // Only nearby folders count: the same name far off in the tree is most likely another thing.
+  const here = (current ?? "").split("/").length;
+  const close = found.filter((f) => f !== current && near(f) >= here - 1);
+  if (close.length) return close[0];
+  // Not in a class diagram: the folder the id names (engine.Game → engine) beside this one will do.
+  const base = (current ?? "").split("/");
+  for (const f of hint ? [[...base, hint], [...base.slice(0, -1), hint]].map((p) => p.filter(Boolean).join("/")) : []) if (byFolder.has(f) && f !== current) return f;
+  return null;
+}
+
+function classModel(d) {
+  const byId = new Map(d.types.map((t) => [t.id, t]));
+  const rels = d.relationships.filter((r) => byId.has(r.from) && byId.has(r.to));
+  const verb = { inherits: "extends", implements: "implements", "depends-on": "uses" };
+  const nodes = d.types.map((t) => {
+    const home = t.external ? declaredIn(t) : null;
+    const nav = home ? navFor(home, "class:" + t.name) : null;
+    const stereo = [t.external ? "external" : "", t.kind !== "class" ? t.kind : ""].filter(Boolean).join(" ");
+    const shown = t.members.slice(0, 12);
+    const more = t.members.length - shown.length;
+    const parts = shown.map((m) => { const i = m.search(/[:(<=]/); return i > 0 ? [m.slice(0, i), m.slice(i)] : [m, ""]; });
+    const memW = Math.max(0, ...shown.map((m) => tw(m, F_MEM)));
+    const headW = tw(t.name, F_HEAD) + (stereo ? tw(stereo, F_LABEL) + 10 : 0);
+    const w = Math.min(340, Math.max(178, Math.ceil(Math.max(headW + 48 + (nav ? 26 : 0), memW + 28))));
+    const note = t.external ? (home ? `declared in ${rel(home, current)}` : "declared elsewhere") : t.members.length ? "" : "no members listed";
+    const rows = shown.length + (more ? 1 : 0);
+    const h = HEADER + 2 + (rows ? 10 + rows * 18 : 26);
+    const out = rels.filter((r) => r.from === t.id), inc = rels.filter((r) => r.to === t.id);
+    const info = item("class", t.name, [t.external ? "External" : "", t.kind].filter(Boolean).join(" "),
+      (nav ? `<a class="open" href="${esc(nav)}">${ic("drill")}Open where it is declared</a>` : "")
+      + (t.members.length ? `<h4>Members</h4><div class="members">${t.members.map((m) => `<code>${esc(m)}</code>`).join("")}</div>` : note ? `<p>${esc(note[0].toUpperCase() + note.slice(1))}.</p>` : "")
+      + (t.sources.length ? `<h4>Sources</h4><ul>${t.sources.map((s) => `<li>${fileLink(s)}</li>`).join("")}</ul>` : "")
+      + relList("Relies on", out.map((r) => `<span class="kv">${esc(verb[r.kind])}</span> ${sel(r.to, byId.get(r.to).name)}<span class="d">${esc(r.description)}</span>`))
+      + relList("Relied on by", inc.map((r) => `${sel(r.from, byId.get(r.from).name)} <span class="kv">${esc(verb[r.kind])} it</span><span class="d">${esc(r.description)}</span>`)));
+    return {
+      key: t.id, w, h, nav, info,
+      tip: `<b>${esc(t.name)}</b>${esc([stereo || "class", `${t.members.length} member${t.members.length === 1 ? "" : "s"}`].join(", "))}${navTip(nav)}`,
+      cls: `node${t.external ? " ext" : ""}${nav ? " nav" : ""}`,
+      draw() {
+        const max = w - 24;
+        let s = `<rect class="shadow" x="2" y="3" width="${w}" height="${h}" rx="9"/><rect class="plate" width="${w}" height="${h}" rx="9"/>`
+          + `<path class="head" d="M1 9.5a8.5 8.5 0 0 1 8.5-8.5h${w - 19}a8.5 8.5 0 0 1 8.5 8.5V${HEADER}H1z"/><path class="div" d="M1 ${HEADER}H${w - 1}"/>`
+          + use(`t-${t.kind}`, 10, 8, 19) + T(36, 22.5, t.name, F_HEAD) + (stereo ? T(42 + tw(t.name, F_HEAD), 22.5, stereo, F_LABEL, "sub") : "")
+          + (nav ? `<g class="drill"><circle cx="${w - 17}" cy="17" r="9.5"/>${use("drill", w - 24, 10, 14, "")}</g>` : "");
+        if (!rows) return s + T(12, HEADER + 19, note, F_SMALL, "faint");
+        parts.forEach(([a, b], i) => {
+          const full = clip(a + b, F_MEM, max), cut = full.length < a.length ? full : a;
+          s += `<text x="12" y="${HEADER + 22 + i * 18}" style='font:${F_MEM}'>${esc(cut)}<tspan class="mem-f">${esc(full.slice(cut.length))}</tspan></text>`;
+        });
+        if (more) s += T(12, HEADER + 22 + shown.length * 18, `and ${more} more`, F_SMALL, "faint");
+        return s;
+      },
+    };
+  });
+  const edges = rels.map((r, i) => r.kind === "depends-on"
+    ? { key: "r" + i, from: r.from, to: r.to, cls: "dashed", marker: "open", tip: `<b>${esc(byId.get(r.from).name)} uses ${esc(byId.get(r.to).name)}</b>${esc(r.description)}` }
+    // Inheritance is laid out parent above child, so the edge runs from the parent and is turned round after.
+    : { key: "r" + i, from: r.to, to: r.from, reversed: true, cls: r.kind === "implements" ? "dashed" : "", marker: "tri", tip: `<b>${esc(byId.get(r.from).name)} ${esc(verb[r.kind])} ${esc(byId.get(r.to).name)}</b>${esc(r.description)}` });
+  return { dir: "TB", nodes, edges, pack: true };
+}
+
+/** A transition's label: the method that fires it if there is one, else the trigger cut short. */
+function triggerLabel(t) {
+  const m = t.trigger.match(/^([\w.$]+\([^()]{0,16}\))/);
+  return clip(m ? m[1] : t.trigger, F_LABEL, 124);
+}
+
+function stateModel(d) {
+  const ids = new Set(d.states.map((s) => s.id));
+  const trans = d.transitions.filter((t) => ids.has(t.from) && ids.has(t.to));
+  const describe = (t) => `${esc(t.trigger)}${t.guard ? `<span class="d">if ${esc(t.guard)}</span>` : ""}${t.action ? `<span class="d">then ${esc(t.action)}</span>` : ""}`;
+  const nodes = d.states.map((s) => {
+    const w = Math.max(96, Math.ceil(tw(s.id, F_HEAD) + 44)), h = 42;
+    const initial = s.id === d.initialState;
+    const out = trans.filter((t) => t.from === s.id), inc = trans.filter((t) => t.to === s.id && t.from !== s.id);
+    const info = item("state", s.id, [initial ? "Initial state" : "", s.terminal ? "Final state" : ""].filter(Boolean).join(", ") || "State",
+      `<p>${esc(s.description)}</p>`
+      + relList("Leaves for", out.map((t) => `${t.to === s.id ? `<span class="kv">itself</span>` : sel(t.to, t.to)}<span class="d">${describe(t)}</span>`))
+      + relList("Entered from", inc.map((t) => `${sel(t.from, t.from)}<span class="d">${describe(t)}</span>`)));
+    return {
+      key: s.id, w, h, loops: trans.filter((t) => t.from === s.id && t.to === s.id).length, info, cls: "node state",
+      tip: `<b>${esc(s.id)}</b>${esc(s.description)}${navTip(null)}`,
+      draw() {
+        return `<rect class="shadow" x="2" y="3" width="${w}" height="${h}" rx="${h / 2}"/><rect class="plate" width="${w}" height="${h}" rx="${h / 2}"/>`
+          + (s.terminal ? `<rect class="ring" x="4" y="4" width="${w - 8}" height="${h - 8}" rx="${(h - 8) / 2}"/>` : "")
+          + T(w / 2, 26, s.id, F_HEAD, "", "middle");
+      },
+    };
+  });
+  nodes.push({ key: "__start", w: 16, h: 16, cls: "node point", draw: () => `<circle cx="8" cy="8" r="7"/>` });
+  const edges = [{ key: "start", from: "__start", to: d.initialState, marker: "arr", tip: `<b>Starts in ${esc(d.initialState)}</b>` }];
+  trans.forEach((t, i) => {
+    const text = triggerLabel(t) + (t.guard ? "  [ … ]" : "");
+    edges.push({
+      key: "t" + i, from: t.from, to: t.to, marker: "arr", self: t.from === t.to,
+      label: text,
+      tip: `<b>${esc(t.from)} → ${esc(t.to)}</b>${esc(t.trigger)}${t.guard ? `<br><i>if ${esc(t.guard)}</i>` : ""}${t.action ? `<br>then ${esc(t.action)}` : ""}`,
+    });
+  });
+  return { dir: "LR", nodes, edges };
+}
+
+/** Source references for an inspector or a cell: the file, then the symbol read in it. */
+const symRefs = (list) => (list ?? []).map((x) => `<span class="src">${fileLink(x.path)} <span class="d"><code>${esc(x.symbol)}</code></span></span>`).join("");
+
+/** A use case's steps in order, each alternative branching off its step as a dashed outcome. */
+function useCaseModel(d) {
+  const nodes = [], edges = [];
+  const jump = (e, id) => `${e.id}:${id}`;
+  for (const e of d.entities ?? []) {
+    const steps = e.flow ?? [], alts = e.alternatives ?? [];
+    steps.forEach((st, i) => {
+      const person = st.participantKind === "actor";
+      const next = steps[i + 1], prev = steps[i - 1];
+      const here = alts.map((a, j) => [a, j]).filter(([a]) => a.atStep === st.id);
+      const info = item("use-case", `${i + 1}. ${st.actor}`, person ? "Step by a person or outside system" : "Step by the system",
+        `<p>${esc(st.action)}</p>`
+        + (st.actorDocument ? `<h4>Actor</h4><p>${fileLink(st.actorDocument)}</p>` : "")
+        + (st.sources?.length ? `<h4>Sources</h4>${symRefs(st.sources)}` : "")
+        + relList("Otherwise", here.map(([a, j]) => `${sel(jump(e, "alt" + j), a.outcome)}<span class="d">${esc(a.condition)}</span>`))
+        + relList("Before", prev ? [sel(jump(e, prev.id), `${i}. ${prev.actor}`)] : [])
+        + relList("After", next ? [sel(jump(e, next.id), `${i + 2}. ${next.actor}`)] : []));
+      nodes.push(plateNode({ key: jump(e, st.id), glyph: person ? "person" : "server", name: st.action, sub: `${i + 1} · ${st.actor}`, tip: `<b>${esc(st.actor)}</b>${esc(st.action)}${navTip(null)}`, info, minW: 200, maxText: 250, maxLines: 3 }));
+      if (prev) edges.push({ key: `n${edges.length}`, from: jump(e, prev.id), to: jump(e, st.id), marker: "arr", tip: `<b>${esc(prev.actor)}, then ${esc(st.actor)}</b>${esc(st.action)}` });
+    });
+    alts.forEach((a, j) => {
+      if (!steps.some((st) => st.id === a.atStep)) return;
+      const info = item("use-case", a.outcome, "Alternative outcome",
+        `<h4>When</h4><p>${esc(a.condition)}</p><h4>Then</h4><p>${esc(a.outcome)}</p>`
+        + `<h4>Branches from</h4><p>${sel(jump(e, a.atStep), `${steps.findIndex((st) => st.id === a.atStep) + 1}. ${steps.find((st) => st.id === a.atStep).actor}`)}</p>`
+        + (a.sources?.length ? `<h4>Sources</h4>${symRefs(a.sources)}` : ""));
+      nodes.push(plateNode({ key: jump(e, "alt" + j), glyph: "branch", name: a.outcome, sub: "alternative", ext: true, tip: `<b>${esc(a.outcome)}</b>${esc(a.condition)}${navTip(null)}`, info, minW: 180, maxText: 220, maxLines: 3 }));
+      edges.push({ key: `n${edges.length}`, from: jump(e, a.atStep), to: jump(e, "alt" + j), marker: "arr", cls: "dashed", label: clip(a.condition, F_LABEL, 150), tip: `<b>Otherwise</b>${esc(a.condition)}` });
+    });
+  }
+  return { dir: "TB", nodes, edges, pack: true };
+}
+
+const MODELS = { component: componentModel, deployment: deploymentModel, class: classModel, state: stateModel, "use-case": useCaseModel };
+
+// ── Layout ───────────────────────────────────────────────────────────────
+
+/** Where the line from p towards the centre of box b crosses b's edge. */
+function meet(b, p) {
+  const dx = p.x - b.x, dy = p.y - b.y, w = b.w / 2, h = b.h / 2;
+  if (!dx && !dy) return { x: b.x, y: b.y + h };
+  const s = Math.abs(dy) * w > Math.abs(dx) * h ? h / Math.abs(dy) : w / Math.abs(dx);
+  return { x: b.x + dx * s, y: b.y + dy * s };
+}
+const inside = (b, p) => Math.abs(p.x - b.x) < b.w / 2 && Math.abs(p.y - b.y) < b.h / 2;
+/** Cuts a line that starts inside box b at b's edge. */
+function leave(points, b) {
+  const i = points.findIndex((p) => !inside(b, p));
+  if (i <= 0) return points;
+  const a = points[i - 1], c = points[i];
+  let lo = 0, hi = 1;
+  for (let k = 0; k < 24; k++) { const m = (lo + hi) / 2; if (inside(b, { x: a.x + (c.x - a.x) * m, y: a.y + (c.y - a.y) * m })) lo = m; else hi = m; }
+  return [{ x: a.x + (c.x - a.x) * hi, y: a.y + (c.y - a.y) * hi }, ...points.slice(i)];
+}
+
+function layoutOne(model) {
+  const { nodes, edges, dir } = model;
+  const known = new Map(nodes.map((n) => [n.key, n]));
+  const hasClusters = nodes.some((n) => n.cluster);
+  const g = new dagre.Graph({ compound: true, multigraph: true });
+  g.setGraph({ rankdir: dir, nodesep: hasClusters ? 46 : 30, ranksep: dir === "LR" ? 76 : 60, edgesep: 16, marginx: 28, marginy: 28 + (hasClusters ? HEADER : 0) });
+  g.setDefaultEdgeLabel(() => ({}));
+  for (const n of nodes) g.setNode(n.key, n.cluster ? {} : { width: n.w, height: n.h + loopRoom(n) });
+  for (const n of nodes) if (n.parent && known.has(n.parent)) g.setParent(n.key, n.parent);
+  // A cluster with nothing inside is drawn as a plain box.
+  for (const n of nodes) if (n.cluster && !g.children(n.key).length) { n.cluster = false; n.w = n.minW; n.h = 48; g.setNode(n.key, { width: n.w, height: n.h }); }
+  // dagre can't end an edge on a cluster, so it ends on a point inside, and is cut at the cluster's edge after.
+  const end = (k) => {
+    if (!known.get(k)?.cluster) return k;
+    const a = "\u0000" + k;
+    if (!g.hasNode(a)) { g.setNode(a, { width: 1, height: 1 }); g.setParent(a, k); }
+    return a;
+  };
+  for (const e of edges) if (!e.self && known.has(e.from) && known.has(e.to)) g.setEdge(end(e.from), end(e.to), e.label ? { width: tw(e.label, F_LABEL) + 16, height: 20, labelpos: "c" } : {}, e.key);
+  dagre.layout(g);
+
+  const box = new Map();
+  for (const n of nodes) {
+    const p = g.node(n.key);
+    if (n.cluster) {
+      const w = Math.max(p.width, n.minW);
+      box.set(n.key, { x: p.x, y: p.y - HEADER / 2, w, h: p.height + HEADER });
+    } else box.set(n.key, { x: p.x, y: p.y + loopRoom(n) / 2, w: n.w, h: n.h });
+  }
+  // dagre knows nothing of a cluster's header band, which can then sit under a neighbour.
+  // Where it would, everything above the cluster's top moves up to make room.
+  const below = (k, c) => { for (let p = known.get(k)?.parent; p; p = known.get(p)?.parent) if (p === c) return true; return false; };
+  const splits = [];
+  const tops = nodes.filter((n) => n.cluster).map((n) => n.key).sort((a, b) => (box.get(a).y - box.get(a).h / 2) - (box.get(b).y - box.get(b).h / 2));
+  for (const c of tops) {
+    const cb = box.get(c), top = cb.y - cb.h / 2, line = top + HEADER;
+    let need = 0;
+    for (const [k, b] of box) {
+      if (k === c || below(k, c) || below(c, k) || b.y >= line) continue;
+      if (b.x + b.w / 2 < cb.x - cb.w / 2 - 10 || b.x - b.w / 2 > cb.x + cb.w / 2 + 10) continue;
+      need = Math.max(need, b.y + b.h / 2 - (top - 14));
+    }
+    if (need <= 0) continue;
+    splits.push([line, need]);
+    for (const [k, b] of box) {
+      if (k === c) continue;
+      const t = b.y - b.h / 2, bot = b.y + b.h / 2;
+      if (t < line && bot > line) { b.y -= need / 2; b.h += need; } else if (b.y < line) b.y -= need;
+    }
+  }
+  const mv = (p) => { let y = p.y; for (const [line, need] of splits) if (y < line) y -= need; return { x: p.x, y }; };
+  const out = [];
+  for (const e of edges) {
+    if (!known.has(e.from) || !known.has(e.to)) continue;
+    if (e.self) {
+      // Loops back to the same state stack upwards, each a little taller, with its label on its crest.
+      const b = box.get(e.from), i = edges.filter((x) => x.self && x.from === e.from).indexOf(e);
+      const top = b.y - b.h / 2, x = b.x, rise = 20 + i * 23, k = 16 + i * 5, c = top - rise / 0.75;
+      out.push({ ...e, d: `M${x - 11},${top}C${x - 11 - k},${c.toFixed(1)} ${x + 11 + k},${c.toFixed(1)} ${x + 11},${top}`, lx: x, ly: top - rise });
+      continue;
+    }
+    const ge = g.edge(end(e.from), end(e.to), e.key);
+    let pts = ge.points.map(mv);
+    const fb = box.get(e.from), tb = box.get(e.to);
+    if (known.get(e.from).cluster) pts = leave(pts, fb); else if (pts.length > 1) pts[0] = meet(fb, pts[1]);
+    if (known.get(e.to).cluster) pts = leave(pts.reverse(), tb).reverse(); else if (pts.length > 1) pts[pts.length - 1] = meet(tb, pts[pts.length - 2]);
+    if (e.reversed) pts.reverse();
+    const lp = mv({ x: ge.x ?? 0, y: ge.y ?? 0 });
+    out.push({ ...e, d: basis(pts), lx: lp.x, ly: lp.y });
+  }
+  return bounds(nodes, box, out);
+}
+
+/** Moves everything so the drawing starts at the margin, and measures it. */
+function bounds(nodes, box, edges, pad = 24) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const grow = (x, y) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); };
+  for (const b of box.values()) { grow(b.x - b.w / 2, b.y - b.h / 2); grow(b.x + b.w / 2, b.y + b.h / 2); }
+  for (const e of edges) { if (e.label) { const w = tw(e.label, F_LABEL) / 2 + 10; grow(e.lx - w, e.ly - 12); grow(e.lx + w, e.ly + 12); } for (const m of e.d.matchAll(/(-?[\d.]+),(-?[\d.]+)/g)) grow(+m[1], +m[2]); }
+  const dx = pad - x0, dy = pad - y0;
+  for (const b of box.values()) { b.x += dx; b.y += dy; }
+  for (const e of edges) { e.d = shift(e.d, dx, dy); e.lx += dx; e.ly += dy; }
+  return { nodes, box, edges, w: x1 - x0 + pad * 2, h: y1 - y0 + pad * 2 };
+}
+const shift = (d, dx, dy) => d.replace(/(-?[\d.]+),(-?[\d.]+)/g, (_, x, y) => `${(+x + dx).toFixed(1)},${(+y + dy).toFixed(1)}`);
+
+/** Separate pieces of a diagram are laid out on their own and set in rows, so a few loose types don't make one long line. */
+function layout(model, room = 1200) {
+  if (!model.pack) return layoutOne(model);
+  const up = new Map(model.nodes.map((n) => [n.key, n.key]));
+  const find = (k) => (up.get(k) === k ? k : (up.set(k, find(up.get(k))), up.get(k)));
+  for (const e of model.edges) if (up.has(e.from) && up.has(e.to)) up.set(find(e.from), find(e.to));
+  const groups = new Map();
+  for (const n of model.nodes) { const r = find(n.key); if (!groups.has(r)) groups.set(r, []); groups.get(r).push(n); }
+  if (groups.size === 1) return layoutOne(model);
+  const parts = [...groups.values()].map((ns) => { const ks = new Set(ns.map((n) => n.key)); return layoutOne({ ...model, nodes: ns, edges: model.edges.filter((e) => ks.has(e.from)) }); });
+  parts.sort((a, b) => b.h - a.h || b.w - a.w);
+  const width = Math.max(...parts.map((p) => p.w), room);
+  // Bottom-left packing: each piece goes where it can sit highest, then furthest left.
+  const placed = [], box = new Map(), edges = [];
+  for (const p of parts) {
+    let best = null;
+    for (const x of [0, ...placed.map((q) => q.x + q.w)]) {
+      if (x + p.w > width + 0.5) continue;
+      const y = Math.max(0, ...placed.filter((q) => q.x < x + p.w && q.x + q.w > x).map((q) => q.y + q.h));
+      if (!best || y < best.y || (y === best.y && x < best.x)) best = { x, y };
+    }
+    const { x, y } = best ?? { x: 0, y: Math.max(0, ...placed.map((q) => q.y + q.h)) };
+    placed.push({ x, y, w: p.w, h: p.h });
+    for (const [k, b] of p.box) box.set(k, { ...b, x: b.x + x, y: b.y + y });
+    for (const e of p.edges) edges.push({ ...e, d: shift(e.d, x, y), lx: e.lx + x, ly: e.ly + y });
+  }
+  return bounds(model.nodes, box, edges, 22);
+}
+
+/** A smooth line through dagre's points (the B-spline d3 calls curveBasis). */
+function basis(p) {
+  const f = (v) => v.toFixed(1);
+  if (p.length < 3) return `M${p.map((q) => `${f(q.x)},${f(q.y)}`).join("L")}`;
+  let d = `M${f(p[0].x)},${f(p[0].y)}`;
+  d += `L${f((5 * p[0].x + p[1].x) / 6)},${f((5 * p[0].y + p[1].y) / 6)}`;
+  for (let i = 2; i < p.length; i++) {
+    const [a, b, c] = [p[i - 2], p[i - 1], p[i]];
+    d += `C${f((2 * a.x + b.x) / 3)},${f((2 * a.y + b.y) / 3)} ${f((a.x + 2 * b.x) / 3)},${f((a.y + 2 * b.y) / 3)} ${f((a.x + 4 * b.x + c.x) / 6)},${f((a.y + 4 * b.y + c.y) / 6)}`;
+  }
+  const [a, b] = [p[p.length - 2], p[p.length - 1]];
+  d += `C${f((2 * a.x + b.x) / 3)},${f((2 * a.y + b.y) / 3)} ${f((a.x + 2 * b.x) / 3)},${f((a.y + 2 * b.y) / 3)} ${f(b.x)},${f(b.y)}`;
+  return d;
+}
+
+// ── Drawing ──────────────────────────────────────────────────────────────
+
+function drawSvg(L) {
+  const depthOf = (n) => { let k = 0; for (let p = n.parent; p; p = L.nodes.find((x) => x.key === p)?.parent) k++; return k; };
+  const clusters = L.nodes.filter((n) => n.cluster).sort((a, b) => depthOf(a) - depthOf(b));
+  const at = (n) => { const b = L.box.get(n.key); return `transform="translate(${(b.x - b.w / 2).toFixed(1)},${(b.y - b.h / 2).toFixed(1)})"`; };
+  const attrs = (n) => `class="${n.cls}" data-key="${esc(n.key)}"${n.info ? ` tabindex="0" role="${n.nav ? "link" : "button"}" aria-label="${esc(n.info.title)}"` : ""}`;
+  let s = `<rect x="-4000" y="-4000" width="${L.w + 8000}" height="${L.h + 8000}" fill="url(#p-grid)"/>`;
+  for (const n of clusters) { const b = L.box.get(n.key); s += `<g ${attrs(n)} ${at(n)}>${n.draw(b.w, b.h)}</g>`; }
+  L.edges.forEach((e, i) => {
+    s += `<g class="edge ${e.cls ?? ""}${e.self ? " loop" : ""}" data-e="${i}"><path class="hit" d="${e.d}"/><path class="line" d="${e.d}"${e.marker ? ` marker-end="url(#m-${e.marker})" data-m="${e.marker}"` : ""}/></g>`;
+  });
+  L.edges.forEach((e, i) => {
+    if (!e.label) return;
+    const w = tw(e.label, F_LABEL) + 14;
+    s += `<g class="elabel" data-e="${i}" transform="translate(${(e.lx - w / 2).toFixed(1)},${(e.ly - 10).toFixed(1)})"><rect width="${w.toFixed(1)}" height="20" rx="10"/>${T(w / 2, 14, e.label, F_LABEL, "", "middle")}</g>`;
+  });
+  for (const n of L.nodes) if (!n.cluster) { const b = L.box.get(n.key); s += `<g ${attrs(n)} ${at(n)}>${n.draw(b.w, b.h)}</g>`; }
+  return s;
+}
+
+/** Pan and zoom for one drawing: drag to move, ⌘ or Ctrl with the wheel (or a pinch) to zoom. */
+function camera(wrap, svg, cam, L) {
+  const st = { s: 1, x: 0, y: 0, touched: false };
+  const apply = () => cam.setAttribute("transform", `translate(${st.x.toFixed(1)},${st.y.toFixed(1)}) scale(${st.s.toFixed(4)})`);
+  const clamp = () => {
+    const W = wrap.clientWidth, H = svg.clientHeight, cw = L.w * st.s, ch = L.h * st.s;
+    st.x = cw <= W ? (W - cw) / 2 : Math.min(0, Math.max(W - cw, st.x));
+    st.y = ch <= H ? (H - ch) / 2 : Math.min(0, Math.max(H - ch, st.y));
+    wrap.classList.toggle("grab", cw > W + 1 || ch > H + 1);
+  };
+  const fit = () => {
+    const W = wrap.clientWidth || 800;
+    st.s = Math.max(0.55, Math.min(1, W / L.w));
+    // Tall drawings take the room they need, up to a screen and a half; the page scrolls past them.
+    const H = Math.round(Math.min(Math.max(L.h * st.s, 150), Math.max(560, innerHeight * 1.5)));
+    svg.setAttribute("height", H); svg.style.height = H + "px";
+    st.x = 0; st.y = 0; st.touched = false; clamp(); apply();
+  };
+  const zoom = (f, cx = wrap.clientWidth / 2, cy = svg.clientHeight / 2) => {
+    const s = Math.max(0.3, Math.min(2.5, st.s * f));
+    st.x = cx - (cx - st.x) * (s / st.s); st.y = cy - (cy - st.y) * (s / st.s); st.s = s; st.touched = true; clamp(); apply();
+  };
+  wrap.addEventListener("wheel", (e) => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    e.preventDefault();
+    const r = svg.getBoundingClientRect();
+    zoom(Math.exp(-e.deltaY * 0.0022), e.clientX - r.left, e.clientY - r.top);
+  }, { passive: false });
+  let drag = null;
+  wrap.addEventListener("pointerdown", (e) => { if (e.button !== 0 || e.target.closest(".tools")) return; drag = { x: e.clientX, y: e.clientY, sx: st.x, sy: st.y, moved: false, id: e.pointerId }; });
+  wrap.addEventListener("pointermove", (e) => {
+    if (!drag || drag.id !== e.pointerId) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.moved && Math.hypot(dx, dy) < 5) return;
+    if (!drag.moved) { drag.moved = true; wrap.setPointerCapture(e.pointerId); wrap.classList.add("panning"); hideTip(); }
+    st.x = drag.sx + dx; st.y = drag.sy + dy; st.touched = true; clamp(); apply();
+  });
+  const stop = () => { if (drag?.moved) { wrap.dataset.dragged = "1"; setTimeout(() => delete wrap.dataset.dragged, 0); } drag = null; wrap.classList.remove("panning"); };
+  wrap.addEventListener("pointerup", stop); wrap.addEventListener("pointercancel", stop);
+  // A drawing in a tab that isn't showing has no width to measure: leave its camera be until it is back.
+  new ResizeObserver(() => { if (!wrap.clientWidth) return; if (!st.touched) fit(); else { clamp(); apply(); } }).observe(wrap);
+  /** Brings a part into view if it is outside. */
+  const reveal = (b) => {
+    const W = wrap.clientWidth, H = svg.clientHeight;
+    const cx = st.x + b.x * st.s, cy = st.y + b.y * st.s;
+    if (cx < 40 || cx > W - 40 || cy < 40 || cy > H - 40) { st.x = W / 2 - b.x * st.s; st.y = H / 2 - b.y * st.s; clamp(); apply(); }
+  };
+  fit();
+  return { fit, zoom, reveal };
+}
+
+const BADGE = `<svg width="18" height="18"><circle cx="9" cy="9" r="8.5" fill="currentColor"/><use href="#i-drill" x="2.5" y="2.5" width="13" height="13" style="color:var(--plate)"/></svg>`;
+const LEGENDS = {
+  component: [
+    [`<svg width="34" height="10"><path d="M1 5h26" stroke="var(--edge)" stroke-width="1.4" marker-end="url(#m-arr)"/></svg>`, "depends on"],
+    [`<svg width="26" height="18"><rect x="1" y="1" width="24" height="16" rx="4" fill="none" stroke="currentColor" stroke-dasharray="4 3"/></svg>`, "outside this repository"],
+    [BADGE, "has diagrams of its own: click to open"],
+  ],
+  deployment: [
+    [`<svg width="34" height="10"><path d="M1 5h26" stroke="var(--edge)" stroke-width="1.4" marker-end="url(#m-arr)"/></svg>`, "connects to"],
+    [`<svg width="34" height="10"><path d="M1 5h26" stroke="var(--edge)" stroke-width="1.4" stroke-dasharray="6 4" marker-end="url(#m-arr)"/></svg>`, "routes to"],
+    [`<svg width="30" height="10"><path d="M2 5h26" stroke="var(--edge)" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1 4.5"/></svg>`, "runs on"],
+    [`<svg width="26" height="18"><rect x="1" y="1" width="24" height="16" rx="4" fill="none" stroke="currentColor" stroke-dasharray="4 3"/></svg>`, "conditional or external"],
+    [BADGE, "built from a folder with diagrams: click to open"],
+  ],
+  class: [
+    [`<svg width="38" height="14"><path d="M1 7h24" stroke="var(--edge)" stroke-width="1.4" marker-end="url(#m-tri)"/></svg>`, "extends"],
+    [`<svg width="38" height="14"><path d="M1 7h24" stroke="var(--edge)" stroke-width="1.4" stroke-dasharray="6 4" marker-end="url(#m-tri)"/></svg>`, "implements"],
+    [`<svg width="34" height="12"><path d="M1 6h26" stroke="var(--edge)" stroke-width="1.4" stroke-dasharray="6 4" marker-end="url(#m-open)"/></svg>`, "uses"],
+    [BADGE, "declared in another folder: click to go there"],
+  ],
+  "use-case": [
+    [`<svg width="34" height="10"><path d="M1 5h26" stroke="var(--edge)" stroke-width="1.4" marker-end="url(#m-arr)"/></svg>`, "next step"],
+    [`<svg width="34" height="10"><path d="M1 5h26" stroke="var(--edge)" stroke-width="1.4" stroke-dasharray="6 4" marker-end="url(#m-arr)"/></svg>`, "otherwise"],
+    [`<svg width="26" height="18"><rect x="1" y="1" width="24" height="16" rx="4" fill="none" stroke="currentColor" stroke-dasharray="4 3"/></svg>`, "alternative outcome"],
+  ],
+  state: [
+    [`<svg width="16" height="16"><circle cx="8" cy="8" r="6" fill="var(--ink)"/></svg>`, "start"],
+    [`<svg width="34" height="18"><rect x="1" y="1" width="32" height="16" rx="8" fill="none" stroke="currentColor"/><rect x="4" y="4" width="26" height="10" rx="5" fill="none" stroke="currentColor"/></svg>`, "final state"],
+    [`<svg width="40" height="18"><rect x="1" y="1" width="38" height="16" rx="8" fill="var(--sheet)" stroke="var(--rule)"/><text x="20" y="13" text-anchor="middle" style="font:${F_LABEL};fill:var(--ink2)">[ … ]</text></svg>`, "has a guard; hover a transition for all of it"],
+  ],
+};
+
+// ── One folder's diagrams ────────────────────────────────────────────────
+
+/** Per drawn diagram: its layout, camera and the parts by key; a hole until its tab is opened. */
+let drawn = [];
+/** Which kind of view the folder is showing: the tab that is open. */
+let shownKind = null;
+
+function showFolder(folder) {
+  const docs = byFolder.get(folder) ?? [];
+  const view = $("view");
+  const segs = folder ? folder.split("/") : [""];
+  const crumbs = segs.slice(0, -1).map((s, i) => { const p = segs.slice(0, i + 1).join("/"); return byFolder.has(p) ? `<a href="${esc(folderHash(p))}">${esc(s)}</a>` : `<span>${esc(s)}</span>`; });
+  const kids = childrenOf(folder);
+  const counts = new Map();
+  docs.forEach((d, i) => { if (!counts.has(d.kind)) counts.set(d.kind, []); counts.get(d.kind).push(i); });
+  const kinds = [...counts.keys()];
+  // Stay on the kind being read when the next folder has it too; otherwise open the first.
+  if (!counts.has(shownKind)) shownKind = kinds[0] ?? null;
+  const panel = (k) => `<div class="dpanel" role="tabpanel" id="panel-${k}" data-kind="${k}" aria-labelledby="tab-${k}"${k === shownKind ? "" : " hidden"}>${counts.get(k).map((i) => diagramSection(docs[i], i)).join("")}</div>`;
+  view.innerHTML = `<div class="folder-head">
+      ${crumbs.length ? `<div class="crumbs">${crumbs.join(`<span class="sep">/</span>`)}<span class="sep">/</span></div>` : ""}
+      <h1>${esc(segs[segs.length - 1] || "/")}</h1>
+      ${kids.length ? `<div class="inside"><span>Inside</span>${kids.map((k) => `<a class="chip" href="${esc(folderHash(k))}">${ic("folder")}${esc(rel(k, folder))}${pips(byFolder.get(k))}</a>`).join("")}</div>` : ""}
+    </div>
+    <div class="ktabs" role="tablist" aria-label="Kinds of view in this folder">${kinds.map((k) => `<button class="ktab kind-${k}" role="tab" id="tab-${k}" data-kind="${k}" aria-controls="panel-${k}" aria-selected="${k === shownKind}" tabindex="${k === shownKind ? 0 : -1}">${ic("kind-" + k)}${kindCount(k, counts.get(k).length)}</button>`).join("")}</div>`
+    + kinds.map(panel).join("");
+  const strip = view.querySelector(".ktabs");
+  strip.addEventListener("click", (e) => { const t = e.target.closest(".ktab"); if (t) selectKind(t.dataset.kind); });
+  strip.addEventListener("keydown", (e) => {
+    const step = { ArrowRight: 1, ArrowLeft: -1, Home: -Infinity, End: Infinity }[e.key];
+    if (step === undefined) return;
+    e.preventDefault();
+    const at = kinds.indexOf(shownKind);
+    selectKind(kinds[step === -Infinity ? 0 : step === Infinity ? kinds.length - 1 : (at + step + kinds.length) % kinds.length], true);
+  });
+  drawn = [];
+  drawKind();
+}
+
+/** One diagram, whole: its heading, its drawing if it has one, and everything it says. */
+const diagramSection = (d, i) => `
+    <section class="diagram kind-${d.kind}" id="d${i}" data-file="${esc(d._path.split("/").pop())}">
+      <div class="dhead"><span class="tile">${ic("kind-" + d.kind)}</span><div><h2>${esc(d.title)}</h2><p class="what">${KIND_NAME[d.kind]}${d.kind === "state" ? ` of <code>${esc(d.machine)}</code>` : ""}</p></div></div>
+      <p class="ddesc">${esc(d.description)}</p>
+      ${MODELS[d.kind] ? `<div class="canvas"></div>
+      <div class="legend">${LEGENDS[d.kind].map(([g, t]) => `<span>${g}${esc(t)}</span>`).join("")}</div>` : ""}
+      ${cards(d)}
+      ${details(d, i)}
+    </section>`;
+
+/** Opens one kind's tab and closes the rest. Does nothing if this folder has no such kind. */
+function selectKind(k, focusTab = false) {
+  const view = $("view"), tab = [...view.querySelectorAll(".ktab")].find((t) => t.dataset.kind === k);
+  if (!tab) return;
+  if (k !== shownKind) {
+    shownKind = k;
+    closeInspector();
+    for (const t of view.querySelectorAll(".ktab")) { const on = t.dataset.kind === k; t.setAttribute("aria-selected", on); t.tabIndex = on ? 0 : -1; }
+    for (const p of view.querySelectorAll(".dpanel")) p.hidden = p.dataset.kind !== k;
+    drawKind();
+    // The tabs are what was just clicked: keep them in sight when the page is scrolled past them.
+    const strip = view.querySelector(".ktabs");
+    if (strip.getBoundingClientRect().top < 54) strip.scrollIntoView({ block: "start", behavior: reducedMotion.matches ? "auto" : "smooth" });
+  }
+  if (focusTab) tab.focus();
+}
+
+/** Draws the diagrams of the kind now showing: a drawing in a closed tab has no width to be laid out in. */
+function drawKind() {
+  const docs = byFolder.get(current) ?? [];
+  docs.forEach((d, i) => { if (d.kind === shownKind && !(i in drawn)) drawn[i] = drawDiagram(d, i, current); });
+}
+
+function drawDiagram(d, i, folder) {
+  if (!MODELS[d.kind]) return null;
+  const wrap = $("d" + i).querySelector(".canvas");
+  if (!dagre) { wrap.innerHTML = `<p class="msg">The drawing library couldn't load. Everything in the diagram is in the tables below.</p>`; $("d" + i).querySelector("details").open = true; return null; }
+  let model, L;
+  try {
+    model = MODELS[d.kind](d, folder);
+    const W = wrap.clientWidth || 900, H = Math.max(460, innerHeight * 0.76);
+    L = layout(model, W - 8);
+    // A state machine or a deployment may read better top to bottom: keep whichever direction draws larger.
+    if (d.kind === "state" || d.kind === "deployment") {
+      const tb = layout({ ...model, dir: "TB" }, W - 8), fit = (x) => Math.min(1, W / x.w, H / x.h);
+      if (fit(tb) > fit(L) * 1.08) L = tb;
+    }
+  }
+  catch (e) { wrap.innerHTML = `<p class="msg">This diagram couldn't be drawn (${esc(e.message ?? e)}). The tables below have all of it.</p>`; $("d" + i).querySelector("details").open = true; return null; }
+  wrap.innerHTML = `<svg class="dg" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="${esc(KIND_NAME[d.kind])}: ${esc(d.title)}"><g class="cam">${drawSvg(L)}</g></svg>
+    <div class="tools"><button title="Zoom out" aria-label="Zoom out" data-z="out">${ic("minus")}</button><button title="Zoom in" aria-label="Zoom in" data-z="in">${ic("plus")}</button><button title="Fit to width" aria-label="Fit to width" data-z="fit">${ic("fit")}</button></div>`;
+  const svg = wrap.querySelector("svg"), cam = camera(wrap, svg, svg.querySelector(".cam"), L);
+  wrap.querySelector(".tools").addEventListener("click", (e) => { const z = e.target.closest("button")?.dataset.z; if (z === "fit") cam.fit(); else if (z) cam.zoom(z === "in" ? 1.25 : 0.8); });
+  const parts = new Map(L.nodes.map((n) => [n.key, n]));
+  // Which edges touch each part, for lighting up a part's neighbourhood.
+  const touches = new Map();
+  L.edges.forEach((e, k) => { for (const end of [e.from, e.to]) { if (!touches.has(end)) touches.set(end, new Set()); touches.get(end).add(k); } });
+  const entry = { d, i, svg, wrap, cam, L, parts, touches, pinned: null };
+  wire(entry);
+  return entry;
+}
+
+// ── Interaction ──────────────────────────────────────────────────────────
+
+function light(entry, keys, edgeIdx) {
+  const { svg } = entry;
+  svg.classList.toggle("focus", !!(keys.size || edgeIdx.size));
+  for (const g of svg.querySelectorAll(".node")) g.classList.toggle("hot", keys.has(g.dataset.key));
+  for (const g of svg.querySelectorAll(".edge, .elabel")) {
+    const on = edgeIdx.has(+g.dataset.e);
+    g.classList.toggle("hot", on);
+    const line = g.querySelector(".line[data-m]");
+    if (line) line.setAttribute("marker-end", `url(#m-${line.dataset.m}${on ? "-hot" : ""})`);
+  }
+}
+function lightPart(entry, key) {
+  const es = entry.touches.get(key) ?? new Set(), keys = new Set([key]);
+  for (const k of es) { keys.add(entry.L.edges[k].from); keys.add(entry.L.edges[k].to); }
+  light(entry, keys, es);
+}
+function lightEdge(entry, k) { const e = entry.L.edges[k]; light(entry, new Set([e.from, e.to]), new Set([k])); }
+const rest = (entry) => (entry.pinned ? lightPart(entry, entry.pinned) : light(entry, new Set(), new Set()));
+
+function showTip(html, x, y) {
+  const tip = $("tip");
+  tip.innerHTML = html; tip.hidden = false;
+  const r = tip.getBoundingClientRect();
+  tip.style.left = Math.min(innerWidth - r.width - 10, x + 14) + "px";
+  tip.style.top = (y + 18 + r.height > innerHeight ? y - r.height - 12 : y + 18) + "px";
+}
+const hideTip = () => { $("tip").hidden = true; };
+
+function wire(entry) {
+  const { svg, wrap } = entry;
+  const partOf = (t) => t.closest(".node[data-key], .cl[data-key]");
+  svg.addEventListener("pointermove", (e) => {
+    if (wrap.classList.contains("panning") || e.pointerType === "touch") return;
+    const p = partOf(e.target), ed = e.target.closest(".edge, .elabel");
+    if (p) {
+      const n = entry.parts.get(p.dataset.key);
+      if (p.classList.contains("node")) lightPart(entry, n.key); else rest(entry);
+      if (n.tip && (p.classList.contains("node") || e.target.closest(".hd"))) showTip(n.tip, e.clientX, e.clientY); else hideTip();
+    } else if (ed) { lightEdge(entry, +ed.dataset.e); showTip(entry.L.edges[+ed.dataset.e].tip, e.clientX, e.clientY); }
+    else { rest(entry); hideTip(); }
+  });
+  svg.addEventListener("pointerleave", () => { rest(entry); hideTip(); });
+  const activate = (p, el) => {
+    const n = entry.parts.get(p.dataset.key);
+    if (!n?.info) return;
+    if (n.nav) drill(el ?? p, n.nav);
+    else select(entry, n.key);
+  };
+  svg.addEventListener("click", (e) => {
+    if (wrap.dataset.dragged) return;
+    const p = partOf(e.target);
+    // A cluster opens from its header band only; elsewhere a click goes to the parts inside it.
+    if (p && (p.classList.contains("node") || e.target.closest(".hd"))) { hideTip(); activate(p); return; }
+    const ed = e.target.closest(".edge, .elabel");
+    if (ed) { const k = +ed.dataset.e, ee = entry.L.edges[k]; showTip(ee.tip, e.clientX, e.clientY); return; }
+    if (entry.pinned) closeInspector();
+  });
+  svg.addEventListener("keydown", (e) => {
+    const p = partOf(e.target);
+    if (p && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); activate(p); }
+  });
+  svg.addEventListener("focusin", (e) => { const p = partOf(e.target); if (p?.classList.contains("node")) lightPart(entry, p.dataset.key); });
+  svg.addEventListener("focusout", () => rest(entry));
+}
+
+/** The one moment of motion: the clicked part grows into the page, and the folder it stands for opens. */
+function drill(el, hash) {
+  const kind = el.closest("section")?.className.match(/kind-\w+/)?.[0];
+  if (reducedMotion.matches) { location.hash = hash; return; }
+  const from = (el.querySelector(".plate, .box") ?? el).getBoundingClientRect(), to = $("view").getBoundingClientRect();
+  const z = document.createElement("div");
+  z.className = `zoomer ${kind ?? ""}`;
+  Object.assign(z.style, { left: from.left + "px", top: from.top + "px", width: from.width + "px", height: from.height + "px" });
+  document.body.append(z);
+  z.getBoundingClientRect();
+  Object.assign(z.style, { left: Math.max(to.left, 0) + 8 + "px", top: Math.max(to.top, 54) + 8 + "px", width: Math.min(to.width, innerWidth) - 16 + "px", height: Math.min(innerHeight - Math.max(to.top, 54), to.height) - 16 + "px", opacity: "0.15" });
+  setTimeout(() => { location.hash = hash; }, 230);
+  setTimeout(() => z.remove(), 520);
+}
+
+function select(entry, key, pulse = false) {
+  const n = entry.parts.get(key);
+  if (!n?.info) return;
+  for (const e of drawn) if (e && e !== entry && e.pinned) { e.pinned = null; e.svg.querySelector(".node.sel")?.classList.remove("sel"); rest(e); }
+  entry.svg.querySelector(".node.sel, .cl.sel")?.classList.remove("sel");
+  const g = entry.svg.querySelector(`[data-key="${CSS.escape(key)}"]`);
+  g?.classList.add("sel");
+  entry.pinned = key;
+  lightPart(entry, key);
+  entry.cam.reveal(entry.L.box.get(key));
+  if (pulse && g) { g.classList.remove("pulse"); g.getBoundingClientRect(); g.classList.add("pulse"); }
+  const info = n.info, ins = $("inspector");
+  ins.className = `kind-${info.kind}`;
+  ins.innerHTML = `<div class="ihead"><span class="tile sm">${ic("kind-" + info.kind)}</span><div><h3>${esc(info.title)}</h3><div class="isub">${esc(info.sub)}</div></div><button class="x" aria-label="Close">${ic("close")}</button></div><div class="ibody">${info.body}</div>`;
+  ins.hidden = false;
+  ins.querySelector(".x").addEventListener("click", closeInspector);
+  for (const b of ins.querySelectorAll("[data-sel]")) b.addEventListener("click", () => select(entry, b.dataset.sel, true));
+}
+
+function closeInspector() {
+  $("inspector").hidden = true;
+  for (const e of drawn) if (e?.pinned) { e.svg.querySelector(".sel")?.classList.remove("sel"); e.pinned = null; rest(e); }
+}
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("inspector").hidden) closeInspector(); });
+
+/** Opens a part named in the address: "class:Controls" is the type Controls in this folder's class diagram. */
+function focusPart(focus) {
+  const [kind, ...restOf] = focus.split(":"), name = restOf.join(":");
+  if (kind === "view") {
+    const sec = [...$("view").querySelectorAll("section[data-file]")].find((x) => x.dataset.file === name);
+    if (!sec) return;
+    selectKind(sec.closest(".dpanel").dataset.kind);
+    // After layout has settled: the folder may have just been drawn.
+    requestAnimationFrame(() => sec.scrollIntoView({ block: "start", behavior: reducedMotion.matches ? "auto" : "smooth" }));
+    return;
+  }
+  // The part may be in a kind whose tab isn't open: open it, which draws it.
+  selectKind(kind);
+  for (const e of drawn) {
+    if (!e || e.d.kind !== kind) continue;
+    const n = e.parts.get(name) ?? [...e.parts.values()].find((p) => p.info?.title === name);
+    if (n) {
+      e.wrap.scrollIntoView({ block: "center", behavior: reducedMotion.matches ? "auto" : "smooth" });
+      select(e, n.key, true);
+      return;
+    }
+  }
+}
+
+// ── Tables: the whole of each diagram, for reading and for when drawing fails ──
+
+const table = (head, rows) => rows.length ? `<table><thead><tr>${head.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table>` : "";
+
+/** Labelled facts; a fact with no value is left out. */
+const facts = (pairs) => { const rows = pairs.filter(([, v]) => v); return rows.length ? `<dl class="facts">${rows.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v}</dd>`).join("")}</dl>` : ""; };
+const bullets = (list) => list?.length ? `<ul>${list.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
+const card = (e, body) => `<article class="entity"><h3>${esc(e.name)}</h3>${e.description ? `<p>${esc(e.description)}</p>` : ""}${body}</article>`;
+
+/** The views that are written rather than drawn; a use case shows its framing here, above its flow. */
+function cards(d) {
+  const all = d.entities ?? [];
+  if (d.kind === "feature") return all.map((e) => card(e, facts([["Behavior", esc(e.behavior)], ["Outcome", esc(e.outcome)], ["Constraints", bullets(e.constraints)], ["Implemented in", symRefs(e.implementation)]]))).join("");
+  if (d.kind === "capability") return all.map((e) => card(e, facts([["Responsibility", esc(e.responsibility)], ["Access", bullets(e.access)], ["Operations", symRefs(e.operations)]]))).join("");
+  if (d.kind === "use-case") return all.map((e) => card(e, facts([["Actor", esc(e.actor) + (e.actorDocument ? `<span class="src">${fileLink(e.actorDocument)}</span>` : "")], ["Goal", esc(e.goal)], ["Before", bullets(e.preconditions)], ["After", bullets(e.postconditions)]]))).join("");
+  if (d.kind === "operation") {
+    return `<div class="scroll">${table(["Operation", "Action", "Entrypoint", "Authorization", "Result", "Can fail when"], all.map((e) => [
+      esc(e.name), `<span class="pill">${esc(e.action)}</span>`, e.entrypoint ? symRefs([e.entrypoint]) : "", esc(e.authorization), esc(e.result), bullets(e.failures)]))}</div>`;
+  }
+  return "";
+}
+
+/** Where a related view lives: its folder, and which file in it. */
+const viewHash = (v) => { const t = byPath.get(v.path); return t ? folderHash(t._folder, "view:" + v.path.split("/").pop()) : null; };
+
+function details(d, i) {
+  const pick = (key, text) => `<button class="sel-link" data-pick="${esc(key)}" data-d="${i}">${esc(text)}</button>`;
+  const rels = (d.relationships ?? []).map((r) => [esc(r.from), esc(r.kind), esc(r.to), esc(r.description)]);
+  const sources = (d.sources ?? []).map((s) => [fileLink(s.path), `<code>${esc(s.symbol)}</code>`]);
+  const related = (d.relatedViews ?? []).map((v) => {
+    const t = byPath.get(v.path), h = viewHash(v);
+    return [`<span class="faint">${esc(KIND_NAME[v.kind] ?? v.kind)}</span>`, (h ? `<a href="${esc(h)}">${esc(t.title)}</a>` : fileLink(v.path)) + `<br><code>${esc(v.folder)}</code>`, esc(v.relationship)];
+  });
+  let main = "", what = "Relationships";
+  if (d.kind === "component") { what = "Components"; main = table(["Component", "Responsibility", "Folder"], d.components.map((c) => [pick(c.id, c.name), esc(c.responsibility), c.external ? `<span class="faint">outside the repository</span>` : folderLink(c.folder)])); }
+  if (d.kind === "class") { what = "Types"; main = table(["Type", "Kind", "Members", "Sources"], d.types.map((t) => [pick(t.id, t.name) + (t.external ? ` <span class="faint">(elsewhere)</span>` : ""), esc(t.kind), t.members.map((m) => `<code>${esc(m)}</code>`).join("<br>"), t.sources.map(fileLink).join("<br>")])); }
+  if (d.kind === "state") {
+    what = "States";
+    main = `<p>Machine <code>${esc(d.machine)}</code>, starting in <strong>${esc(d.initialState)}</strong>.</p>`
+      + table(["State", "Description"], d.states.map((s) => [pick(s.id, s.id) + (s.terminal ? ` <span class="faint">(final)</span>` : ""), esc(s.description)]))
+      + `<h4>Transitions</h4>` + table(["From", "To", "Trigger", "Guard", "Action"], d.transitions.map((t) => [esc(t.from), esc(t.to), esc(t.trigger), esc(t.guard), esc(t.action)]));
+  }
+  if (d.kind === "deployment") {
+    what = "Nodes";
+    main = table(["Node", "Kind", "Description", "Only when"], d.nodes.map((n) => [pick(n.id, n.name), esc(n.kind), esc(n.description), esc(n.condition)]))
+      + `<h4>Artifacts</h4>` + table(["Artifact", "Deployed to", "Source", "Description"], d.artifacts.map((a) => [pick("art:" + a.id, a.name), esc(a.deployedTo), fileLink(a.source), esc(a.description)]));
+  }
+  if (d.kind === "use-case") {
+    what = "Steps and alternatives";
+    main = (d.entities ?? []).map((e) => `<h4>${esc(e.name)}</h4>`
+      + table(["Step", "Participant", "Action", "Sources"], (e.flow ?? []).map((st, k) => [`${k + 1}`, pick(`${e.id}:${st.id}`, st.actor) + ` <span class="faint">(${esc(st.participantKind)})</span>`, esc(st.action), symRefs(st.sources)]))
+      + ((e.alternatives ?? []).length ? `<h4>Otherwise</h4>` + table(["At step", "When", "Then", "Sources"], e.alternatives.map((a) => [esc(`${(e.flow ?? []).findIndex((st) => st.id === a.atStep) + 1}`), esc(a.condition), esc(a.outcome), symRefs(a.sources)])) : "")).join("");
+  }
+  const written = ["feature", "capability", "operation"].includes(d.kind);
+  const summary = written ? "Related views and sources" : `${what}, relationships and sources, in full`;
+  return `<details class="parts"><summary>${summary}</summary>${written ? "" : `<h4>${what}</h4>${main}`}${rels.length ? `<h4>Relationships</h4>` + table(["From", "Kind", "To", "Description"], rels) : ""}${related.length ? `<h4>Related views</h4>` + table(["Kind", "View", "Why"], related) : ""}${sources.length ? `<h4>Read from</h4>` + table(["File", "Symbol"], sources) : ""}<p class="from">This view is ${fileLink(d._path)}.</p></details>`;
+}
+$("view").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-pick]");
+  if (!b) return;
+  const entry = drawn[+b.dataset.d];
+  if (!entry) return;
+  entry.wrap.scrollIntoView({ block: "center", behavior: reducedMotion.matches ? "auto" : "smooth" });
+  select(entry, b.dataset.pick, true);
+});
+
+// ── Start: the address comes from ?url=; the form is only for choosing one ──
+
+const address = new URLSearchParams(location.search).get("url");
+if (address) {
+  void load(address);
+} else {
+  $("landing").hidden = false;
+  $("pick").addEventListener("submit", (e) => {
+    e.preventDefault();
+    location.search = new URLSearchParams({ url: $("repo-url").value.trim() }).toString();
+  });
+  $("repo-url").focus();
+}
+</script>
+</body>
+</html>
