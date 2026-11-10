@@ -20,9 +20,9 @@ const value = (c) => c.split(";")[0];
 async function signIn() {
   const start = await handle(req(`${BASE}/auth/github/start?return=${encodeURIComponent(`${BASE}?url=https://github.com/o/r`)}`), env);
   const auth = new URL(start.headers.get("location"));
-  const cookie = value(cookieOf(start, "atlas_oauth"));
+  const cookie = value(cookieOf(start, "explorer_oauth"));
   const done = await handle(req(`${BASE}/auth/github/callback?code=good&state=${auth.searchParams.get("state")}`, { headers: { cookie } }), env);
-  return { start, auth, done, session: value(cookieOf(done, "atlas_session")) };
+  return { start, auth, done, session: value(cookieOf(done, "explorer_session")) };
 }
 
 test("serves the page", async () => {
@@ -47,8 +47,8 @@ test("sign-in goes to GitHub with PKCE and a state bound to the browser", async 
   assert.equal(auth.searchParams.get("redirect_uri"), `${SITE}${BASE}/auth/github/callback`);
   assert.equal(auth.searchParams.get("code_challenge_method"), "S256");
   assert.equal(auth.searchParams.get("scope"), "");
-  const c = cookieOf(start, "atlas_oauth");
-  assert.match(c, /HttpOnly/); assert.match(c, /Secure/); assert.match(c, /Path=\/v1\/apps\/software-atlas\/auth/);
+  const c = cookieOf(start, "explorer_oauth");
+  assert.match(c, /HttpOnly/); assert.match(c, /Secure/); assert.match(c, /Path=\/v1\/apps\/cyberspace-explorer\/auth/);
 });
 
 test("private repositories are asked for only when chosen", async () => {
@@ -60,7 +60,7 @@ test("the callback opens a sealed, HttpOnly session and returns to the page", as
   const { done, session } = await signIn();
   assert.equal(done.status, 303);
   assert.equal(done.headers.get("location"), `${BASE}?url=https://github.com/o/r`);
-  const c = cookieOf(done, "atlas_session");
+  const c = cookieOf(done, "explorer_session");
   assert.match(c, /HttpOnly/); assert.doesNotMatch(c, /gho_token/);
   const me = await (await handle(req(`${BASE}/auth/me`, { headers: { cookie: session } }), env)).json();
   assert.deepEqual(me, { configured: true, user: { login: "octo", avatar: "https://a/x.png" } });
@@ -70,10 +70,10 @@ test("the callback opens a sealed, HttpOnly session and returns to the page", as
 
 test("a callback with the wrong state, or no cookie, signs nobody in", async () => {
   const start = await handle(req(`${BASE}/auth/github/start`), env);
-  const cookie = value(cookieOf(start, "atlas_oauth"));
+  const cookie = value(cookieOf(start, "explorer_oauth"));
   const wrong = await handle(req(`${BASE}/auth/github/callback?code=good&state=nope`, { headers: { cookie } }), env);
   assert.match(wrong.headers.get("location"), /signin=failed/);
-  assert.equal(cookieOf(wrong, "atlas_session"), undefined);
+  assert.equal(cookieOf(wrong, "explorer_session"), undefined);
   const none = await handle(req(`${BASE}/auth/github/callback?code=good&state=x`), env);
   assert.match(none.headers.get("location"), /signin=failed/);
 });
@@ -81,17 +81,17 @@ test("a callback with the wrong state, or no cookie, signs nobody in", async () 
 test("a refused code signs nobody in", async () => {
   const start = await handle(req(`${BASE}/auth/github/start`), env);
   const state = new URL(start.headers.get("location")).searchParams.get("state");
-  const res = await handle(req(`${BASE}/auth/github/callback?code=bad&state=${state}`, { headers: { cookie: value(cookieOf(start, "atlas_oauth")) } }), env);
+  const res = await handle(req(`${BASE}/auth/github/callback?code=bad&state=${state}`, { headers: { cookie: value(cookieOf(start, "explorer_oauth")) } }), env);
   assert.match(res.headers.get("location"), /signin=failed/);
 });
 
 test("cookies sealed with another secret, or damaged, are not sessions", async () => {
   const forged = await seal({ t: "x", l: "evil", a: "", x: Date.now() + 1e6 }, "another-secret");
-  const res = await handle(req(`${BASE}/auth/me`, { headers: { cookie: `atlas_session=${forged}` } }), env);
+  const res = await handle(req(`${BASE}/auth/me`, { headers: { cookie: `explorer_session=${forged}` } }), env);
   assert.equal((await res.json()).user, null);
   assert.equal(await unseal("garbage", env.SESSION_SECRET), null);
   const expired = await seal({ t: "x", l: "old", a: "", x: Date.now() - 1 }, env.SESSION_SECRET);
-  assert.equal((await (await handle(req(`${BASE}/auth/me`, { headers: { cookie: `atlas_session=${expired}` } }), env)).json()).user, null);
+  assert.equal((await (await handle(req(`${BASE}/auth/me`, { headers: { cookie: `explorer_session=${expired}` } }), env)).json()).user, null);
 });
 
 test("the proxy needs a session, reads only, and adds the token itself", async () => {
@@ -115,12 +115,12 @@ test("sign-out only from the page's own origin", async () => {
   assert.equal((await handle(req(`${BASE}/auth/sign-out`, { method: "POST", headers: { origin: "https://evil.example" } }), env)).status, 403);
   const ok = await handle(req(`${BASE}/auth/sign-out`, { method: "POST", headers: { origin: SITE } }), env);
   assert.equal(ok.status, 200);
-  assert.match(cookieOf(ok, "atlas_session"), /Max-Age=0/);
+  assert.match(cookieOf(ok, "explorer_session"), /Max-Age=0/);
 });
 
 test("the return path stays inside the app", () => {
   assert.equal(safeReturn(`${BASE}?url=x`, SITE), `${BASE}?url=x`);
-  for (const bad of ["https://evil.example/", "//evil.example", "/games/", "/v1/apps/software-atlas-evil", undefined]) assert.equal(safeReturn(bad, SITE), BASE);
+  for (const bad of ["https://evil.example/", "//evil.example", "/games/", "/v1/apps/cyberspace-explorer-evil", undefined]) assert.equal(safeReturn(bad, SITE), BASE);
 });
 
 test("the proxy's allowlist", () => {

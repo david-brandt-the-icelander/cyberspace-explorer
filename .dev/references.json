@@ -1,8 +1,8 @@
 {
-  "$schema": "../../Agents/Knowledge/schemas/references.schema.json",
+  "$schema": "../Meta/Agents/Knowledge/schemas/references.schema.json",
   "kind": "references",
   "title": "What the browser builds on",
-  "folder": "software-atlas",
+  "folder": ".",
   "entities": [
     {
       "id": "dagre",

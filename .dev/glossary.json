@@ -1,8 +1,8 @@
 {
-  "$schema": "../../Agents/Knowledge/schemas/glossary.schema.json",
+  "$schema": "../Meta/Agents/Knowledge/schemas/glossary.schema.json",
   "kind": "glossary",
   "title": "Words the browser uses",
-  "folder": "software-atlas",
+  "folder": ".",
   "entities": [
     {
       "id": "dev-folder",

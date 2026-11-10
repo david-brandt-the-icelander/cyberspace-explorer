@@ -1,19 +1,19 @@
 {
-  "$schema": "../../Agents/Skills/describe-state-diagram/schema.json",
+  "$schema": "../Meta/Agents/Skills/describe-state-diagram/schema.json",
   "kind": "state",
   "title": "The token panel",
   "description": "How the token panel opens, saves and forgets. Saving or forgetting the token in use reloads the page, so that every request is made again with it.",
   "sources": [
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "openTokenPanel"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "saveToken"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "showTokenButton"
     }
   ],
@@ -73,5 +73,5 @@
       "action": "the list is drawn again without it"
     }
   ],
-  "folder": "software-atlas"
+  "folder": "."
 }

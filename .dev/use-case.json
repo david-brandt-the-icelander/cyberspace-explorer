@@ -1,32 +1,32 @@
 {
-  "$schema": "../../Agents/Skills/describe-use-case/schema.json",
+  "$schema": "../Meta/Agents/Skills/describe-use-case/schema.json",
   "kind": "use-case",
   "title": "What a reader does with the browser",
-  "folder": "software-atlas",
+  "folder": ".",
   "description": "Each thing a reader sets out to do, step by step, with what happens when it goes another way.",
   "sources": [
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "load"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "route"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "openTokenPanel"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "select"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "focusPart"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "showWaiting"
     }
   ],
@@ -37,19 +37,19 @@
       "description": "A reader gives an address and reaches the folder they want to read.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "parseAddress"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "load"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "showTree"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "route"
         }
       ],
@@ -69,7 +69,7 @@
           "action": "Gives the address of a GitHub or GitLab repository, a branch, tag or commit, or a folder, on the landing page; or opens a link that carries one.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "parseAddress"
             }
           ],
@@ -82,11 +82,11 @@
           "action": "Splits the address into the host, the repository, the ref and the folder.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "parseAddress"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "resolveRef"
             }
           ],
@@ -98,15 +98,15 @@
           "action": "Lists the repository's files at the ref, and keeps the .dev/*.json files under the folder.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "github"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "gitlab"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "load"
             }
           ],
@@ -118,11 +118,11 @@
           "action": "Reads every file, twelve at a time, keeps the ones whose kind it knows and sorts each folder's files by kind.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "load"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "pool"
             }
           ],
@@ -134,15 +134,15 @@
           "action": "Shows the folder tree and the folder the address names, or the shallowest folder, with its first kind of view open.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "showTree"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "route"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "showFolder"
             }
           ],
@@ -154,7 +154,7 @@
           "action": "Narrows the tree by typing part of a folder's name, a view's title, or the name or ID of something in it.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "showTree"
             }
           ],
@@ -167,7 +167,7 @@
           "action": "Opens a folder from the tree, from the chips under Inside, or from the crumbs above its name.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "showFolder"
             }
           ],
@@ -180,7 +180,7 @@
           "action": "Opens the tab for the kind of view they want; the same kind stays open as they move between folders that have it.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "selectKind"
             }
           ],
@@ -195,7 +195,7 @@
           "outcome": "The landing page stays, and the status line says what is wrong with the address.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "parseAddress"
             }
           ]
@@ -206,11 +206,11 @@
           "outcome": "The status line says why, and offers Add a token when a token could help.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "getJson"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "tokenOffer"
             }
           ]
@@ -221,7 +221,7 @@
           "outcome": "The status line says so, and that the skills describe how to add them.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "load"
             }
           ]
@@ -232,7 +232,7 @@
           "outcome": "The folders found are shown, and the status line warns that some may be missing.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "load"
             }
           ]
@@ -243,7 +243,7 @@
           "outcome": "It is left out, and the status line names it and why.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "load"
             }
           ]
@@ -254,7 +254,7 @@
           "outcome": "Every view is shown as its tables, and the status line says so.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "drawDiagram"
             }
           ]
@@ -267,15 +267,15 @@
       "description": "A reader gives the browser their own access token so it can read a repository the host does not show to everyone.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "openTokenPanel"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "saveToken"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "tokenScope"
         }
       ],
@@ -296,11 +296,11 @@
           "action": "Says why the host refused, and puts Add a token after the message.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "getJson"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "tokenOffer"
             }
           ],
@@ -312,7 +312,7 @@
           "action": "Opens the token panel from that button, or from the Tokens button in the bar.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "openTokenPanel"
             }
           ],
@@ -325,7 +325,7 @@
           "action": "Pastes the token, chooses what it is for (every repository on the host, everything under an owner or group, or only this repository) and whether to keep it after the tab closes.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "openTokenPanel"
             }
           ],
@@ -338,7 +338,7 @@
           "action": "Keeps the token under that scope, replacing any other for it, and reloads.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "saveToken"
             }
           ],
@@ -350,11 +350,11 @@
           "action": "Sends the token with every request to the repository's host, choosing the narrowest scope that covers the repository.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "tokenScope"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "auth"
             }
           ],
@@ -368,7 +368,7 @@
           "outcome": "Save closes the panel and nothing changes.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "openTokenPanel"
             }
           ]
@@ -379,7 +379,7 @@
           "outcome": "The status line says the token can't be kept, so it can't be used.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "saveToken"
             }
           ]
@@ -390,7 +390,7 @@
           "outcome": "The status line names the scope whose token was refused and says it may be wrong, expired or for another account, and offers Replace or add a token.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "getJson"
             }
           ]
@@ -401,7 +401,7 @@
           "outcome": "The status line suggests adding a narrower token for it.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "getJson"
             }
           ]
@@ -414,15 +414,15 @@
       "description": "A reader learns what one part of a diagram, use case or journey is, what it touches, and where it leads.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "wire"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "select"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "drill"
         }
       ],
@@ -442,7 +442,7 @@
           "action": "Points at a part or a line.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "wire"
             }
           ],
@@ -455,11 +455,11 @@
           "action": "Lights the part and its neighbours, fades the rest, and shows a tooltip saying what it is and what a click will do.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "lightPart"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "showTip"
             }
           ],
@@ -471,7 +471,7 @@
           "action": "Clicks the part, or presses Enter or Space on it.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "wire"
             }
           ],
@@ -484,7 +484,7 @@
           "action": "Pins the part and opens the inspector with everything the view says about it, its neighbours as links.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "select"
             }
           ],
@@ -496,7 +496,7 @@
           "action": "Follows a neighbour in the inspector, or a row in the tables under the drawing.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "select"
             }
           ],
@@ -509,7 +509,7 @@
           "action": "Brings that part into view, pins it and pulses it.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "select"
             }
           ],
@@ -523,11 +523,11 @@
           "outcome": "The part grows into the page and that folder opens.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "drill"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "navFor"
             }
           ]
@@ -538,7 +538,7 @@
           "outcome": "It pans; the click that ends the drag selects nothing.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "camera"
             }
           ]
@@ -549,7 +549,7 @@
           "outcome": "The inspector closes and the drawing rests.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "closeInspector"
             }
           ]
@@ -562,19 +562,19 @@
       "description": "A reader reads the knowledge files of a folder and follows a record's link to another.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "knowledgePanel"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "recordCard"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "pathLink"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "focusPart"
         }
       ],
@@ -594,7 +594,7 @@
           "action": "Opens the Knowledge tab.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "selectKind"
             }
           ],
@@ -607,11 +607,11 @@
           "action": "Shows the files grouped as the catalogue groups them, and each record as a card: title, status and evidence badges, ID, summary, details, its own fields, origin, relationships, sources and links.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "knowledgePanel"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "recordCard"
             }
           ],
@@ -623,7 +623,7 @@
           "action": "Follows a relationship or a link in the details to another knowledge file.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "pathLink"
             }
           ],
@@ -636,7 +636,7 @@
           "action": "Opens that folder on its Knowledge tab, scrolls to the record and flashes it.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "focusPart"
             }
           ],
@@ -650,7 +650,7 @@
           "outcome": "It opens on the repository's host in a new tab.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "pathLink"
             }
           ]
@@ -661,7 +661,7 @@
           "outcome": "The link goes to the file, and the missing ID is shown after it.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "pathLink"
             }
           ]
@@ -672,11 +672,11 @@
           "outcome": "That view's tab opens, scrolled to it.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "pathLink"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "focusPart"
             }
           ]
@@ -689,11 +689,11 @@
       "description": "A reader looks at every open decision and blocker in the repository at once.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "waitingRecords"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "showWaiting"
         }
       ],
@@ -713,7 +713,7 @@
           "action": "Shows Waiting above the tree, with how many records wait.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "showWaitingLink"
             }
           ],
@@ -725,7 +725,7 @@
           "action": "Opens Waiting.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "route"
             }
           ],
@@ -738,7 +738,7 @@
           "action": "Shows two tables: open decisions (folder, who it waits on, what it blocks, context) and blockers (folder, who can unblock it, what it blocks, when it is unblocked).",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "showWaiting"
             }
           ],
@@ -750,7 +750,7 @@
           "action": "Opens a record from either table.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "recordHash"
             }
           ],
@@ -765,7 +765,7 @@
           "outcome": "There is no Waiting link.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "showWaitingLink"
             }
           ]
@@ -776,20 +776,20 @@
   "relatedViews": [
     {
       "kind": "user-journey",
-      "folder": "software-atlas",
-      "path": "software-atlas/.dev/user-journey.json",
+      "folder": ".",
+      "path": ".dev/user-journey.json",
       "relationship": "The journeys these use cases make up."
     },
     {
       "kind": "feature",
-      "folder": "software-atlas",
-      "path": "software-atlas/.dev/feature.json",
+      "folder": ".",
+      "path": ".dev/feature.json",
       "relationship": "The features each step uses."
     },
     {
       "kind": "state",
-      "folder": "software-atlas",
-      "path": "software-atlas/.dev/page.state-diagram.json",
+      "folder": ".",
+      "path": ".dev/page.state-diagram.json",
       "relationship": "Every state the page passes through while a repository opens."
     }
   ]

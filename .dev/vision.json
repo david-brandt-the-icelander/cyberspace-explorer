@@ -1,8 +1,8 @@
 {
-  "$schema": "../../Agents/Knowledge/schemas/vision.schema.json",
+  "$schema": "../Meta/Agents/Knowledge/schemas/vision.schema.json",
   "kind": "vision",
   "title": "Why the browser exists",
-  "folder": "software-atlas",
+  "folder": ".",
   "entities": [
     {
       "id": "vision",
@@ -32,12 +32,12 @@
           "symbol": "Layout"
         },
         {
-          "path": "Agents/Knowledge/README.md",
+          "path": "Meta/Agents/Knowledge/README.md",
           "symbol": "Knowledge files"
         },
         {
-          "path": "software-atlas/README.md",
-          "symbol": "Software atlas"
+          "path": "README.md",
+          "symbol": "Cyberspace explorer"
         }
       ]
     }

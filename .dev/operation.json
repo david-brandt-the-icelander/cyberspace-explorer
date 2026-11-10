@@ -1,24 +1,24 @@
 {
-  "$schema": "../../Agents/Skills/describe-operation/schema.json",
+  "$schema": "../Meta/Agents/Skills/describe-operation/schema.json",
   "kind": "operation",
   "title": "How the browser is reached",
-  "folder": "software-atlas",
+  "folder": ".",
   "description": "The entrypoints a reader or a link uses: the page's address, the part after #, and the token panel.",
   "sources": [
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "address"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "route"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "focusPart"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "saveToken"
     }
   ],
@@ -29,16 +29,16 @@
       "description": "Reads and shows the repository the address names.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "address"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "load"
         }
       ],
       "entrypoint": {
-        "path": "software-atlas/index.html",
+        "path": "index.html",
         "symbol": "address"
       },
       "action": "query",
@@ -57,12 +57,12 @@
       "description": "Shows one folder's views and knowledge.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "route"
         }
       ],
       "entrypoint": {
-        "path": "software-atlas/index.html",
+        "path": "index.html",
         "symbol": "route"
       },
       "action": "query",
@@ -79,12 +79,12 @@
       "description": "Shows one part of a drawing in the inspector.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "focusPart"
         }
       ],
       "entrypoint": {
-        "path": "software-atlas/index.html",
+        "path": "index.html",
         "symbol": "focusPart"
       },
       "action": "query",
@@ -101,12 +101,12 @@
       "description": "Scrolls to one view in a folder.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "focusPart"
         }
       ],
       "entrypoint": {
-        "path": "software-atlas/index.html",
+        "path": "index.html",
         "symbol": "focusPart"
       },
       "action": "query",
@@ -123,16 +123,16 @@
       "description": "Scrolls to one knowledge record, or one knowledge file.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "focusPart"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "recordHash"
         }
       ],
       "entrypoint": {
-        "path": "software-atlas/index.html",
+        "path": "index.html",
         "symbol": "focusPart"
       },
       "action": "query",
@@ -150,16 +150,16 @@
       "description": "Shows every open decision and blocker in the repository.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "route"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "showWaiting"
         }
       ],
       "entrypoint": {
-        "path": "software-atlas/index.html",
+        "path": "index.html",
         "symbol": "showWaiting"
       },
       "action": "query",
@@ -174,12 +174,12 @@
       "description": "Keeps a token for a scope and reloads with it.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "saveToken"
         }
       ],
       "entrypoint": {
-        "path": "software-atlas/index.html",
+        "path": "index.html",
         "symbol": "saveToken"
       },
       "action": "command",
@@ -196,16 +196,16 @@
       "description": "Removes a token from this tab and this browser.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "saveToken"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "openTokenPanel"
         }
       ],
       "entrypoint": {
-        "path": "software-atlas/index.html",
+        "path": "index.html",
         "symbol": "openTokenPanel"
       },
       "action": "command",
@@ -218,14 +218,14 @@
   "relatedViews": [
     {
       "kind": "capability",
-      "folder": "software-atlas",
-      "path": "software-atlas/.dev/capability.json",
+      "folder": ".",
+      "path": ".dev/capability.json",
       "relationship": "The capabilities these entrypoints reach."
     },
     {
       "kind": "feature",
-      "folder": "software-atlas",
-      "path": "software-atlas/.dev/feature.json",
+      "folder": ".",
+      "path": ".dev/feature.json",
       "relationship": "The features they open."
     }
   ]

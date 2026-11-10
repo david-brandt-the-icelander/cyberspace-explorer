@@ -1,8 +1,8 @@
 {
-  "$schema": "../../Agents/Knowledge/schemas/verification.schema.json",
+  "$schema": "../Meta/Agents/Knowledge/schemas/verification.schema.json",
   "kind": "verification",
   "title": "How the browser is checked",
-  "folder": "software-atlas",
+  "folder": ".",
   "entities": [
     {
       "id": "manual-pass",
@@ -10,13 +10,13 @@
       "summary": "There are no automated tests of the page; it is checked by hand in a browser.",
       "subject": [
         {
-          "path": "software-atlas/.dev/feature.json"
+          "path": ".dev/feature.json"
         },
         {
-          "path": "software-atlas/.dev/requirements.json"
+          "path": ".dev/requirements.json"
         },
         {
-          "path": "software-atlas/.dev/quality-requirements.json"
+          "path": ".dev/quality-requirements.json"
         }
       ],
       "criteria": [
@@ -51,7 +51,7 @@
       "summary": "The validators check this folder's .dev files against the skills' and the catalogue's schemas.",
       "subject": [
         {
-          "path": "software-atlas/.dev/folder.json"
+          "path": ".dev/folder.json"
         }
       ],
       "criteria": [
@@ -60,15 +60,15 @@
       "checks": [
         {
           "type": "automated",
-          "path": "Agents/Skills/validate_diagrams.py",
+          "path": "Meta/Agents/Skills/validate_diagrams.py",
           "symbol": "validate",
-          "command": "python3 Agents/Skills/validate_diagrams.py ."
+          "command": "python3 Meta/Agents/Skills/validate_diagrams.py ."
         },
         {
           "type": "automated",
-          "path": "Agents/Knowledge/validate_knowledge.py",
+          "path": "Meta/Agents/Knowledge/validate_knowledge.py",
           "symbol": "main",
-          "command": "python3 Agents/Knowledge/validate_knowledge.py ."
+          "command": "python3 Meta/Agents/Knowledge/validate_knowledge.py ."
         }
       ],
       "evidenceStatus": "source-verified"

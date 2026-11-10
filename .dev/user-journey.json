@@ -1,20 +1,20 @@
 {
-  "$schema": "../../Agents/Skills/describe-user-journey/schema.json",
+  "$schema": "../Meta/Agents/Skills/describe-user-journey/schema.json",
   "kind": "user-journey",
   "title": "A reader's journeys",
-  "folder": "software-atlas",
+  "folder": ".",
   "description": "How a reader's time with the browser goes, from the link they are given to the thing they came for.",
   "sources": [
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "load"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "openTokenPanel"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "showWaiting"
     }
   ],
@@ -25,15 +25,15 @@
       "description": "Someone has been sent a link to a repository in the browser and wants to understand it.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "load"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "route"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "drill"
         }
       ],
@@ -49,7 +49,7 @@
           "outcome": "The page names the repository in the bar and says it is listing it.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "load"
             }
           ]
@@ -62,11 +62,11 @@
           "outcome": "The tree and the linked folder appear, or the shallowest folder if none was named.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "load"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "route"
             }
           ]
@@ -79,11 +79,11 @@
           "outcome": "One kind of view is open; its drawing is laid out.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "showFolder"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "selectKind"
             }
           ]
@@ -96,11 +96,11 @@
           "outcome": "They know what the part does and what it depends on.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "wire"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "select"
             }
           ]
@@ -113,11 +113,11 @@
           "outcome": "The part grows into the page and the folder opens on the same kind of view, if it has one.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "drill"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "showFolder"
             }
           ]
@@ -130,11 +130,11 @@
           "outcome": "Whoever opens it lands where they were.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "folderHash"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "focusPart"
             }
           ]
@@ -147,15 +147,15 @@
       "description": "A reader opens a repository the host does not show to everyone, and comes back to it later.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "getJson"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "openTokenPanel"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "saveToken"
         }
       ],
@@ -171,11 +171,11 @@
           "outcome": "The token panel opens, saying which token the host wants and that it goes to that host alone.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "getJson"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "tokenOffer"
             }
           ]
@@ -188,11 +188,11 @@
           "outcome": "They have a token to paste.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "github"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "gitlab"
             }
           ]
@@ -205,11 +205,11 @@
           "outcome": "The page reloads and reads the repository.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "openTokenPanel"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "saveToken"
             }
           ]
@@ -222,11 +222,11 @@
           "outcome": "Every request to the host carries the token.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "showTokenButton"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "auth"
             }
           ]
@@ -239,7 +239,7 @@
           "outcome": "A token kept on the browser is used at once; one kept for the tab is gone, and they are asked again.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "tokenScope"
             }
           ]
@@ -252,11 +252,11 @@
           "outcome": "They paste a new one, or forget the old one in the panel.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "getJson"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "openTokenPanel"
             }
           ]
@@ -269,11 +269,11 @@
       "description": "The owner of a repository whose .dev files agents keep checks what waits on them and how far to trust what is written.",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "showWaiting"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "recordCard"
         }
       ],
@@ -289,11 +289,11 @@
           "outcome": "They know what is theirs to decide.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "showWaitingLink"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "showWaiting"
             }
           ]
@@ -306,11 +306,11 @@
           "outcome": "They can decide, and tell an agent to record the decision.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "focusPart"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "recordCard"
             }
           ]
@@ -323,11 +323,11 @@
           "outcome": "They know which claims to check.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "recordCard"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "EVIDENCE"
             }
           ]
@@ -340,11 +340,11 @@
           "outcome": "The code is in a new tab, at the file the record cites.",
           "sources": [
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "fileLink"
             },
             {
-              "path": "software-atlas/index.html",
+              "path": "index.html",
               "symbol": "value"
             }
           ]
@@ -355,14 +355,14 @@
   "relatedViews": [
     {
       "kind": "use-case",
-      "folder": "software-atlas",
-      "path": "software-atlas/.dev/use-case.json",
+      "folder": ".",
+      "path": ".dev/use-case.json",
       "relationship": "The use cases each stage relies on."
     },
     {
       "kind": "feature",
-      "folder": "software-atlas",
-      "path": "software-atlas/.dev/feature.json",
+      "folder": ".",
+      "path": ".dev/feature.json",
       "relationship": "The features each touchpoint offers."
     }
   ]

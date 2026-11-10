@@ -1,8 +1,8 @@
 {
-  "$schema": "../../Agents/Knowledge/schemas/stakeholders.schema.json",
+  "$schema": "../Meta/Agents/Knowledge/schemas/stakeholders.schema.json",
   "kind": "stakeholders",
   "title": "Who cares about the browser",
-  "folder": "software-atlas",
+  "folder": ".",
   "entities": [
     {
       "id": "readers",
@@ -21,7 +21,7 @@
       "evidenceStatus": "documented",
       "sources": [
         {
-          "path": "software-atlas/README.md",
+          "path": "README.md",
           "symbol": "Using it"
         }
       ]
@@ -49,15 +49,15 @@
       "role": "Agent",
       "interest": "What they record, including fields no schema names, is seen by the people they work for.",
       "influence": "Consulted through the schemas: the browser shows what the schemas allow.",
-      "reach": "The skills in Agents/Skills and Agents/Knowledge.",
+      "reach": "The skills in Meta/Agents/Skills and Meta/Agents/Knowledge.",
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "recordCard"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "COMMON"
         }
       ]
@@ -74,7 +74,7 @@
         "kind": "request",
         "by": "owner",
         "date": "2026-11-10",
-        "reference": "software-atlas/.dev/backlog.json#design-pass"
+        "reference": ".dev/backlog.json#design-pass"
       },
       "evidenceStatus": "documented"
     }

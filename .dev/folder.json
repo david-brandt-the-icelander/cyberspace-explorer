@@ -1,41 +1,41 @@
 {
-  "$schema": "../../Agents/Knowledge/schemas/folder.schema.json",
+  "$schema": "../Meta/Agents/Knowledge/schemas/folder.schema.json",
   "kind": "folder",
-  "title": "The software atlas",
-  "folder": "software-atlas",
+  "title": "The cyberspace explorer",
+  "folder": ".",
   "entities": [
     {
-      "id": "software-atlas",
-      "title": "Software atlas",
+      "id": "cyberspace-explorer",
+      "title": "Cyberspace explorer",
       "summary": "A static page that shows a repository's .dev folders: its diagrams drawn, its behavior views and knowledge files written out.",
       "purpose": "Lets a person read what agents keep in a repository's .dev folders (how it is built, what it does and what it knows about itself) in a browser, with nothing to install, clone or run.",
       "boundaries": [
         "It reads .dev files; it never writes to a repository.",
         "It runs entirely in the reader's browser: no server, no build step, one HTML file.",
-        "What it reads is defined by the skills in Agents/Skills and the catalogue in Agents/Knowledge; when they change, the page follows them.",
+        "What it reads is defined by the skills in Meta/Agents/Skills and the catalogue in Meta/Agents/Knowledge; when they change, the page follows them.",
         "The copy people use is published on icelander.net; this folder is its source."
       ],
-      "details": "The folder holds `index.html`, the whole page, and `README.md`, which says how to use it and how it works. Its `.dev/` folder describes the browser itself, as fully as a designer needs to make a pass at it: start with the [design pass](software-atlas/.dev/backlog.json) item, which says what to read in what order.",
+      "details": "The folder holds `index.html`, the whole page, and `README.md`, which says how to use it and how it works. Its `.dev/` folder describes the browser itself, as fully as a designer needs to make a pass at it: start with the [design pass](.dev/backlog.json) item, which says what to read in what order.",
       "relationships": [
         {
           "relation": "depends-on",
-          "path": "Agents/Skills/README.md",
+          "path": "Meta/Agents/Skills/README.md",
           "description": "The views it draws and writes out."
         },
         {
           "relation": "depends-on",
-          "path": "Agents/Knowledge/README.md",
+          "path": "Meta/Agents/Knowledge/README.md",
           "description": "The knowledge files it writes out, and their groups."
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/README.md",
-          "symbol": "Software atlas"
+          "path": "README.md",
+          "symbol": "Cyberspace explorer"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "load"
         },
         {

@@ -1,19 +1,19 @@
 {
-  "$schema": "../../Agents/Skills/describe-state-diagram/schema.json",
+  "$schema": "../Meta/Agents/Skills/describe-state-diagram/schema.json",
   "kind": "state",
   "title": "From opening the page to reading a folder",
   "description": "What the page shows from the moment it opens, including every message the status line can give on the way. Each state is a screen a design has to cover.",
   "sources": [
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "load"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "route"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "status"
     }
   ],
@@ -141,5 +141,5 @@
       "action": "the address loses ?url= and the page reloads to the landing page"
     }
   ],
-  "folder": "software-atlas"
+  "folder": "."
 }

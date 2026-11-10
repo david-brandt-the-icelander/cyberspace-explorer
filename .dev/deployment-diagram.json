@@ -1,23 +1,23 @@
 {
-  "$schema": "../../Agents/Skills/describe-deployment-diagram/schema.json",
+  "$schema": "../Meta/Agents/Skills/describe-deployment-diagram/schema.json",
   "kind": "deployment",
   "title": "Where the browser runs",
   "description": "A static page served by icelander.net that runs entirely in the reader's browser and reads repositories straight from their hosts. There is no server of its own.",
   "sources": [
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "github"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "gitlab"
     },
     {
-      "path": "software-atlas/index.html",
+      "path": "index.html",
       "symbol": "DAGRE"
     },
     {
-      "path": "software-atlas/README.md",
+      "path": "README.md",
       "symbol": "Publishing"
     }
   ],
@@ -31,7 +31,7 @@
     },
     {
       "id": "page",
-      "name": "Software atlas",
+      "name": "Cyberspace explorer",
       "kind": "process",
       "description": "The page and its script, running in the browser tab."
     },
@@ -39,14 +39,14 @@
       "id": "storage",
       "name": "Browser storage",
       "kind": "database",
-      "description": "sessionStorage and localStorage, holding the reader's tokens under software-atlas.tokens.",
+      "description": "sessionStorage and localStorage, holding the reader's tokens under cyberspace-explorer.tokens.",
       "condition": "a token has been saved"
     },
     {
       "id": "site",
       "name": "icelander.net",
       "kind": "host",
-      "description": "Serves the page at /v1/apps/software-atlas as a static file."
+      "description": "Serves the page at /v1/apps/cyberspace-explorer as a static file."
     },
     {
       "id": "jsdelivr",
@@ -80,9 +80,9 @@
     {
       "id": "index",
       "name": "index.html",
-      "source": "software-atlas/index.html",
+      "source": "index.html",
       "deployedTo": "site",
-      "description": "The whole page: markup, styles, script and icons. Copied to the icelander.net repository as site/apps/software-atlas.html."
+      "description": "The whole page: markup, styles, script and icons. Copied to the icelander.net repository as site/apps/cyberspace-explorer.html."
     }
   ],
   "relationships": [
@@ -135,5 +135,5 @@
       "description": "Reads and writes the reader's tokens."
     }
   ],
-  "folder": "software-atlas"
+  "folder": "."
 }

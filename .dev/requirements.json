@@ -1,8 +1,8 @@
 {
-  "$schema": "../../Agents/Knowledge/schemas/requirements.schema.json",
+  "$schema": "../Meta/Agents/Knowledge/schemas/requirements.schema.json",
   "kind": "requirements",
   "title": "What the browser must do",
-  "folder": "software-atlas",
+  "folder": ".",
   "entities": [
     {
       "id": "public-needs-nothing",
@@ -16,14 +16,14 @@
       ],
       "realizedBy": [
         {
-          "path": "software-atlas/.dev/feature.json",
+          "path": ".dev/feature.json",
           "entityId": "open-by-address"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "load"
         }
       ]
@@ -41,22 +41,22 @@
       ],
       "realizedBy": [
         {
-          "path": "software-atlas/.dev/feature.json",
+          "path": ".dev/feature.json",
           "entityId": "tokens"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "auth"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "tokenScope"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "saveToken"
         }
       ]
@@ -69,35 +69,35 @@
       "rationale": "A file the browser can't show is a file nobody reads.",
       "priority": "must",
       "acceptanceCriteria": [
-        "Each kind in Agents/Skills and Agents/Knowledge has a place in the page.",
+        "Each kind in Meta/Agents/Skills and Meta/Agents/Knowledge has a place in the page.",
         "An unknown kind appears in the status line."
       ],
       "realizedBy": [
         {
-          "path": "software-atlas/.dev/feature.json",
+          "path": ".dev/feature.json",
           "entityId": "drawings"
         },
         {
-          "path": "software-atlas/.dev/feature.json",
+          "path": ".dev/feature.json",
           "entityId": "written-views"
         },
         {
-          "path": "software-atlas/.dev/feature.json",
+          "path": ".dev/feature.json",
           "entityId": "knowledge-cards"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "KIND_ORDER"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "KNOWLEDGE_GROUPS"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "load"
         }
       ]
@@ -115,22 +115,22 @@
       ],
       "realizedBy": [
         {
-          "path": "software-atlas/.dev/feature.json",
+          "path": ".dev/feature.json",
           "entityId": "knowledge-cards"
         },
         {
-          "path": "software-atlas/.dev/feature.json",
+          "path": ".dev/feature.json",
           "entityId": "inspect"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "recordCard"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "details"
         }
       ]
@@ -147,18 +147,18 @@
       ],
       "realizedBy": [
         {
-          "path": "software-atlas/.dev/feature.json",
+          "path": ".dev/feature.json",
           "entityId": "deep-links"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "route"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "focusPart"
         }
       ]
@@ -175,14 +175,14 @@
       ],
       "realizedBy": [
         {
-          "path": "software-atlas/.dev/feature.json",
+          "path": ".dev/feature.json",
           "entityId": "drawings"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "drawDiagram"
         }
       ]
@@ -199,14 +199,14 @@
       ],
       "realizedBy": [
         {
-          "path": "software-atlas/.dev/feature.json",
+          "path": ".dev/feature.json",
           "entityId": "open-by-address"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/README.md",
+          "path": "README.md",
           "symbol": "How it works"
         }
       ]
@@ -223,14 +223,14 @@
       ],
       "realizedBy": [
         {
-          "path": "software-atlas/.dev/feature.json",
+          "path": ".dev/feature.json",
           "entityId": "waiting"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "waitingRecords"
         }
       ]

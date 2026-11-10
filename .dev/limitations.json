@@ -1,8 +1,8 @@
 {
-  "$schema": "../../Agents/Knowledge/schemas/limitations.schema.json",
+  "$schema": "../Meta/Agents/Knowledge/schemas/limitations.schema.json",
   "kind": "limitations",
   "title": "What readers run into",
-  "folder": "software-atlas",
+  "folder": ".",
   "entities": [
     {
       "id": "hosts",
@@ -12,7 +12,7 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "parseAddress"
         }
       ],
@@ -26,7 +26,7 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "getJson"
         }
       ],
@@ -40,15 +40,15 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "github"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "gitlab"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "load"
         }
       ],
@@ -62,7 +62,7 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "showTree"
         }
       ]
@@ -75,11 +75,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "#tree .nm"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": ".pips"
         }
       ]
@@ -92,7 +92,7 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "selectKind"
         }
       ]
@@ -105,11 +105,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "#inspector"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "select"
         }
       ],
@@ -123,15 +123,15 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "Math.min(1, W / L.w)"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "max-width: 940px"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "grid-template-columns: 290px"
         }
       ]
@@ -144,11 +144,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "select"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "route"
         }
       ]
@@ -161,11 +161,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "load"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "status"
         }
       ]
@@ -178,7 +178,7 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "md"
         }
       ]
@@ -191,11 +191,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "#status.error"
         },
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "ev-source-verified"
         }
       ]
@@ -208,7 +208,7 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "prefers-color-scheme: dark"
         }
       ]
@@ -221,7 +221,7 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/index.html",
+          "path": "index.html",
           "symbol": "lang=\"en\""
         }
       ]
@@ -234,7 +234,7 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-atlas/README.md",
+          "path": "README.md",
           "symbol": "How it works"
         }
       ]

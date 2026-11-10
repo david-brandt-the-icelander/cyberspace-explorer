@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Software atlas</title>
+<title>Cyberspace explorer</title>
 <meta name="description" content="Browse a repository's architecture and behavior from the JSON views in its .dev folders.">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/barlow@5/400.css">
@@ -357,7 +357,7 @@
 </head>
 <body>
 <header class="bar">
-  <a class="brand" href="./"><svg class="ic"><use href="#i-mark"/></svg><span>Software atlas</span></a>
+  <a class="brand" href="./"><svg class="ic"><use href="#i-mark"/></svg><span>Cyberspace explorer</span></a>
   <div class="repo" id="repo" hidden></div>
   <span class="spacer"></span>
   <button class="quiet" id="token" hidden></button>
@@ -413,7 +413,7 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 // Structural diagrams first, then the functional views, which describe behavior.
 const KIND_ORDER = { component: 0, deployment: 1, class: 2, state: 3, "use-case": 4, "user-journey": 5, capability: 6, feature: 7, operation: 8 };
 const KIND_NAME = { component: "Component diagram", deployment: "Deployment diagram", class: "Class diagram", state: "State diagram", "use-case": "Use case", "user-journey": "User journey", capability: "Capability", feature: "Feature", operation: "Operations" };
-// The knowledge catalogue (Agents/Knowledge): every kind, in its group, in the catalogue's order.
+// The knowledge catalogue (Meta/Agents/Knowledge): every kind, in its group, in the catalogue's order.
 // A folder shows all its knowledge files under one tab, grouped like this.
 const KNOWLEDGE_GROUPS = [
   ["Direction", "g-direction", [["vision", "Vision"], ["stakeholders", "Stakeholders"], ["risks", "Risks"], ["roadmap", "Roadmap"]]],
@@ -605,7 +605,7 @@ function parseAddress(raw) {
 // on it, or one repository. A repository uses the narrowest scope around it.
 
 // The key keeps the page's earlier name, so tokens readers already saved are still found.
-const TOKENS = "software-atlas.tokens";
+const TOKENS = "cyberspace-explorer.tokens";
 /** sessionStorage first: a token kept only for this tab wins over one left on the browser. */
 const store = (name) => { try { return window[name] ?? null; } catch { return null; } };
 const stores = () => [store("sessionStorage"), store("localStorage")].filter(Boolean);

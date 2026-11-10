@@ -1,8 +1,8 @@
-# Software atlas
+# Cyberspace explorer
 
-A web page, served by a small Cloudflare Worker on icelander.net, that shows a repository's architecture, behavior and knowledge from the JSON files in its `.dev/` folders. Four are diagrams, described by the skills in [Agents/Skills](../Agents/Skills/README.md): component, class, state and deployment. Five describe behavior, with skills of their own: use-case, user-journey, capability, feature and operation. The rest are the knowledge files of the [knowledge catalogue](../Agents/Knowledge/README.md): vision, backlog, decisions, requirements, delivery, operation and the other kinds. A folder can have any mix of them. A public repository needs nothing; a private one needs the reader to sign in with GitHub (OAuth, on icelander.net) or to give an access token, which stays in their browser.
+A web page, served by a small Cloudflare Worker on icelander.net, that shows a repository's architecture, behavior and knowledge from the JSON files in its `.dev/` folders. Four are diagrams, described by the skills in [Meta/Agents/Skills](Meta/Agents/Skills/README.md): component, class, state and deployment. Five describe behavior, with skills of their own: use-case, user-journey, capability, feature and operation. The rest are the knowledge files of the [knowledge catalogue](Meta/Agents/Knowledge/README.md): vision, backlog, decisions, requirements, delivery, operation and the other kinds. A folder can have any mix of them. A public repository needs nothing; a private one needs the reader to sign in with GitHub (OAuth, on icelander.net) or to give an access token, which stays in their browser.
 
-Live at <https://icelander.net/v1/apps/software-atlas>. For example, [retro-games](https://icelander.net/v1/apps/software-atlas?url=https://github.com/david-brandt-the-icelander/retro-games).
+Live at <https://icelander.net/v1/apps/cyberspace-explorer>. For example, [retro-games](https://icelander.net/v1/apps/cyberspace-explorer?url=https://github.com/david-brandt-the-icelander/retro-games).
 
 ## Using it
 
@@ -37,7 +37,7 @@ dagre and the Barlow typefaces are loaded from jsDelivr. If dagre can't load, th
 
 ## The service
 
-`worker/` is a Cloudflare Worker named `software-atlas`, routed at `icelander.net/v1/apps/software-atlas*` (`wrangler.jsonc`), so it runs instead of the site's own Worker for those paths, as the login service does for `/accounts`. It serves `index.html` and these routes under that path:
+`worker/` is a Cloudflare Worker named `cyberspace-explorer`, routed at `icelander.net/v1/apps/cyberspace-explorer*` (`wrangler.jsonc`), so it runs instead of the site's own Worker for those paths, as the login service does for `/accounts`. It serves `index.html` and these routes under that path:
 
 | Route | What it does |
 | --- | --- |
@@ -47,23 +47,23 @@ dagre and the Barlow typefaces are loaded from jsDelivr. If dagre can't load, th
 | `POST /auth/sign-out` | Forgets the session; only from the app's own origin |
 | `GET /api/github/<path>` | GitHub's API with the reader's token, for `user`, `user/repos`, a repository, its trees and its contents only; read only; the token is never sent to the page |
 
-The session is `atlas_session`, `Path=/v1/apps/software-atlas; HttpOnly; Secure; SameSite=Lax`, 7 days, AES-GCM sealed with a key derived from `SESSION_SECRET`. It is separate from icelander.net's own sign-in (`site_session`): it exists to read GitHub, not to say who the reader is on the site. Without the three secrets below the routes answer that sign-in isn't set up and the page falls back to pasted tokens. Nothing is logged about a sign-in. `npm test` (in this folder) runs the Worker's tests.
+The session is `explorer_session`, `Path=/v1/apps/cyberspace-explorer; HttpOnly; Secure; SameSite=Lax`, 7 days, AES-GCM sealed with a key derived from `SESSION_SECRET`. It is separate from icelander.net's own sign-in (`site_session`): it exists to read GitHub, not to say who the reader is on the site. Without the three secrets below the routes answer that sign-in isn't set up and the page falls back to pasted tokens. Nothing is logged about a sign-in. `npm test` runs the Worker's tests.
 
 ### Setting it up once (the owner)
 
-1. On GitHub, **Settings → Developer settings → OAuth Apps → New OAuth App**: name "Software atlas", homepage `https://icelander.net/v1/apps/software-atlas`, authorization callback URL `https://icelander.net/v1/apps/software-atlas/auth/github/callback`. Generate a client secret.
+1. On GitHub, **Settings → Developer settings → OAuth Apps → New OAuth App**: name "Cyberspace explorer", homepage `https://icelander.net/v1/apps/cyberspace-explorer`, authorization callback URL `https://icelander.net/v1/apps/cyberspace-explorer/auth/github/callback`. Generate a client secret.
 2. Put the three secrets on the Worker (the first deploy creates it; run these after it, or deploy once by hand):
 
    ```bash
-   npx wrangler secret put GITHUB_CLIENT_ID -c software-atlas/wrangler.jsonc
+   npx wrangler secret put GITHUB_CLIENT_ID -c wrangler.jsonc
    ```
 
    ```bash
-   npx wrangler secret put GITHUB_CLIENT_SECRET -c software-atlas/wrangler.jsonc
+   npx wrangler secret put GITHUB_CLIENT_SECRET -c wrangler.jsonc
    ```
 
    ```bash
-   npx wrangler secret put SESSION_SECRET -c software-atlas/wrangler.jsonc
+   npx wrangler secret put SESSION_SECRET -c wrangler.jsonc
    ```
 
    `SESSION_SECRET` is any long random string (for example `openssl rand -base64 48`). Changing it signs everyone out.
@@ -71,9 +71,9 @@ The session is `atlas_session`, `Path=/v1/apps/software-atlas; HttpOnly; Secure;
 
 ## Deploying
 
-`.github/workflows/software-atlas.yml` tests the Worker on every pull request that touches this folder, and on a push to `main` that does, it tests and then deploys with `wrangler deploy`, then checks that the live page answers. "Run workflow" in the Actions tab redeploys by hand. There is nothing to copy to the icelander.net repository: that repository only links to the app (its Apps page) and its Worker is left alone by this one.
+`.github/workflows/cyberspace-explorer.yml` tests the Worker on every pull request, and on a push to `main` it tests and then deploys with `wrangler deploy`, then checks that the live page answers. "Run workflow" in the Actions tab redeploys by hand. There is nothing to copy to the icelander.net repository: that repository only links to the app (its Apps page) and its Worker is left alone by this one.
 
 ## Its own description
 
-The browser is described in its own [`.dev/`](.dev) folder, and the browser shows it: its vision and stakeholders, the journeys and use cases of the people who use it ([`Actors/reader.md`](../Actors/reader.md)), the states of the page, the token panel and a drawing, its features, capabilities and entrypoints, its parts and where it runs, and its requirements, contracts, current design decisions and limitations. The [design pass](.dev/backlog.json) item says what to read in what order before changing the design. Check the folder after changing it with both validators, from the repository root: `python3 Agents/Skills/validate_diagrams.py .` and `python3 Agents/Knowledge/validate_knowledge.py .`.
+The browser is described in its own [`.dev/`](.dev) folder, and the browser shows it: its vision and stakeholders, the journeys and use cases of the people who use it ([`Actors/reader.md`](Actors/reader.md)), the states of the page, the token panel and a drawing, its features, capabilities and entrypoints, its parts and where it runs, and its requirements, contracts, current design decisions and limitations. The [design pass](.dev/backlog.json) item says what to read in what order before changing the design. Check the folder after changing it with both validators, from the repository root: `python3 Meta/Agents/Skills/validate_diagrams.py .` and `python3 Meta/Agents/Knowledge/validate_knowledge.py .`. `Meta/Agents/` is a copy of `Agents/Skills` and `Agents/Knowledge` from [human-assisted-software-development](https://github.com/david-brandt-the-icelander/human-assisted-software-development): change them there and copy them here, so there is one version.
 
