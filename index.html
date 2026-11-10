@@ -343,7 +343,7 @@
   </form>
   <div id="signin"></div>
   <p class="example">Or open <a href="?url=https%3A%2F%2Fgithub.com%2Fdavid-brandt-the-icelander%2Fretro-games">retro-games</a> as an example. The diagrams follow the <a href="https://github.com/david-brandt-the-icelander/processes/tree/main/Agents/Skills">diagram skills</a>.</p>
-  <p class="example">A private repository needs an access token. Give its address and the browser will ask for one; the token stays in this browser and goes to that host alone.</p>
+  <p class="example">A private repository needs you to sign in with GitHub, or an access token. Give its address and the browser will ask; a token pasted here stays in this browser and goes to that host alone.</p>
   <div class="kinds">
     <div class="kind-component"><span class="tile"><svg class="ic"><use href="#i-kind-component"/></svg></span><h2>Component</h2><p>What a folder is made of, and what each part depends on.</p></div>
     <div class="kind-deployment"><span class="tile"><svg class="ic"><use href="#i-kind-deployment"/></svg></span><h2>Deployment</h2><p>Where the code runs: clients, hosts, processes and stores.</p></div>
@@ -574,11 +574,34 @@ function saveToken(scope, value, keep) {
   try { s.setItem(TOKENS, JSON.stringify(all)); } catch { status("This browser wouldn't keep the token.", "error"); }
 }
 /** What authenticates a request to the repository's own host; nothing without a token. */
-const auth = (r) => { const t = tokenFor(r); return t ? r.host.authHeader(t) : {}; };
+const auth = (r) => { if (viaService(r)) return {}; const t = tokenFor(r); return t ? r.host.authHeader(t) : {}; };
+
+// ── The server ───────────────────────────────────────────────────────────
+// On icelander.net a Worker serves this page and signs readers in with GitHub (OAuth). Their token stays
+// on the server, in a cookie the page can't read, and GitHub is asked through the Worker. Served as a
+// plain file (or from a disk) there is no such server, and the access tokens above are the way in.
+
+/** { base, user } when a server answers; user is { login, avatar } once signed in. Null without a server. */
+let service = null;
+const viaService = (r) => !!service?.user && r?.host === github;
+/** The sign-in on the server, back to this page; private adds access to the reader's private repositories. */
+function signInUrl(priv = false) {
+  const q = new URLSearchParams(location.search); q.delete("signin");
+  const back = location.pathname + (q.size ? `?${q}` : "");
+  return `${service.base}/auth/github/start?${new URLSearchParams({ return: back, ...(priv ? { private: "1" } : {}) })}`;
+}
+async function detectService() {
+  const base = location.pathname.replace(/\/(index\.html)?$/, "");
+  try {
+    const res = await fetch(`${base}/auth/me`, { headers: { Accept: "application/json" } });
+    const d = res.ok && /json/.test(res.headers.get("content-type") ?? "") ? await res.json() : null;
+    if (d?.configured) service = { base, user: d.user };
+  } catch { /* no server: a plain file */ }
+}
 
 function showTokenButton() {
   const b = $("token"), using = repo && tokenScope(repo), any = heldTokens().length;
-  b.hidden = !repo || !any;
+  b.hidden = !repo || !any || viaService(repo);
   if (b.hidden) return;
   b.innerHTML = `${ic("key")}${using ? "Token added" : "Tokens"}`;
   b.title = using ? `The token for ${using.scope} is in use. Open to add, replace or forget tokens.` : "No token covers this repository. Open to add one or forget others.";
@@ -621,14 +644,21 @@ $("token").addEventListener("click", () => ($("token-panel").hidden ? openTokenP
 document.addEventListener("click", (e) => { if (!$("token-panel").hidden && !e.composedPath().some((n) => n.id === "token-panel" || n.id === "token")) closeTokenPanel(); });
 
 /** The button to offer when a host refuses, or null when a token wouldn't help. */
-const tokenOffer = (st) => ([401, 403, 404].includes(st) ? { label: tokenFor(repo) ? "Replace or add a token" : "Add a token", run: openTokenPanel } : null);
+const tokenOffer = (st) => service && repo?.host === github && [401, 403, 404].includes(st)
+  ? (service.user ? { label: "Include private repositories", run: () => { location.href = signInUrl(true); } } : { label: "Sign in with GitHub", run: () => { location.href = signInUrl(); } })
+  : ([401, 403, 404].includes(st) ? { label: tokenFor(repo) ? "Replace or add a token" : "Add a token", run: openTokenPanel } : null);
 
 async function getJson(url, extra = {}) {
   const res = await fetch(url, { headers: { Accept: "application/json", ...auth(repo), ...extra } });
   if (!res.ok) {
     const host = new URL(url).host, signed = tokenScope(repo)?.scope;
     const e = new Error(
-      res.status === 401 ? `${host} refused the token${signed ? ` for ${signed}` : ""}. It may be wrong, expired, or for another account.`
+      viaService(repo) && new URL(url).pathname.startsWith(`${service.base}/api/`) ? (
+        res.status === 401 ? "GitHub no longer accepts your sign-in. Sign in again."
+        : res.status === 403 ? "GitHub refused the request. Your sign-in may not cover this repository (private ones need the private option), or the rate limit is used up."
+        : res.status === 404 ? "GitHub has no such repository, or your sign-in cannot see it. Private repositories need the private option."
+        : `${res.status} ${res.statusText} from GitHub`)
+      : res.status === 401 ? `${host} refused the token${signed ? ` for ${signed}` : ""}. It may be wrong, expired, or for another account.`
       : res.status === 403 && signed ? `${host} refused the request. The token for ${signed} may not cover this repository; a narrower one can be added for it.`
       : res.status === 403 && host === "api.github.com" ? "GitHub allows 60 unauthenticated requests an hour from one address, and they are used up. A token raises that to 5,000, or try again in a while."
       : res.status === 404 ? `${host} has no such repository, or ${signed ? "the token cannot see it" : "it is private"}.`
@@ -648,13 +678,16 @@ async function resolveRef(rest, tryRef) {
   throw new Error("No such branch, tag or commit.");
 }
 
+/** GitHub's API, or the server's door to it for a reader signed in there. */
+const githubApi = (r) => viaService(r) ? new URL(`${service.base}/api/github`, location.origin).href : "https://api.github.com";
+
 const github = {
   name: "GitHub",
   tokenHost: () => "github.com",
   authHeader: (t) => ({ Authorization: `Bearer ${t}` }),
   tokenHelp: "A fine-grained personal access token with Contents: read on the repository, made under Settings → Developer settings on GitHub.",
   async list(r) {
-    const api = `https://api.github.com/repos/${encodeURIComponent(r.owner)}/${encodeURIComponent(r.repo)}`;
+    const api = `${githubApi(r)}/repos/${encodeURIComponent(r.owner)}/${encodeURIComponent(r.repo)}`;
     const tree = (ref) => getJson(`${api}/git/trees/${encodeURIComponent(ref)}?recursive=1`);
     let found;
     if (r.rest.length) found = await resolveRef(r.rest, tree);
@@ -667,8 +700,8 @@ const github = {
   // through the API instead, which serves the file itself for this media type.
   read(r, path) {
     const p = path.split("/").map(encodeURIComponent).join("/");
-    return tokenFor(r)
-      ? [`https://api.github.com/repos/${encodeURIComponent(r.owner)}/${encodeURIComponent(r.repo)}/contents/${p}?ref=${encodeURIComponent(r.ref)}`, { Accept: "application/vnd.github.raw" }]
+    return viaService(r) || tokenFor(r)
+      ? [`${githubApi(r)}/repos/${encodeURIComponent(r.owner)}/${encodeURIComponent(r.repo)}/contents/${p}?ref=${encodeURIComponent(r.ref)}`, { Accept: "application/vnd.github.raw" }]
       : [`https://raw.githubusercontent.com/${r.owner}/${r.repo}/${encodeURIComponent(r.ref)}/${p}`, {}];
   },
   blob: (r, path) => `https://github.com/${r.owner}/${r.repo}/blob/${r.ref}/${path}`,
@@ -1689,9 +1722,11 @@ $("view").addEventListener("click", (e) => {
 const OLDEST_FIRST = true;
 let myRepos = [], me = null;
 
-const githubToken = () => { for (const a of stores().map(held)) if (a["github.com"]) return a["github.com"]; return null; };
+const githubToken = () => { if (service) return null; for (const a of stores().map(held)) if (a["github.com"]) return a["github.com"]; return null; };
 async function ghGet(path, token) {
-  const res = await fetch(`https://api.github.com${path}`, { headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" } });
+  const res = service?.user
+    ? await fetch(new URL(`${service.base}/api/github${path}`, location.origin), { headers: { Accept: "application/vnd.github+json" } })
+    : await fetch(`https://api.github.com${path}`, { headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" } });
   if (!res.ok) throw Object.assign(new Error(res.status === 401 ? "GitHub refused the token." : `GitHub answered ${res.status}.`), { status: res.status });
   return res.json();
 }
@@ -1713,6 +1748,17 @@ function ago(iso) {
 
 function showSignIn(error = "") {
   const el = $("signin");
+  if (service) {
+    if (service.user) {
+      el.innerHTML = `<span>Signed in to GitHub as <b>${esc(service.user.login)}</b>. Your repositories are in the list, oldest update first.</span><button class="quiet" type="button" id="signout">Sign out</button>`;
+      $("signout").addEventListener("click", async () => { await fetch(`${service.base}/auth/sign-out`, { method: "POST" }); location.href = service.base; });
+    } else {
+      el.innerHTML = `${error ? `<span class="err">${esc(error)}</span>` : ""}<a class="quiet" id="signin-open" href="${esc(signInUrl())}">${ic("key")}Sign in with GitHub (optional)</a>
+        <label class="keep" style="margin:0"><input id="signin-private" type="checkbox"> include my private repositories</label>`;
+      $("signin-private").addEventListener("change", (e) => { $("signin-open").href = signInUrl(e.target.checked); });
+    }
+    return;
+  }
   if (me) {
     el.innerHTML = `<span>Signed in to GitHub as <b>${esc(me)}</b>. Your repositories are in the list, oldest update first.</span><button class="quiet" type="button" id="signout">Sign out</button>`;
     $("signout").addEventListener("click", () => { saveToken("github.com", null, false); location.reload(); });
@@ -1759,7 +1805,8 @@ function setupCombo() {
   comboReady = true;
   const pick = (r) => { input.value = r.html_url; close(); $("pick").requestSubmit(); };
   input.addEventListener("input", () => { active = -1; if (myRepos.length) render(); });
-  input.addEventListener("focus", () => { if (myRepos.length) render(); });
+  // The box is focused on arrival, so a click on it must open the list too.
+  for (const ev of ["focus", "click"]) input.addEventListener(ev, () => { if (myRepos.length && list.hidden) render(); });
   drop.addEventListener("click", () => (list.hidden ? (input.value = "", render(), input.focus()) : close()));
   list.addEventListener("mousedown", (e) => {
     const li = e.target.closest("[data-i]");
@@ -1781,6 +1828,7 @@ function setupCombo() {
 // ── Start: the address comes from ?url=; the form is only for choosing one ──
 
 const address = new URLSearchParams(location.search).get("url");
+await detectService();
 if (address) {
   void load(address);
 } else {
@@ -1789,11 +1837,13 @@ if (address) {
     e.preventDefault();
     let v = $("repo-url").value.trim();
     if (/^[\w.-]+\/[\w.-]+$/.test(v)) v = `https://github.com/${v}`;
-    location.search = new URLSearchParams({ url: v }).toString();
+    const q = new URLSearchParams({ url: v }).toString();
+    location.search = q;
   });
   $("repo-url").focus();
-  showSignIn();
-  const t = githubToken();
+  const failed = new URLSearchParams(location.search).get("signin");
+  showSignIn(failed ? (failed === "denied" ? "GitHub sign-in was cancelled." : "GitHub sign-in didn't work. Try again.") : "");
+  const t = service?.user ? "service" : githubToken();
   if (t) loadMyRepos(t).then(() => { showSignIn(); setupCombo(); }).catch((e) => { me = null; showSignIn(e.message); });
 }
 </script>
