@@ -1,20 +1,20 @@
-// The software system browser, a Worker of its own on a path of icelander.net (README.md, "Deploying").
+// The software atlas, a Worker of its own on a path of icelander.net (README.md, "Deploying").
 // The route is more specific than the site's own Worker, so it runs instead of it for these paths.
-// GitHub Actions deploys it on every push to main that changes this folder (.github/workflows/software-system-browser.yml).
+// GitHub Actions deploys it on every push to main that changes this folder (.github/workflows/software-atlas.yml).
 // No secrets belong in this file.
 {
-  "name": "software-system-browser",
+  "name": "software-atlas",
   "account_id": "ab026008f5aa2bef2dca4cfccd0f70ef",
   "main": "worker/index.js",
   "compatibility_date": "2026-09-22",
   "workers_dev": false,
   "preview_urls": false,
-  "routes": [{ "pattern": "icelander.net/v1/apps/architecture-browser*", "zone_name": "icelander.net" }],
+  "routes": [{ "pattern": "icelander.net/v1/apps/software-atlas*", "zone_name": "icelander.net" }],
   "vars": {
-    // The OAuth App's registered callback is ${PUBLIC_ORIGIN}/v1/apps/architecture-browser/auth/github/callback.
+    // The OAuth App's registered callback is ${PUBLIC_ORIGIN}/v1/apps/software-atlas/auth/github/callback.
     "PUBLIC_ORIGIN": "https://icelander.net"
   },
-  // Secrets, set with `wrangler secret put … -c software-system-browser/wrangler.jsonc`, never here:
+  // Secrets, set with `wrangler secret put … -c software-atlas/wrangler.jsonc`, never here:
   //   GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET   the GitHub OAuth App; sign-in is off without them
   //   SESSION_SECRET                           a long random string that seals the cookies
   "observability": { "enabled": true }

@@ -2,7 +2,7 @@
   "$schema": "../../Agents/Knowledge/schemas/vision.schema.json",
   "kind": "vision",
   "title": "Why the browser exists",
-  "folder": "software-system-browser",
+  "folder": "software-atlas",
   "entities": [
     {
       "id": "vision",
@@ -36,8 +36,8 @@
           "symbol": "Knowledge files"
         },
         {
-          "path": "software-system-browser/README.md",
-          "symbol": "Software system browser"
+          "path": "software-atlas/README.md",
+          "symbol": "Software atlas"
         }
       ]
     }

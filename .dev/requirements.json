@@ -2,7 +2,7 @@
   "$schema": "../../Agents/Knowledge/schemas/requirements.schema.json",
   "kind": "requirements",
   "title": "What the browser must do",
-  "folder": "software-system-browser",
+  "folder": "software-atlas",
   "entities": [
     {
       "id": "public-needs-nothing",
@@ -16,14 +16,14 @@
       ],
       "realizedBy": [
         {
-          "path": "software-system-browser/.dev/feature.json",
+          "path": "software-atlas/.dev/feature.json",
           "entityId": "open-by-address"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "load"
         }
       ]
@@ -41,22 +41,22 @@
       ],
       "realizedBy": [
         {
-          "path": "software-system-browser/.dev/feature.json",
+          "path": "software-atlas/.dev/feature.json",
           "entityId": "tokens"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "auth"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "tokenScope"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "saveToken"
         }
       ]
@@ -74,30 +74,30 @@
       ],
       "realizedBy": [
         {
-          "path": "software-system-browser/.dev/feature.json",
+          "path": "software-atlas/.dev/feature.json",
           "entityId": "drawings"
         },
         {
-          "path": "software-system-browser/.dev/feature.json",
+          "path": "software-atlas/.dev/feature.json",
           "entityId": "written-views"
         },
         {
-          "path": "software-system-browser/.dev/feature.json",
+          "path": "software-atlas/.dev/feature.json",
           "entityId": "knowledge-cards"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "KIND_ORDER"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "KNOWLEDGE_GROUPS"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "load"
         }
       ]
@@ -115,22 +115,22 @@
       ],
       "realizedBy": [
         {
-          "path": "software-system-browser/.dev/feature.json",
+          "path": "software-atlas/.dev/feature.json",
           "entityId": "knowledge-cards"
         },
         {
-          "path": "software-system-browser/.dev/feature.json",
+          "path": "software-atlas/.dev/feature.json",
           "entityId": "inspect"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "recordCard"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "details"
         }
       ]
@@ -147,18 +147,18 @@
       ],
       "realizedBy": [
         {
-          "path": "software-system-browser/.dev/feature.json",
+          "path": "software-atlas/.dev/feature.json",
           "entityId": "deep-links"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "route"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "focusPart"
         }
       ]
@@ -175,14 +175,14 @@
       ],
       "realizedBy": [
         {
-          "path": "software-system-browser/.dev/feature.json",
+          "path": "software-atlas/.dev/feature.json",
           "entityId": "drawings"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "drawDiagram"
         }
       ]
@@ -199,14 +199,14 @@
       ],
       "realizedBy": [
         {
-          "path": "software-system-browser/.dev/feature.json",
+          "path": "software-atlas/.dev/feature.json",
           "entityId": "open-by-address"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/README.md",
+          "path": "software-atlas/README.md",
           "symbol": "How it works"
         }
       ]
@@ -223,14 +223,14 @@
       ],
       "realizedBy": [
         {
-          "path": "software-system-browser/.dev/feature.json",
+          "path": "software-atlas/.dev/feature.json",
           "entityId": "waiting"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "waitingRecords"
         }
       ]

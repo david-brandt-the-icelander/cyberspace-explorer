@@ -2,7 +2,7 @@
   "$schema": "../../Agents/Knowledge/schemas/glossary.schema.json",
   "kind": "glossary",
   "title": "Words the browser uses",
-  "folder": "software-system-browser",
+  "folder": "software-atlas",
   "entities": [
     {
       "id": "dev-folder",

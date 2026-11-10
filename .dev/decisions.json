@@ -2,7 +2,7 @@
   "$schema": "../../Agents/Knowledge/schemas/decisions.schema.json",
   "kind": "decisions",
   "title": "How the browser is built and looks",
-  "folder": "software-system-browser",
+  "folder": "software-atlas",
   "entities": [
     {
       "id": "one-file",
@@ -15,11 +15,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/README.md",
+          "path": "software-atlas/README.md",
           "symbol": "How it works"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "DAGRE"
         }
       ]
@@ -35,15 +35,15 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "layoutOne"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "drawSvg"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "MODELS"
         }
       ]
@@ -59,11 +59,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": ":root"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "p-grid"
         }
       ]
@@ -79,11 +79,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "--k-component"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "kind-component"
         }
       ]
@@ -99,11 +99,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "--sans"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "F_NAME"
         }
       ]
@@ -119,15 +119,15 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "ICONS"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "GLYPH_RULES"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "glyphFor"
         }
       ]
@@ -143,15 +143,15 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showFolder"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "selectKind"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "knowledgePanel"
         }
       ]
@@ -167,7 +167,7 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "details"
         }
       ]
@@ -183,7 +183,7 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "drill"
         }
       ]
@@ -199,11 +199,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "address"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "route"
         }
       ]
@@ -219,15 +219,15 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "TOKENS"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "tokenScope"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "github"
         }
       ]

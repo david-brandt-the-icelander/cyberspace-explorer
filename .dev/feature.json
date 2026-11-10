@@ -2,27 +2,27 @@
   "$schema": "../../Agents/Skills/describe-feature/schema.json",
   "kind": "feature",
   "title": "What the browser offers",
-  "folder": "software-system-browser",
+  "folder": "software-atlas",
   "description": "Every feature a reader meets, with the limits it works within. Together they are what a design of the page has to carry.",
   "sources": [
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "load"
     },
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "showFolder"
     },
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "drawDiagram"
     },
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "recordCard"
     },
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "showWaiting"
     }
   ],
@@ -33,11 +33,11 @@
       "description": "The browser reads a GitHub or GitLab repository from the address alone.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "parseAddress"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "resolveRef"
         }
       ],
@@ -50,15 +50,15 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "parseAddress"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "resolveRef"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "load"
         }
       ]
@@ -69,15 +69,15 @@
       "description": "Private repositories are read with the reader's own token, which never leaves their browser except to its host.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "openTokenPanel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "saveToken"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "tokenScope"
         }
       ],
@@ -85,32 +85,32 @@
       "outcome": "Readers can browse private repositories without trusting a server with their access.",
       "constraints": [
         "A token is sent only to the host it was saved for.",
-        "Tokens are kept in sessionStorage, or localStorage when asked, under architecture-browser.tokens.",
+        "Tokens are kept in sessionStorage, or localStorage when asked, under software-atlas.tokens.",
         "Saving or forgetting the token in use reloads the page."
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "openTokenPanel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "saveToken"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "tokenScope"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "heldTokens"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showTokenButton"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "auth"
         }
       ]
@@ -121,7 +121,7 @@
       "description": "The left column lists the folders with .dev files, nested under the nearest such folder above them.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showTree"
         }
       ],
@@ -134,15 +134,15 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showTree"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "pips"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "parentOf"
         }
       ]
@@ -153,7 +153,7 @@
       "description": "Above the tabs, a folder says where it is, what it is for and what is inside it.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showFolder"
         }
       ],
@@ -164,11 +164,11 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showFolder"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "childrenOf"
         }
       ]
@@ -179,11 +179,11 @@
       "description": "A folder shows one kind of view at a time, under a tab per kind.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showFolder"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "selectKind"
         }
       ],
@@ -194,15 +194,15 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showFolder"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "selectKind"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "KIND_ORDER"
         }
       ]
@@ -213,23 +213,23 @@
       "description": "Component, deployment, class and state diagrams are drawn as SVG on a sheet of grid crosses.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "componentModel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "deploymentModel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "classModel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "stateModel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "drawSvg"
         }
       ],
@@ -242,31 +242,31 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "componentModel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "deploymentModel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "classModel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "stateModel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "layout"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "drawSvg"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "LEGENDS"
         }
       ]
@@ -277,11 +277,11 @@
       "description": "Use cases and user journeys go through the same drawing as the diagrams.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "useCaseModel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "journeyModel"
         }
       ],
@@ -292,15 +292,15 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "useCaseModel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "journeyModel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "cards"
         }
       ]
@@ -311,7 +311,7 @@
       "description": "Each drawing has its own camera.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "camera"
         }
       ],
@@ -323,7 +323,7 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "camera"
         }
       ]
@@ -334,11 +334,11 @@
       "description": "A drawing answers the pointer and the keyboard.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "wire"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "select"
         }
       ],
@@ -350,27 +350,27 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "wire"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "light"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showTip"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "select"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "closeInspector"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "details"
         }
       ]
@@ -381,11 +381,11 @@
       "description": "The drawings are the way around the repository.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "navFor"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "drill"
         }
       ],
@@ -396,11 +396,11 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "navFor"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "drill"
         }
       ]
@@ -411,7 +411,7 @@
       "description": "The views that are not drawn are written as cards and a table.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "cards"
         }
       ],
@@ -422,11 +422,11 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "cards"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "symRefs"
         }
       ]
@@ -437,11 +437,11 @@
       "description": "Every view lists the views it relates to.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "details"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "viewHash"
         }
       ],
@@ -452,11 +452,11 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "details"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "viewHash"
         }
       ]
@@ -467,15 +467,15 @@
       "description": "A folder's knowledge files share one tab, grouped as the catalogue groups them.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "knowledgePanel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "recordCard"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "md"
         }
       ],
@@ -487,31 +487,31 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "knowledgePanel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "knowledgeSection"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "recordCard"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "md"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "value"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "originText"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "pathLink"
         }
       ]
@@ -522,11 +522,11 @@
       "description": "One view of everything in the repository that waits on someone.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "waitingRecords"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showWaiting"
         }
       ],
@@ -538,15 +538,15 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "waitingRecords"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showWaitingLink"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showWaiting"
         }
       ]
@@ -557,11 +557,11 @@
       "description": "Every place in the browser has an address that can be shared.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "route"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "focusPart"
         }
       ],
@@ -572,19 +572,19 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "route"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "focusPart"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "folderHash"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "recordHash"
         }
       ]
@@ -595,7 +595,7 @@
       "description": "Progress, problems and what was skipped are said in one line under the bar.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "status"
         }
       ],
@@ -606,11 +606,11 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "status"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "load"
         }
       ]
@@ -621,11 +621,11 @@
       "description": "The page follows the reader's system.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "prefers-color-scheme: dark"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "max-width: 860px"
         }
       ],
@@ -636,15 +636,15 @@
       ],
       "implementation": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "prefers-color-scheme: dark"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "max-width: 860px"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "prefers-reduced-motion: reduce"
         }
       ]
@@ -653,26 +653,26 @@
   "relatedViews": [
     {
       "kind": "capability",
-      "folder": "software-system-browser",
-      "path": "software-system-browser/.dev/capability.json",
+      "folder": "software-atlas",
+      "path": "software-atlas/.dev/capability.json",
       "relationship": "The capabilities these features make up."
     },
     {
       "kind": "operation",
-      "folder": "software-system-browser",
-      "path": "software-system-browser/.dev/operation.json",
+      "folder": "software-atlas",
+      "path": "software-atlas/.dev/operation.json",
       "relationship": "The entrypoints that reach them."
     },
     {
       "kind": "use-case",
-      "folder": "software-system-browser",
-      "path": "software-system-browser/.dev/use-case.json",
+      "folder": "software-atlas",
+      "path": "software-atlas/.dev/use-case.json",
       "relationship": "What readers do with them."
     },
     {
       "kind": "component",
-      "folder": "software-system-browser",
-      "path": "software-system-browser/.dev/component-diagram.json",
+      "folder": "software-atlas",
+      "path": "software-atlas/.dev/component-diagram.json",
       "relationship": "The parts of the page that carry them out."
     }
   ]

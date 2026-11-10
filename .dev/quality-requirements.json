@@ -2,7 +2,7 @@
   "$schema": "../../Agents/Knowledge/schemas/quality-requirements.schema.json",
   "kind": "quality-requirements",
   "title": "How well the browser must work",
-  "folder": "software-system-browser",
+  "folder": "software-atlas",
   "entities": [
     {
       "id": "safe-content",
@@ -14,11 +14,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "esc"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "md"
         }
       ]
@@ -33,15 +33,15 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showFolder"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "drawSvg"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": ":focus-visible"
         }
       ]
@@ -56,11 +56,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "prefers-reduced-motion: reduce"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "reducedMotion"
         }
       ]
@@ -75,7 +75,7 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "prefers-color-scheme: dark"
         }
       ]
@@ -95,12 +95,12 @@
       "relationships": [
         {
           "relation": "affects",
-          "path": "software-system-browser/.dev/limitations.json",
+          "path": "software-atlas/.dev/limitations.json",
           "entityId": "wide-screens-unused"
         },
         {
           "relation": "affects",
-          "path": "software-system-browser/.dev/limitations.json",
+          "path": "software-atlas/.dev/limitations.json",
           "entityId": "inspector-covers"
         }
       ],
@@ -116,15 +116,15 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "github"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "pool"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "drawKind"
         }
       ]
@@ -139,11 +139,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "load"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "drawDiagram"
         }
       ]

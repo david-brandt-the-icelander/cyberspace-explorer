@@ -1,8 +1,8 @@
-# Software system browser
+# Software atlas
 
 A web page, served by a small Cloudflare Worker on icelander.net, that shows a repository's architecture, behavior and knowledge from the JSON files in its `.dev/` folders. Four are diagrams, described by the skills in [Agents/Skills](../Agents/Skills/README.md): component, class, state and deployment. Five describe behavior, with skills of their own: use-case, user-journey, capability, feature and operation. The rest are the knowledge files of the [knowledge catalogue](../Agents/Knowledge/README.md): vision, backlog, decisions, requirements, delivery, operation and the other kinds. A folder can have any mix of them. A public repository needs nothing; a private one needs the reader to sign in with GitHub (OAuth, on icelander.net) or to give an access token, which stays in their browser.
 
-Live at <https://icelander.net/v1/apps/architecture-browser>. For example, [retro-games](https://icelander.net/v1/apps/architecture-browser?url=https://github.com/david-brandt-the-icelander/retro-games).
+Live at <https://icelander.net/v1/apps/software-atlas>. For example, [retro-games](https://icelander.net/v1/apps/software-atlas?url=https://github.com/david-brandt-the-icelander/retro-games).
 
 ## Using it
 
@@ -37,7 +37,7 @@ dagre and the Barlow typefaces are loaded from jsDelivr. If dagre can't load, th
 
 ## The service
 
-`worker/` is a Cloudflare Worker named `software-system-browser`, routed at `icelander.net/v1/apps/architecture-browser*` (`wrangler.jsonc`), so it runs instead of the site's own Worker for those paths, as the login service does for `/accounts`. It serves `index.html` and these routes under that path:
+`worker/` is a Cloudflare Worker named `software-atlas`, routed at `icelander.net/v1/apps/software-atlas*` (`wrangler.jsonc`), so it runs instead of the site's own Worker for those paths, as the login service does for `/accounts`. It serves `index.html` and these routes under that path:
 
 | Route | What it does |
 | --- | --- |
@@ -47,27 +47,23 @@ dagre and the Barlow typefaces are loaded from jsDelivr. If dagre can't load, th
 | `POST /auth/sign-out` | Forgets the session; only from the app's own origin |
 | `GET /api/github/<path>` | GitHub's API with the reader's token, for `user`, `user/repos`, a repository, its trees and its contents only; read only; the token is never sent to the page |
 
-The session is `ssb_session`, `Path=/v1/apps/architecture-browser; HttpOnly; Secure; SameSite=Lax`, 7 days, AES-GCM sealed with a key derived from `SESSION_SECRET`. It is separate from icelander.net's own sign-in (`site_session`): it exists to read GitHub, not to say who the reader is on the site. Without the three secrets below the routes answer that sign-in isn't set up and the page falls back to pasted tokens. Nothing is logged about a sign-in. `npm test` (in this folder) runs the Worker's tests.
-
-### The name and the URL are to change
-
-The app is called "Software system browser" but its URL still says `architecture-browser`, from its earlier name. Both are to change (the new name and URL are not chosen yet). Changing the URL touches: `BASE` in `worker/app.js`, the `routes` pattern in `wrangler.jsonc`, the OAuth App's callback URL on GitHub, the smoke check in `.github/workflows/software-system-browser.yml`, the links in this README and the root README, and, in the icelander.net repository, `site/pages/apps.njk`, `docs/deploying.md` and the privacy policy. Keep the old address working with a redirect, since people have linked to it.
+The session is `atlas_session`, `Path=/v1/apps/software-atlas; HttpOnly; Secure; SameSite=Lax`, 7 days, AES-GCM sealed with a key derived from `SESSION_SECRET`. It is separate from icelander.net's own sign-in (`site_session`): it exists to read GitHub, not to say who the reader is on the site. Without the three secrets below the routes answer that sign-in isn't set up and the page falls back to pasted tokens. Nothing is logged about a sign-in. `npm test` (in this folder) runs the Worker's tests.
 
 ### Setting it up once (the owner)
 
-1. On GitHub, **Settings → Developer settings → OAuth Apps → New OAuth App**: name "Software system browser", homepage `https://icelander.net/v1/apps/architecture-browser`, authorization callback URL `https://icelander.net/v1/apps/architecture-browser/auth/github/callback`. Generate a client secret.
+1. On GitHub, **Settings → Developer settings → OAuth Apps → New OAuth App**: name "Software atlas", homepage `https://icelander.net/v1/apps/software-atlas`, authorization callback URL `https://icelander.net/v1/apps/software-atlas/auth/github/callback`. Generate a client secret.
 2. Put the three secrets on the Worker (the first deploy creates it; run these after it, or deploy once by hand):
 
    ```bash
-   npx wrangler secret put GITHUB_CLIENT_ID -c software-system-browser/wrangler.jsonc
+   npx wrangler secret put GITHUB_CLIENT_ID -c software-atlas/wrangler.jsonc
    ```
 
    ```bash
-   npx wrangler secret put GITHUB_CLIENT_SECRET -c software-system-browser/wrangler.jsonc
+   npx wrangler secret put GITHUB_CLIENT_SECRET -c software-atlas/wrangler.jsonc
    ```
 
    ```bash
-   npx wrangler secret put SESSION_SECRET -c software-system-browser/wrangler.jsonc
+   npx wrangler secret put SESSION_SECRET -c software-atlas/wrangler.jsonc
    ```
 
    `SESSION_SECRET` is any long random string (for example `openssl rand -base64 48`). Changing it signs everyone out.
@@ -75,7 +71,7 @@ The app is called "Software system browser" but its URL still says `architecture
 
 ## Deploying
 
-`.github/workflows/software-system-browser.yml` tests the Worker on every pull request that touches this folder, and on a push to `main` that does, it tests and then deploys with `wrangler deploy`, then checks that the live page answers. "Run workflow" in the Actions tab redeploys by hand. There is nothing to copy to the icelander.net repository: that repository only links to the app (its Apps page) and its Worker is left alone by this one.
+`.github/workflows/software-atlas.yml` tests the Worker on every pull request that touches this folder, and on a push to `main` that does, it tests and then deploys with `wrangler deploy`, then checks that the live page answers. "Run workflow" in the Actions tab redeploys by hand. There is nothing to copy to the icelander.net repository: that repository only links to the app (its Apps page) and its Worker is left alone by this one.
 
 ## Its own description
 

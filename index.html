@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Software system browser</title>
+<title>Software atlas</title>
 <meta name="description" content="Browse a repository's architecture and behavior from the JSON views in its .dev folders.">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/barlow@5/400.css">
@@ -357,7 +357,7 @@
 </head>
 <body>
 <header class="bar">
-  <a class="brand" href="./"><svg class="ic"><use href="#i-mark"/></svg><span>Software system browser</span></a>
+  <a class="brand" href="./"><svg class="ic"><use href="#i-mark"/></svg><span>Software atlas</span></a>
   <div class="repo" id="repo" hidden></div>
   <span class="spacer"></span>
   <button class="quiet" id="token" hidden></button>
@@ -605,7 +605,7 @@ function parseAddress(raw) {
 // on it, or one repository. A repository uses the narrowest scope around it.
 
 // The key keeps the page's earlier name, so tokens readers already saved are still found.
-const TOKENS = "architecture-browser.tokens";
+const TOKENS = "software-atlas.tokens";
 /** sessionStorage first: a token kept only for this tab wins over one left on the browser. */
 const store = (name) => { try { return window[name] ?? null; } catch { return null; } };
 const stores = () => [store("sessionStorage"), store("localStorage")].filter(Boolean);

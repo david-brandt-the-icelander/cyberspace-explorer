@@ -2,20 +2,20 @@
   "$schema": "../../Agents/Knowledge/schemas/delivery.schema.json",
   "kind": "delivery",
   "title": "Where the browser is published",
-  "folder": "software-system-browser",
+  "folder": "software-atlas",
   "entities": [
     {
       "id": "production",
       "title": "icelander.net",
-      "summary": "The copy people use, at icelander.net/v1/apps/architecture-browser.",
+      "summary": "The copy people use, at icelander.net/v1/apps/software-atlas.",
       "environment": "production",
       "purpose": "The page readers open and links point to.",
-      "deployedBy": "The owner: copying index.html to site/apps/architecture-browser.html in the icelander.net repository and deploying that site.",
+      "deployedBy": "The owner: copying index.html to site/apps/software-atlas.html in the icelander.net repository and deploying that site.",
       "rollback": "No rollback is recorded. Going back means copying an earlier index.html from git history and deploying the site again.",
       "evidenceStatus": "documented",
       "sources": [
         {
-          "path": "software-system-browser/README.md",
+          "path": "software-atlas/README.md",
           "symbol": "Publishing"
         }
       ]

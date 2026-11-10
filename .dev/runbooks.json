@@ -2,7 +2,7 @@
   "$schema": "../../Agents/Knowledge/schemas/runbooks.schema.json",
   "kind": "runbooks",
   "title": "Working on the browser",
-  "folder": "software-system-browser",
+  "folder": "software-atlas",
   "entities": [
     {
       "id": "run-locally",
@@ -11,7 +11,7 @@
       "purpose": "setup",
       "when": "Before and after changing index.html.",
       "steps": [
-        "cd software-system-browser",
+        "cd software-atlas",
         "python3 -m http.server 8000",
         "Open http://localhost:8000/?url=https://github.com/<owner>/<repository> in a browser"
       ],
@@ -19,7 +19,7 @@
       "evidenceStatus": "documented",
       "sources": [
         {
-          "path": "software-system-browser/README.md",
+          "path": "software-atlas/README.md",
           "symbol": "How it works"
         }
       ]
@@ -56,14 +56,14 @@
       "purpose": "deploy",
       "when": "When the owner wants a change live.",
       "steps": [
-        "Copy software-system-browser/index.html to site/apps/architecture-browser.html in the icelander.net repository",
+        "Copy software-atlas/index.html to site/apps/software-atlas.html in the icelander.net repository",
         "Deploy icelander.net as that repository describes"
       ],
-      "verify": "icelander.net/v1/apps/architecture-browser shows the change.",
+      "verify": "icelander.net/v1/apps/software-atlas shows the change.",
       "evidenceStatus": "documented",
       "sources": [
         {
-          "path": "software-system-browser/README.md",
+          "path": "software-atlas/README.md",
           "symbol": "Publishing"
         }
       ]

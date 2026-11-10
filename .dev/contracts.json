@@ -2,7 +2,7 @@
   "$schema": "../../Agents/Knowledge/schemas/contracts.schema.json",
   "kind": "contracts",
   "title": "What links and browsers rely on",
-  "folder": "software-system-browser",
+  "folder": "software-atlas",
   "entities": [
     {
       "id": "page-address",
@@ -14,7 +14,7 @@
         "Readers' bookmarks"
       ],
       "guarantees": [
-        "The page is served at icelander.net/v1/apps/architecture-browser.",
+        "The page is served at icelander.net/v1/apps/software-atlas.",
         "?url=<address> opens a repository: https://github.com/<owner>/<repository>, a GitLab project, either followed by /tree/<ref> and a folder.",
         "#<folder> opens a folder; the repository root is the empty folder.",
         "#<folder>|<kind>:<part ID or name> opens a part in that kind's drawing.",
@@ -26,23 +26,23 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "address"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "parseAddress"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "route"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "focusPart"
         },
         {
-          "path": "software-system-browser/README.md",
+          "path": "software-atlas/README.md",
           "symbol": "Using it"
         }
       ]
@@ -56,7 +56,7 @@
         "Readers' browsers that hold tokens saved by earlier versions of the page"
       ],
       "guarantees": [
-        "Tokens are kept under the key architecture-browser.tokens, in sessionStorage (this tab) or localStorage (this browser).",
+        "Tokens are kept under the key software-atlas.tokens, in sessionStorage (this tab) or localStorage (this browser).",
         "The value is a JSON object from scope to token.",
         "A scope is a host (github.com, or a GitLab's host), the host and an owner or group path, or the host and a repository path.",
         "A token in sessionStorage wins over one in localStorage for the same scope."
@@ -65,19 +65,19 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "TOKENS"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "scopes"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "tokenScope"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "saveToken"
         }
       ]

@@ -5,15 +5,15 @@
   "description": "What the page shows from the moment it opens, including every message the status line can give on the way. Each state is a screen a design has to cover.",
   "sources": [
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "load"
     },
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "route"
     },
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "status"
     }
   ],
@@ -141,5 +141,5 @@
       "action": "the address loses ?url= and the page reloads to the landing page"
     }
   ],
-  "folder": "software-system-browser"
+  "folder": "software-atlas"
 }

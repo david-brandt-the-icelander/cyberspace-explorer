@@ -5,15 +5,15 @@
   "description": "How the token panel opens, saves and forgets. Saving or forgetting the token in use reloads the page, so that every request is made again with it.",
   "sources": [
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "openTokenPanel"
     },
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "saveToken"
     },
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "showTokenButton"
     }
   ],
@@ -73,5 +73,5 @@
       "action": "the list is drawn again without it"
     }
   ],
-  "folder": "software-system-browser"
+  "folder": "software-atlas"
 }

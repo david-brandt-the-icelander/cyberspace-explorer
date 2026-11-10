@@ -2,19 +2,19 @@
   "$schema": "../../Agents/Skills/describe-capability/schema.json",
   "kind": "capability",
   "title": "What the browser can do",
-  "folder": "software-system-browser",
+  "folder": "software-atlas",
   "description": "The browser's capabilities, each with the entrypoints that reach it and who may use them.",
   "sources": [
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "load"
     },
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "route"
     },
     {
-      "path": "software-system-browser/index.html",
+      "path": "software-atlas/index.html",
       "symbol": "saveToken"
     }
   ],
@@ -25,26 +25,26 @@
       "description": "Lists and reads a GitHub or GitLab repository's .dev files with no server in between.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "load"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "github"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "gitlab"
         }
       ],
       "responsibility": "Turns an address into the repository's views and knowledge files, by folder, with the reader's token where one is needed, and says what it could not read.",
       "operations": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "address"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "load"
         }
       ],
@@ -58,34 +58,34 @@
       "description": "Draws and writes out what the files say, and makes every place in it addressable.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "route"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showFolder"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "drawDiagram"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "recordCard"
         }
       ],
       "responsibility": "Shows each folder's views and knowledge files, lets the reader move through them by the tree, the drawings and the links, and gives each folder, part, view and record its own address.",
       "operations": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "route"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "focusPart"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "showWaiting"
         }
       ],
@@ -99,22 +99,22 @@
       "description": "Holds access tokens in the reader's browser, by host and scope.",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "saveToken"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "tokenScope"
         }
       ],
       "responsibility": "Saves, replaces, picks and forgets the reader's tokens, and sends each only to its own host.",
       "operations": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "openTokenPanel"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "saveToken"
         }
       ],
@@ -126,14 +126,14 @@
   "relatedViews": [
     {
       "kind": "operation",
-      "folder": "software-system-browser",
-      "path": "software-system-browser/.dev/operation.json",
+      "folder": "software-atlas",
+      "path": "software-atlas/.dev/operation.json",
       "relationship": "The entrypoints that reach these capabilities."
     },
     {
       "kind": "feature",
-      "folder": "software-system-browser",
-      "path": "software-system-browser/.dev/feature.json",
+      "folder": "software-atlas",
+      "path": "software-atlas/.dev/feature.json",
       "relationship": "The features they offer."
     }
   ]

@@ -1,9 +1,9 @@
-// The software system browser as a service: serves the page, signs readers in with GitHub (OAuth 2.0 code
+// The software atlas as a service: serves the page, signs readers in with GitHub (OAuth 2.0 code
 // flow with PKCE) and reads GitHub for them. The access token never reaches the page: it is kept in an
 // encrypted HttpOnly cookie and added to the GitHub calls here. No dependencies; runs in Workers and Node.
 
-export const BASE = "/v1/apps/architecture-browser";
-const SESSION = "ssb_session", PENDING = "ssb_oauth";
+export const BASE = "/v1/apps/software-atlas";
+const SESSION = "atlas_session", PENDING = "atlas_oauth";
 const SESSION_DAYS = 7;
 
 const enc = new TextEncoder(), dec = new TextDecoder();
@@ -12,7 +12,7 @@ const unb64u = (s) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/
 const random = (n) => b64u(crypto.getRandomValues(new Uint8Array(n)));
 
 async function aesKey(secret) {
-  return crypto.subtle.importKey("raw", await crypto.subtle.digest("SHA-256", enc.encode(`ssb-session:${secret}`)), "AES-GCM", false, ["encrypt", "decrypt"]);
+  return crypto.subtle.importKey("raw", await crypto.subtle.digest("SHA-256", enc.encode(`atlas-session:${secret}`)), "AES-GCM", false, ["encrypt", "decrypt"]);
 }
 /** Encrypts and authenticates a JSON value for the cookie. */
 export async function seal(value, secret) {
@@ -100,12 +100,12 @@ async function callback(request, env, fetcher) {
   if (!code) return redirect(`${pending.ret}${pending.ret.includes("?") ? "&" : "?"}signin=denied`, gone);
   const res = await fetcher("https://github.com/login/oauth/access_token", {
     method: "POST",
-    headers: { accept: "application/json", "content-type": "application/json", "user-agent": "software-system-browser" },
+    headers: { accept: "application/json", "content-type": "application/json", "user-agent": "software-atlas" },
     body: JSON.stringify({ client_id: env.GITHUB_CLIENT_ID, client_secret: env.GITHUB_CLIENT_SECRET, code, redirect_uri: `${site}${BASE}/auth/github/callback`, code_verifier: pending.verifier }),
   });
   const got = res.ok ? await res.json().catch(() => ({})) : {};
   if (!got.access_token) return redirect(`${BASE}?signin=failed`, gone);
-  const me = await fetcher("https://api.github.com/user", { headers: { authorization: `Bearer ${got.access_token}`, accept: "application/vnd.github+json", "user-agent": "software-system-browser" } });
+  const me = await fetcher("https://api.github.com/user", { headers: { authorization: `Bearer ${got.access_token}`, accept: "application/vnd.github+json", "user-agent": "software-atlas" } });
   const who = me.ok ? await me.json().catch(() => ({})) : {};
   if (!who.login) return redirect(`${BASE}?signin=failed`, gone);
   const value = await seal({ t: got.access_token, l: who.login, a: who.avatar_url ?? "", x: Date.now() + SESSION_DAYS * 864e5 }, env.SESSION_SECRET);
@@ -142,7 +142,7 @@ async function proxy(request, env, path, fetcher) {
   const url = new URL(request.url);
   const raw = request.headers.get("accept") === "application/vnd.github.raw";
   const res = await fetcher(`https://api.github.com/${path}${url.search}`, {
-    headers: { authorization: `Bearer ${s.t}`, accept: raw ? "application/vnd.github.raw" : "application/vnd.github+json", "user-agent": "software-system-browser", "x-github-api-version": "2022-11-28" },
+    headers: { authorization: `Bearer ${s.t}`, accept: raw ? "application/vnd.github.raw" : "application/vnd.github+json", "user-agent": "software-atlas", "x-github-api-version": "2022-11-28" },
   });
   const headers = { "content-type": res.headers.get("content-type") ?? "application/octet-stream", "cache-control": "private, no-store", "x-content-type-options": "nosniff" };
   for (const h of ["x-ratelimit-remaining", "x-ratelimit-reset"]) if (res.headers.get(h)) headers[h] = res.headers.get(h);

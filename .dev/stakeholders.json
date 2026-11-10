@@ -2,7 +2,7 @@
   "$schema": "../../Agents/Knowledge/schemas/stakeholders.schema.json",
   "kind": "stakeholders",
   "title": "Who cares about the browser",
-  "folder": "software-system-browser",
+  "folder": "software-atlas",
   "entities": [
     {
       "id": "readers",
@@ -21,7 +21,7 @@
       "evidenceStatus": "documented",
       "sources": [
         {
-          "path": "software-system-browser/README.md",
+          "path": "software-atlas/README.md",
           "symbol": "Using it"
         }
       ]
@@ -53,11 +53,11 @@
       "evidenceStatus": "source-verified",
       "sources": [
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "recordCard"
         },
         {
-          "path": "software-system-browser/index.html",
+          "path": "software-atlas/index.html",
           "symbol": "COMMON"
         }
       ]
@@ -74,7 +74,7 @@
         "kind": "request",
         "by": "owner",
         "date": "2026-11-10",
-        "reference": "software-system-browser/.dev/backlog.json#design-pass"
+        "reference": "software-atlas/.dev/backlog.json#design-pass"
       },
       "evidenceStatus": "documented"
     }

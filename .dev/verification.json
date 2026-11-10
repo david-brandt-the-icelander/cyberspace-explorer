@@ -2,7 +2,7 @@
   "$schema": "../../Agents/Knowledge/schemas/verification.schema.json",
   "kind": "verification",
   "title": "How the browser is checked",
-  "folder": "software-system-browser",
+  "folder": "software-atlas",
   "entities": [
     {
       "id": "manual-pass",
@@ -10,13 +10,13 @@
       "summary": "There are no automated tests of the page; it is checked by hand in a browser.",
       "subject": [
         {
-          "path": "software-system-browser/.dev/feature.json"
+          "path": "software-atlas/.dev/feature.json"
         },
         {
-          "path": "software-system-browser/.dev/requirements.json"
+          "path": "software-atlas/.dev/requirements.json"
         },
         {
-          "path": "software-system-browser/.dev/quality-requirements.json"
+          "path": "software-atlas/.dev/quality-requirements.json"
         }
       ],
       "criteria": [
@@ -51,7 +51,7 @@
       "summary": "The validators check this folder's .dev files against the skills' and the catalogue's schemas.",
       "subject": [
         {
-          "path": "software-system-browser/.dev/folder.json"
+          "path": "software-atlas/.dev/folder.json"
         }
       ],
       "criteria": [
