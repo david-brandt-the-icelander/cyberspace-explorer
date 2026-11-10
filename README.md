@@ -46,6 +46,10 @@ dagre and the Barlow typefaces are loaded from jsDelivr. If dagre can't load, th
 
 The session is `ssb_session`, `Path=/v1/apps/architecture-browser; HttpOnly; Secure; SameSite=Lax`, 7 days, AES-GCM sealed with a key derived from `SESSION_SECRET`. It is separate from icelander.net's own sign-in (`site_session`): it exists to read GitHub, not to say who the reader is on the site. Without the three secrets below the routes answer that sign-in isn't set up and the page falls back to pasted tokens. Nothing is logged about a sign-in. `npm test` (in this folder) runs the Worker's tests.
 
+### The name and the URL are to change
+
+The app is called "Software system browser" but its URL still says `architecture-browser`, from its earlier name. Both are to change (the new name and URL are not chosen yet). Changing the URL touches: `BASE` in `worker/app.js`, the `routes` pattern in `wrangler.jsonc`, the OAuth App's callback URL on GitHub, the smoke check in `.github/workflows/software-system-browser.yml`, the links in this README and the root README, and, in the icelander.net repository, `site/pages/apps.njk`, `docs/deploying.md` and the privacy policy. Keep the old address working with a redirect, since people have linked to it.
+
 ### Setting it up once (the owner)
 
 1. On GitHub, **Settings → Developer settings → OAuth Apps → New OAuth App**: name "Software system browser", homepage `https://icelander.net/v1/apps/architecture-browser`, authorization callback URL `https://icelander.net/v1/apps/architecture-browser/auth/github/callback`. Generate a client secret.
