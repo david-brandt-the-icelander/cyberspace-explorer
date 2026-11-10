@@ -20,7 +20,7 @@
       },
       "acceptanceCriteria": [
         "Covers every state in the three state diagrams, the landing page, refusals and empty results included.",
-        "Covers every feature, at a desk and at a phone's width, in light and dark.",
+        "Covers every feature on a 15-inch laptop, and makes good use of 27-inch and 34-inch and wider monitors, in light and dark.",
         "Keeps every requirement, quality requirement and contract in this folder.",
         "Says which limitations it addresses."
       ],
@@ -28,6 +28,11 @@
         {
           "relation": "depends-on",
           "path": "software-system-browser/.dev/requirements.json"
+        },
+        {
+          "relation": "depends-on",
+          "path": "software-system-browser/.dev/quality-requirements.json",
+          "entityId": "screen-sizes"
         },
         {
           "relation": "depends-on",

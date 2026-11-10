@@ -101,7 +101,7 @@
       "id": "inspector-covers",
       "title": "The inspector covers the drawing",
       "summary": "The inspector is a fixed panel at the right, over the page.",
-      "impact": "On a narrow screen it covers most of the drawing; it does not take the focus, so a keyboard reader doesn't land in it.",
+      "impact": "On a 15-inch screen its 380 px cover about a third of the content area beside the folder column, and whatever part of the drawing is under it. It does not take the focus, so a keyboard reader doesn't land in it.",
       "evidenceStatus": "source-verified",
       "sources": [
         {
@@ -114,6 +114,27 @@
         }
       ],
       "workaround": "Close it with Escape."
+    },
+    {
+      "id": "wide-screens-unused",
+      "title": "Large monitors are not put to use",
+      "summary": "The page was not laid out for 27-inch and wider screens.",
+      "impact": "On a 27-inch or 34-inch monitor most of the width is empty: a drawing is fitted at no more than 100%, so it keeps its natural size in a wide frame; cards stop at 940 px and descriptions at 76 characters; the folder column stays 290 px; and only one kind of view shows at a time.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "Math.min(1, W / L.w)"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "max-width: 940px"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "grid-template-columns: 290px"
+        }
+      ]
     },
     {
       "id": "selection-not-linked",

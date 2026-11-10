@@ -81,23 +81,30 @@
       ]
     },
     {
-      "id": "narrow-screens",
-      "title": "Phones and narrow windows",
-      "summary": "The page works down to a phone's width.",
-      "area": "Responsiveness",
-      "requirement": "Under 860 px the folder column sits above the content; under 560 px the bar keeps only what fits; panels are never wider than the screen less a margin.",
-      "measuredBy": "Opening a repository at 375 px wide.",
-      "evidenceStatus": "source-verified",
-      "sources": [
+      "id": "screen-sizes",
+      "title": "From a 15-inch laptop to a 34-inch monitor",
+      "summary": "Supported from a 15-inch screen; designed for 27-inch and 34-inch and wider monitors.",
+      "area": "Screen sizes",
+      "requirement": "Everything works on a 15-inch laptop screen, the smallest supported. The page is designed for 27-inch monitors and for 34-inch and wider ones, and makes good use of their width. Smaller screens, phones included, need not be supported.",
+      "measuredBy": "Opening a repository in a full browser window at about 1440 × 900 CSS pixels (a 15-inch laptop), 2560 × 1440 (27 inches) and 3440 × 1440 (34 inches, ultrawide).",
+      "origin": {
+        "kind": "request",
+        "by": "owner",
+        "date": "2026-11-10"
+      },
+      "relationships": [
         {
-          "path": "software-system-browser/index.html",
-          "symbol": "max-width: 860px"
+          "relation": "affects",
+          "path": "software-system-browser/.dev/limitations.json",
+          "entityId": "wide-screens-unused"
         },
         {
-          "path": "software-system-browser/index.html",
-          "symbol": "max-width: 560px"
+          "relation": "affects",
+          "path": "software-system-browser/.dev/limitations.json",
+          "entityId": "inspector-covers"
         }
-      ]
+      ],
+      "evidenceStatus": "proposed"
     },
     {
       "id": "requests",
