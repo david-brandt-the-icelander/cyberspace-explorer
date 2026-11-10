@@ -231,6 +231,30 @@
           "symbol": "github"
         }
       ]
+    },
+    {
+      "id": "one-tree",
+      "title": "A repository may keep all its views in .cyberspace-explorer",
+      "summary": "A .cyberspace-explorer folder at the root can hold what the .dev folders would, folder by folder.",
+      "status": "accepted",
+      "context": "A .dev folder in every folder spreads views through the source tree, which some repositories would rather keep out of it.",
+      "decision": "foo/.dev/x.json and .cyberspace-explorer/foo/x.json mean the same, and .cyberspace-explorer/x.json is the root folder's x.json. If the root has a .cyberspace-explorer folder the page reads only that and does not look for .dev folders. A path written either way in a view finds the same view.",
+      "rationale": "One folder at the root holds every view, and a repository that has not moved is read as before.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "placeOf"
+        },
+        {
+          "path": "index.html",
+          "symbol": "devPath"
+        },
+        {
+          "path": "index.html",
+          "symbol": "load"
+        }
+      ]
     }
   ]
 }

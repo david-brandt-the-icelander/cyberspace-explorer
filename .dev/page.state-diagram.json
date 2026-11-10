@@ -38,12 +38,12 @@
     },
     {
       "id": "empty",
-      "description": "The status line, in red: the repository (or folder) 'has no .dev/*.json views or knowledge files at' its ref, and that the skills describe how to add them.",
+      "description": "The status line, in red: the repository (or folder) 'has no views or knowledge files in' .dev/*.json (or .cyberspace-explorer/ where the root has it) 'at' its ref, and that the skills describe how to add them.",
       "terminal": true
     },
     {
       "id": "reading",
-      "description": "The bar adds the ref as a pill; the status line reads 'Reading N .dev files…' with the ticking square."
+      "description": "The bar adds the ref as a pill; the status line reads 'Reading N view and knowledge files…' with the ticking square."
     },
     {
       "id": "folder",
@@ -99,7 +99,7 @@
     {
       "from": "listing",
       "to": "empty",
-      "trigger": "no .dev/*.json file under the folder asked for"
+      "trigger": "no .dev/*.json file (or .cyberspace-explorer/*.json file) under the folder asked for"
     },
     {
       "from": "listing",

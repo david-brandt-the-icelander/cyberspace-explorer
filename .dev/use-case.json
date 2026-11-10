@@ -95,7 +95,7 @@
         {
           "id": "list",
           "actor": "Browser",
-          "action": "Lists the repository's files at the ref, and keeps the .dev/*.json files under the folder.",
+          "action": "Lists the repository's files at the ref. If the root has a .cyberspace-explorer folder it keeps that folder's .json files under the folder; otherwise it keeps the .dev/*.json files under the folder.",
           "sources": [
             {
               "path": "index.html",
@@ -217,7 +217,7 @@
         },
         {
           "atStep": "list",
-          "condition": "No .dev/*.json file is under the folder.",
+          "condition": "No .dev/*.json file (or .cyberspace-explorer/*.json file, where the root has that folder) is under the folder.",
           "outcome": "The status line says so, and that the skills describe how to add them.",
           "sources": [
             {

@@ -10,7 +10,7 @@
       "summary": "A static page that shows a repository's .dev folders: its diagrams drawn, its behavior views and knowledge files written out.",
       "purpose": "Lets a person read what agents keep in a repository's .dev folders (how it is built, what it does and what it knows about itself) in a browser, with nothing to install, clone or run.",
       "boundaries": [
-        "It reads .dev files; it never writes to a repository.",
+        "It reads .dev files (or the one .cyberspace-explorer tree that can stand in for them); it never writes to a repository.",
         "It runs entirely in the reader's browser: no server, no build step, one HTML file.",
         "What it reads is defined by the skills in Meta/Agents/Skills and the catalogue in Meta/Agents/Knowledge; when they change, the page follows them.",
         "The copy people use is deployed to cyberspace-explorer.com; this repository is its source."

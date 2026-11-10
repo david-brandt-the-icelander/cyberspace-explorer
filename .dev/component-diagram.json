@@ -111,7 +111,7 @@
     {
       "id": "loader",
       "name": "Loader",
-      "responsibility": "Finds the .dev/*.json files under the folder asked for, reads twelve at a time, keeps the views and knowledge files it knows and sorts each folder's files by kind.",
+      "responsibility": "Finds the .dev/*.json files under the folder asked for (or, where the root has a .cyberspace-explorer folder, the files in it, and nothing else), reads twelve at a time, keeps the views and knowledge files it knows and sorts each folder's files by kind.",
       "folder": "."
     },
     {
