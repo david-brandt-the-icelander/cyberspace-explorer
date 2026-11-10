@@ -1,0 +1,239 @@
+{
+  "$schema": "../../Agents/Knowledge/schemas/requirements.schema.json",
+  "kind": "requirements",
+  "title": "What the browser must do",
+  "folder": "software-system-browser",
+  "entities": [
+    {
+      "id": "public-needs-nothing",
+      "title": "A public repository needs nothing",
+      "summary": "Its address is enough.",
+      "statement": "A public GitHub or GitLab repository opens from its address alone, with no sign-in, token or setup.",
+      "rationale": "The browser is how people are pointed at a repository; any step before it loses them.",
+      "priority": "must",
+      "acceptanceCriteria": [
+        "A link with ?url= opens the repository's first folder."
+      ],
+      "realizedBy": [
+        {
+          "path": "software-system-browser/.dev/feature.json",
+          "entityId": "open-by-address"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "load"
+        }
+      ]
+    },
+    {
+      "id": "token-to-its-host",
+      "title": "A token goes to its host alone",
+      "summary": "A reader's token never leaves their browser except to the host it is for.",
+      "statement": "A token is kept only in the reader's browser, under the host it was saved for, and sent only in requests to that host.",
+      "rationale": "Readers must be able to read private repositories without trusting anyone else with their access; a GitHub token must never reach a self-hosted GitLab.",
+      "priority": "must",
+      "acceptanceCriteria": [
+        "Requests to other hosts carry no token.",
+        "Nothing about the token is sent to the site that serves the page."
+      ],
+      "realizedBy": [
+        {
+          "path": "software-system-browser/.dev/feature.json",
+          "entityId": "tokens"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "auth"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "tokenScope"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "saveToken"
+        }
+      ]
+    },
+    {
+      "id": "every-kind",
+      "title": "Every kind is shown",
+      "summary": "Every view and knowledge kind the skills and catalogue define is shown.",
+      "statement": "The browser shows the four diagrams, the five behavior views and all twenty-five knowledge kinds; a file of a kind it doesn't know is skipped and named.",
+      "rationale": "A file the browser can't show is a file nobody reads.",
+      "priority": "must",
+      "acceptanceCriteria": [
+        "Each kind in Agents/Skills and Agents/Knowledge has a place in the page.",
+        "An unknown kind appears in the status line."
+      ],
+      "realizedBy": [
+        {
+          "path": "software-system-browser/.dev/feature.json",
+          "entityId": "drawings"
+        },
+        {
+          "path": "software-system-browser/.dev/feature.json",
+          "entityId": "written-views"
+        },
+        {
+          "path": "software-system-browser/.dev/feature.json",
+          "entityId": "knowledge-cards"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "KIND_ORDER"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "KNOWLEDGE_GROUPS"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "load"
+        }
+      ]
+    },
+    {
+      "id": "nothing-hidden",
+      "title": "Nothing recorded is hidden",
+      "summary": "Every field of every record is shown, named or not.",
+      "statement": "Every field a knowledge record carries is shown, including fields no schema names; every diagram is also available as tables.",
+      "rationale": "The catalogue allows any field so that agents don't lose what they know; the reader must see it.",
+      "priority": "must",
+      "acceptanceCriteria": [
+        "A record with an extra field shows it, labelled from its name.",
+        "Each drawn view has its full tables under it."
+      ],
+      "realizedBy": [
+        {
+          "path": "software-system-browser/.dev/feature.json",
+          "entityId": "knowledge-cards"
+        },
+        {
+          "path": "software-system-browser/.dev/feature.json",
+          "entityId": "inspect"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "recordCard"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "details"
+        }
+      ]
+    },
+    {
+      "id": "addressable",
+      "title": "Everything has an address",
+      "summary": "Each folder, part, view and record can be linked to.",
+      "statement": "The address names the repository, and after # the folder and the part, view or record being shown, so a copied address opens the same place.",
+      "rationale": "Pointing someone at one thing is how reviews and questions start.",
+      "priority": "must",
+      "acceptanceCriteria": [
+        "Opening a copied address shows the same folder and selects the same part or record."
+      ],
+      "realizedBy": [
+        {
+          "path": "software-system-browser/.dev/feature.json",
+          "entityId": "deep-links"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "route"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "focusPart"
+        }
+      ]
+    },
+    {
+      "id": "works-without-drawing",
+      "title": "Works without the drawing library",
+      "summary": "If dagre fails to load, everything is still readable.",
+      "statement": "When the layout library cannot load or a drawing fails, the view is shown as its tables, and the status line says so.",
+      "rationale": "The tables are the whole of each view; the drawing is a way into them.",
+      "priority": "must",
+      "acceptanceCriteria": [
+        "With dagre blocked, every view's tables open."
+      ],
+      "realizedBy": [
+        {
+          "path": "software-system-browser/.dev/feature.json",
+          "entityId": "drawings"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "drawDiagram"
+        }
+      ]
+    },
+    {
+      "id": "static",
+      "title": "One static file",
+      "summary": "No server and no build.",
+      "statement": "The browser is one HTML file that runs in the reader's browser, served as a static file, with its libraries from a CDN.",
+      "rationale": "Anyone can host it, copy it or run it from disk, and no server ever sees a reader's repository or token.",
+      "priority": "must",
+      "acceptanceCriteria": [
+        "index.html served by any static server works."
+      ],
+      "realizedBy": [
+        {
+          "path": "software-system-browser/.dev/feature.json",
+          "entityId": "open-by-address"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/README.md",
+          "symbol": "How it works"
+        }
+      ]
+    },
+    {
+      "id": "says-what-waits",
+      "title": "Says what is waiting",
+      "summary": "Open decisions and blockers across the repository are gathered in one place.",
+      "statement": "Every open decision and unresolved blocker in the repository is listed in one view, with who it waits on and what it blocks.",
+      "rationale": "In this way of working, what waits on a person is what agents most need them to see.",
+      "priority": "must",
+      "acceptanceCriteria": [
+        "A decision with status open appears in Waiting; one with another status does not."
+      ],
+      "realizedBy": [
+        {
+          "path": "software-system-browser/.dev/feature.json",
+          "entityId": "waiting"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "waitingRecords"
+        }
+      ]
+    }
+  ]
+}

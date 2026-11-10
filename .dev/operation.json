@@ -1,0 +1,232 @@
+{
+  "$schema": "../../Agents/Skills/describe-operation/schema.json",
+  "kind": "operation",
+  "title": "How the browser is reached",
+  "folder": "software-system-browser",
+  "description": "The entrypoints a reader or a link uses: the page's address, the part after #, and the token panel.",
+  "sources": [
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "address"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "route"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "focusPart"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "saveToken"
+    }
+  ],
+  "entities": [
+    {
+      "id": "open-repository",
+      "name": "Open a repository",
+      "description": "Reads and shows the repository the address names.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "address"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "load"
+        }
+      ],
+      "entrypoint": {
+        "path": "software-system-browser/index.html",
+        "symbol": "address"
+      },
+      "action": "query",
+      "transport": "?url=<address> in the page's address, or the landing page's form, which sets it",
+      "authorization": "None: the page has no sign-in. What a repository shows is up to its host and the reader's token.",
+      "result": "The folder tree, and the folder named after # or the shallowest one.",
+      "failures": [
+        "The address is not http or https, or names no repository.",
+        "The host refuses: no such repository or ref, a private repository without a token, a token refused, or GitHub's unauthenticated limit used up.",
+        "No .dev/*.json file is under the folder asked for."
+      ]
+    },
+    {
+      "id": "open-folder",
+      "name": "Open a folder",
+      "description": "Shows one folder's views and knowledge.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "route"
+        }
+      ],
+      "entrypoint": {
+        "path": "software-system-browser/index.html",
+        "symbol": "route"
+      },
+      "action": "query",
+      "transport": "#<folder> after the page's address",
+      "authorization": "None: the page has no sign-in. What a repository shows is up to its host and the reader's token.",
+      "result": "The folder's head and its tabs, on the kind already open if it has one.",
+      "failures": [
+        "A folder the page has no files for opens the shallowest folder instead."
+      ]
+    },
+    {
+      "id": "open-part",
+      "name": "Open a part",
+      "description": "Shows one part of a drawing in the inspector.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "focusPart"
+        }
+      ],
+      "entrypoint": {
+        "path": "software-system-browser/index.html",
+        "symbol": "focusPart"
+      },
+      "action": "query",
+      "transport": "#<folder>|<kind>:<part ID or name>",
+      "authorization": "None: the page has no sign-in. What a repository shows is up to its host and the reader's token.",
+      "result": "The kind's tab opens, the drawing scrolls to the middle of the screen and the part is selected, pulsed and inspected.",
+      "failures": [
+        "Nothing is selected when no drawn part of that kind has that ID or name."
+      ]
+    },
+    {
+      "id": "open-view",
+      "name": "Open a view",
+      "description": "Scrolls to one view in a folder.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "focusPart"
+        }
+      ],
+      "entrypoint": {
+        "path": "software-system-browser/index.html",
+        "symbol": "focusPart"
+      },
+      "action": "query",
+      "transport": "#<folder>|view:<file name>",
+      "authorization": "None: the page has no sign-in. What a repository shows is up to its host and the reader's token.",
+      "result": "The view's tab opens and the page scrolls to it.",
+      "failures": [
+        "Nothing moves when the folder has no such file."
+      ]
+    },
+    {
+      "id": "open-record",
+      "name": "Open a record",
+      "description": "Scrolls to one knowledge record, or one knowledge file.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "focusPart"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "recordHash"
+        }
+      ],
+      "entrypoint": {
+        "path": "software-system-browser/index.html",
+        "symbol": "focusPart"
+      },
+      "action": "query",
+      "transport": "#<folder>|entity:<file name>#<record ID>",
+      "authorization": "None: the page has no sign-in. What a repository shows is up to its host and the reader's token.",
+      "result": "The Knowledge tab opens, the page scrolls to the record and it flashes; without #<record ID>, to the file.",
+      "failures": [
+        "An unknown record ID scrolls to the file.",
+        "Nothing moves when the folder has no such file."
+      ]
+    },
+    {
+      "id": "open-waiting",
+      "name": "Open Waiting",
+      "description": "Shows every open decision and blocker in the repository.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "route"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showWaiting"
+        }
+      ],
+      "entrypoint": {
+        "path": "software-system-browser/index.html",
+        "symbol": "showWaiting"
+      },
+      "action": "query",
+      "transport": "#~waiting",
+      "authorization": "None: the page has no sign-in. What a repository shows is up to its host and the reader's token.",
+      "result": "Two tables, of open decisions and of blockers, each row linked to its record.",
+      "failures": []
+    },
+    {
+      "id": "save-token",
+      "name": "Save a token",
+      "description": "Keeps a token for a scope and reloads with it.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "saveToken"
+        }
+      ],
+      "entrypoint": {
+        "path": "software-system-browser/index.html",
+        "symbol": "saveToken"
+      },
+      "action": "command",
+      "transport": "the token panel's Save and reload, or Enter in its field",
+      "authorization": "The reader, in their own browser.",
+      "result": "The token replaces any other for that scope, in this tab or this browser, and the page reloads.",
+      "failures": [
+        "The browser won't store it, and the status line says so."
+      ]
+    },
+    {
+      "id": "forget-token",
+      "name": "Forget a token",
+      "description": "Removes a token from this tab and this browser.",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "saveToken"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "openTokenPanel"
+        }
+      ],
+      "entrypoint": {
+        "path": "software-system-browser/index.html",
+        "symbol": "openTokenPanel"
+      },
+      "action": "command",
+      "transport": "Forget beside a token in the token panel",
+      "authorization": "The reader, in their own browser.",
+      "result": "The token is gone from both; the page reloads if it was the one in use.",
+      "failures": []
+    }
+  ],
+  "relatedViews": [
+    {
+      "kind": "capability",
+      "folder": "software-system-browser",
+      "path": "software-system-browser/.dev/capability.json",
+      "relationship": "The capabilities these entrypoints reach."
+    },
+    {
+      "kind": "feature",
+      "folder": "software-system-browser",
+      "path": "software-system-browser/.dev/feature.json",
+      "relationship": "The features they open."
+    }
+  ]
+}

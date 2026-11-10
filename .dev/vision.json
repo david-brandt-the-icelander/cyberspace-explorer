@@ -1,0 +1,45 @@
+{
+  "$schema": "../../Agents/Knowledge/schemas/vision.schema.json",
+  "kind": "vision",
+  "title": "Why the browser exists",
+  "folder": "software-system-browser",
+  "entities": [
+    {
+      "id": "vision",
+      "title": "People can read what agents keep about a system",
+      "summary": "Agents write and maintain a repository's architecture, behavior and knowledge as JSON; the browser is how people read it.",
+      "problem": "Human-assisted software development keeps a solution's diagrams, behavior and knowledge as JSON in .dev folders, written by agents for agents and tools. JSON is not something a person reads through, folder by folder, and a person's part in this way of working is to guide, check and decide.",
+      "audience": [
+        "Owners of repositories whose .dev folders agents keep",
+        "Developers and reviewers who need to understand a repository",
+        "Anyone sent a link to one part of a repository"
+      ],
+      "outcome": "Anyone with a repository's address sees how it is put together, what it does and what waits on whom, and can walk from the whole into any part, without installing, cloning or running anything, and without giving their access to anyone else.",
+      "nonGoals": [
+        "Editing .dev files: agents write them, in the repository.",
+        "Running or measuring the system it shows.",
+        "Hosts other than GitHub and GitLab."
+      ],
+      "details": "The methodology's own words: software development in an age where AI has taken the driver's seat, and humans have become the tour guides. The knowledge catalogue names the browser as how people read what agents keep.",
+      "origin": {
+        "kind": "document",
+        "reference": "README.md"
+      },
+      "evidenceStatus": "documented",
+      "sources": [
+        {
+          "path": "README.md",
+          "symbol": "Layout"
+        },
+        {
+          "path": "Agents/Knowledge/README.md",
+          "symbol": "Knowledge files"
+        },
+        {
+          "path": "software-system-browser/README.md",
+          "symbol": "Software system browser"
+        }
+      ]
+    }
+  ]
+}

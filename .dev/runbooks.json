@@ -1,0 +1,72 @@
+{
+  "$schema": "../../Agents/Knowledge/schemas/runbooks.schema.json",
+  "kind": "runbooks",
+  "title": "Working on the browser",
+  "folder": "software-system-browser",
+  "entities": [
+    {
+      "id": "run-locally",
+      "title": "Run the browser locally",
+      "summary": "Serve the folder and open it with a repository's address.",
+      "purpose": "setup",
+      "when": "Before and after changing index.html.",
+      "steps": [
+        "cd software-system-browser",
+        "python3 -m http.server 8000",
+        "Open http://localhost:8000/?url=https://github.com/<owner>/<repository> in a browser"
+      ],
+      "verify": "The folder tree and the first folder appear, and the browser's console shows no errors.",
+      "evidenceStatus": "documented",
+      "sources": [
+        {
+          "path": "software-system-browser/README.md",
+          "symbol": "How it works"
+        }
+      ]
+    },
+    {
+      "id": "check-description",
+      "title": "Check this description",
+      "summary": "Run both validators from the repository root after changing a .dev file here.",
+      "purpose": "check",
+      "when": "After changing any file in this .dev folder, Actors/ or the schemas.",
+      "steps": [
+        "pip install jsonschema",
+        "python3 Agents/Skills/validate_diagrams.py .",
+        "python3 Agents/Knowledge/validate_knowledge.py ."
+      ],
+      "verify": "The first prints what it validated with no error; the second ends with 0 problems.",
+      "details": "In this repository the validators sit at `Agents/`, not `Meta/Agents/` as in a repository that installs them, so pass the repository root (`.`) as the argument.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "Agents/Skills/validate_diagrams.py",
+          "symbol": "validate"
+        },
+        {
+          "path": "Agents/Knowledge/validate_knowledge.py",
+          "symbol": "main"
+        }
+      ]
+    },
+    {
+      "id": "publish",
+      "title": "Publish a new version",
+      "summary": "Copy the page to icelander.net and deploy it.",
+      "purpose": "deploy",
+      "when": "When the owner wants a change live.",
+      "steps": [
+        "Copy software-system-browser/index.html to site/apps/architecture-browser.html in the icelander.net repository",
+        "Deploy icelander.net as that repository describes"
+      ],
+      "verify": "icelander.net/v1/apps/architecture-browser shows the change.",
+      "evidenceStatus": "documented",
+      "sources": [
+        {
+          "path": "software-system-browser/README.md",
+          "symbol": "Publishing"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "$schema": "../../Agents/Knowledge/schemas/backlog.schema.json",
+  "kind": "backlog",
+  "title": "Work wanted on the browser",
+  "folder": "software-system-browser",
+  "entities": [
+    {
+      "id": "design-pass",
+      "title": "Design pass",
+      "type": "design",
+      "status": "accepted",
+      "priority": "high",
+      "summary": "A designer reviews and improves the browser's design, from the description of the product in this folder.",
+      "details": "Everything the browser does is described in this folder's `.dev/` files, which the browser itself shows. A suggested order:\n\n1. The [vision](software-system-browser/.dev/vision.json) and the [stakeholders](software-system-browser/.dev/stakeholders.json): who it is for and why.\n2. The [journeys](software-system-browser/.dev/user-journey.json) and [use cases](software-system-browser/.dev/use-case.json): what readers set out to do, and what happens when it goes another way.\n3. The [page states](software-system-browser/.dev/page.state-diagram.json), the [token panel](software-system-browser/.dev/token-panel.state-diagram.json) and a [drawing under the pointer](software-system-browser/.dev/drawing.state-diagram.json): every screen and state a design has to cover, with the messages shown in each.\n4. The [features](software-system-browser/.dev/feature.json): what each part of the screen offers, with its limits.\n5. The [decisions](software-system-browser/.dev/decisions.json): the current look and the reasons for it, colours, type and icons included.\n6. The [limitations](software-system-browser/.dev/limitations.json): what readers run into today.\n7. The [requirements](software-system-browser/.dev/requirements.json), [quality requirements](software-system-browser/.dev/quality-requirements.json) and [contracts](software-system-browser/.dev/contracts.json): what any design must keep.\n\nThe current decisions on look and layout are where the page is now, not limits on the pass. The requirements, quality requirements and contracts hold whatever the design.",
+      "origin": {
+        "kind": "request",
+        "by": "owner",
+        "date": "2026-11-10",
+        "description": "Describe the product fully in its .dev folder so that a designer can make a good pass at it."
+      },
+      "acceptanceCriteria": [
+        "Covers every state in the three state diagrams, the landing page, refusals and empty results included.",
+        "Covers every feature, at a desk and at a phone's width, in light and dark.",
+        "Keeps every requirement, quality requirement and contract in this folder.",
+        "Says which limitations it addresses."
+      ],
+      "relationships": [
+        {
+          "relation": "depends-on",
+          "path": "software-system-browser/.dev/requirements.json"
+        },
+        {
+          "relation": "depends-on",
+          "path": "software-system-browser/.dev/contracts.json"
+        }
+      ],
+      "evidenceStatus": "proposed"
+    },
+    {
+      "id": "landing-form-after-bad-address",
+      "title": "The landing page forgets a new address after a bad one",
+      "type": "defect",
+      "status": "open",
+      "summary": "After a ?url= the page can't read, Browse reloads an empty landing page instead of opening the new address.",
+      "expected": "Typing a good address and pressing Browse opens it.",
+      "observed": "The landing page reloads with an empty field. The form's submit handler and the field's focus are set up only when the page opens without ?url=, so the form submits as a plain form with no named field.",
+      "reproduction": [
+        "Open the page with ?url=example",
+        "Type a GitHub repository's address into the field",
+        "Press Browse"
+      ],
+      "origin": {
+        "kind": "code",
+        "reference": "software-system-browser/index.html",
+        "description": "Found while describing the page's states."
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "address"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "load"
+        }
+      ]
+    },
+    {
+      "id": "rename-address",
+      "title": "Serve the page under its new name",
+      "type": "change",
+      "status": "accepted",
+      "summary": "Serve the page at /v1/apps/software-system-browser on icelander.net, to match its name.",
+      "details": "The page was renamed from architecture browser to software system browser, but it is still served at /v1/apps/architecture-browser, from site/apps/architecture-browser.html in the icelander.net repository. Links already shared use the old address (see the [page's address](software-system-browser/.dev/contracts.json)), and the README names it. The token storage key keeps the old name on purpose and is not part of this.",
+      "origin": {
+        "kind": "request",
+        "by": "owner",
+        "description": "Part of renaming the architecture browser to the software system browser."
+      },
+      "relationships": [
+        {
+          "relation": "depends-on",
+          "path": "software-system-browser/.dev/contracts.json",
+          "entityId": "page-address"
+        }
+      ],
+      "evidenceStatus": "proposed",
+      "sources": [
+        {
+          "path": "software-system-browser/README.md",
+          "symbol": "Publishing"
+        }
+      ]
+    }
+  ]
+}

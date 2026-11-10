@@ -1,0 +1,145 @@
+{
+  "$schema": "../../Agents/Knowledge/schemas/quality-requirements.schema.json",
+  "kind": "quality-requirements",
+  "title": "How well the browser must work",
+  "folder": "software-system-browser",
+  "entities": [
+    {
+      "id": "safe-content",
+      "title": "Repository content can't run",
+      "summary": "Text from a repository is never run as code.",
+      "area": "Security",
+      "requirement": "Everything read from a repository is escaped, and Markdown is rendered only as paragraphs, lists, bold, inline code and links; HTML in a file stays text, and a link with any scheme other than http, https or mailto keeps its words and loses its target.",
+      "measuredBy": "Reading md() and every place file content is written into the page; a file with HTML in its details shows the HTML as text.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "esc"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "md"
+        }
+      ]
+    },
+    {
+      "id": "keyboard",
+      "title": "Usable from the keyboard",
+      "summary": "Tabs, parts and panels work without a pointer.",
+      "area": "Accessibility",
+      "requirement": "Tabs follow the ARIA tabs pattern with arrow keys, Home and End; every drawn part with something to show is focusable and opens with Enter or Space; Escape closes the inspector and the token panel; focus is outlined in the kind's colour.",
+      "measuredBy": "Walking a folder with the keyboard alone.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showFolder"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "drawSvg"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": ":focus-visible"
+        }
+      ]
+    },
+    {
+      "id": "reduced-motion",
+      "title": "Respects reduced motion",
+      "summary": "With reduced motion on, nothing animates.",
+      "area": "Accessibility",
+      "requirement": "When the system asks for reduced motion, the drill animation, pulses, flashes, the ticking square and the fades are off, and scrolling jumps.",
+      "measuredBy": "Turning on reduced motion in the system and walking a folder.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "prefers-reduced-motion: reduce"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "reducedMotion"
+        }
+      ]
+    },
+    {
+      "id": "light-dark",
+      "title": "Light and dark",
+      "summary": "Every colour has a light and a dark value.",
+      "area": "Appearance",
+      "requirement": "Every colour is a token with a value for light and one for dark, chosen by the system's setting.",
+      "measuredBy": "Reading the :root tokens and their dark block; opening the page in both.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "prefers-color-scheme: dark"
+        }
+      ]
+    },
+    {
+      "id": "narrow-screens",
+      "title": "Phones and narrow windows",
+      "summary": "The page works down to a phone's width.",
+      "area": "Responsiveness",
+      "requirement": "Under 860 px the folder column sits above the content; under 560 px the bar keeps only what fits; panels are never wider than the screen less a margin.",
+      "measuredBy": "Opening a repository at 375 px wide.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "max-width: 860px"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "max-width: 560px"
+        }
+      ]
+    },
+    {
+      "id": "requests",
+      "title": "Few requests",
+      "summary": "Listing costs two requests on GitHub, and files are read twelve at a time.",
+      "area": "Performance",
+      "requirement": "Listing a GitHub repository takes two API calls, or one when the address names a branch, so a reader without a token can open about thirty repositories an hour; files are read twelve at a time; a drawing is laid out only when its tab opens.",
+      "measuredBy": "Counting requests in the browser's network panel.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "github"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "pool"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "drawKind"
+        }
+      ]
+    },
+    {
+      "id": "fallbacks",
+      "title": "Degrades rather than fails",
+      "summary": "Without the fonts, the layout library or a file, the rest still works.",
+      "area": "Resilience",
+      "requirement": "Without the web fonts the page uses system fonts and lays drawings out again if the fonts arrive late; without dagre it shows tables; a file that can't be read is skipped and named.",
+      "measuredBy": "Blocking jsDelivr, and adding a broken .dev file.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "load"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "drawDiagram"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "$schema": "../../Agents/Knowledge/schemas/verification.schema.json",
+  "kind": "verification",
+  "title": "How the browser is checked",
+  "folder": "software-system-browser",
+  "entities": [
+    {
+      "id": "manual-pass",
+      "title": "A pass through a real repository",
+      "summary": "There are no automated tests of the page; it is checked by hand in a browser.",
+      "subject": [
+        {
+          "path": "software-system-browser/.dev/feature.json"
+        },
+        {
+          "path": "software-system-browser/.dev/requirements.json"
+        },
+        {
+          "path": "software-system-browser/.dev/quality-requirements.json"
+        }
+      ],
+      "criteria": [
+        "Every kind of view and knowledge file in the repository shows, and nothing is listed as skipped that should not be.",
+        "Every drawing lays out, pans, zooms, lights neighbours, inspects and drills.",
+        "Links between views and records land where they say.",
+        "There are no errors in the browser's console."
+      ],
+      "checks": [
+        {
+          "type": "manual",
+          "description": "Open a public repository with every kind of view, such as retro-games, and walk each folder and tab."
+        },
+        {
+          "type": "manual",
+          "description": "Open the same page in dark mode, at 375 px wide, and with reduced motion."
+        },
+        {
+          "type": "manual",
+          "description": "Block cdn.jsdelivr.net and check that every view falls back to its tables."
+        },
+        {
+          "type": "manual",
+          "description": "Open a private repository, add a token, browse, then forget it."
+        }
+      ],
+      "evidenceStatus": "documented"
+    },
+    {
+      "id": "own-description",
+      "title": "This description stays valid",
+      "summary": "The validators check this folder's .dev files against the skills' and the catalogue's schemas.",
+      "subject": [
+        {
+          "path": "software-system-browser/.dev/folder.json"
+        }
+      ],
+      "criteria": [
+        "Every .dev file here matches its schema, and every path and symbol it cites exists."
+      ],
+      "checks": [
+        {
+          "type": "automated",
+          "path": "Agents/Skills/validate_diagrams.py",
+          "symbol": "validate",
+          "command": "python3 Agents/Skills/validate_diagrams.py ."
+        },
+        {
+          "type": "automated",
+          "path": "Agents/Knowledge/validate_knowledge.py",
+          "symbol": "main",
+          "command": "python3 Agents/Knowledge/validate_knowledge.py ."
+        }
+      ],
+      "evidenceStatus": "source-verified"
+    }
+  ]
+}
