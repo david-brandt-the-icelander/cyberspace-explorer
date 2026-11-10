@@ -1,0 +1,86 @@
+{
+  "$schema": "../../Agents/Knowledge/schemas/contracts.schema.json",
+  "kind": "contracts",
+  "title": "What links and browsers rely on",
+  "folder": "software-system-browser",
+  "entities": [
+    {
+      "id": "page-address",
+      "title": "The page's address",
+      "summary": "The forms of address that shared links and bookmarks use.",
+      "contractType": "URL",
+      "consumers": [
+        "Links in documents, messages and READMEs that open a repository, a folder or a record",
+        "Readers' bookmarks"
+      ],
+      "guarantees": [
+        "The page is served at icelander.net/v1/apps/architecture-browser.",
+        "?url=<address> opens a repository: https://github.com/<owner>/<repository>, a GitLab project, either followed by /tree/<ref> and a folder.",
+        "#<folder> opens a folder; the repository root is the empty folder.",
+        "#<folder>|<kind>:<part ID or name> opens a part in that kind's drawing.",
+        "#<folder>|view:<file name> scrolls to a view.",
+        "#<folder>|entity:<file name>#<record ID> scrolls to a record; without #<record ID>, to the file.",
+        "#~waiting opens Waiting."
+      ],
+      "compatibility": "A new form may be added. A form that shared links already use keeps its meaning.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "address"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "parseAddress"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "route"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "focusPart"
+        },
+        {
+          "path": "software-system-browser/README.md",
+          "symbol": "Using it"
+        }
+      ]
+    },
+    {
+      "id": "token-storage",
+      "title": "Where tokens are kept",
+      "summary": "The storage key and shape that tokens readers have already saved are found under.",
+      "contractType": "stored format",
+      "consumers": [
+        "Readers' browsers that hold tokens saved by earlier versions of the page"
+      ],
+      "guarantees": [
+        "Tokens are kept under the key architecture-browser.tokens, in sessionStorage (this tab) or localStorage (this browser).",
+        "The value is a JSON object from scope to token.",
+        "A scope is a host (github.com, or a GitLab's host), the host and an owner or group path, or the host and a repository path.",
+        "A token in sessionStorage wins over one in localStorage for the same scope."
+      ],
+      "compatibility": "The key keeps the page's earlier name, so tokens readers already saved are still found. Renaming it would silently drop every saved token.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "TOKENS"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "scopes"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "tokenScope"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "saveToken"
+        }
+      ]
+    }
+  ]
+}

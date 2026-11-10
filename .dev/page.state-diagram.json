@@ -1,0 +1,145 @@
+{
+  "$schema": "../../Agents/Skills/describe-state-diagram/schema.json",
+  "kind": "state",
+  "title": "From opening the page to reading a folder",
+  "description": "What the page shows from the moment it opens, including every message the status line can give on the way. Each state is a screen a design has to cover.",
+  "sources": [
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "load"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "route"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "status"
+    }
+  ],
+  "machine": "The page",
+  "initialState": "opened",
+  "states": [
+    {
+      "id": "opened",
+      "description": "The page has loaded and looks for ?url= in its address. Nothing is shown yet."
+    },
+    {
+      "id": "choosing",
+      "description": "The landing page: headline, what the browser does, the address field with Browse, an example repository, a note on tokens and a tile for each of the ten kinds of view. The bar shows only the brand."
+    },
+    {
+      "id": "listing",
+      "description": "The bar shows the repository's name; the status line reads 'Listing owner/repository on GitHub…' with a small square that ticks round. Nothing else is shown."
+    },
+    {
+      "id": "refused",
+      "description": "The status line, in red: 'Couldn't list the repository.' and why: the address is not a repository, the host refused the token, the token does not cover the repository, GitHub's 60 requests an hour are used up, no such repository or it is private, or no such branch, tag or commit. After a 401, 403 or 404 a button offers 'Add a token', or 'Replace or add a token'."
+    },
+    {
+      "id": "empty",
+      "description": "The status line, in red: the repository (or folder) 'has no .dev/*.json views or knowledge files at' its ref, and that the skills describe how to add them.",
+      "terminal": true
+    },
+    {
+      "id": "reading",
+      "description": "The bar adds the ref as a pill; the status line reads 'Reading N .dev files…' with the ticking square."
+    },
+    {
+      "id": "folder",
+      "description": "The folder column and the folder view. The status line is empty, or notes that the repository was too large to list in full, which files were skipped and why, or that the drawing library couldn't load and views are shown as tables."
+    },
+    {
+      "id": "waiting",
+      "description": "The Waiting view in place of a folder: open decisions and blockers across the repository. The Waiting link in the folder column is marked."
+    }
+  ],
+  "transitions": [
+    {
+      "from": "opened",
+      "to": "choosing",
+      "trigger": "no ?url= in the address"
+    },
+    {
+      "from": "opened",
+      "to": "choosing",
+      "trigger": "?url= cannot be read as an address",
+      "action": "the status line says why, in red: 'Give an http or https address.', 'A GitHub address needs an owner and a repository.' or 'Give the address of a GitHub or GitLab repository.'"
+    },
+    {
+      "from": "choosing",
+      "to": "opened",
+      "trigger": "Browse",
+      "guard": "the page was opened without ?url=",
+      "action": "the address goes into ?url= and the page reloads"
+    },
+    {
+      "from": "choosing",
+      "to": "choosing",
+      "trigger": "Browse",
+      "guard": "the page was opened with an address it couldn't read",
+      "action": "the form is not wired up in this case, so it reloads the landing page without the address (a backlog defect)"
+    },
+    {
+      "from": "opened",
+      "to": "listing",
+      "trigger": "?url= is a GitHub or GitLab address"
+    },
+    {
+      "from": "listing",
+      "to": "refused",
+      "trigger": "the host refuses or has no such repository or ref"
+    },
+    {
+      "from": "refused",
+      "to": "opened",
+      "trigger": "a token is saved in the token panel",
+      "action": "the page reloads"
+    },
+    {
+      "from": "listing",
+      "to": "empty",
+      "trigger": "no .dev/*.json file under the folder asked for"
+    },
+    {
+      "from": "listing",
+      "to": "reading",
+      "trigger": "the files are listed"
+    },
+    {
+      "from": "reading",
+      "to": "folder",
+      "trigger": "every file is read or skipped",
+      "action": "the tree is built and the folder the address names, or the shallowest one, is shown"
+    },
+    {
+      "from": "reading",
+      "to": "waiting",
+      "trigger": "every file is read or skipped",
+      "guard": "the address ends in #~waiting"
+    },
+    {
+      "from": "folder",
+      "to": "folder",
+      "trigger": "a folder, part, view or record is opened",
+      "action": "the address changes after #; the drawings are laid out again if a web font arrives late"
+    },
+    {
+      "from": "folder",
+      "to": "waiting",
+      "trigger": "the Waiting link"
+    },
+    {
+      "from": "waiting",
+      "to": "folder",
+      "trigger": "a folder or a record is opened"
+    },
+    {
+      "from": "folder",
+      "to": "opened",
+      "trigger": "Choose another repository, or the brand",
+      "action": "the address loses ?url= and the page reloads to the landing page"
+    }
+  ],
+  "folder": "software-system-browser"
+}

@@ -34,6 +34,10 @@ The icons are drawn for this page, on a 24-unit grid. A component's icon is chos
 
 dagre and the Barlow typefaces are loaded from jsDelivr. If dagre can't load, the tables still show everything; without the typefaces the page falls back to system fonts. There is no build step and no server: it is one HTML file.
 
+## Its own description
+
+The browser is described in its own [`.dev/`](.dev) folder, and the browser shows it: its vision and stakeholders, the journeys and use cases of the people who use it ([`Actors/reader.md`](../Actors/reader.md)), the states of the page, the token panel and a drawing, its features, capabilities and entrypoints, its parts and where it runs, and its requirements, contracts, current design decisions and limitations. The [design pass](.dev/backlog.json) item says what to read in what order before changing the design. Check the folder after changing it with both validators, from the repository root: `python3 Agents/Skills/validate_diagrams.py .` and `python3 Agents/Knowledge/validate_knowledge.py .`.
+
 ## Publishing
 
 `index.html` is the source. The copy on icelander.net is `site/apps/architecture-browser.html` in the icelander.net repository, served at `/v1/apps/architecture-browser`; update it by copying this file there and deploying the site.

@@ -1,0 +1,132 @@
+{
+  "$schema": "../../Agents/Knowledge/schemas/glossary.schema.json",
+  "kind": "glossary",
+  "title": "Words the browser uses",
+  "folder": "software-system-browser",
+  "entities": [
+    {
+      "id": "dev-folder",
+      "title": ".dev folder",
+      "summary": "The folder beside a folder's code that holds its views and knowledge files, one JSON file per kind.",
+      "aliases": [
+        ".dev/"
+      ]
+    },
+    {
+      "id": "view",
+      "title": "View",
+      "summary": "A file that describes a folder's architecture or behavior: one of the four diagrams or five behavior views.",
+      "notToBeConfusedWith": [
+        "Knowledge file"
+      ]
+    },
+    {
+      "id": "diagram",
+      "title": "Diagram",
+      "summary": "A component, deployment, class or state view, always drawn."
+    },
+    {
+      "id": "behavior-view",
+      "title": "Behavior view",
+      "summary": "A use case, user journey, capability, feature or operation view; the first two are drawn, the rest written out."
+    },
+    {
+      "id": "knowledge-file",
+      "title": "Knowledge file",
+      "summary": "A file of one of the catalogue's twenty-five kinds (vision, backlog, decisions and the rest), shown as cards under the Knowledge tab.",
+      "notToBeConfusedWith": [
+        "View"
+      ]
+    },
+    {
+      "id": "kind",
+      "title": "Kind",
+      "summary": "What a file is: component, feature, backlog and so on. Each view kind has its own colour and icon; all knowledge kinds share one."
+    },
+    {
+      "id": "record",
+      "title": "Record",
+      "summary": "One entry in a knowledge file, shown as a card. The schemas call it an entity.",
+      "aliases": [
+        "entity"
+      ]
+    },
+    {
+      "id": "part",
+      "title": "Part",
+      "summary": "One thing in a drawing: a component, node, artifact, type, state, step, alternative or stage."
+    },
+    {
+      "id": "plate",
+      "title": "Plate",
+      "summary": "A part drawn as a rounded box with its icon on a tinted square, its name and a line under it."
+    },
+    {
+      "id": "cluster",
+      "title": "Cluster",
+      "summary": "A part that holds other parts, drawn as a frame with a header band: a component that contains others, or a host with what it runs."
+    },
+    {
+      "id": "badge-drill",
+      "title": "Badge",
+      "summary": "The round mark at a part's corner that says it opens another folder.",
+      "notToBeConfusedWith": [
+        "Status badge",
+        "Evidence badge"
+      ]
+    },
+    {
+      "id": "pip",
+      "title": "Pip",
+      "summary": "A small kind icon after a folder's name in the tree or on a chip, with a count when there is more than one."
+    },
+    {
+      "id": "tab",
+      "title": "Tab",
+      "summary": "One kind of view in a folder; the folder shows one at a time."
+    },
+    {
+      "id": "inspector",
+      "title": "Inspector",
+      "summary": "The panel at the right that holds everything a view says about the selected part."
+    },
+    {
+      "id": "drill",
+      "title": "Drill",
+      "summary": "Opening the folder a badged part stands for, by clicking it; the part grows into the page as it opens."
+    },
+    {
+      "id": "related-view",
+      "title": "Related view",
+      "summary": "A view that another view names as related, with why; the way between a feature and its operations and capability."
+    },
+    {
+      "id": "waiting",
+      "title": "Waiting",
+      "summary": "The list of every open decision and unresolved blocker in a repository, and the link to it above the tree."
+    },
+    {
+      "id": "token-scope",
+      "title": "Scope",
+      "summary": "What a token is for: every repository on a host, everything under an owner or group, or one repository."
+    },
+    {
+      "id": "evidence",
+      "title": "Evidence",
+      "summary": "How far a record has been checked: source-verified, documented or proposed. Shown as a badge.",
+      "aliases": [
+        "evidenceStatus"
+      ]
+    },
+    {
+      "id": "status-line",
+      "title": "Status line",
+      "summary": "The one line under the bar that says what the page is doing or what went wrong."
+    },
+    {
+      "id": "ref",
+      "title": "Ref",
+      "summary": "The branch, tag or commit being read, shown as a pill after the repository's name."
+    }
+  ]
+}

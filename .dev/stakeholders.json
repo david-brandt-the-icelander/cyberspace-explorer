@@ -1,0 +1,82 @@
+{
+  "$schema": "../../Agents/Knowledge/schemas/stakeholders.schema.json",
+  "kind": "stakeholders",
+  "title": "Who cares about the browser",
+  "folder": "software-system-browser",
+  "entities": [
+    {
+      "id": "readers",
+      "title": "Readers",
+      "summary": "Everyone who opens a repository in the browser.",
+      "role": "Reader",
+      "interest": "Understand a repository quickly, trust what they read to the degree its evidence allows, and share exactly what they are looking at.",
+      "influence": "The browser is for them.",
+      "reach": "The page itself.",
+      "relationships": [
+        {
+          "relation": "described-by",
+          "path": "Actors/reader.md"
+        }
+      ],
+      "evidenceStatus": "documented",
+      "sources": [
+        {
+          "path": "software-system-browser/README.md",
+          "symbol": "Using it"
+        }
+      ]
+    },
+    {
+      "id": "owner",
+      "title": "The owner",
+      "summary": "Owns human-assisted software development and the browser, and decides what changes.",
+      "role": "Owner of the repository",
+      "interest": "That the browser shows everything the skills and the catalogue define, and that the methodology is easy to adopt.",
+      "influence": "Decides.",
+      "reach": "Pull requests and issues on this repository.",
+      "evidenceStatus": "documented",
+      "sources": [
+        {
+          "path": "README.md",
+          "symbol": "Layout"
+        }
+      ]
+    },
+    {
+      "id": "agents",
+      "title": "Agents that write .dev files",
+      "summary": "Keep the files the browser reads, in the repositories it shows.",
+      "role": "Agent",
+      "interest": "What they record, including fields no schema names, is seen by the people they work for.",
+      "influence": "Consulted through the schemas: the browser shows what the schemas allow.",
+      "reach": "The skills in Agents/Skills and Agents/Knowledge.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "recordCard"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "COMMON"
+        }
+      ]
+    },
+    {
+      "id": "designer",
+      "title": "The designer",
+      "summary": "Makes a design pass over the browser.",
+      "role": "Designer",
+      "interest": "Everything the browser does, for whom, and what must not change, in one place.",
+      "influence": "Proposes the design; the owner decides.",
+      "reach": "This folder's .dev files, read in the browser itself.",
+      "origin": {
+        "kind": "request",
+        "by": "owner",
+        "date": "2026-11-10",
+        "reference": "software-system-browser/.dev/backlog.json#design-pass"
+      },
+      "evidenceStatus": "documented"
+    }
+  ]
+}

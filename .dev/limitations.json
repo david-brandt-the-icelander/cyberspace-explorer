@@ -1,0 +1,222 @@
+{
+  "$schema": "../../Agents/Knowledge/schemas/limitations.schema.json",
+  "kind": "limitations",
+  "title": "What readers run into",
+  "folder": "software-system-browser",
+  "entities": [
+    {
+      "id": "hosts",
+      "title": "GitHub and GitLab only",
+      "summary": "Other git hosts can't be read.",
+      "impact": "A repository on another host can't be opened; a self-hosted GitLab works only if it allows the page's origin.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "parseAddress"
+        }
+      ],
+      "workaround": "Mirror the repository to GitHub or GitLab."
+    },
+    {
+      "id": "rate-limit",
+      "title": "60 GitHub requests an hour without a token",
+      "summary": "Unauthenticated, GitHub allows 60 API requests an hour per address.",
+      "impact": "About thirty repositories an hour can be opened from one network before GitHub refuses.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "getJson"
+        }
+      ],
+      "workaround": "Add a token, which raises the limit to 5,000."
+    },
+    {
+      "id": "large-repositories",
+      "title": "Very large repositories are listed in part",
+      "summary": "GitHub cuts a large tree short; the GitLab listing stops after 200 pages of 100 files.",
+      "impact": "Some folders may be missing; the status line says so for GitHub, not for GitLab.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "github"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "gitlab"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "load"
+        }
+      ],
+      "workaround": "Open a folder of the repository rather than its root."
+    },
+    {
+      "id": "filter-names",
+      "title": "The filter matches names only",
+      "summary": "The tree's filter looks at folder names, view titles and part names and IDs.",
+      "impact": "Words in a summary, a description or a record's details are not found.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "showTree"
+        }
+      ]
+    },
+    {
+      "id": "crowded-tree",
+      "title": "Long names crowd the tree",
+      "summary": "A folder's kind icons sit beside its name in a 290 px column.",
+      "impact": "A folder with many kinds of view leaves its name little room, and a long name breaks over several lines.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "#tree .nm"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": ".pips"
+        }
+      ]
+    },
+    {
+      "id": "one-kind",
+      "title": "One kind of view at a time",
+      "summary": "Two kinds of view in a folder can't be seen side by side.",
+      "impact": "Comparing, say, a component diagram with the features it carries means switching tabs.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "selectKind"
+        }
+      ]
+    },
+    {
+      "id": "inspector-covers",
+      "title": "The inspector covers the drawing",
+      "summary": "The inspector is a fixed panel at the right, over the page.",
+      "impact": "On a narrow screen it covers most of the drawing; it does not take the focus, so a keyboard reader doesn't land in it.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "#inspector"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "select"
+        }
+      ],
+      "workaround": "Close it with Escape."
+    },
+    {
+      "id": "selection-not-linked",
+      "title": "A selection is not in the address",
+      "summary": "Selecting a part with the pointer does not change the address.",
+      "impact": "To link to a part, the reader has to write the |kind:part form themselves.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "select"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "route"
+        }
+      ]
+    },
+    {
+      "id": "one-status-line",
+      "title": "One line for every problem",
+      "summary": "Skipped files are listed in the one status line.",
+      "impact": "With many unreadable files the line becomes a long paragraph at the top of the page.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "load"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "status"
+        }
+      ]
+    },
+    {
+      "id": "markdown-subset",
+      "title": "Only simple Markdown",
+      "summary": "Record details render paragraphs, lists, bold, inline code and links.",
+      "impact": "Tables, images, italics, block quotes and code blocks show as plain text; headings show as bold lines.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "md"
+        }
+      ]
+    },
+    {
+      "id": "colours-outside-tokens",
+      "title": "Some colours are outside the tokens",
+      "summary": "The error red and the source-verified green are written into their rules, not tokens.",
+      "impact": "A change of palette has to find them: #b3261e and #ff8a80 for errors, #2c6e3a and #8fd39d for source-verified, and the shadows.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "#status.error"
+        },
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "ev-source-verified"
+        }
+      ]
+    },
+    {
+      "id": "system-theme-only",
+      "title": "No light or dark switch",
+      "summary": "The page follows the system's setting.",
+      "impact": "A reader can't choose dark on a light system or the other way round.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "prefers-color-scheme: dark"
+        }
+      ]
+    },
+    {
+      "id": "english",
+      "title": "English only",
+      "summary": "Every word on the page is written into the script in English.",
+      "impact": "The page can't be offered in another language without changing its code.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/index.html",
+          "symbol": "lang=\"en\""
+        }
+      ]
+    },
+    {
+      "id": "no-edit",
+      "title": "Read only",
+      "summary": "The browser can't change a .dev file.",
+      "impact": "A reader who finds a mistake has to ask an agent, or edit the repository, elsewhere.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "software-system-browser/README.md",
+          "symbol": "How it works"
+        }
+      ]
+    }
+  ]
+}

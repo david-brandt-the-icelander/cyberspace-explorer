@@ -1,0 +1,463 @@
+{
+  "$schema": "../../Agents/Skills/describe-component-diagram/schema.json",
+  "kind": "component",
+  "title": "Software system browser",
+  "description": "The parts of the page, which is one HTML file: what the reader sees, how a repository is read, how views are drawn and written, and the services it reaches from the reader's browser.",
+  "sources": [
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "load"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "route"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "showFolder"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "drawDiagram"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "recordCard"
+    },
+    {
+      "path": "software-system-browser/index.html",
+      "symbol": "openTokenPanel"
+    }
+  ],
+  "components": [
+    {
+      "id": "screen",
+      "name": "Screen",
+      "responsibility": "Everything the reader sees: a bar across the top, a status line, a column of folders and the folder being read, with panels that open over it.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "bar",
+      "name": "Bar",
+      "responsibility": "The strip across the top: the brand (a link to the landing page), the repository and its ref, the Tokens button and Choose another repository.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "landing",
+      "name": "Landing page",
+      "responsibility": "Shown when no repository is given: a headline, what the browser does, the address field, an example repository and a tile for each kind of view.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "status-line",
+      "name": "Status line",
+      "responsibility": "One line under the bar saying what is happening (listing, reading), what went wrong, or what was skipped, with at most one button for the one thing worth doing about it.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "side",
+      "name": "Folder column",
+      "responsibility": "The filter, the Waiting link and the tree of folders that have .dev files, each with small icons for the kinds of view it holds.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "folder-view",
+      "name": "Folder view",
+      "responsibility": "One folder: its crumbs, name and purpose, the folders inside it as chips, a tab per kind of view and the open tab's content.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "inspector",
+      "name": "Inspector",
+      "responsibility": "A panel at the right that holds everything a drawing says about the selected part, with its neighbours as links.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "token-panel",
+      "name": "Token panel",
+      "responsibility": "A small dialog under the Tokens button: the tokens kept, a field for a new one, what it is for, and whether to keep it after the tab closes.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "waiting-view",
+      "name": "Waiting view",
+      "responsibility": "Every open decision and blocker in the repository, as two tables linked to the records.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "reading",
+      "name": "Repository reading",
+      "responsibility": "Turns an address into the repository's .dev files, from the reader's browser.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "address",
+      "name": "Address parser",
+      "responsibility": "Splits an address into a host, a repository, a ref and a folder; anything not on github.com is tried as GitLab.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "github-adapter",
+      "name": "GitHub adapter",
+      "responsibility": "Lists a GitHub repository's files and reads them, through the API with a token or from raw.githubusercontent.com without.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "gitlab-adapter",
+      "name": "GitLab adapter",
+      "responsibility": "Lists a GitLab project's files, a hundred to a page, and reads them through the GitLab API.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "loader",
+      "name": "Loader",
+      "responsibility": "Finds the .dev/*.json files under the folder asked for, reads twelve at a time, keeps the views and knowledge files it knows and sorts each folder's files by kind.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "token-store",
+      "name": "Token store",
+      "responsibility": "Keeps the reader's tokens by scope (a host, an owner or group, or one repository) in this tab or this browser, and picks the narrowest one around a repository.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "router",
+      "name": "Router",
+      "responsibility": "Reads the part of the address after # and shows that folder, part, view, record or the Waiting view.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "drawing",
+      "name": "Drawing",
+      "responsibility": "Turns diagrams, use cases and journeys into SVG drawings the reader can pan, zoom and click through.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "models",
+      "name": "Diagram models",
+      "responsibility": "Turns each kind of drawn view into parts, clusters and lines with their tooltips and inspector content: component, deployment, class, state, use case and user journey.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "layout",
+      "name": "Layout",
+      "responsibility": "Places the parts with dagre, makes room for cluster headers, packs separate pieces into rows and smooths the lines.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "renderer",
+      "name": "Renderer",
+      "responsibility": "Writes the drawing as SVG: plates, clusters, lines, arrowheads, labels and the grid of crosses behind them.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "interaction",
+      "name": "Part interaction",
+      "responsibility": "Lights a part's neighbours on hover, shows tooltips, selects a part into the inspector and grows a part into the page when it opens another folder.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "camera",
+      "name": "Camera",
+      "responsibility": "Fits a drawing to its width, and pans and zooms it with a drag, the wheel with ⌘ or Ctrl, a pinch or the buttons in its corner.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "written",
+      "name": "Written views",
+      "responsibility": "Cards for capabilities, features, use cases and journeys, the table of operations, and each view's full tables, related views and sources.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "knowledge",
+      "name": "Knowledge renderer",
+      "responsibility": "Groups a folder's knowledge files as the catalogue does and shows each record as a card: badges, summary, safe Markdown, every field, origin, relationships, sources and links.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "icons",
+      "name": "Icons",
+      "responsibility": "The page's own icon set on a 24-unit grid, and the rules that pick a component's icon from its name.",
+      "folder": "software-system-browser"
+    },
+    {
+      "id": "dagre",
+      "name": "dagre 3.1.3",
+      "responsibility": "The graph layout library, loaded from jsDelivr. Without it every view is shown as tables.",
+      "external": true
+    },
+    {
+      "id": "fonts",
+      "name": "Barlow typefaces",
+      "responsibility": "Barlow, Barlow Semi Condensed and Barlow Condensed, loaded from jsDelivr; system fonts stand in without them.",
+      "external": true
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "responsibility": "api.github.com and raw.githubusercontent.com: the repository's tree and its files.",
+      "external": true
+    },
+    {
+      "id": "gitlab",
+      "name": "GitLab",
+      "responsibility": "gitlab.com or a self-hosted GitLab that allows the page's origin: the repository tree and raw file endpoints.",
+      "external": true
+    },
+    {
+      "id": "storage",
+      "name": "Browser storage",
+      "responsibility": "sessionStorage and localStorage in the reader's browser, where tokens are kept.",
+      "external": true
+    }
+  ],
+  "relationships": [
+    {
+      "from": "screen",
+      "to": "bar",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "screen",
+      "to": "landing",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "screen",
+      "to": "status-line",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "screen",
+      "to": "side",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "screen",
+      "to": "folder-view",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "screen",
+      "to": "inspector",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "screen",
+      "to": "token-panel",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "screen",
+      "to": "waiting-view",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "reading",
+      "to": "address",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "reading",
+      "to": "github-adapter",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "reading",
+      "to": "gitlab-adapter",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "reading",
+      "to": "loader",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "reading",
+      "to": "token-store",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "drawing",
+      "to": "models",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "drawing",
+      "to": "layout",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "drawing",
+      "to": "renderer",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "drawing",
+      "to": "interaction",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "drawing",
+      "to": "camera",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "landing",
+      "to": "loader",
+      "kind": "depends-on",
+      "description": "Puts the address given into ?url=, which reloads the page and starts loading."
+    },
+    {
+      "from": "loader",
+      "to": "address",
+      "kind": "depends-on",
+      "description": "Splits the address."
+    },
+    {
+      "from": "loader",
+      "to": "github-adapter",
+      "kind": "depends-on",
+      "description": "Lists and reads a GitHub repository."
+    },
+    {
+      "from": "loader",
+      "to": "gitlab-adapter",
+      "kind": "depends-on",
+      "description": "Lists and reads a GitLab project."
+    },
+    {
+      "from": "github-adapter",
+      "to": "github",
+      "kind": "depends-on",
+      "description": "Lists the recursive tree with one API call and reads each file."
+    },
+    {
+      "from": "gitlab-adapter",
+      "to": "gitlab",
+      "kind": "depends-on",
+      "description": "Lists the tree page by page and reads each file."
+    },
+    {
+      "from": "loader",
+      "to": "token-store",
+      "kind": "depends-on",
+      "description": "Sends the narrowest token around the repository, to its own host only."
+    },
+    {
+      "from": "token-store",
+      "to": "storage",
+      "kind": "depends-on",
+      "description": "Keeps tokens in this tab or this browser."
+    },
+    {
+      "from": "token-panel",
+      "to": "token-store",
+      "kind": "depends-on",
+      "description": "Adds, replaces and forgets tokens."
+    },
+    {
+      "from": "bar",
+      "to": "token-panel",
+      "kind": "depends-on",
+      "description": "The Tokens button opens it."
+    },
+    {
+      "from": "status-line",
+      "to": "token-panel",
+      "kind": "depends-on",
+      "description": "The Add a token button opens it when a host refuses."
+    },
+    {
+      "from": "loader",
+      "to": "status-line",
+      "kind": "depends-on",
+      "description": "Reports progress, refusals and what was skipped."
+    },
+    {
+      "from": "router",
+      "to": "folder-view",
+      "kind": "depends-on",
+      "description": "Shows the folder the address names, and the part, view or record after |."
+    },
+    {
+      "from": "router",
+      "to": "waiting-view",
+      "kind": "depends-on",
+      "description": "Shows it for #~waiting."
+    },
+    {
+      "from": "folder-view",
+      "to": "drawing",
+      "kind": "depends-on",
+      "description": "Draws the open tab's diagrams, use cases and journeys."
+    },
+    {
+      "from": "folder-view",
+      "to": "written",
+      "kind": "depends-on",
+      "description": "Writes out the views that are not drawn, and every view in full."
+    },
+    {
+      "from": "folder-view",
+      "to": "knowledge",
+      "kind": "depends-on",
+      "description": "Writes out the knowledge tab."
+    },
+    {
+      "from": "layout",
+      "to": "dagre",
+      "kind": "depends-on",
+      "description": "Places parts and routes lines."
+    },
+    {
+      "from": "models",
+      "to": "icons",
+      "kind": "depends-on",
+      "description": "Picks each part's icon from its name or kind."
+    },
+    {
+      "from": "renderer",
+      "to": "fonts",
+      "kind": "depends-on",
+      "description": "Measures labels in the Barlow typefaces, and draws again once they arrive."
+    },
+    {
+      "from": "interaction",
+      "to": "inspector",
+      "kind": "depends-on",
+      "description": "Fills it with the selected part."
+    },
+    {
+      "from": "interaction",
+      "to": "router",
+      "kind": "depends-on",
+      "description": "Opens another folder by changing the address."
+    },
+    {
+      "from": "knowledge",
+      "to": "router",
+      "kind": "depends-on",
+      "description": "Links records as #folder|entity:file#id."
+    }
+  ],
+  "folder": "software-system-browser"
+}
