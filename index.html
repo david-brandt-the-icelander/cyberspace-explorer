@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cyberspace explorer</title>
 <meta name="description" content="Browse a repository's architecture and behavior from the JSON views in its .dev folders.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2032%2032%22%3E%3Crect%20width=%2232%22%20height=%2232%22%20rx=%227%22%20fill=%22%232c6e8e%22/%3E%3Cg%20transform=%22translate%282%202%29%20scale%281.1%29%22%20fill=%22none%22%20stroke=%22%23fff%22%20stroke-width=%221.8%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Crect%20x=%222.5%22%20y=%222.5%22%20width=%229%22%20height=%226.5%22%20rx=%221.8%22%20fill=%22%23fff%22%20stroke=%22none%22/%3E%3Cpath%20d=%22M7%209v9.75h5.5M7%2012.25h5.5%22/%3E%3Crect%20x=%2212.5%22%20y=%229%22%20width=%229%22%20height=%226.5%22%20rx=%221.8%22%20fill=%22%23fff%22%20fill-opacity=%22.28%22/%3E%3Crect%20x=%2212.5%22%20y=%229%22%20width=%229%22%20height=%226.5%22%20rx=%221.8%22/%3E%3Crect%20x=%2212.5%22%20y=%2215.5%22%20width=%229%22%20height=%226.5%22%20rx=%221.8%22/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/barlow@5/400.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/barlow@5/500.css">
@@ -803,9 +804,31 @@ const gitlab = {
 let repo = null;
 /** folder → its diagrams, sorted by kind. */
 const byFolder = new Map();
-/** repository path of a .dev file → its view, for links between views. */
-const byPath = new Map();
+/** repository path of a .dev file → its view, for links between views. A file kept under .cyberspace-explorer/ answers to its
+ *  .dev path too, so a link written either way finds it. */
+const byPath = new (class extends Map {
+  get(p) { return super.get(devPath(p)); }
+  has(p) { return super.has(devPath(p)); }
+  set(p, v) { return super.set(devPath(p), v); }
+})();
 let dagre = null;
+
+/** A repository can keep its views in one tree at the root, .cyberspace-explorer/, in place of a .dev folder in each folder. */
+const TREE = ".cyberspace-explorer";
+const inTree = (p) => p.startsWith(TREE + "/");
+/** The folder a view file belongs to and its file name: foo/.dev/x.json and .cyberspace-explorer/foo/x.json are both ("foo", "x.json"). */
+function placeOf(path) {
+  const parts = path.split("/"), file = parts.pop();
+  return { folder: inTree(path) ? parts.slice(1).join("/") : parts.slice(0, -1).join("/"), file };
+}
+/** The .dev spelling of a path: .cyberspace-explorer/foo/x.json → foo/.dev/x.json. Any other path is as it was. */
+function devPath(p) {
+  if (!inTree(p) || !p.endsWith(".json")) return p;
+  const { folder, file } = placeOf(p);
+  return (folder ? folder + "/" : "") + ".dev/" + file;
+}
+/** The folder a path in a .dev folder points at: the folder holding the .dev folder. */
+const folderOfDev = (p) => placeOf(devPath(p)).folder;
 
 /** Runs fn over items with at most n in flight: a repository can have hundreds of views. */
 async function pool(items, n, fn) {
@@ -823,10 +846,15 @@ async function load(address) {
   let paths;
   try { paths = await repo.host.list(repo); } catch (e) { status(`Couldn't list the repository. ${e.message}`, "error", tokenOffer(e.status)); return; }
   $("repo").insertAdjacentHTML("beforeend", `<span class="ref" title="Branch, tag or commit">${esc(repo.ref)}</span>`);
-  const prefix = repo.path ? repo.path.replace(/\/$/, "") + "/" : "";
-  const wanted = paths.filter((p) => /(^|\/)\.dev\/[^/]+\.json$/.test(p) && p.startsWith(prefix));
-  if (!wanted.length) { status(`${repo.host.label(repo)}${repo.path ? "/" + repo.path : ""} has no .dev/*.json views or knowledge files at ${repo.ref}. The skills describe how to add them.`, "error"); return; }
-  status(`Reading ${wanted.length} .dev files…`, "loading");
+  const base = repo.path ? repo.path.replace(/\/$/, "") : "";
+  // A .cyberspace-explorer folder at the root holds every view, so the repository's folders are not searched for .dev folders.
+  const tree = paths.some(inTree);
+  const under = (folder) => !base || folder === base || folder.startsWith(base + "/");
+  const wanted = tree
+    ? paths.filter((p) => inTree(p) && /\.json$/.test(p) && under(placeOf(p).folder))
+    : paths.filter((p) => /(^|\/)\.dev\/[^/]+\.json$/.test(p) && under(placeOf(p).folder));
+  if (!wanted.length) { status(`${repo.host.label(repo)}${base ? "/" + base : ""} has no views or knowledge files in ${tree ? TREE + "/" : ".dev/*.json"} at ${repo.ref}. The skills describe how to add them.`, "error"); return; }
+  status(`Reading ${wanted.length} view and knowledge files…`, "loading");
   const problems = [];
   await pool(wanted, 12, async (path) => {
     try {
@@ -835,7 +863,7 @@ async function load(address) {
       if (!res.ok) throw new Error(`${res.status}`);
       const doc = await res.json();
       if (!doc || !(doc.kind in KIND_ORDER || doc.kind in KNOWLEDGE)) throw new Error(`no view or knowledge kind ${JSON.stringify(doc?.kind ?? null)}`);
-      const folder = typeof doc.folder === "string" ? normFolder(doc.folder) : path.split("/").slice(0, -2).join("/");
+      const folder = typeof doc.folder === "string" ? normFolder(doc.folder) : placeOf(path).folder;
       doc._path = path;
       doc._folder = folder;
       byPath.set(path, doc);
@@ -1023,7 +1051,7 @@ function componentModel(d, folder) {
   const nameOf = (id) => splitName(comps.get(id).name)[0];
   const nodes = d.components.map((c) => {
     const [name, file] = splitName(c.name);
-    const target = c.diagram ? c.diagram.split("/").slice(0, -2).join("/") : c.folder;
+    const target = c.diagram ? folderOfDev(c.diagram) : c.folder;
     const nav = c.external ? null : navFor(target);
     const sub = file || (c.external ? "elsewhere" : c.folder && c.folder !== folder ? rel(c.folder, folder) + "/" : "");
     const out = deps.filter((r) => r.from === c.id), inc = deps.filter((r) => r.to === c.id);

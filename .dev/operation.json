@@ -48,7 +48,7 @@
       "failures": [
         "The address is not http or https, or names no repository.",
         "The host refuses: no such repository or ref, a private repository without a token, a token refused, or GitHub's unauthenticated limit used up.",
-        "No .dev/*.json file is under the folder asked for."
+        "No .dev/*.json file (or .cyberspace-explorer/*.json file, where the root has that folder) is under the folder asked for."
       ]
     },
     {
