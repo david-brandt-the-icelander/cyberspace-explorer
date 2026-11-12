@@ -127,6 +127,22 @@
       "id": "ref",
       "title": "Ref",
       "summary": "The branch, tag or commit being read, shown as a pill after the repository's name."
+    },
+    {
+      "id": "worker",
+      "title": "Worker",
+      "summary": "The Cloudflare Worker in worker/ that serves the page at cyberspace-explorer.com and signs readers in with GitHub.",
+      "notToBeConfusedWith": [
+        "Page"
+      ]
+    },
+    {
+      "id": "sign-in",
+      "title": "Sign-in",
+      "summary": "Signing in with GitHub: through the Worker's OAuth flow where it is set up, or by pasting a GitHub token where it is not. Optional; it lets the page read the reader's private repositories and list their repositories.",
+      "notToBeConfusedWith": [
+        "Token"
+      ]
     }
   ]
 }

@@ -22,21 +22,22 @@
           "path": "README.md",
           "symbol": "How it works"
         }
-      ]
+      ],
+      "details": "Served this way there is no Worker, so there is no GitHub sign-in: the page offers a pasted token instead. The Worker itself is checked with `npm test` ([its verification](worker/.dev/verification.json))."
     },
     {
       "id": "check-description",
       "title": "Check this description",
-      "summary": "Run both validators from the repository root after changing a .dev file here.",
+      "summary": "Run both validators from the repository root after changing a .dev file or an actor.",
       "purpose": "check",
-      "when": "After changing any file in this .dev folder, Actors/ or the schemas.",
+      "when": "After changing any .dev folder, Actors/ or Meta/Agents.",
       "steps": [
         "pip install jsonschema",
-        "python3 Meta/Agents/Skills/validate_diagrams.py .",
-        "python3 Meta/Agents/Knowledge/validate_knowledge.py ."
+        "python3 Meta/Agents/Skills/validate_diagrams.py",
+        "python3 Meta/Agents/Knowledge/validate_knowledge.py"
       ],
       "verify": "The first prints what it validated with no error; the second ends with 0 problems.",
-      "details": "In this repository the validators sit at `Agents/`, not `Meta/Agents/` as in a repository that installs them, so pass the repository root (`.`) as the argument.",
+      "details": "`Meta/Agents/` is a copy of `Agents/` from human-assisted-software-development; the validators find their schemas next to themselves and scan the whole repository. See AGENTS.md.",
       "evidenceStatus": "source-verified",
       "sources": [
         {
@@ -60,11 +61,22 @@
         "Wait for the Cyberspace explorer workflow to test and deploy it, or run it by hand from the Actions tab"
       ],
       "verify": "https://cyberspace-explorer.com shows the change; the workflow's last step checks that the page and /auth/me answer.",
-      "evidenceStatus": "documented",
+      "evidenceStatus": "source-verified",
       "sources": [
         {
           "path": "README.md",
-          "symbol": "Publishing"
+          "symbol": "Deploying"
+        },
+        {
+          "path": ".github/workflows/cyberspace-explorer.yml",
+          "symbol": "jobs.deploy"
+        }
+      ],
+      "relationships": [
+        {
+          "relation": "uses",
+          "path": ".github/.dev/pipeline.json",
+          "entityId": "deploy"
         }
       ]
     }

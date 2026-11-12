@@ -238,6 +238,24 @@
           "symbol": "How it works"
         }
       ]
+    },
+    {
+      "id": "my-repositories-cap",
+      "title": "At most 1,000 of my repositories",
+      "summary": "The drop-down of a signed-in reader's repositories reads ten pages of a hundred.",
+      "impact": "A reader with more repositories doesn't find the rest in the list; GitHub is asked for the most recently updated first, so the ones left out are those updated longest ago.",
+      "workaround": "Paste the repository's address.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "loadMyRepos"
+        },
+        {
+          "path": "index.html",
+          "symbol": "OLDEST_FIRST"
+        }
+      ]
     }
   ]
 }

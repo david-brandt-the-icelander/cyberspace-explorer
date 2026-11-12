@@ -1,0 +1,80 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/limitations.schema.json",
+  "kind": "limitations",
+  "title": "What the Worker does not do",
+  "folder": "worker",
+  "entities": [
+    {
+      "id": "sign-out-keeps-grant",
+      "title": "Signing out does not revoke the token",
+      "summary": "Sign-out clears the session cookie in this browser and nothing at GitHub.",
+      "impact": "The token GitHub issued stays valid until the reader revokes the app in their GitHub settings.",
+      "workaround": "Revoke Cyberspace explorer under Settings → Applications → Authorized OAuth Apps on GitHub.",
+      "relationships": [
+        {
+          "relation": "subject-of",
+          "path": "worker/.dev/decisions.json",
+          "entityId": "revoke-on-sign-out"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "signOut"
+        }
+      ]
+    },
+    {
+      "id": "repo-scope-is-broad",
+      "title": "Private repositories need the repo scope",
+      "summary": "GitHub has no narrower OAuth scope for reading private repositories.",
+      "impact": "A reader who includes private repositories grants read and write on every private repository they can reach, though the Worker only reads.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "start"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "proxy"
+        }
+      ]
+    },
+    {
+      "id": "github-only",
+      "title": "Sign-in is for GitHub only",
+      "summary": "There is no sign-in for GitLab.",
+      "impact": "A GitLab repository is read with a pasted token, or not at all if it is private.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "ALLOWED"
+        },
+        {
+          "path": "index.html",
+          "symbol": "viaService"
+        }
+      ]
+    },
+    {
+      "id": "secret-change-signs-out",
+      "title": "A new session secret signs everyone out",
+      "summary": "Cookies sealed with the old SESSION_SECRET can no longer be opened.",
+      "impact": "Rotating the secret ends every session and every sign-in under way.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "aesKey"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "unseal"
+        }
+      ]
+    }
+  ]
+}

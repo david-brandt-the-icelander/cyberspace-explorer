@@ -1,0 +1,29 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/references.schema.json",
+  "kind": "references",
+  "title": "What the Worker builds on",
+  "folder": "worker",
+  "entities": [
+    {
+      "id": "github-oauth",
+      "title": "GitHub: authorizing OAuth apps",
+      "summary": "GitHub's web application flow.",
+      "url": "https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps",
+      "relevance": "start and callback follow it: the authorize redirect, the code exchange with the client secret, and code_challenge and code_verifier for PKCE."
+    },
+    {
+      "id": "github-scopes",
+      "title": "GitHub: scopes for OAuth apps",
+      "summary": "What each scope grants.",
+      "url": "https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps",
+      "relevance": "Why private repositories need repo, and public ones no scope."
+    },
+    {
+      "id": "pkce",
+      "title": "RFC 7636: Proof Key for Code Exchange",
+      "summary": "PKCE, with the S256 method.",
+      "url": "https://www.rfc-editor.org/rfc/rfc7636",
+      "relevance": "The verifier and challenge start makes and callback sends."
+    }
+  ]
+}

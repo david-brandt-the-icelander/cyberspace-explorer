@@ -59,6 +59,13 @@
       "summary": "The keyboard pattern the kind tabs follow.",
       "url": "https://www.w3.org/WAI/ARIA/apg/patterns/tabs/",
       "relevance": "Arrow keys, Home and End move between tabs; only the open tab is in the tab order."
+    },
+    {
+      "id": "workers-custom-domains",
+      "title": "Cloudflare Workers: custom domains",
+      "summary": "How a Worker answers for a whole hostname.",
+      "url": "https://developers.cloudflare.com/workers/configuration/routing/custom-domains/",
+      "relevance": "wrangler.jsonc serves the Worker at cyberspace-explorer.com as a custom domain, so Cloudflare makes its DNS record and certificate on deploy."
     }
   ]
 }

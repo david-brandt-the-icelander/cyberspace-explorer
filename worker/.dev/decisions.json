@@ -1,0 +1,157 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/decisions.schema.json",
+  "kind": "decisions",
+  "title": "How the Worker signs readers in",
+  "folder": "worker",
+  "entities": [
+    {
+      "id": "token-off-the-page",
+      "title": "The GitHub token never reaches the page",
+      "summary": "The token is sealed in an HttpOnly cookie and only the Worker adds it to GitHub calls.",
+      "status": "accepted",
+      "context": "A page can't finish GitHub's OAuth flow itself, because the exchange needs the client secret, and a token the page holds can be read by any script on it.",
+      "decision": "The Worker runs the flow, keeps the token in explorer_session, sealed with AES-GCM, HttpOnly, Secure and SameSite=Lax, and reads GitHub for the page through /api/github/*.",
+      "rationale": "The reader's access stays out of the page and out of their browser's storage.",
+      "origin": "The header comment of worker/app.js and README.md, \"The service\".",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "seal"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "setCookie"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "proxy"
+        }
+      ]
+    },
+    {
+      "id": "pkce-and-sealed-state",
+      "title": "PKCE, and a state bound to the browser",
+      "summary": "A sign-in can only be finished in the browser that started it.",
+      "status": "accepted",
+      "context": "An OAuth callback can be forged or replayed from another browser.",
+      "decision": "start makes a random state and a PKCE verifier, sends GitHub the state and the S256 challenge, and seals both with the return path in a cookie that lasts 10 minutes and is sent only to /auth. callback refuses a state that doesn't match, and gives GitHub the verifier with the code.",
+      "rationale": "Code flow with PKCE, as README.md says the sign-in runs.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "start"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "callback"
+        },
+        {
+          "path": "test/app.test.js",
+          "symbol": "sign-in goes to GitHub with PKCE and a state bound to the browser"
+        }
+      ]
+    },
+    {
+      "id": "repo-scope-on-request",
+      "title": "Private repositories only when asked",
+      "summary": "The repo scope is asked for only when the reader ticks the private option.",
+      "status": "accepted",
+      "context": "Reading a reader's public repositories needs no scope; private ones need repo, and GitHub has nothing narrower.",
+      "decision": "start asks for no scope unless private=1, and then for repo.",
+      "rationale": "A reader who only reads public repositories grants nothing.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "start"
+        },
+        {
+          "path": "test/app.test.js",
+          "symbol": "private repositories are asked for only when chosen"
+        }
+      ]
+    },
+    {
+      "id": "read-only-allowlist",
+      "title": "A read-only door with an allowlist",
+      "summary": "The Worker forwards GET requests to the few GitHub paths the page needs, and nothing else.",
+      "status": "accepted",
+      "context": "The repo scope lets a token write to every private repository the reader can reach.",
+      "decision": "proxy accepts only GET and only the paths in ALLOWED, and refuses any . or .. segment, encoded or not.",
+      "rationale": "Whatever the token could do, the Worker only reads with it.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "proxy"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "allowedPath"
+        },
+        {
+          "path": "test/app.test.js",
+          "symbol": "the proxy's allowlist"
+        }
+      ]
+    },
+    {
+      "id": "no-dependencies",
+      "title": "No dependencies",
+      "summary": "The Worker uses only the web platform, so it runs unchanged in Workers and in Node's test runner.",
+      "status": "accepted",
+      "context": "The repository has no build step.",
+      "decision": "app.js uses fetch, Web Crypto, Request, Response and Headers, and nothing from npm; package.json has no dependencies.",
+      "rationale": "Nothing to install or update, and the tests run the real handler.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "createHandler"
+        },
+        {
+          "path": "package.json"
+        }
+      ]
+    },
+    {
+      "id": "revoke-on-sign-out",
+      "title": "Should signing out revoke the token at GitHub?",
+      "summary": "Sign-out forgets the session in this browser; the token GitHub issued stays valid.",
+      "status": "open",
+      "waitingOn": "Owner",
+      "context": "signOut only clears explorer_session. The OAuth token the Worker received stays valid at GitHub until the reader revokes the app's access in their GitHub settings. With the repo scope it can write to every private repository the reader can reach, though this Worker only reads with it. README.md says sign-out \"forgets the session\" and says nothing about revoking.",
+      "options": [
+        {
+          "title": "Keep it as it is",
+          "consequences": "A sign-out is local to the browser; revoking is left to the reader, at GitHub."
+        },
+        {
+          "title": "Revoke the token at GitHub on sign-out",
+          "consequences": "Sign-out also ends the grant. It needs a call to GitHub's OAuth application API with the client ID and secret, and a sign-in on another device with the same token would end with it."
+        }
+      ],
+      "origin": {
+        "kind": "code",
+        "reference": "worker/app.js",
+        "description": "Found while describing the Worker's sign-in."
+      },
+      "relationships": [
+        {
+          "relation": "concerns",
+          "path": "worker/.dev/limitations.json",
+          "entityId": "sign-out-keeps-grant"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "signOut"
+        }
+      ]
+    }
+  ]
+}

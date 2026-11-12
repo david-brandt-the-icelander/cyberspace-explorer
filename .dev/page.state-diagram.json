@@ -15,6 +15,10 @@
     {
       "path": "index.html",
       "symbol": "status"
+    },
+    {
+      "path": "index.html",
+      "symbol": "showSignIn"
     }
   ],
   "machine": "The page",
@@ -22,11 +26,11 @@
   "states": [
     {
       "id": "opened",
-      "description": "The page has loaded and looks for ?url= in its address. Nothing is shown yet."
+      "description": "The page has loaded, asks /auth/me whether a Worker serves it and signs readers in, and looks for ?url= in its address. Nothing is shown yet."
     },
     {
       "id": "choosing",
-      "description": "The landing page: headline, what the browser does, the address field with Browse, an example repository, a note on tokens and a tile for each of the ten kinds of view. The bar shows only the brand."
+      "description": "The landing page: headline, what the browser does, the address field with Browse, an example repository, a note on tokens and a tile for each of the ten kinds of view. The bar shows only the brand. Under the address field, Sign in with GitHub (optional): on the Worker with include my private repositories, without it a field for a GitHub token. Signed in, it says who they are, with Sign out, and the address field gets a drop-down of their repositories; after a failed or cancelled sign-in it says so in red."
     },
     {
       "id": "listing",
@@ -34,7 +38,7 @@
     },
     {
       "id": "refused",
-      "description": "The status line, in red: 'Couldn't list the repository.' and why: the address is not a repository, the host refused the token, the token does not cover the repository, GitHub's 60 requests an hour are used up, no such repository or it is private, or no such branch, tag or commit. After a 401, 403 or 404 a button offers 'Add a token', or 'Replace or add a token'."
+      "description": "The status line, in red: 'Couldn't list the repository.' and why: the address is not a repository, the host refused the token, the token does not cover the repository, GitHub's 60 requests an hour are used up, no such repository or it is private, or no such branch, tag or commit. After a 401, 403 or 404 a button offers 'Add a token', or 'Replace or add a token'. The button after it is Sign in with GitHub, or Include private repositories, for a GitHub repository on the Worker; elsewhere Add a token, or Replace or add a token."
     },
     {
       "id": "empty",
@@ -139,6 +143,27 @@
       "to": "opened",
       "trigger": "Choose another repository, or the brand",
       "action": "the address loses ?url= and the page reloads to the landing page"
+    },
+    {
+      "from": "choosing",
+      "to": "opened",
+      "trigger": "a repository picked from the drop-down",
+      "guard": "the reader is signed in with GitHub",
+      "action": "its address goes into ?url= and the page reloads"
+    },
+    {
+      "from": "choosing",
+      "to": "opened",
+      "trigger": "Sign in with GitHub",
+      "guard": "a Worker serves the page with sign-in set up",
+      "action": "the reader goes to GitHub through the Worker and comes back to the landing page, signed in or with the reason it failed"
+    },
+    {
+      "from": "refused",
+      "to": "opened",
+      "trigger": "Sign in with GitHub, or Include private repositories",
+      "guard": "a Worker serves the page with sign-in set up, and the repository is on GitHub",
+      "action": "the reader goes to GitHub through the Worker and comes back to the same address"
     }
   ],
   "folder": "."

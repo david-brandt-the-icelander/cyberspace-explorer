@@ -70,6 +70,30 @@
           "symbol": "load"
         }
       ]
+    },
+    {
+      "id": "sign-in-comment",
+      "title": "The comment over the sign-in code describes only the pasted token",
+      "type": "debt",
+      "status": "open",
+      "summary": "index.html's comment above OLDEST_FIRST says a static page can't finish GitHub's OAuth flow, so signing in means giving a token; the code below it also signs in through the Worker.",
+      "details": "The comment was right before the Worker. It now describes the fallback only: showSignIn signs in through the Worker when detectService found one.",
+      "origin": {
+        "kind": "code",
+        "reference": "index.html",
+        "description": "Found while reconciling this folder with the Worker."
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "OLDEST_FIRST"
+        },
+        {
+          "path": "index.html",
+          "symbol": "showSignIn"
+        }
+      ]
     }
   ]
 }

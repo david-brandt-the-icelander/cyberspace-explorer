@@ -29,15 +29,11 @@
       "sources": [
         {
           "path": "README.md",
-          "symbol": "Layout"
+          "symbol": "Cyberspace explorer"
         },
         {
           "path": "Meta/Agents/Knowledge/README.md",
           "symbol": "Knowledge files"
-        },
-        {
-          "path": "README.md",
-          "symbol": "Cyberspace explorer"
         }
       ]
     }

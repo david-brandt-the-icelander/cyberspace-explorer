@@ -1,0 +1,104 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/contracts.schema.json",
+  "kind": "contracts",
+  "title": "What the page and GitHub rely on",
+  "folder": "worker",
+  "entities": [
+    {
+      "id": "auth-me",
+      "title": "GET /auth/me",
+      "summary": "How the page tells a server from a plain file, and who is signed in.",
+      "contractType": "http-api",
+      "consumers": [
+        "index.html (detectService, showSignIn)"
+      ],
+      "guarantees": [
+        "Answers JSON with configured: false when sign-in is not set up.",
+        "Otherwise configured: true and user: { login, avatar } for a valid session, or user: null."
+      ],
+      "compatibility": "The page treats anything but a JSON answer with configured: true as no server, so a field may be added; configured and user keep their meaning.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "me"
+        },
+        {
+          "path": "index.html",
+          "symbol": "detectService"
+        }
+      ]
+    },
+    {
+      "id": "github-door",
+      "title": "/api/github/<path>",
+      "summary": "GitHub's REST API under the Worker's own address, for the allowed reads.",
+      "contractType": "http-api",
+      "consumers": [
+        "index.html (the github adapter, githubApi and ghGet)"
+      ],
+      "guarantees": [
+        "For a signed-in reader, GET on user, user/repos, repos/<owner>/<repo>, its git/trees/<ref> and its contents/<path> answers as api.github.com would for that reader, query string included.",
+        "Accept: application/vnd.github.raw is passed on, so a file can be read raw.",
+        "x-ratelimit-remaining and x-ratelimit-reset are passed on.",
+        "401 means no session, or a session GitHub no longer accepts."
+      ],
+      "compatibility": "A path the page starts using must be added to ALLOWED in the same change.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "proxy"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "ALLOWED"
+        },
+        {
+          "path": "index.html",
+          "symbol": "githubApi"
+        },
+        {
+          "path": "index.html",
+          "symbol": "ghGet"
+        }
+      ]
+    },
+    {
+      "id": "sign-in-routes",
+      "title": "The sign-in routes and their answers",
+      "summary": "How the page starts a sign-in and learns how it went.",
+      "contractType": "http-api",
+      "consumers": [
+        "index.html (signInUrl, showSignIn and the start of the script)",
+        "The GitHub OAuth App, whose registered callback is this route"
+      ],
+      "guarantees": [
+        "GET /auth/github/start takes return, a path in the app, and private=1 to ask for private repositories.",
+        "The callback is <PUBLIC_ORIGIN>/auth/github/callback.",
+        "A sign-in ends at the return path, or with ?signin=denied when the reader cancelled at GitHub, or at /?signin=failed.",
+        "POST /auth/sign-out from the app's origin signs out."
+      ],
+      "compatibility": "Moving the callback means registering the new address on the OAuth App first.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "start"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "callback"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "signOut"
+        },
+        {
+          "path": "index.html",
+          "symbol": "signInUrl"
+        }
+      ]
+    }
+  ]
+}

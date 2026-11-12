@@ -1,0 +1,109 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/configuration.schema.json",
+  "kind": "configuration",
+  "title": "What the Worker reads from its environment",
+  "folder": "worker",
+  "entities": [
+    {
+      "id": "github-client-id",
+      "title": "GitHub OAuth App client ID",
+      "summary": "Identifies the OAuth App to GitHub; one of the three settings sign-in needs.",
+      "key": "GITHUB_CLIENT_ID",
+      "type": "string",
+      "sensitive": false,
+      "scope": "the Worker",
+      "takesEffect": "per-request",
+      "details": "Set as a Worker secret (README.md, \"Setting it up once (the owner)\"), though it is not secret: it is in the address the reader is sent to at GitHub.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "configured"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "start"
+        },
+        {
+          "path": "wrangler.jsonc",
+          "symbol": "GITHUB_CLIENT_ID"
+        }
+      ]
+    },
+    {
+      "id": "github-client-secret",
+      "title": "GitHub OAuth App client secret",
+      "summary": "Proves the Worker is the OAuth App when it exchanges a code; one of the three settings sign-in needs.",
+      "key": "GITHUB_CLIENT_SECRET",
+      "type": "string",
+      "sensitive": true,
+      "scope": "the Worker",
+      "takesEffect": "per-request",
+      "details": "A Worker secret, set with wrangler secret put. Sent only to GitHub's token endpoint.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "configured"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "callback"
+        }
+      ]
+    },
+    {
+      "id": "session-secret",
+      "title": "Session secret",
+      "summary": "The secret the cookies' AES-GCM key is derived from; one of the three settings sign-in needs.",
+      "key": "SESSION_SECRET",
+      "type": "string",
+      "sensitive": true,
+      "scope": "the Worker",
+      "takesEffect": "per-request",
+      "details": "Any long random string. Every pending sign-in and every session is sealed with a key derived from it, so changing it signs everyone out.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "aesKey"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "session"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "configured"
+        }
+      ]
+    },
+    {
+      "id": "public-origin",
+      "title": "Public origin",
+      "summary": "The app's address: the start of the OAuth callback address, and the Origin sign-out must come from.",
+      "key": "PUBLIC_ORIGIN",
+      "type": "URL origin",
+      "default": "the origin of the request",
+      "sensitive": false,
+      "scope": "the Worker",
+      "takesEffect": "per-request",
+      "details": "Set in wrangler.jsonc under vars. The OAuth App's registered callback must be this origin followed by /auth/github/callback.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "origin"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "signOut"
+        },
+        {
+          "path": "wrangler.jsonc",
+          "symbol": "vars"
+        }
+      ]
+    }
+  ]
+}
