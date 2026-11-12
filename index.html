@@ -287,6 +287,11 @@
   .facts ul, td ul { margin: 0; padding-left: 1.1em; }
   .src { display: block; }
   .src .d { color: var(--ink2); }
+  .xdoc { display: block; margin: 2px 0 6px; padding-left: 8px; border-left: 2px solid currentColor; color: var(--ink2); font-size: 0.92em; }
+  .xdoc[hidden] { display: none; }
+  .xdoc dl { margin: 2px 0 0; }
+  .xdoc dt { font-weight: 600; }
+  .xdoc dd { margin: 0 0 2px; }
   .pill { display: inline-block; padding: 2px 9px; border-radius: 99px; font: 600 13px/1.4 var(--semi); background: color-mix(in srgb, var(--k) 14%, var(--plate)); color: var(--k); }
   /* Knowledge files: grouped as the catalogue groups them, a card per record. */
   .kgroup { margin-top: 34px; }
@@ -1226,8 +1231,75 @@ function stateModel(d) {
   return { dir: "LR", nodes, edges };
 }
 
+// <doc-comments>
+/** Source files that can carry XML doc comments: /// above a declaration (C-family, F#), or three single quotes (Visual Basic). */
+const DOC_FILE = /\.(cs|csx|fs|fsx|vb|cpp|cc|cxx|h|hpp)$/i;
+const unxml = (s) => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&");
+/** The text of one doc tag as a sentence: references become their names, other tags are dropped. */
+function docText(s) {
+  return unxml(s
+    .replace(/<(?:see|seealso|paramref|typeparamref)\b[^>]*?\b(?:cref|name|langword|href)="([^"]*)"[^>]*?\/>/g, "$1")
+    .replace(/<(?:see|seealso)\b[^>]*?\b(?:cref|langword|href)="([^"]*)"[^>]*>\s*([^<]*?)\s*<\/(?:see|seealso)>/g, (_, a, b) => b || a)
+    .replace(/<\/?(?:para|c|code|b|i|em|strong|list|item|description|term|br)\b[^>]*\/?>/g, " ")
+    .replace(/<[^>]+>/g, ""))
+    .replace(/\s+/g, " ").trim();
+}
+/** Parses the lines of a doc comment (markers already removed) into { summary, remarks, returns, params, throws }, or null when no doc tag is there. */
+function parseDoc(text) {
+  const one = (tag) => { const m = text.match(new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)</${tag}>`)); return m ? docText(m[1]) : ""; };
+  const many = (tag, attr) => [...text.matchAll(new RegExp(`<${tag}\\s+${attr}="([^"]*)"[^>]*>([\\s\\S]*?)</${tag}>`, "g"))].map((m) => [unxml(m[1]), docText(m[2])]);
+  const doc = { summary: one("summary"), remarks: one("remarks"), returns: one("returns"), params: many("param", "name"), throws: many("exception", "cref") };
+  return doc.summary || doc.remarks || doc.returns || doc.params.length || doc.throws.length ? doc : null;
+}
+/** The XML doc comment above the declaration of `symbol` (a name, `Type.Member`, or a signature) in a source file, parsed, or null. */
+function docCommentOf(source, symbol) {
+  const name = String(symbol ?? "").replace(/\(.*$/s, "").replace(/<.*$/s, "").split(/[.:#\s]+/).filter(Boolean).pop();
+  if (!name || !/^\w+$/.test(name)) return null;
+  const lines = source.split(/\r?\n/), word = new RegExp(`\\b${name}\\b`), marker = /^\s*(?:\/\/\/|''')/;
+  for (let i = 0; i < lines.length; i++) {
+    if (marker.test(lines[i]) || /^\s*(?:\/\/|\[)/.test(lines[i]) || !word.test(lines[i])) continue;
+    let j = i - 1;
+    while (j >= 0 && /^\s*\[.*\]\s*$/.test(lines[j])) j--;
+    const found = [];
+    while (j >= 0 && marker.test(lines[j])) found.unshift(lines[j--].replace(marker, ""));
+    const doc = found.length ? parseDoc(found.join("\n")) : null;
+    if (doc) return doc;
+  }
+  return null;
+}
+// </doc-comments>
+
+const sourceText = new Map();
+/** A repository file's text, read once; null when it can't be read. */
+function readSource(path) {
+  const p = String(path).replace(/^\.\//, "");
+  if (!sourceText.has(p)) {
+    const [url, headers] = repo.host.read(repo, p);
+    sourceText.set(p, fetch(url, { headers: { ...headers, ...auth(repo) } }).then((r) => (r.ok ? r.text() : null)).catch(() => null));
+  }
+  return sourceText.get(p);
+}
+/** A placeholder that shows the doc comment of a source reference once the file has been read; nothing for a reference that can't have one. */
+const docSlot = (path, symbol) => (DOC_FILE.test(String(path)) && symbol ? `<span class="xdoc" data-path="${esc(path)}" data-symbol="${esc(symbol)}" hidden></span>` : "");
+function docHtml(d) {
+  const row = (label, items) => items.length ? `<dt>${label}</dt><dd>${items.map(([n, t]) => `${n ? `<code>${esc(n)}</code> ` : ""}${esc(t)}`).join("<br>")}</dd>` : "";
+  const more = [row("Returns", d.returns ? [["", d.returns]] : []), row("Parameters", d.params), row("Throws", d.throws), row("Remarks", d.remarks ? [["", d.remarks]] : [])].join("");
+  return `${d.summary ? `<span class="s">${esc(d.summary)}</span>` : ""}${more ? `<dl>${more}</dl>` : ""}`;
+}
+async function fillDoc(el) {
+  el.dataset.done = "1";
+  const text = await readSource(el.dataset.path);
+  const doc = text ? docCommentOf(text, el.dataset.symbol) : null;
+  if (!doc) return;
+  el.innerHTML = docHtml(doc);
+  el.hidden = false;
+}
+const fillDocs = (root) => root.querySelectorAll?.(".xdoc:not([data-done])").forEach(fillDoc);
+new MutationObserver((list) => { for (const m of list) m.addedNodes.forEach((n) => { if (n.nodeType === 1) { if (n.matches(".xdoc:not([data-done])")) fillDoc(n); fillDocs(n); } }); })
+  .observe(document.body, { childList: true, subtree: true });
+
 /** Source references for an inspector or a cell: the file, then the symbol read in it. */
-const symRefs = (list) => (list ?? []).map((x) => `<span class="src">${fileLink(x.path)} <span class="d"><code>${esc(x.symbol)}</code></span></span>`).join("");
+const symRefs = (list) => (list ?? []).map((x) => `<span class="src">${fileLink(x.path)} <span class="d"><code>${esc(x.symbol)}</code></span>${docSlot(x.path, x.symbol)}</span>`).join("");
 
 /** A use case's steps in order, each alternative branching off its step as a dashed outcome. */
 function useCaseModel(d) {
@@ -1824,7 +1896,7 @@ const viewHash = (v) => { const t = byPath.get(v.path); return t ? folderHash(t.
 function details(d, i) {
   const pick = (key, text) => `<button class="sel-link" data-pick="${esc(key)}" data-d="${i}">${esc(text)}</button>`;
   const rels = (d.relationships ?? []).map((r) => [esc(r.from), esc(r.kind), esc(r.to), esc(r.description)]);
-  const sources = (d.sources ?? []).map((s) => [fileLink(s.path), `<code>${esc(s.symbol)}</code>`]);
+  const sources = (d.sources ?? []).map((s) => [fileLink(s.path), `<code>${esc(s.symbol)}</code>${docSlot(s.path, s.symbol)}`]);
   const related = (d.relatedViews ?? []).map((v) => {
     const t = byPath.get(v.path), h = viewHash(v);
     return [`<span class="faint">${esc(KIND_NAME[v.kind] ?? v.kind)}</span>`, (h ? `<a href="${esc(h)}">${esc(t.title)}</a>` : fileLink(v.path)) + `<br><code>${esc(v.folder)}</code>`, esc(v.relationship)];
@@ -2051,7 +2123,7 @@ function value(v) {
     return items.length === 1 && typeof v[0] !== "object" ? items[0] : items.length ? `<ul>${items.map((x) => `<li>${x}</li>`).join("")}</ul>` : "";
   }
   const note = v.description ? ` <span class="d">${esc(v.description)}</span>` : "";
-  if (typeof v.path === "string") return pathLink(v.path, v.entityId, v.label ?? v.title) + (v.symbol ? ` <code>${esc(v.symbol)}</code>` : "") + note;
+  if (typeof v.path === "string") return pathLink(v.path, v.entityId, v.label ?? v.title) + (v.symbol ? ` <code>${esc(v.symbol)}</code>` : "") + note + docSlot(v.path, v.symbol);
   if (typeof v.url === "string" && isUrl(v.url)) return urlLink(v.url, v.label ?? v.title ?? v.url) + note;
   const head = v.title ?? v.name;
   const rest = Object.entries(v).filter(([k, x]) => !(head && (k === "title" || k === "name")) && x !== null && x !== undefined && x !== "");
