@@ -11,7 +11,23 @@ permissions:
   contents: write
 
 jobs:
+  # The tag must name the version in Cargo.toml, so `cyberspace-generator --version` matches the release.
+  version:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - name: Tag matches the crate version
+        run: |
+          crate=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "cyberspace-generator") | .version')
+          tag=${GITHUB_REF_NAME#generator-v}
+          if [ "$crate" != "$tag" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match cyberspace-generator $crate in Cargo.toml; set version = \"$tag\" under [workspace.package] and tag again."
+            exit 1
+          fi
+          echo "cyberspace-generator $crate"
+
   build:
+    needs: version
     strategy:
       matrix:
         include:
