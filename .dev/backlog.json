@@ -42,6 +42,50 @@
       "evidenceStatus": "proposed"
     },
     {
+      "id": "cyberspace-mode",
+      "title": "Cyberspace: the repository in 3D",
+      "type": "feature",
+      "status": "accepted",
+      "priority": "medium",
+      "summary": "A second way to read a repository beside the flat page: a folder as a tower of floors, a drawn view as a city of glass towers, and a walk through it at street level.",
+      "details": "The [implementation spec](docs/cyberspace-mode-spec.md) says how to build it: where the code goes in `index.html`, how a view becomes a 3D world, the exact look, the address forms, the fallbacks, the build order and the tests. The design it follows is the canvas *Cyberspace explorer in 3D*, linked from the spec.\n\nIt changes one recorded decision, `one-motion`, which the spec amends with a new decision `cyberspace-motion`. Its open questions (the skyline for repositories with several folders, light mode, which three.js version to pin, per-entity views, and which mode the landing page's example opens in) are listed at the end of the spec.",
+      "origin": {
+        "kind": "request",
+        "by": "owner",
+        "date": "2026-11-13",
+        "description": "Design a visual cyberspace in 3D for the explorer, then write an implementation spec for the agent that builds it, kept in the repository."
+      },
+      "acceptanceCriteria": [
+        "Everything on the spec's acceptance checklist passes for this repository in current Chrome, Safari and Firefox, in light and dark.",
+        "Without WebGL or three.js, everything is still readable in the flat view, which says why.",
+        "Every existing form of the page's address keeps its meaning; Cyberspace links opened by an older copy of the page land on the same folder and part.",
+        "The `.dev` files listed in the spec's last section describe Cyberspace in the same change."
+      ],
+      "relationships": [
+        {
+          "relation": "documents",
+          "path": "docs/cyberspace-mode-spec.md",
+          "description": "The implementation spec."
+        },
+        {
+          "relation": "depends-on",
+          "path": ".dev/decisions.json",
+          "entityId": "one-motion",
+          "description": "Amended by the new decision cyberspace-motion."
+        },
+        {
+          "relation": "depends-on",
+          "path": ".dev/contracts.json",
+          "entityId": "page-address"
+        },
+        {
+          "relation": "depends-on",
+          "path": ".dev/quality-requirements.json"
+        }
+      ],
+      "evidenceStatus": "proposed"
+    },
+    {
       "id": "landing-form-after-bad-address",
       "title": "The landing page forgets a new address after a bad one",
       "type": "defect",
