@@ -297,6 +297,9 @@
   .gtab[aria-selected="true"] { color: var(--ink); font-weight: 600; border-color: var(--k-knowledge); background: color-mix(in srgb, var(--k-knowledge) 14%, transparent); }
   .kgroup[hidden] { display: none; }
   .gtabs + .kgroup { margin-top: 8px; }
+  .ent { margin-top: 22px; }
+  .ent .entity { margin-top: 0; }
+  .ent .canvas { margin-top: 12px; }
   .kgroup { margin-top: 34px; }
   .dpanel > .kgroup:first-child { margin-top: 22px; }
   .kgroup > h2 { display: flex; align-items: center; gap: 9px; font: 700 15px/1.2 var(--semi); letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); margin: 0; padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
@@ -1596,13 +1599,16 @@ function showFolder(folder) {
 }
 
 /** One diagram, whole: its heading, its drawing if it has one, and everything it says. */
+/** Use cases and journeys are many to a file: each is drawn on its own canvas, under its own card. */
+const PER_ENTITY = new Set(["use-case", "user-journey"]);
+const legend = (d) => `<div class="legend">${LEGENDS[d.kind].map(([g, t]) => `<span>${g}${esc(t)}</span>`).join("")}</div>`;
 const diagramSection = (d, i) => `
     <section class="diagram kind-${d.kind}" id="d${i}" data-file="${esc(d._path.split("/").pop())}">
       <div class="dhead"><span class="tile">${ic("kind-" + d.kind)}</span><div><h2>${esc(d.title)}</h2><p class="what">${KIND_NAME[d.kind]}${d.kind === "state" ? ` of <code>${esc(d.machine)}</code>` : ""}</p></div></div>
       <p class="ddesc">${esc(d.description)}</p>
-      ${MODELS[d.kind] ? `<div class="canvas"></div>
-      <div class="legend">${LEGENDS[d.kind].map(([g, t]) => `<span>${g}${esc(t)}</span>`).join("")}</div>` : ""}
-      ${cards(d)}
+      ${PER_ENTITY.has(d.kind)
+        ? (d.entities ?? []).map((e) => `<div class="ent">${cards({ ...d, entities: [e] })}<div class="canvas"></div>${legend(d)}</div>`).join("")
+        : `${MODELS[d.kind] ? `<div class="canvas"></div>${legend(d)}` : ""}${cards(d)}`}
       ${details(d, i)}
     </section>`;
 
@@ -1626,12 +1632,16 @@ function selectKind(k, focusTab = false) {
 /** Draws the diagrams of the kind now showing: a drawing in a closed tab has no width to be laid out in. */
 function drawKind() {
   const docs = byFolder.get(current) ?? [];
-  docs.forEach((d, i) => { if (d.kind === shownKind && !(i in drawn)) drawn[i] = drawDiagram(d, i, current); });
+  docs.forEach((d, i) => {
+    if (d.kind !== shownKind || i in drawn) return;
+    if (!PER_ENTITY.has(d.kind)) { drawn[i] = drawDiagram(d, i, current); return; }
+    const canvases = [...$("d" + i).querySelectorAll(".canvas")];
+    drawn[i] = (d.entities ?? []).map((e, k) => drawDiagram({ ...d, entities: [e] }, i, current, canvases[k]));
+  });
 }
 
-function drawDiagram(d, i, folder) {
-  if (!MODELS[d.kind]) return null;
-  const wrap = $("d" + i).querySelector(".canvas");
+function drawDiagram(d, i, folder, wrap = $("d" + i).querySelector(".canvas")) {
+  if (!MODELS[d.kind] || !wrap) return null;
   if (!dagre) { wrap.innerHTML = `<p class="msg">The drawing library couldn't load. Everything in the diagram is in the tables below.</p>`; $("d" + i).querySelector("details").open = true; return null; }
   let model, L;
   try {
@@ -1743,7 +1753,7 @@ function drill(el, hash) {
 function select(entry, key, pulse = false) {
   const n = entry.parts.get(key);
   if (!n?.info) return;
-  for (const e of drawn) if (e && e !== entry && e.pinned) { e.pinned = null; e.svg.querySelector(".node.sel")?.classList.remove("sel"); rest(e); }
+  for (const e of drawn.flat()) if (e && e !== entry && e.pinned) { e.pinned = null; e.svg.querySelector(".node.sel")?.classList.remove("sel"); rest(e); }
   entry.svg.querySelector(".node.sel, .cl.sel")?.classList.remove("sel");
   const g = entry.svg.querySelector(`[data-key="${CSS.escape(key)}"]`);
   g?.classList.add("sel");
@@ -1761,7 +1771,7 @@ function select(entry, key, pulse = false) {
 
 function closeInspector() {
   $("inspector").hidden = true;
-  for (const e of drawn) if (e?.pinned) { e.svg.querySelector(".sel")?.classList.remove("sel"); e.pinned = null; rest(e); }
+  for (const e of drawn.flat()) if (e?.pinned) { e.svg.querySelector(".sel")?.classList.remove("sel"); e.pinned = null; rest(e); }
 }
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("inspector").hidden) closeInspector(); });
 
@@ -1791,7 +1801,7 @@ function focusPart(focus) {
   }
   // The part may be in a kind whose tab isn't open: open it, which draws it.
   selectKind(kind);
-  for (const e of drawn) {
+  for (const e of drawn.flat()) {
     if (!e || e.d.kind !== kind) continue;
     const n = e.parts.get(name) ?? [...e.parts.values()].find((p) => p.info?.title === name);
     if (n) {
@@ -1871,7 +1881,7 @@ function details(d, i) {
 $("view").addEventListener("click", (e) => {
   const b = e.target.closest("[data-pick]");
   if (!b) return;
-  const entry = drawn[+b.dataset.d];
+  const entry = [drawn[+b.dataset.d]].flat().find((x) => x?.parts.has(b.dataset.pick));
   if (!entry) return;
   entry.wrap.scrollIntoView({ block: "center", behavior: reducedMotion.matches ? "auto" : "smooth" });
   select(entry, b.dataset.pick, true);
