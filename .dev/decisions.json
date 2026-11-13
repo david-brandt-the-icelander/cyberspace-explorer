@@ -337,8 +337,8 @@
     {
       "id": "space-skyline",
       "title": "What a repository with several folders looks like in Cyberspace",
-      "summary": "Artboard 7 on the canvas designs the skyline of a repository with several folders, and the spec follows it. The owner accepts it or changes it.",
-      "status": "open",
+      "summary": "A repository with several folders has a skyline: a scene of its own above the folder towers, as artboard 7 on the canvas draws it.",
+      "status": "accepted",
       "context": "In Cyberspace a folder is a tower of floors. The spec first stood every folder as a building in the tower scene, round the address folder drawn in full, on a radial tree with each subtree's angle in proportion to its number of folders and rings 14 units apart. Drawn for retro-games' 93 folders, that rule stood 15 pairs of buildings closer together than a building is wide, and a full 16 × 12 tower with its drawer did not fit a ring. Artboard 7 (docs/cyberspace-design/Skyline.dc.html) makes the skyline a scene of its own, one level above the towers (~space:skyline): every folder the same building, each subtree given the angle its buildings need, the rings as far apart as that takes (20 units for retro-games), the camera on the address folder with the outer rings running to the horizon. The spec now says the same, so a ~space address still opens a folder's tower.",
       "options": [
         {
@@ -350,26 +350,29 @@
           "consequences": "The address folder's full tower stands among the buildings, which needs wider rings and another layout rule than either the spec's first or the artboard's."
         }
       ],
-      "waitingOn": "owner",
-      "blocks": [
-        {
-          "path": ".dev/plan.json",
-          "entityId": "cyberspace-mode",
-          "description": "The skyline's polish, in step 6."
-        }
-      ],
+      "decision": "The skyline is as artboard 7 draws it and the spec's sections Skyline world and The skyline say: a scene of its own above the folder towers (~space:skyline), every folder the same building on a radial tree, each subtree given the angle its buildings need, the rings widened until they fit, and the camera on the address folder. A ~space address opens a folder's tower.",
+      "rationale": "Drawn on retro-games' 93 folders, the artboard's rule leaves no building overlapping another, where the spec's first rule overlapped 15 pairs. The tower scene stays as artboard 1 has it.",
+      "decidedBy": "owner",
+      "decidedOn": "2026-11-13",
       "origin": {
         "kind": "conversation",
         "by": "owner",
         "date": "2026-11-13"
       },
-      "evidenceStatus": "proposed"
+      "relationships": [
+        {
+          "relation": "relates-to",
+          "path": ".dev/plan.json",
+          "entityId": "cyberspace-mode"
+        }
+      ],
+      "evidenceStatus": "documented"
     },
     {
       "id": "space-light-mode",
       "title": "Cyberspace in light mode",
-      "summary": "Artboards 4 to 6 on the canvas show the three scenes in light mode, drawn from the page's tokens, and the spec follows them. The owner accepts them or changes them.",
-      "status": "open",
+      "summary": "Light mode in Cyberspace is what the page's light tokens give, as artboards 4 to 6 on the canvas draw it.",
+      "status": "accepted",
       "context": "Every colour in Cyberspace comes from the page's tokens (quality requirement light-dark), with four new ones for the sky and the major grid, so light mode follows from the light values. Artboards 4 to 6 (docs/cyberspace-design/StrataLight, MainLight and StreetLight) draw the three scenes from those values. What is lit turns ink-dark, because --hot is the ink colour in light mode: the selected tower's edges, the lit beams, the selected label. Flat's lit lines do the same.",
       "options": [
         {
@@ -381,26 +384,29 @@
           "consequences": "A new token beside --hot, which Flat does not have, and artboards 4 to 6 drawn again."
         }
       ],
-      "waitingOn": "owner",
-      "blocks": [
-        {
-          "path": ".dev/plan.json",
-          "entityId": "cyberspace-mode",
-          "description": "Light mode's sign-off, in step 7."
-        }
-      ],
+      "decision": "Light mode is what the page's light tokens give, as artboards 4 to 6 draw the three scenes. What is lit is drawn in --hot, the ink colour in light mode, as Flat's lit lines are.",
+      "rationale": "Cyberspace keeps to the page's tokens and has no colour of its own (quality requirement light-dark), and Flat and Cyberspace light a selection the same way.",
+      "decidedBy": "owner",
+      "decidedOn": "2026-11-13",
       "origin": {
         "kind": "conversation",
         "by": "owner",
         "date": "2026-11-13"
       },
-      "evidenceStatus": "proposed"
+      "relationships": [
+        {
+          "relation": "relates-to",
+          "path": ".dev/plan.json",
+          "entityId": "cyberspace-mode"
+        }
+      ],
+      "evidenceStatus": "documented"
     },
     {
       "id": "space-other-kinds",
       "title": "How state machines, use cases and parts that open a folder stand in Cyberspace",
-      "summary": "Artboards 8 to 10 on the canvas show a state machine, a use case and a part that opens a folder, and the spec follows them. The owner accepts them or changes them.",
-      "status": "open",
+      "summary": "State machines, use cases and parts that open a folder stand in Cyberspace as artboards 8 to 10 on the canvas draw them.",
+      "status": "accepted",
       "context": "Cyberspace draws every drawn kind as a city. Artboards 8 to 10 (docs/cyberspace-design/StateCity, UseCaseCity and Worker) show this repository's page state machine, its first use case and the Worker. They keep the spec's first defaults for the start point (a disc on the ground), a use case's alternative outcome (a short tower with dashed edges, not a beacon) and a part with diagrams of its own (Flat's badge on its label). They change the rest, and the spec now says the same: a final state is ringed twice and has a solid top, since a second band could not be told from the floor bands; beams between the same two parts fan out; a lit transition shows its trigger; a label is the node's own short label; the Layers panel has a row for each view of a kind; and the inspector shows the folder a part opens, with Enter its folder, in place of Flat's Open link.",
       "options": [
         {
@@ -412,13 +418,23 @@
           "consequences": "The spec follows the change before the step that builds it."
         }
       ],
-      "waitingOn": "owner",
+      "decision": "They stand as artboards 8 to 10 draw them and the spec says: the start point a disc on the ground; a final state ringed twice with a solid top; an alternative outcome a short tower with dashed edges; beams between the same two parts fanned out; a lit transition showing its trigger; labels from the node's own short label; a row in Layers for each view of a kind; and the folder a part opens shown in the inspector, with Enter its folder.",
+      "rationale": "Each was drawn from this repository's own page state machine, first use case and Worker, where the spec's first defaults could not be told apart or read.",
+      "decidedBy": "owner",
+      "decidedOn": "2026-11-13",
       "origin": {
         "kind": "conversation",
         "by": "owner",
         "date": "2026-11-13"
       },
-      "evidenceStatus": "proposed"
+      "relationships": [
+        {
+          "relation": "relates-to",
+          "path": ".dev/plan.json",
+          "entityId": "cyberspace-mode"
+        }
+      ],
+      "evidenceStatus": "documented"
     },
     {
       "id": "per-entity-cities",

@@ -17,7 +17,7 @@ The design that [the Cyberspace spec](../cyberspace-mode-spec.md) implements. Th
 
 Each artboard is a static page, 1440 × 900, that opens in any browser and loads the Barlow typefaces from Google Fonts. Each render is its artboard drawn at that size.
 
-Artboards 4 to 10 are what the open decisions `space-light-mode` (4 to 6), `space-skyline` (7) and `space-other-kinds` (8 to 10) in [.dev/decisions.json](../../.dev/decisions.json) wait on. The spec follows them.
+The owner accepted artboards 4 to 10 on 2026-11-13: decisions `space-light-mode` (4 to 6), `space-skyline` (7) and `space-other-kinds` (8 to 10) in [.dev/decisions.json](../../.dev/decisions.json). The spec follows them.
 
 ## What they show, and what they don't
 

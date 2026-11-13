@@ -698,10 +698,9 @@ The repository describes itself, so the change is not done until its `.dev` file
 
 The questions still open are `status: open` records in [.dev/decisions.json](../.dev/decisions.json), so they show under **Waiting**:
 
-- **Skyline** (`space-skyline`). Artboard 7 designs it on retro-games' 93 folders, and this spec follows it: a scene of its own above the towers, each folder given the angle its buildings need, the rings as far apart as that takes. The first rule (the buildings in the tower scene round the address folder drawn in full, angles by number of folders, rings 14 apart) stood 15 pairs of retro-games' buildings too close. The owner accepts the artboard or changes it.
-- **Light mode** (`space-light-mode`). Artboards 4 to 6 show the three scenes drawn from the page's light tokens, and this spec follows them. What is lit turns ink-dark, as in Flat. The owner accepts them or changes them before step 7.
-- **The other kinds, and parts that open a folder** (`space-other-kinds`). Artboards 8 to 10 show a state machine, a use case and the Worker, and this spec follows them: beams that fan out, triggers on lit beams, a final state ringed twice, labels from the node's `label`, a row per view in Layers, and the *Its folder* block. The owner accepts them or changes them.
 - **Per-entity views** (`per-entity-cities`). A use-case file with many use cases becomes one city per use case. The Layers panel lists a file's use cases as radio buttons, so one stands at a time and a reader can reach each. Whether several can stand side by side, as tick boxes, is decided after step 6.
 - **Safari and Firefox** (`cross-browser-checks`). Either the owner runs the acceptance checklist in them, or the owner approves installing Playwright's WebKit and Firefox builds so an agent can.
 
 Settled: step 1 pins three.js to the newest stable release on that day (0.187.0 on 2026-11-13), as an exact version in `THREE_URL` like `DAGRE`. jsDelivr's `+esm` build can't carry a subresource-integrity hash, the same trust the page already gives dagre. A shared link opens in whatever mode it says, and the landing page's example keeps opening Flat.
+
+Settled on 2026-11-13, when the owner accepted artboards 4 to 10 and this spec as it follows them: the skyline (decision `space-skyline`, artboard 7), light mode (`space-light-mode`, artboards 4 to 6), and how state machines, use cases and parts that open a folder stand (`space-other-kinds`, artboards 8 to 10).

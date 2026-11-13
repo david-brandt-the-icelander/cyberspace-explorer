@@ -48,7 +48,7 @@
       "status": "accepted",
       "priority": "medium",
       "summary": "A second way to read a repository beside the flat page: a folder as a tower of floors, a drawn view as a city of glass towers, and a walk through it at street level.",
-      "details": "The [implementation spec](docs/cyberspace-mode-spec.md) says how to build it: where the code goes in `index.html`, how a view becomes a 3D world, the exact look, the address forms, the fallbacks, the build order and the tests. The design it follows is the canvas *Cyberspace explorer in 3D*, linked from the spec and copied in [docs/cyberspace-design](docs/cyberspace-design/README.md).\n\nThe [plan](.dev/plan.json) builds it in eight pull requests and says how each is checked. It changes one recorded decision, `one-motion`, which the spec amends with a new decision `cyberspace-motion`. The questions still open are decisions: `space-skyline`, `space-light-mode`, `space-other-kinds`, `per-entity-cities` and `cross-browser-checks`.",
+      "details": "The [implementation spec](docs/cyberspace-mode-spec.md) says how to build it: where the code goes in `index.html`, how a view becomes a 3D world, the exact look, the address forms, the fallbacks, the build order and the tests. The design it follows is the canvas *Cyberspace explorer in 3D*, linked from the spec and copied in [docs/cyberspace-design](docs/cyberspace-design/README.md).\n\nThe [plan](.dev/plan.json) builds it in eight pull requests and says how each is checked. It changes one recorded decision, `one-motion`, which the spec amends with a new decision `cyberspace-motion`. The questions still open are decisions: `per-entity-cities` and `cross-browser-checks`.",
       "origin": {
         "kind": "request",
         "by": "owner",
