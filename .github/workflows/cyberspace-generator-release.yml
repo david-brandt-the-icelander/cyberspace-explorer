@@ -1,0 +1,52 @@
+# On a generator-v* tag, build cyberspace-generator for macOS (both CPU types) and Linux (static, both CPU types)
+# and attach the binaries and SHA256SUMS to a GitHub release. software-developers-toolbox picks the newest such
+# release up in its bump-cyberspace-generator workflow and ships it inside zazzle.
+name: cyberspace-generator release
+
+on:
+  push:
+    tags: ["generator-v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - { runner: macos-latest, target: aarch64-apple-darwin }
+          - { runner: macos-latest, target: x86_64-apple-darwin }
+          - { runner: ubuntu-24.04, target: x86_64-unknown-linux-musl }
+          - { runner: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - run: cargo test --workspace --locked
+      - run: cargo build --release --locked -p cyberspace-generator --target ${{ matrix.target }}
+      - run: cp target/${{ matrix.target }}/release/cyberspace-generator cyberspace-generator-${{ matrix.target }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cyberspace-generator-${{ matrix.target }}
+          path: cyberspace-generator-${{ matrix.target }}
+
+  publish:
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd dist
+          sha256sum cyberspace-generator-* > SHA256SUMS
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes cyberspace-generator-* SHA256SUMS

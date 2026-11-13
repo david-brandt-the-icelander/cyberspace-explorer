@@ -1,0 +1,19 @@
+[package]
+name = "cyberspace-generator"
+description = "Checks and maintains a repository's .dev files, the views and knowledge the cyberspace explorer shows."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "cyberspace-generator"
+path = "src/main.rs"
+
+[dependencies]
+cyberspace-common.workspace = true
+cyberspace-diagrams.workspace = true
+cyberspace-knowledge.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true

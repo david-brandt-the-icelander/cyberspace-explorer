@@ -1,0 +1,25 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/folder.schema.json",
+  "kind": "folder",
+  "title": "Rust crates",
+  "folder": "crates",
+  "entities": [
+    {
+      "id": "folder",
+      "title": "Rust crates",
+      "summary": "The validators for .dev files, ported from Python to Rust, and cyberspace-generator, the command-line tool built on them.",
+      "purpose": "Lets agents and CI check and maintain the .dev files the explorer shows, with one binary that needs no Python. cyberspace-common reads JSON strictly and walks a repository; cyberspace-diagrams and cyberspace-knowledge replace Meta/Agents/Skills/validate_diagrams.py and Meta/Agents/Knowledge/validate_knowledge.py; cyberspace-generator offers validate, scan and stale.",
+      "boundaries": [
+        "The schemas are read at run time from the checked repository's Meta/Agents, never embedded.",
+        "The tool is released from generator-v* tags and installed as part of zazzle by the software-developers-toolbox repository; this repository does not publish it to Homebrew itself."
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        { "path": "crates/cyberspace-generator/src/main.rs", "symbol": "Cmd" },
+        { "path": "crates/cyberspace-diagrams/src/lib.rs", "symbol": "validate" },
+        { "path": "crates/cyberspace-knowledge/src/lib.rs", "symbol": "validate" },
+        { "path": "crates/cyberspace-generator/tests/parity.rs", "symbol": "case" }
+      ]
+    }
+  ]
+}
