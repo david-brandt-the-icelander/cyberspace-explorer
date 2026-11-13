@@ -445,6 +445,8 @@ const orderOf = (d) => KIND_ORDER[d.kind] ?? KNOWLEDGE[d.kind]?.order ?? 999;
 /** "2 class diagrams", "1 feature", "3 knowledge files". */
 /** How many things a view holds: one diagram, but each use case, journey, capability, feature or operation in a file. */
 const countOf = (d) => ["use-case", "user-journey", "capability", "feature", "operation"].includes(d.kind) ? Math.max(d.entities?.length ?? 0, 1) : 1;
+/** A tab's label: the kind, plural, with no count. */
+const kindLabel = (k) => kindCount(k, 2).replace(/^2 /, "");
 const kindCount = (k, n) => `${n} ${k === "knowledge" ? "knowledge file" : KIND_ORDER[k] < 4 ? k + " diagram" : k.replace("-", " ")}`.replace(/([^aeiou])y$/, n > 1 ? "$1ie" : "$1y") + (n > 1 ? "s" : "");
 const DAGRE = "https://cdn.jsdelivr.net/npm/@dagrejs/dagre@3.1.3/+esm";
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
@@ -1583,7 +1585,7 @@ function showFolder(folder) {
       ${purpose ? `<p class="purpose">${esc(purpose)}</p>` : ""}
       ${kids.length ? `<div class="inside"><span>Inside</span>${kids.map((k) => `<a class="chip" href="${esc(folderHash(k))}">${ic("folder")}${esc(rel(k, folder))}${pips(byFolder.get(k))}</a>`).join("")}</div>` : ""}
     </div>
-    <div class="ktabs" role="tablist" aria-label="Kinds of view in this folder">${kinds.map((k) => `<button class="ktab kind-${k}" role="tab" id="tab-${k}" data-kind="${k}" aria-controls="panel-${k}" aria-selected="${k === shownKind}" tabindex="${k === shownKind ? 0 : -1}">${ic("kind-" + k)}${kindCount(k, k === "knowledge" ? counts.get(k).length : counts.get(k).reduce((s, i) => s + countOf(docs[i]), 0))}</button>`).join("")}</div>`
+    <div class="ktabs" role="tablist" aria-label="Kinds of view in this folder">${kinds.map((k) => `<button class="ktab kind-${k}" role="tab" id="tab-${k}" data-kind="${k}" aria-controls="panel-${k}" aria-selected="${k === shownKind}" tabindex="${k === shownKind ? 0 : -1}">${ic("kind-" + k)}${kindLabel(k)}</button>`).join("")}</div>`
     + kinds.map(panel).join("");
   const strip = view.querySelector(".ktabs");
   strip.addEventListener("click", (e) => { const t = e.target.closest(".ktab"); if (t) selectKind(t.dataset.kind); });
