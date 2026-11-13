@@ -2,7 +2,7 @@
 
 2026-11-13 · David Hermann Brandt
 
-The design this spec implements is the canvas [Cyberspace explorer in 3D](https://claude.ai/artifact/VDLEAr9k5mUna6aAPuC1Pp). The spec was drafted as a doc ([Cyberspace mode: implementation spec](https://claude.ai/artifact/X4UTWACvWidkSSJHWom9iu)); this file is the copy the repository keeps, and the one to change from now on. Wanted work: backlog item `cyberspace-mode` in [.dev/backlog.json](../.dev/backlog.json).
+The design this spec implements is the canvas [Cyberspace explorer in 3D](https://claude.ai/artifact/VDLEAr9k5mUna6aAPuC1Pp). The spec was drafted as a doc ([Cyberspace mode: implementation spec](https://claude.ai/artifact/X4UTWACvWidkSSJHWom9iu)); this file is the copy the repository keeps, and the one to change from now on. Wanted work: backlog item `cyberspace-mode` in [.dev/backlog.json](../.dev/backlog.json). The canvas's three artboards, with renders of them, are copied in [cyberspace-design/](cyberspace-design/README.md) for anyone who can't open the canvas. The order of the work, and how each step is checked, is the plan `cyberspace-mode` in [.dev/plan.json](../.dev/plan.json).
 
 ## Summary
 
@@ -25,7 +25,7 @@ The 3D ground plan is the flat drawing's dagre layout laid on the floor. A part 
 - [ ] Selecting a tower opens the existing inspector with the same content as the flat page.
 - [ ] Without WebGL, without three.js, with reduced motion, from the keyboard and in light mode, the mode degrades as section *Fallbacks, performance budgets, accessibility* says.
 - [ ] 60 fps on a 2021 MacBook Air (M1) at 1440×900 for this repository; 30 fps or better for a 400-part diagram.
-- [ ] The repository's `.dev` views are updated in the same change (last section).
+- [ ] The repository's `.dev` files describe what each step built, in that step's pull request (last section).
 
 ## Ground rules
 
@@ -41,7 +41,7 @@ The repository already records how the page must be built; Cyberspace follows th
 | --- | --- |
 | decision `one-file` | All code stays in `index.html`. No build step, no bundler, no new files served. The only new network dependency is three.js from jsDelivr, loaded the way dagre is (`import()` of a pinned `+esm` URL). |
 | decision `own-drawing` | Draw the scene ourselves with three.js core. Do not add OrbitControls, CSS2DRenderer or any other examples/addons module; write the controls and the label layer (they are small and need to match this page). |
-| decision `survey-sheet`, `light-dark`, `colour-per-kind` | Every colour in the scene comes from the page's CSS custom properties (`--k-component` … `--k-knowledge`, `--paper`, `--ink` …), read with `getComputedStyle` and re-read when `prefers-color-scheme` changes. No colour literals in the scene code. |
+| decisions `survey-sheet` and `colour-per-kind`, quality requirement `light-dark` | Every colour in the scene comes from the page's CSS custom properties (`--k-component` … `--k-knowledge`, `--paper`, `--ink` …), read with `getComputedStyle` and re-read when `prefers-color-scheme` changes. No colour literals in the scene code. |
 | decision `barlow`, `own-icons` | Labels and panels use the existing Barlow stacks and `ic()` icons. |
 | decision `tables-always`, requirement `works-without-drawing` | Cyberspace is another way in, never the only one: every fact shown in 3D stays reachable in Flat. |
 | decision `address-is-state`, contract `page-address`, requirement `addressable` | The mode and the selected part are in the address; existing forms keep their meaning (section *Routing, state and links*). |
@@ -85,6 +85,15 @@ flowchart LR
 Cyberspace reuses what the page loaded; three.js is the only new download.
 
 The new section only reads `byFolder` and the models; it writes the scene, the HUD, and the inspector through the same `showInfo()` Flat uses.
+
+**Where it touches the existing code.** Outside the new section, only these change:
+
+- `route()`: the address marker (section *Routing*), and a redraw of Flat (`showFolder`) the first time Flat shows after a stay in Cyberspace, even for the same folder.
+- `current`: the models read it (`navFor` and `declaredIn` decide a part's drill-down from it), so `showSpace` sets it to the folder it shows before building a world.
+- `plateNode` and `clusterNode` return `ext` (today it only goes into `cls`), and `stateModel`'s nodes carry `terminal`.
+- `select()` hands its inspector code to `showInfo(info, onSel)` (Scene 2), and `closeInspector()` also clears the Cyberspace selection.
+- The document's Esc listener steps aside while `body.space` is set. Cyberspace has one Esc handler of its own, which consumes the key, so one press never both closes the inspector and goes up a level.
+- `status()` gains its optional hint, `ICONS` the new icons, `:root` the new tokens, and `package.json` its test script.
 
 **New markup** (inside `#layout`, after `<main id="view">`):
 
@@ -155,8 +164,15 @@ Every geometry builder and camera call goes through `V`; world objects keep spec
 2. If `dagre` is null, use the fallback grid: leaf nodes in rows of `ceil(sqrt(n))`, 5 units apart, clusters as plates round their children. Say so in the status line.
 3. Classify every node of `model.nodes`:
    - **plate** — `n.cluster` is true. Footprint = its `L.box` × `S`, shrunk 0.2 on every side. Plate thickness `PH = 0.5`. A plate nested in a plate sits on its parent's top: `base = depth × PH`.
-   - **beacon** — `n.ext` is true and it is not a cluster (component `external`, deployment nodes with a `condition` or of kind `external-service`). Position = its box centre; hover height `y = 6.5 + 1.5 × (index among beacons mod 3)`.
-   - **tower** — everything else. Footprint is square, side `TW = min(2.2, 0.8 × distance to the nearest other tower centre)`, centred on its box. It stands on the top of its innermost plate (or the ground).
+   - **beacon** — `n.ext` is true, it is not a cluster, and the view is a component or deployment diagram (component `external`, deployment nodes with a `condition` or of kind `external-service`). `plateNode` and `clusterNode` return `ext` for this (*Architecture*). Position = its box centre; hover height `y = 6.5 + 1.5 × (index among beacons mod 3)`.
+   - **tower** — everything else, with the exceptions below. Footprint is square, side `TW = min(2.2, 0.8 × distance to the nearest other tower centre)`, centred on its box. It stands on the top of its innermost plate (or the ground).
+   - **marker** — a node with no `info`: a state machine's start point (`__start`). A disc of radius 0.5 on the ground (or plate) in `--ink` at 60%; it can't be picked or selected, and its beam starts at its centre.
+   - In the other kinds `ext` means something else: a use case's alternative outcome is `ext` only to get its dashed outline. There it draws a **short tower**: height 2.2 whatever its degree, its edges dashed (`LineDashedMaterial`, dash 0.12, gap 0.20).
+   - A final state (a `state` node with `terminal`) gets a second band 0.25 below its top, at full edge alpha, as Flat draws a second ring.
+   - A part with `n.nav` stands for a folder that has diagrams of its own (Flat draws a badge): its label starts with the `drill` icon, and selecting it offers **Enter its folder** (Scene 2, *Selection*).
+
+   These four are defaults: the canvas only has a component city (decision `space-other-kinds`).
+
 4. Tower height from its degree, counting every edge of `model.edges` that touches it once, self-loops included: `h = 2.2 + 1.3 × min(degree, 9)` (so 2.2 to 13.9). In this repository Loader has degree 6 and height 10.0.
 5. Beams, one per `model.edges` entry, keyed by `e.key` so tooltips and selection match the flat page:
    - anchors: a tower's top centre; a beacon's centre; a plate's centre at its top + 0.2.
@@ -164,6 +180,8 @@ Every geometry builder and camera call goes through `V`; world objects keep spec
    - a self-loop (`e.self`): a vertical circle of radius 1.2 standing on the tower top.
    - colour: the drawn kind's colour; amber (deployment colour) when either end is a beacon.
 6. Bounds = the box round every plate, tower and beacon; used by fit and the map.
+
+Part sizes come from text widths (`tw()`), so a web font that arrives late moves `layout()`'s positions, and `load()` then routes again (`loadingdone`). Drop the memoised worlds at that point and build the scene once more.
 
 The world object:
 
@@ -183,7 +201,7 @@ The world object:
 
 1. `docs = byFolder.get(folder)`, already sorted by `orderOf`.
 2. Group: **Drawn** = `doc.kind in MODELS`; **Written** = in `KIND_ORDER` but not in `MODELS` (capability, feature, operation); **Knowledge** = in `KNOWLEDGE`. Order Drawn → Written → Knowledge, bottom to top, each in `orderOf` order.
-3. Floors are 16 × 12 units, 0.14 thick, 1.05 apart, with an extra 1.4 gap between groups. This repository's 24 files put the top floor at y = 26.95.
+3. Floors are 16 × 12 units, 0.14 thick, 1.05 apart, with an extra 1.4 gap between groups. On 2026-11-13 the root's 24 files put the top floor at y = 26.95. The count grows as files are added (the plan adds `plan.json`, step 4 a state diagram), so the tests read a frozen copy (*Automated tests*).
 4. What each floor shows on its top face (all real data, never random):
    - Drawn: the view's own flat layout, scaled to fit 13 × 9 units, nodes as small tiles and edges as lines. Per-entity kinds show their first entity.
    - Written: one bar per card, at most 4, length ∝ the card title's length.
@@ -194,7 +212,7 @@ The world object:
 
 ## Rendering
 
-The look is glass wireframe on a dark survey grid: translucent faces, crisp edges, light only where the reader is looking. Use three.js core only: `WebGLRenderer`, `PerspectiveCamera`, `InstancedMesh`, `BufferGeometry`, `LineSegments`, `TubeGeometry`, `QuadraticBezierCurve3`, `ShaderMaterial`. No post-processing.
+The look is glass wireframe on a dark survey grid: translucent faces, crisp edges, light only where the reader is looking. Use three.js core only: `WebGLRenderer`, `PerspectiveCamera`, `InstancedMesh`, `BufferGeometry`, `LineSegments`, `TubeGeometry`, `QuadraticBezierCurve3`, `ShaderMaterial`. No post-processing. Core only also means no `BufferGeometryUtils.mergeGeometries`: merge the beam tubes by concatenating their positions, normals and indices, which takes a few lines. WebGL draws `LineSegments` 1 px wide whatever `linewidth` says, so every edge is 1 px, the selected one included.
 
 **Renderer.** `new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" })`; pixel ratio `min(devicePixelRatio, 2)`; transparent clear colour. The sky is CSS on `#space` (below), so the canvas only draws the world. Field of view and view offset are set per scene (the scene sections give them); near 0.6, far 600.
 
@@ -235,7 +253,7 @@ The two sky ramps and the major grid colour are new: add them as tokens `--space
 | `norm` | default | 0.30 / 0.16 / 0.10 | kind colour, 75% |
 | `near` | joined to the selected part by a beam | 0.42 / 0.24 / 0.14 | kind colour, 100% |
 | `dim` | a layer or filter hides its kind | 0.12 / 0.07 / 0.04 | kind colour, 35% |
-| `sel` | selected | 0.85 / 0.55 / 0.36 | `--hot`, 100%, 1.2 px |
+| `sel` | selected | 0.85 / 0.55 / 0.36 | `--hot`, 100% |
 | `hover` | under the pointer | as `near` | `--hot`, 100% |
 
 ### Labels
@@ -273,7 +291,7 @@ The folder tower is where Cyberspace opens: the folder in the address as a stack
 5. Three equal tiles: count of Drawn, Written, Knowledge files, numbers `700 24px` Condensed.
 6. Folders inside it as chips linking to their towers, or `No folders inside it.` in `--ink3`.
 
-**Pulled-floor card** (right 20 px, bottom 300 px, 300 px wide): a 10 px kind swatch and the kind name in caps and kind colour; the view title `700 24px` Condensed; a count line built from the city world, `22 parts · 5 beacons · 23 beams` for this repository; buttons **Enter the city** (primary, a link to the city address) and **Slide back**.
+**Pulled-floor card** (right 20 px, bottom 300 px, 300 px wide): a 10 px kind swatch and the kind name in caps and kind colour; the view title `700 24px` Condensed; a count line built from the city world, `23 parts · 5 beacons · 29 beams` for this repository's component diagram on 2026-11-13 (the canvas shows an older one); buttons **Enter the city** (primary, a link to the city address) and **Slide back**.
 
 **Interaction.**
 
@@ -293,7 +311,7 @@ Status line: `The root folder is a tower of 24 floors, one per view. Pull a floo
 
 The city is one drawn view standing on the ground: what the flat page draws as plates and lines, raised into towers and beams. Match `Main.dc.html` for the look; take every position from `cityWorld`, not from the canvas.
 
-**Where the canvas is only an illustration.** The canvas placed its four districts by hand and invented a fourth plate, *Loose parts*, for the parts no group contains. Build neither: plates come only from clusters in the model, and a part no cluster contains stands on the bare ground where dagre put it. The canvas also ends towers at the same base height on every plate; nested plates stack instead (section *Scene model*).
+**Where the canvas is only an illustration.** The canvas placed its four districts by hand and invented a fourth plate, *Loose parts*, for the parts no group contains. Build neither: plates come only from clusters in the model, and a part no cluster contains stands on the bare ground where dagre put it. The canvas also ends towers at the same base height on every plate; nested plates stack instead (section *Scene model*). And it shows the component diagram as it was before 2026-11-13: today's has 4 plates (Landing page is one), 23 towers, 5 beacons and 29 beams.
 
 **Camera.** An orbit camera aimed at the centre of the world's bounds, elevation 33.6°, azimuth −4.4° (slightly from the left, as on the canvas), vertical field of view 54.1°. Fit: choose the distance at which the bounds' eight corners all project inside the *free rectangle* — the canvas minus the layers panel, the inspector (when open) and the bottom bars — with 24 px to spare; then shift the projection centre to the free rectangle's centre with `setViewOffset`. Refit when the inspector opens or closes, animated over 300 ms (instant with reduced motion).
 
@@ -304,10 +322,10 @@ The city is one drawn view standing on the ground: what the flat page draws as p
 1. The part gets state `sel`, every part joined to it by a beam gets `near`, and those beams switch to lit (core + glow). Everything else stays `norm`; nothing is dimmed, because the city must stay readable.
 2. The selection rings appear round its base.
 3. The inspector opens with the same content the flat page shows for that part. Refactor `select()` so the part that writes `#inspector` from `n.info` is a function, `showInfo(info, onSel)`, used by both modes; `onSel` is `select` in Flat and `spaceSelect` in Cyberspace, so the inspector's own part links stay in the mode the reader is in.
-4. Cyberspace adds, under the inspector's title: `in <plate name> · <degree> beams · height <h>`, and at its foot two actions: **Walk to \<name>** (primary, goes to Scene 3) and **Open flat** (goes to `#<folder>|<kind>:<key>` in flat mode).
+4. Cyberspace adds, under the inspector's title: `in <plate name> · <degree> beams · height <h>`, and at its foot two actions: **Walk to \<name>** (primary, goes to Scene 3) and **Open flat** (goes to `#<folder>|<kind>:<key>` in flat mode). A part with `n.nav` adds a third, **Enter its folder**, which opens that folder's tower (`#<folder>|~space`).
 5. The address gains the part (section *Routing*). Clicking empty ground or pressing Esc clears the selection.
 
-**Hover.** A tower or beacon under the pointer gets state `hover` and shows its tooltip: the model's `n.tip` HTML (already escaped by the models) in the page's existing tooltip element, `showTip()`, 16 px right of and below the pointer. A beam under the pointer thickens to r 0.06 and shows its `e.tip`. Picking uses a `Raycaster` against the instanced meshes and a hidden fat tube per beam (r 0.3), at most once per animation frame.
+**Hover.** A tower or beacon under the pointer gets state `hover` and shows its tooltip: the model's `n.tip` HTML (already escaped by the models) in the page's existing tooltip element, `showTip()`, placed as Flat places it (14 px right of the pointer, 18 px below). A beam under the pointer thickens to r 0.06 and shows its `e.tip`. Picking uses a `Raycaster` against the instanced meshes and a hidden fat tube per beam (r 0.3), at most once per animation frame.
 
 **Panels** (positions from the canvas, 1440 × 900):
 
@@ -331,7 +349,7 @@ The street scene is the city's own meshes seen from eye height, with walking con
 3. Look at the part's centre line at `base + min(0.55 × h, 6.5)`.
 4. Vertical field of view 61.2°; projection centre at (700, 520) of 1440 × 900, so the horizon sits low and towers rise into the frame.
 
-For this repository that gives roughly the canvas's view: eye (15, 1.7, −11), looking at (9, 6.5, 5), Loader centred, both adapters and the GitHub and GitLab beacons to its right.
+For this repository that gives roughly the canvas's view: eye (15, 1.7, −11), looking at (9, 6.5, 5), Loader centred, both adapters and the GitHub and GitLab beacons to its right. The canvas placed its city by hand, so expect that framing, not those numbers.
 
 **Walking.**
 
@@ -415,7 +433,7 @@ The three scene changes:
 
 Every panel is ordinary HTML over the canvas, built from the page's own CSS variables, icons and fonts; the scene sections say what each panel holds, this section says what they share.
 
-**The mode switch in the bar.** Between the repository name and **Tokens**, a group `role="group" aria-label="View mode"` of two buttons, **Flat** and **Cyberspace**, each with `aria-pressed`. Group: 2 px padding, 1 px `--rule` border, radius 6. Buttons: 28 px tall, 0 12 px padding, `600 13px` Semi Condensed; pressed = `--rule` background and `--hot` text, else transparent and `--ink2`. Hidden on the landing page and when WebGL is unavailable (section *Fallbacks*). Each press changes the address, nothing else; `route()` does the rest.
+**The mode switch in the bar.** Between the repository name and **Tokens**, a group `role="group" aria-label="View mode"` of two buttons, **Flat** and **Cyberspace**, each with `aria-pressed`. Group: 2 px padding, 1 px `--rule` border, radius 6. Buttons: 28 px tall, 0 12 px padding, `600 13px` Semi Condensed; pressed = `--rule` background and `--hot` text, else transparent and `--ink2`. Hidden on the landing page and when WebGL is unavailable (section *Fallbacks*), and hidden for everyone until the launch (*Build order*, step 7); a `~space` address opens Cyberspace before then. Each press changes the address, nothing else; `route()` does the rest.
 
 **Status line.** The existing `status()` keeps its job and wording rules; Cyberspace only writes its scene sentence when the loader has nothing to report. Over the canvas it is translucent: `--paper` at 88%, bottom border `--grid`. The right-hand hint is a new optional `<span class="hint">` in `--ink3`.
 
@@ -444,11 +462,13 @@ Every panel is ordinary HTML over the canvas, built from the page's own CSS vari
 
 ## Routing, state and links
 
-The mode, the scene and the selection live in the address as a **third `|` segment**, so every existing form keeps its meaning (contract `page-address`) and a Cyberspace link opened by an older copy of the page still lands on the same folder and part in Flat.
+The mode, the scene and the selection live in the address as a **last `|` segment**, so every existing form keeps its meaning (contract `page-address`) and a Cyberspace link opened by an older copy of the page still lands on the same folder and part in Flat.
 
 ```
-#<folder>|<focus>|~space[:<scene>]
+#<folder>[|<focus>]|~space[:<scene>]
 ```
+
+The mode is the last segment, when it starts with `~space`. No focus starts with `~`, so `#|~space` (two segments) is the root's tower, and `#|view:component-diagram.json|~space` (three) is the same tower with that view pulled out. Segments are encoded as `folderHash` encodes them today (`encodeURI` for the folder, `encodeURIComponent` for the focus), so `#|component%3Aloader|~space:city` and `#|component:loader|~space:city` are one address; `spaceHash` writes the first. `#~waiting|~space` opens the root's tower: Waiting has no 3D form.
 
 | Address | Shows |
 | --- | --- |
@@ -462,7 +482,7 @@ The mode, the scene and the selection live in the address as a **third `|` segme
 
 `<scene>` is `tower` (the default, may be left out), `city` or `street`. `<focus>` is any form `focusPart` already accepts; in the city the part form is required for a selection, and the `view:` form names the view without one. The `view:<file>#<entity id>` form is new and is added to the contract.
 
-**`route()` changes.** Split the hash into three parts instead of two. When the third starts with `~space` and Cyberspace can run, call `showSpace(folder, focus, scene)` and return; otherwise hide `#space`, remove `body.space` and run today's code unchanged. `showSpace` reuses what is already built: same folder and view → only the selection or camera changes; same folder, other view → rebuild the city; other folder → rebuild everything.
+**`route()` changes.** Split the hash on `|`; when the last part starts with `~space` it is the mode, and the parts before it are the folder and the focus. When there is a mode and Cyberspace can run, call `showSpace(folder, focus, scene)` and return; otherwise hide `#space`, remove `body.space` and run today's code unchanged. `showSpace` reuses what is already built: same folder and view → only the selection or camera changes; same folder, other view → rebuild the city; other folder → rebuild everything.
 
 **History.** A new entry (`location.hash = …`) for: switching mode, changing scene, changing folder, pulling out another floor. Replace the entry (`history.replaceState`) for: selecting or clearing a part, walking. So Back undoes a move, not every click; Forward redoes it.
 
@@ -476,6 +496,8 @@ The mode, the scene and the selection live in the address as a **third `|` segme
 | Cyberspace, any scene, part P of kind K selected | `#F\|K:P` |
 | Cyberspace, no selection, view V | `#F\|view:V` |
 
+Flat keeps the open tab and the selected part out of the address (limitation `selection-not-linked`), so the switch reads them from `shownKind` and the part pinned in `drawn`, not from `location.hash`.
+
 No preference is stored: the address alone says which mode a link opens in (decision `address-is-state`).
 
 ## Fallbacks, performance budgets, accessibility
@@ -486,7 +508,7 @@ Cyberspace must never be the reason a repository can't be read (quality `fallbac
 
 | Situation | Detect | What the reader gets |
 | --- | --- | --- |
-| No WebGL | `canvas.getContext("webgl2")` and `"webgl"` both null, tested once at start-up | The mode switch is hidden. A `~space` address shows Flat, and the status line says `Cyberspace needs WebGL, which this browser has turned off. Showing the flat view.` |
+| No WebGL | `canvas.getContext("webgl2")` and `"webgl"` both null, tested once at start-up on a canvas never added to the page, whose context is then released (`WEBGL_lose_context`), so a reader who stays in Flat holds none | The mode switch is hidden. A `~space` address shows Flat, and the status line says `Cyberspace needs WebGL, which this browser has turned off. Showing the flat view.` |
 | three.js fails to load | `loadThree()` resolves `null` (network, blocked CDN) | Flat, with `Cyberspace couldn't load its 3D library. Showing the flat view.` The switch stays, so a later try can work. |
 | dagre fails to load | `dagre === null` (already detected) | The city uses the fallback grid (section *Scene model*); the status line adds `The parts are set in a grid because the drawing library couldn't load.` |
 | WebGL context lost | `webglcontextlost` on the canvas | Stop the loop, show `The 3D view stopped. Restore it` with a button that rebuilds the stage on `webglcontextrestored` or on press. |
@@ -501,8 +523,10 @@ Cyberspace must never be the reason a repository can't be read (quality `fallbac
 | Frame time, this repository, 1440 × 900, M1 MacBook Air | ≤ 16 ms | On-demand rendering; labels placed only on frames where the camera moved. |
 | Frame time, 400 parts | ≤ 33 ms | Same; labels beyond 90 units culled before measuring. |
 | First Cyberspace frame after a click on the switch | ≤ 1.5 s on a cold cache, ≤ 300 ms warm | three.js fetched once and cached by the browser; worlds built on demand, memoised per `doc._path`. |
-| Extra network on page load in Flat | 0 bytes | `import()` only on first entry to Cyberspace. |
+| Extra requests on page load in Flat | none | three.js is `import()`ed on first entry to Cyberspace. The Cyberspace code itself is inline (decision `one-file`), so `index.html` grows by roughly 3,000–3,500 lines, about 35 KB compressed. |
 | GPU memory when leaving Cyberspace | released | Dispose every geometry, material and texture; keep the renderer for 60 s, then `forceContextLoss()`. |
+
+**Measuring.** With `?spacestats` in the page's address, a corner readout shows the frame time, the draw calls (`renderer.info.render.calls`) and the world's counts of plates, towers, beacons and beams. The budgets and the acceptance numbers are checked with it. On an M1 Pro, whose GPU is about twice an M1 Air's, the frame-time targets are half the ones above.
 
 ### Accessibility
 
@@ -515,20 +539,20 @@ Cyberspace must never be the reason a repository can't be read (quality `fallbac
 
 ## Build order, tests and acceptance
 
-Build it in eight steps, each a change that leaves the page working and could ship on its own behind the switch.
+Build it in eight steps, each a change that leaves the page working and could ship on its own behind the switch. Each step is one pull request into `main`, and merging deploys, so the switch stays hidden until step 7, which is the launch (decision `cyberspace-launch`). Each step's pull request also updates the `.dev` files for what it built, as `AGENTS.md` asks; step 8 reconciles them. Step 2 may split in two: world, meshes and rig; then labels and fit.
 
-1. **Plumbing.** The switch, the third address segment, `route()` and `showSpace`, `#space` and `body.space`, `loadThree()`, the WebGL check and every fallback message. Cyberspace shows only the sky and the ground grid.
+1. **Plumbing.** The switch (hidden), the address marker, `route()` and `showSpace`, `#space` and `body.space`, `loadThree()`, the WebGL check and every fallback message, and the changes in *Where it touches the existing code* that it needs (`current`, Esc). Cyberspace shows only the sky and the ground grid.
 2. **City, still.** `cityWorld`, `buildCity`, the glass shader, edges and bands, beams, beacons, plate names, labels with overlap avoidance, fit to the free rectangle. Orbit, pan and zoom.
 3. **Selection.** Picking, hover tooltips, `spaceSelect`, the `showInfo` refactor of `select()`, lit beams, selection rings, the inspector card, the address for selections.
 4. **Folder tower.** `towerWorld`, floors and their real contents, labels and brackets, the folder and pulled-floor cards, sliding floors, tower → city and back.
 5. **Street.** Walk controls, collision, the map, the breadcrumb, the hover card, city → street and back.
 6. **Layers and many folders.** Several drawn views in one city; the skyline.
-7. **Finish.** Light mode, reduced motion, keyboard and screen-reader paths, screen sizes, context loss, disposal, the performance budgets.
-8. **Records.** The `.dev` updates and the README (last section).
+7. **Finish, then launch.** Light mode, reduced motion, keyboard and screen-reader paths, screen sizes, context loss, disposal, the performance budgets; then the switch appears.
+8. **Records.** Every `.dev` file reconciled with the code, the README (last section), and the acceptance numbers worked out again.
 
 ### Automated tests
 
-Keep the world builders pure so Node can test them without a browser. Put them between two marker comments in `index.html`, `/* space-world:start */` and `/* space-world:end */`, written as functions of their inputs only: `cityWorldFrom(model, L)` and `towerWorldFrom(docs)`; `cityWorld` and `towerWorld` are thin wrappers that pass in `MODELS`, `layout()` and `byFolder`. A new `test/space.test.js` reads `index.html`, slices the block between the markers and runs it in `node:vm`. Change the `test` script in `package.json` to `node --test test/`.
+Keep the world builders pure so Node can test them without a browser. Put them between two marker comments in `index.html`, `/* space-world:start */` and `/* space-world:end */`, written as functions of their inputs only, page constants included (`KIND_ORDER`, `KNOWLEDGE` and the drawn kinds are arguments): `cityWorldFrom(model, L, kind)` and `towerWorldFrom(docs, kinds)`; `cityWorld` and `towerWorld` are thin wrappers that pass in `MODELS`, `layout()` and `byFolder`. A new `test/space.test.js` reads `index.html`, slices the block between the markers and runs it in `node:vm`. Change the `test` script in `package.json` to `node --test test/*.test.js` (Node rejects a directory argument).
 
 | Test | Expect |
 | --- | --- |
@@ -536,17 +560,19 @@ Keep the world builders pure so Node can test them without a browser. Put them b
 | The same with the degree of one leaf at 12 | height capped at 13.9 |
 | Towers placed 2 units apart | side shrinks to 1.6 (0.8 × 2); no two footprints overlap |
 | A self-loop edge | one beam whose points form a closed circle of radius 1.2 above the tower |
-| `towerWorldFrom` on this repository's 24 `.dev` files (read from disk) | groups 7 / 3 / 14 in that order; bottom floor `component`; top floor at y = 26.95 |
+| `towerWorldFrom` on a frozen copy of the root's 24 `.dev` files of 2026-11-13 (`test/fixtures/space/`: each file's kind, path and titles) | groups 7 / 3 / 14 in that order; bottom floor `component`; top floor at y = 26.95 |
 | Fallback grid (`L` null) for 9 leaves | 3 rows of 3, 5 units apart |
 | `parseSpaceHash` / `spaceHash` for every row of the address table | round-trips exactly; a two-segment hash yields `mode: "flat"` |
 | Mode switching table | each *From* state maps to its *To* address |
+| A small model of every drawn kind, with an external part, a `__start`, a final state, a use case's alternative and a `nav` part | no NaN anywhere; one beam per edge; beacons only in component and deployment; `__start` a marker; the alternative a short tower |
+| Both spellings of every address, and `#~waiting\|~space` | parse alike; `~waiting` gives the root's tower |
 
 ### Acceptance checklist
 
-Run against `?url=https://github.com/david-brandt-the-icelander/cyberspace-explorer` in current Chrome, Safari and Firefox, on a 15-inch laptop and a 27-inch monitor, in dark and light mode:
+Run against `?url=https://github.com/david-brandt-the-icelander/cyberspace-explorer` in current Chrome, Safari and Firefox (decision `cross-browser-checks`), on a 15-inch laptop and a 27-inch monitor, in dark and light mode. The counts below are this repository's on 2026-11-13. Cyberspace's own records add floors and parts, so take the numbers from `?spacestats` and the `.dev` files of the day:
 
-- [ ] **Cyberspace** in the bar opens the root folder's tower: 24 floors, brackets `DRAWN · 7`, `WRITTEN · 3`, `KNOWLEDGE · 14`, the component diagram pulled out with its small city.
-- [ ] **Enter the city** flies into the component city: 3 plates (Screen, Repository reading, Drawing), 22 towers, 5 amber beacons (GitHub, GitLab, dagre, Barlow typefaces, Browser storage), 23 beams.
+- [ ] **Cyberspace** in the bar opens the root folder's tower: one floor per root `.dev` file (24 before the plan added `plan.json`, with brackets `DRAWN · 7`, `WRITTEN · 3`, `KNOWLEDGE · 14`), the component diagram pulled out with its small city.
+- [ ] **Enter the city** flies into the component city: 4 plates (Screen, Landing page, Repository reading, Drawing), 23 towers, 5 amber beacons (GitHub, GitLab, dagre, Barlow typefaces, Browser storage) and 29 beams, before Cyberspace's own parts join the diagram.
 - [ ] Loader is the tallest tower (height 10.0); clicking it lights 6 beams and opens the inspector with the same text as Flat.
 - [ ] The address after that is `#|component:loader|~space:city`; reloading it shows the same thing; opening it in the currently deployed page shows Loader selected in Flat.
 - [ ] **Walk to Loader** lands at street level looking up at Loader, with both adapters and the GitHub and GitLab beacons in view; W A S D walks; walking into a tower slides along it.
@@ -555,12 +581,13 @@ Run against `?url=https://github.com/david-brandt-the-icelander/cyberspace-explo
 - [ ] With WebGL turned off, with jsDelivr blocked for three.js, with dagre blocked: the messages and behaviour in *Fallbacks*.
 - [ ] With reduced motion on, nothing animates.
 - [ ] Every part can be reached and selected from the keyboard alone.
-- [ ] A large repository (choose one with a 300+ part component diagram) stays at 30 fps or better while orbiting.
+- [ ] Every drawn kind (component, deployment, class, state, use case, user journey) stands as a city, on retro-games, which has all six and many folders.
+- [ ] The 400-part diagram on the branch `perf/400-parts` (`?url=https://github.com/david-brandt-the-icelander/cyberspace-explorer/tree/perf/400-parts`) stays at 30 fps or better while orbiting. None of the owner's repositories has a drawn view over 44 parts, so the branch holds a generated one in a `.cyberspace-explorer/` tree; it is never merged.
 - [ ] Leaving Cyberspace for Flat and waiting 60 s releases the WebGL context (check in the browser's GPU memory tools).
 
 ## Records to update, and open questions
 
-The repository describes itself, so the change is not done until its `.dev` files describe Cyberspace too. Follow the schemas the skills in `Meta/Agents/Skills` and the catalogue in `Meta/Agents/Knowledge` define, and set `evidenceStatus` to `source-verified` only for what you checked against the new code.
+The repository describes itself, so the change is not done until its `.dev` files describe Cyberspace too. Each step's pull request updates the files for what it built ([the plan](../.dev/plan.json) says which); step 8 reconciles them. Follow the schemas the skills in `Meta/Agents/Skills` and the catalogue in `Meta/Agents/Knowledge` define, and set `evidenceStatus` to `source-verified` only for what you checked against the new code.
 
 | File | Change |
 | --- | --- |
@@ -579,8 +606,12 @@ The repository describes itself, so the change is not done until its `.dev` file
 
 ### Open questions
 
-- **Skyline design.** A repository with several folders shows a skyline, but the canvas only has a one-folder repository. Ask for an artboard before step 6 goes past the layout rule in *Scene model*.
-- **Light mode.** The canvas is dark only. This spec derives light from the page's tokens; ask the designer to check one light artboard per scene.
-- **Pinning three.js.** Pin the newest stable release on the day you start, as an exact version in `THREE_URL`, like `DAGRE`. jsDelivr's `+esm` build can't carry a subresource-integrity hash; that is the same trust the page already gives dagre.
-- **Per-entity views.** A use-case file with many use cases becomes one city per use case. If readers want them side by side, that is the Layers mechanism applied to entities; decide after step 6.
-- **Which mode a shared link opens in** is whatever the link says. If David wants the landing page's example to open in Cyberspace, that is one change to the example link, not a stored preference.
+The questions still open are `status: open` records in [.dev/decisions.json](../.dev/decisions.json), so they show under **Waiting**:
+
+- **Skyline** (`space-skyline`). A repository with several folders shows a skyline, but the canvas only has a one-folder repository. The layout rule in *Scene model* holds until there is an artboard; step 6 doesn't polish it before then.
+- **Light mode** (`space-light-mode`). The canvas is dark only. This spec derives light from the page's tokens; one light artboard per scene would confirm it before step 7.
+- **The other kinds, and parts that open a folder** (`space-other-kinds`). The canvas only has a component city. The defaults are in *Scene model*: markers, short towers, a second band for final states, and **Enter its folder**.
+- **Per-entity views** (`per-entity-cities`). A use-case file with many use cases becomes one city per use case. If readers want them side by side, that is the Layers mechanism applied to entities; decide after step 6.
+- **Safari and Firefox** (`cross-browser-checks`). Either the owner runs the acceptance checklist in them, or the owner approves installing Playwright's WebKit and Firefox builds so an agent can.
+
+Settled: step 1 pins three.js to the newest stable release on that day (0.187.0 on 2026-11-13), as an exact version in `THREE_URL` like `DAGRE`. jsDelivr's `+esm` build can't carry a subresource-integrity hash, the same trust the page already gives dagre. A shared link opens in whatever mode it says, and the landing page's example keeps opening Flat.

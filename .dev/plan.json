@@ -1,0 +1,91 @@
+{
+  "$schema": "../Meta/Agents/Knowledge/schemas/plan.schema.json",
+  "kind": "plan",
+  "title": "How the browser gets Cyberspace",
+  "folder": ".",
+  "entities": [
+    {
+      "id": "cyberspace-mode",
+      "title": "Build Cyberspace, the repository in 3D",
+      "summary": "Eight pull requests take the spec to cyberspace-explorer.com: plumbing, the city, selection, the folder tower, the street, layers and the skyline, finishing and launch, then the records.",
+      "goal": "Cyberspace works as docs/cyberspace-mode-spec.md says, for every repository the flat page can open, and the spec's acceptance checklist passes.",
+      "status": "planned",
+      "scope": [
+        {
+          "path": ".dev/backlog.json",
+          "entityId": "cyberspace-mode"
+        }
+      ],
+      "approach": "One pull request per step, into main, in order. Each branches from the latest main, passes CI, updates the .dev files for what it built, and marks its step done here; where a step departs from the spec, the same pull request changes the spec. Merging deploys, so the Flat / Cyberspace switch stays hidden until step 7 (decision cyberspace-launch); before that only an address with ~space in it opens Cyberspace. A sub-session builds each step from the spec and the copies of the design in docs/cyberspace-design/, one at a time, because every step changes index.html and builds on the one before. Before the owner merges a step, it is checked: the diff against its section of the spec, the tests and both validators on a clean checkout, the page in a real browser beside the renders, the flat page's regression list and, from step 2, the ?spacestats readout. The budget for 400 parts is measured on a branch, perf/400-parts, that holds a generated .cyberspace-explorer/ tree and is never merged.",
+      "steps": [
+        {
+          "id": "spec-and-design",
+          "title": "Correct the spec against the code, copy the design into docs/cyberspace-design/, and record this plan and its open questions",
+          "status": "done"
+        },
+        {
+          "id": "plumbing",
+          "title": "Plumbing: the hidden switch, the ~space address, route() and showSpace, #space, loadThree() pinned to three.js 0.187.0, the WebGL check and every fallback, spaceTheme() and the new tokens, the sky, the ground grid and the stage",
+          "status": "todo"
+        },
+        {
+          "id": "city",
+          "title": "City, still: cityWorldFrom and buildCity, the glass shader, edges, bands, beams, beacons, plate names, labels, fitting, orbit, pan and zoom, and the ?spacestats readout",
+          "status": "todo"
+        },
+        {
+          "id": "selection",
+          "title": "Selection: picking, hover tips, spaceSelect, showInfo taken out of select(), lit beams, rings, the inspector card and the part in the address",
+          "status": "todo"
+        },
+        {
+          "id": "tower",
+          "title": "Folder tower: towerWorldFrom, floors with their real contents, labels, brackets, the folder and pulled-floor cards, sliding floors, and flying between tower and city",
+          "status": "todo"
+        },
+        {
+          "id": "street",
+          "title": "Street: walking, collision, the map, the breadcrumb, the hover card, and flying between city and street",
+          "status": "todo"
+        },
+        {
+          "id": "layers",
+          "title": "Layers and the skyline: several drawn views in one city, and a repository's folders as buildings",
+          "status": "todo"
+        },
+        {
+          "id": "launch",
+          "title": "Finish and launch: light mode, reduced motion, keyboard, screen sizes, context loss and the budgets measured; then the switch appears",
+          "status": "todo"
+        },
+        {
+          "id": "records",
+          "title": "Records: every .dev file reconciled with the code, the README's Cyberspace paragraph, and the acceptance numbers worked out again",
+          "status": "todo"
+        }
+      ],
+      "outOfScope": [
+        "VR and XR, multiplayer, and editing .dev files (limitation no-edit)",
+        "Keeping camera positions anywhere but the address",
+        "Browser tests in CI: the repository has no npm dependencies, and adding them is a decision of its own"
+      ],
+      "origin": {
+        "kind": "request",
+        "by": "owner",
+        "date": "2026-11-13",
+        "description": "Plan how to incorporate the new design for the 3D view."
+      },
+      "links": [
+        {
+          "label": "Implementation spec",
+          "path": "docs/cyberspace-mode-spec.md"
+        },
+        {
+          "label": "The design's artboards and renders",
+          "path": "docs/cyberspace-design/README.md"
+        }
+      ],
+      "evidenceStatus": "documented"
+    }
+  ]
+}
