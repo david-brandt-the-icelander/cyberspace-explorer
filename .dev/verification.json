@@ -41,9 +41,14 @@
         {
           "type": "manual",
           "description": "Open a private repository, add a token, browse, then forget it."
+        },
+        {
+          "type": "manual",
+          "description": "On cyberspace-explorer.com, sign in with GitHub with and without private repositories, pick a repository from the drop-down, open a private one, and sign out."
         }
       ],
-      "evidenceStatus": "documented"
+      "evidenceStatus": "documented",
+      "details": "The Worker has automated tests of its own ([worker verification](worker/.dev/verification.json)); the page has none."
     },
     {
       "id": "own-description",
@@ -52,23 +57,32 @@
       "subject": [
         {
           "path": ".dev/folder.json"
+        },
+        {
+          "path": "worker/.dev/folder.json"
+        },
+        {
+          "path": "test/.dev/folder.json"
+        },
+        {
+          "path": ".github/.dev/folder.json"
         }
       ],
       "criteria": [
-        "Every .dev file here matches its schema, and every path and symbol it cites exists."
+        "Every .dev file in the repository matches its schema, and every path it cites exists; every actor named has a file in Actors/, and every file there is linked."
       ],
       "checks": [
         {
           "type": "automated",
           "path": "Meta/Agents/Skills/validate_diagrams.py",
           "symbol": "validate",
-          "command": "python3 Meta/Agents/Skills/validate_diagrams.py ."
+          "command": "python3 Meta/Agents/Skills/validate_diagrams.py"
         },
         {
           "type": "automated",
           "path": "Meta/Agents/Knowledge/validate_knowledge.py",
           "symbol": "main",
-          "command": "python3 Meta/Agents/Knowledge/validate_knowledge.py ."
+          "command": "python3 Meta/Agents/Knowledge/validate_knowledge.py"
         }
       ],
       "evidenceStatus": "source-verified"

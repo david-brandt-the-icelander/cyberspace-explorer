@@ -1,0 +1,124 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/verification.schema.json",
+  "kind": "verification",
+  "title": "How the Worker is checked",
+  "folder": "worker",
+  "entities": [
+    {
+      "id": "worker-tests",
+      "title": "The Worker's tests",
+      "summary": "npm test runs the real handler in Node against a fake GitHub.",
+      "subject": [
+        {
+          "path": "worker/.dev/operation.json"
+        },
+        {
+          "path": "worker/.dev/Session.state-diagram.json"
+        },
+        {
+          "path": "worker/.dev/contracts.json"
+        }
+      ],
+      "criteria": [
+        "The page is served at / and /index.html, and anything else is 404.",
+        "Without the three secrets, /auth/me says so and nobody can start a sign-in.",
+        "A sign-in goes to GitHub with PKCE and a state bound to the browser, and asks for repo only when chosen.",
+        "A good callback sets a sealed, HttpOnly session without the token in it, and returns to the page.",
+        "A wrong state, no pending cookie, a refused code, a forged, damaged or expired cookie sign nobody in.",
+        "The door needs a session, reads only, keeps to its allowlist and adds the token itself.",
+        "Sign-out works only from the app's own origin.",
+        "The return path stays on the app's host."
+      ],
+      "checks": [
+        {
+          "type": "automated",
+          "path": "test/app.test.js",
+          "symbol": "serves the page",
+          "command": "npm test"
+        },
+        {
+          "type": "automated",
+          "path": "test/app.test.js",
+          "symbol": "without OAuth settings it says so and signs nobody in",
+          "command": "npm test"
+        },
+        {
+          "type": "automated",
+          "path": "test/app.test.js",
+          "symbol": "sign-in goes to GitHub with PKCE and a state bound to the browser",
+          "command": "npm test"
+        },
+        {
+          "type": "automated",
+          "path": "test/app.test.js",
+          "symbol": "private repositories are asked for only when chosen",
+          "command": "npm test"
+        },
+        {
+          "type": "automated",
+          "path": "test/app.test.js",
+          "symbol": "the callback opens a sealed, HttpOnly session and returns to the page",
+          "command": "npm test"
+        },
+        {
+          "type": "automated",
+          "path": "test/app.test.js",
+          "symbol": "a callback with the wrong state, or no cookie, signs nobody in",
+          "command": "npm test"
+        },
+        {
+          "type": "automated",
+          "path": "test/app.test.js",
+          "symbol": "a refused code signs nobody in",
+          "command": "npm test"
+        },
+        {
+          "type": "automated",
+          "path": "test/app.test.js",
+          "symbol": "cookies sealed with another secret, or damaged, are not sessions",
+          "command": "npm test"
+        },
+        {
+          "type": "automated",
+          "path": "test/app.test.js",
+          "symbol": "the proxy needs a session, reads only, and adds the token itself",
+          "command": "npm test"
+        },
+        {
+          "type": "automated",
+          "path": "test/app.test.js",
+          "symbol": "sign-out only from the page's own origin",
+          "command": "npm test"
+        },
+        {
+          "type": "automated",
+          "path": "test/app.test.js",
+          "symbol": "the return path stays on the app's host",
+          "command": "npm test"
+        },
+        {
+          "type": "automated",
+          "path": "test/app.test.js",
+          "symbol": "the proxy's allowlist",
+          "command": "npm test"
+        }
+      ],
+      "details": "The workflow runs the same tests on every pull request and before every deploy ([pipeline](.github/.dev/pipeline.json)). Nothing tests the callback's 503, the 401 that clears a session, or the page's use of these routes.",
+      "relationships": [
+        {
+          "relation": "verifies",
+          "path": "worker/.dev/operation.json"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "test/app.test.js"
+        },
+        {
+          "path": "package.json"
+        }
+      ]
+    }
+  ]
+}

@@ -24,7 +24,18 @@ BEHAVIOR_KINDS = ("use-case", "user-journey", "capability", "feature", "operatio
 SKILL_FOLDERS = {**{kind: f"describe-{kind}-diagram" for kind in KINDS},
                  **{kind: f"describe-{kind}" for kind in BEHAVIOR_KINDS}}
 ACTORS_DIR = "Actors"
-ACTOR_LINK = re.compile(r"\bActors/[A-Za-z0-9._-]+\.md\b")
+# A Markdown link to an actor: inline, [text](../Actors/name.md#part "title"), or a reference
+# definition, [label]: Actors/name.md. A path written in code, or in plain text, is not a link.
+ACTOR_LINK = re.compile(
+    r"\]\(\s*<?(?:\.{1,2}/|/)*(Actors/[A-Za-z0-9._-]+\.md)(?:#[^\s)>]*)?>?(?:\s+[\"'(][^)]*)?\)"
+    r"|^\s{0,3}\[[^\]]+\]:\s*<?(?:\.{1,2}/|/)*(Actors/[A-Za-z0-9._-]+\.md)",
+    re.MULTILINE)
+CODE = re.compile(r"^(```|~~~).*?^\1[^\n]*$|`[^`\n]+`", re.MULTILINE | re.DOTALL)
+
+
+def actor_links(text):
+    """The actor files a Markdown text links to, leaving out code blocks and code spans."""
+    return {a or b for a, b in ACTOR_LINK.findall(CODE.sub("", text))}
 SKIPPED_DIRS = {".git", "node_modules", "dist", "dist-test", "build", "bin", "obj", ".wrangler", "__pycache__"}
 
 
@@ -116,7 +127,7 @@ def check_actors(root, skills, referenced):
     for actor in actors:
         require(actor.suffix == ".md", f"{ACTORS_DIR}/{actor.name}: not a Markdown file")
     for path in markdown_files(root, skills):
-        for link in sorted(set(ACTOR_LINK.findall(path.read_text()))):
+        for link in sorted(actor_links(path.read_text())):
             try:
                 target = actor_reference(root, link)
             except Exception as error:

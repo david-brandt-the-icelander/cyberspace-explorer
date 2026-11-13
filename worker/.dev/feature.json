@@ -1,0 +1,120 @@
+{
+  "$schema": "../../Meta/Agents/Skills/describe-feature/schema.json",
+  "kind": "feature",
+  "title": "What the Worker offers",
+  "folder": "worker",
+  "description": "The Worker's features, as the page and its readers meet them.",
+  "sources": [
+    {
+      "path": "worker/app.js",
+      "symbol": "createHandler"
+    }
+  ],
+  "entities": [
+    {
+      "id": "oauth-sign-in",
+      "name": "Sign in with GitHub, with the token kept off the page",
+      "description": "A reader signs in with GitHub and the page reads GitHub as them without ever holding their token.",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "start"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "callback"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "seal"
+        }
+      ],
+      "behavior": "The Worker sends the reader to GitHub with a random state and a PKCE challenge, both bound to the browser by a sealed cookie, asking for no scope or, when the reader asks for private repositories, the repo scope. Back from GitHub it checks the state, exchanges the code with the client secret and the verifier, looks up the account and keeps the token, the login and the avatar in a sealed HttpOnly session cookie for 7 days.",
+      "outcome": "A reader can read their private repositories in the page, and nothing in the page, or in a script on it, can read their token.",
+      "constraints": [
+        "Off without its three secrets; the page then offers pasted tokens.",
+        "GitHub has no read-only scope for private repositories: the private option asks for repo.",
+        "The return path is kept on the app's own host.",
+        "A session lasts 7 days; signing out clears it in this browser without revoking the token at GitHub.",
+        "Changing SESSION_SECRET signs everyone out."
+      ],
+      "implementation": [
+        {
+          "path": "worker/app.js",
+          "symbol": "start"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "callback"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "session"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "safeReturn"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "aesKey"
+        }
+      ]
+    },
+    {
+      "id": "github-door",
+      "name": "A read-only door to GitHub",
+      "description": "The page reads GitHub through the Worker for a signed-in reader.",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "proxy"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "allowedPath"
+        }
+      ],
+      "behavior": "GET /api/github/<path> is forwarded to api.github.com with the session's token when the path is the reader's account, their repositories, a repository, its trees or its contents. GitHub's status, body, content type and rate-limit headers come back; the token does not.",
+      "outcome": "The page reads private repositories the same way it reads public ones, and GitHub's limits apply to the reader's own account.",
+      "constraints": [
+        "GET only; every other path is refused, and so is any . or .. segment, encoded or not.",
+        "A 401 from GitHub ends the session, so the page offers a fresh sign-in."
+      ],
+      "implementation": [
+        {
+          "path": "worker/app.js",
+          "symbol": "proxy"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "allowedPath"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "ALLOWED"
+        }
+      ]
+    }
+  ],
+  "relatedViews": [
+    {
+      "kind": "capability",
+      "folder": "worker",
+      "path": "worker/.dev/capability.json",
+      "relationship": "The capabilities they belong to."
+    },
+    {
+      "kind": "operation",
+      "folder": "worker",
+      "path": "worker/.dev/operation.json",
+      "relationship": "The routes they use."
+    },
+    {
+      "kind": "feature",
+      "folder": ".",
+      "path": ".dev/feature.json",
+      "relationship": "The page's sign-in feature, which the reader sees."
+    }
+  ]
+}

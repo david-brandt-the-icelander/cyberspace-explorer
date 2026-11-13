@@ -1,0 +1,34 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/folder.schema.json",
+  "kind": "folder",
+  "title": "The Worker's tests",
+  "folder": "test",
+  "entities": [
+    {
+      "id": "folder",
+      "title": "The Worker's tests",
+      "summary": "Node's test runner over worker/app.js, with GitHub faked.",
+      "purpose": "Checks the Worker's routes, sign-in and door to GitHub without a network or a Cloudflare account.",
+      "boundaries": [
+        "Tests the Worker only; nothing here tests index.html.",
+        "GitHub is a fake fetch; the secrets are test values."
+      ],
+      "relationships": [
+        {
+          "relation": "verifies",
+          "path": "worker/.dev/verification.json",
+          "entityId": "worker-tests"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "test/app.test.js"
+        },
+        {
+          "path": "package.json"
+        }
+      ]
+    }
+  ]
+}

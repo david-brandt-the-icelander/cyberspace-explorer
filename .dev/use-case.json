@@ -28,6 +28,10 @@
     {
       "path": "index.html",
       "symbol": "showWaiting"
+    },
+    {
+      "path": "index.html",
+      "symbol": "showSignIn"
     }
   ],
   "entities": [
@@ -203,7 +207,7 @@
         {
           "atStep": "list",
           "condition": "The host refuses, or has no such repository or ref.",
-          "outcome": "The status line says why, and offers Add a token when a token could help.",
+          "outcome": "The status line says why, and offers what could help: on the Worker, for a GitHub repository, Sign in with GitHub or Include private repositories; otherwise Add a token.",
           "sources": [
             {
               "path": "index.html",
@@ -283,7 +287,8 @@
       "actorDocument": "Actors/reader.md",
       "goal": "Read a private repository, or one behind GitHub's hourly limit.",
       "preconditions": [
-        "The reader has an access token that can read the repository: on GitHub, fine-grained with Contents: read; on GitLab, with read_api."
+        "The reader has an access token that can read the repository: on GitHub, fine-grained with Contents: read; on GitLab, with read_api.",
+        "The repository is not on GitHub, or the page is not served by a Worker that signs readers in; there, a GitHub refusal offers sign-in instead (sign-in-with-github)."
       ],
       "postconditions": [
         "The token is kept in this tab, or in this browser if they asked, under the scope they chose.",
@@ -403,6 +408,214 @@
             {
               "path": "index.html",
               "symbol": "getJson"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sign-in-with-github",
+      "name": "Sign in with GitHub and open my repository",
+      "description": "A reader signs in with GitHub on cyberspace-explorer.com and opens one of their own repositories, private ones included.",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "showSignIn"
+        },
+        {
+          "path": "index.html",
+          "symbol": "signInUrl"
+        },
+        {
+          "path": "index.html",
+          "symbol": "loadMyRepos"
+        },
+        {
+          "path": "index.html",
+          "symbol": "setupCombo"
+        }
+      ],
+      "actor": "Reader",
+      "actorDocument": "Actors/reader.md",
+      "goal": "Read their own repositories, private ones included, without making or pasting a token.",
+      "preconditions": [
+        "The page is served by its Worker with sign-in set up (/auth/me says configured).",
+        "The reader has a GitHub account."
+      ],
+      "postconditions": [
+        "The Worker holds a session for the reader in a sealed cookie, for 7 days, and the page never sees their token.",
+        "The repository chosen is open, read through the Worker."
+      ],
+      "flow": [
+        {
+          "id": "offer",
+          "participantKind": "system",
+          "actor": "Browser",
+          "action": "Asks the Worker who is signed in, and shows Sign in with GitHub (optional) with a box to include private repositories.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "detectService"
+            },
+            {
+              "path": "index.html",
+              "symbol": "showSignIn"
+            }
+          ]
+        },
+        {
+          "id": "choose",
+          "participantKind": "actor",
+          "actor": "Reader",
+          "actorDocument": "Actors/reader.md",
+          "action": "Ticks include my private repositories if they want them, and presses Sign in with GitHub.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "signInUrl"
+            }
+          ]
+        },
+        {
+          "id": "authorize",
+          "participantKind": "actor",
+          "actor": "Reader",
+          "actorDocument": "Actors/reader.md",
+          "action": "Authorizes the app at GitHub, where the Worker has sent them.",
+          "sources": [
+            {
+              "path": "worker/app.js",
+              "symbol": "start"
+            }
+          ]
+        },
+        {
+          "id": "back",
+          "participantKind": "system",
+          "actor": "Browser",
+          "action": "Comes back to the landing page signed in: it says who they are and fills the address box's drop-down with their repositories.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "showSignIn"
+            },
+            {
+              "path": "index.html",
+              "symbol": "loadMyRepos"
+            },
+            {
+              "path": "index.html",
+              "symbol": "setupCombo"
+            }
+          ]
+        },
+        {
+          "id": "pick",
+          "participantKind": "actor",
+          "actor": "Reader",
+          "actorDocument": "Actors/reader.md",
+          "action": "Types part of a name to narrow the list and picks a repository.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "setupCombo"
+            },
+            {
+              "path": "index.html",
+              "symbol": "filterText"
+            }
+          ]
+        },
+        {
+          "id": "read",
+          "participantKind": "system",
+          "actor": "Browser",
+          "action": "Opens it, listing and reading GitHub through the Worker.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "githubApi"
+            },
+            {
+              "path": "index.html",
+              "symbol": "viaService"
+            }
+          ]
+        }
+      ],
+      "alternatives": [
+        {
+          "atStep": "authorize",
+          "condition": "The reader cancels at GitHub.",
+          "outcome": "The landing page says GitHub sign-in was cancelled.",
+          "sources": [
+            {
+              "path": "worker/app.js",
+              "symbol": "callback"
+            },
+            {
+              "path": "index.html",
+              "symbol": "showSignIn"
+            }
+          ]
+        },
+        {
+          "atStep": "authorize",
+          "condition": "The sign-in can't be finished: the state doesn't match, it took more than 10 minutes, or GitHub gives no token.",
+          "outcome": "The landing page says GitHub sign-in didn't work, and offers it again.",
+          "sources": [
+            {
+              "path": "worker/app.js",
+              "symbol": "callback"
+            },
+            {
+              "path": "index.html",
+              "symbol": "showSignIn"
+            }
+          ]
+        },
+        {
+          "atStep": "read",
+          "condition": "The repository is private and the reader signed in without private repositories.",
+          "outcome": "The status line says GitHub can't see it with this sign-in, and offers Include private repositories.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "getJson"
+            },
+            {
+              "path": "index.html",
+              "symbol": "tokenOffer"
+            }
+          ]
+        },
+        {
+          "atStep": "read",
+          "condition": "GitHub no longer accepts the reader's token.",
+          "outcome": "The Worker ends the session, and the status line asks them to sign in again.",
+          "sources": [
+            {
+              "path": "worker/app.js",
+              "symbol": "proxy"
+            },
+            {
+              "path": "index.html",
+              "symbol": "getJson"
+            }
+          ]
+        },
+        {
+          "atStep": "offer",
+          "condition": "The page is not served by the Worker, or its sign-in is not set up.",
+          "outcome": "Sign in with GitHub opens a field for a personal access token instead, kept in this browser for github.com.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "showSignIn"
+            },
+            {
+              "path": "index.html",
+              "symbol": "detectService"
             }
           ]
         }
@@ -791,6 +1004,12 @@
       "folder": ".",
       "path": ".dev/page.state-diagram.json",
       "relationship": "Every state the page passes through while a repository opens."
+    },
+    {
+      "kind": "operation",
+      "folder": "worker",
+      "path": "worker/.dev/operation.json",
+      "relationship": "The Worker's routes the sign-in steps go through."
     }
   ]
 }

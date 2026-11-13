@@ -10,13 +10,32 @@
       "summary": "The copy people use, at https://cyberspace-explorer.com.",
       "environment": "production",
       "purpose": "The page readers open and links point to.",
-      "deployedBy": "GitHub Actions (.github/workflows/cyberspace-explorer.yml): every push to main is tested and deployed to Cloudflare with wrangler deploy.",
+      "deployedBy": "GitHub Actions (.github/workflows/cyberspace-explorer.yml): every push to main is tested and deployed to Cloudflare with wrangler deploy, as a Workers custom domain; Run workflow redeploys by hand.",
       "rollback": "No rollback is recorded. Going back means reverting the change on main, which deploys the earlier version.",
-      "evidenceStatus": "documented",
+      "evidenceStatus": "source-verified",
       "sources": [
         {
           "path": "README.md",
           "symbol": "Deploying"
+        },
+        {
+          "path": ".github/workflows/cyberspace-explorer.yml",
+          "symbol": "jobs.deploy"
+        },
+        {
+          "path": "wrangler.jsonc",
+          "symbol": "routes"
+        }
+      ],
+      "relationships": [
+        {
+          "relation": "depends-on",
+          "path": ".github/.dev/pipeline.json",
+          "entityId": "deploy"
+        },
+        {
+          "relation": "depends-on",
+          "path": "worker/.dev/configuration.json"
         }
       ]
     }

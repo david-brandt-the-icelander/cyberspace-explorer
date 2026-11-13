@@ -1,0 +1,108 @@
+{
+  "$schema": "../../Meta/Agents/Skills/describe-capability/schema.json",
+  "kind": "capability",
+  "title": "What the Worker can do",
+  "folder": "worker",
+  "description": "The Worker's two capabilities beyond serving the page.",
+  "sources": [
+    {
+      "path": "worker/app.js",
+      "symbol": "createHandler"
+    }
+  ],
+  "entities": [
+    {
+      "id": "github-sign-in",
+      "name": "GitHub sign-in",
+      "description": "Signs a reader in with GitHub, keeping their token where the page can't read it.",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "start"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "callback"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "me"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "signOut"
+        }
+      ],
+      "responsibility": "Runs GitHub's OAuth code flow with PKCE, holds the resulting token in a sealed HttpOnly cookie, says who is signed in and signs them out.",
+      "operations": [
+        {
+          "path": "worker/app.js",
+          "symbol": "start"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "callback"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "me"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "signOut"
+        }
+      ],
+      "access": [
+        "Off unless GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET and SESSION_SECRET are all set (configured).",
+        "Anyone may start a sign-in; it completes only in the browser holding the matching sealed state.",
+        "Signing out is accepted only with the app's own Origin."
+      ]
+    },
+    {
+      "id": "read-github",
+      "name": "Reading GitHub for a signed-in reader",
+      "description": "A read-only door to the part of GitHub's API the page needs.",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "proxy"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "allowedPath"
+        }
+      ],
+      "responsibility": "Forwards the page's reads of the reader's account, repositories, trees and files to GitHub with the reader's token, and passes the answer back without it.",
+      "operations": [
+        {
+          "path": "worker/app.js",
+          "symbol": "proxy"
+        }
+      ],
+      "access": [
+        "A valid session is required.",
+        "GET only, and only the paths in ALLOWED, with no . or .. segment."
+      ]
+    }
+  ],
+  "relatedViews": [
+    {
+      "kind": "operation",
+      "folder": "worker",
+      "path": "worker/.dev/operation.json",
+      "relationship": "The routes through which they are reached."
+    },
+    {
+      "kind": "feature",
+      "folder": "worker",
+      "path": "worker/.dev/feature.json",
+      "relationship": "The features they make up."
+    },
+    {
+      "kind": "capability",
+      "folder": ".",
+      "path": ".dev/capability.json",
+      "relationship": "The page's capability to read a repository uses them for a signed-in reader."
+    }
+  ]
+}

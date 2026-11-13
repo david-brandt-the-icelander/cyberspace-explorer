@@ -1,0 +1,33 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/backlog.schema.json",
+  "kind": "backlog",
+  "title": "Workflow backlog",
+  "folder": ".github",
+  "entities": [
+    {
+      "id": "token-permissions-disagree",
+      "title": "The workflow and the README name different permissions for the deploy token",
+      "summary": "README.md asks for DNS: Edit on the Cloudflare API token as well; the workflow's header comment does not.",
+      "type": "defect",
+      "status": "open",
+      "expected": "The workflow's comment and README.md, \"Setting it up once (the owner)\", list the same permissions for CLOUDFLARE_API_TOKEN.",
+      "observed": "README.md lists Account → Workers Scripts: Edit, Zone → Workers Routes: Edit and Zone → DNS: Edit; the comment at the top of the workflow lists the first two only.",
+      "origin": {
+        "kind": "code",
+        "reference": ".github/workflows/cyberspace-explorer.yml",
+        "description": "Found while describing the pipeline."
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": ".github/workflows/cyberspace-explorer.yml",
+          "symbol": "name"
+        },
+        {
+          "path": "README.md",
+          "symbol": "Setting it up once (the owner)"
+        }
+      ]
+    }
+  ]
+}

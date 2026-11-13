@@ -1,0 +1,46 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/folder.schema.json",
+  "kind": "folder",
+  "title": "The Worker",
+  "folder": "worker",
+  "entities": [
+    {
+      "id": "folder",
+      "title": "The Worker",
+      "summary": "The Cloudflare Worker at cyberspace-explorer.com: it serves the page, signs readers in with GitHub and reads GitHub for them.",
+      "purpose": "Lets a reader read private GitHub repositories in the page without the page ever holding their GitHub access: the token stays in a sealed, HttpOnly cookie and only this code adds it to GitHub calls.",
+      "boundaries": [
+        "The page itself is ../index.html, imported as text by index.js; this folder only serves it.",
+        "It reads GitHub and nothing else, and only the paths the page needs. GitLab, and readers who paste a token, never go through it.",
+        "Without its three secrets /auth/me says sign-in isn't set up and starting a sign-in answers 503; the page then falls back to pasted tokens.",
+        "No dependencies: app.js runs in Workers and in Node, which is how test/app.test.js runs it."
+      ],
+      "relationships": [
+        {
+          "relation": "part-of",
+          "path": ".dev/folder.json"
+        },
+        {
+          "relation": "verified-by",
+          "path": "worker/.dev/verification.json",
+          "entityId": "worker-tests"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/index.js",
+          "symbol": "default"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "createHandler"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "configured"
+        }
+      ]
+    }
+  ]
+}
