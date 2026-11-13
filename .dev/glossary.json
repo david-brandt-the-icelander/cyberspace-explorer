@@ -106,6 +106,18 @@
       "summary": "The list of every open decision and unresolved blocker in a repository, and the link to it above the tree."
     },
     {
+      "id": "cyberspace",
+      "title": "Cyberspace",
+      "summary": "The second way to read a repository: its .dev views drawn in 3D, opened by an address whose last segment is ~space. The other way, the drawings, cards and tables, is Flat.",
+      "aliases": [
+        "Cyberspace mode",
+        "~space"
+      ],
+      "notToBeConfusedWith": [
+        "Cyberspace explorer"
+      ]
+    },
+    {
       "id": "token-scope",
       "title": "Scope",
       "summary": "What a token is for: every repository on a host, everything under an owner or group, or one repository."

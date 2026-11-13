@@ -2,5 +2,5 @@
   "name": "cyberspace-explorer",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node --test test/app.test.js" }
+  "scripts": { "test": "node --test test/*.test.js" }
 }

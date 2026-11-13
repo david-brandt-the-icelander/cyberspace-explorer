@@ -77,7 +77,7 @@
       "id": "jsdelivr",
       "name": "jsDelivr",
       "kind": "external-service",
-      "description": "Serves dagre and the Barlow typefaces."
+      "description": "Serves dagre, three.js and the Barlow typefaces."
     },
     {
       "id": "github-api",
@@ -147,7 +147,7 @@
       "from": "page",
       "to": "jsdelivr",
       "kind": "connects-to",
-      "description": "Loads the typefaces and the layout library."
+      "description": "Loads the typefaces and the layout library, and three.js on first entry to Cyberspace."
     },
     {
       "from": "page",

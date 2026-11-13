@@ -35,6 +35,22 @@
     {
       "path": "index.html",
       "symbol": "showSignIn"
+    },
+    {
+      "path": "index.html",
+      "symbol": "parseSpaceHash"
+    },
+    {
+      "path": "index.html",
+      "symbol": "showSpace"
+    },
+    {
+      "path": "index.html",
+      "symbol": "spaceStage"
+    },
+    {
+      "path": "index.html",
+      "symbol": "loadThree"
     }
   ],
   "components": [
@@ -47,7 +63,7 @@
     {
       "id": "bar",
       "name": "Bar",
-      "responsibility": "The strip across the top: the brand (a link to the landing page), the repository and its ref, the Tokens button and Choose another repository.",
+      "responsibility": "The strip across the top: the brand (a link to the landing page), the repository and its ref, the Flat / Cyberspace switch (built, and hidden until Cyberspace launches), the Tokens button and Choose another repository.",
       "folder": "."
     },
     {
@@ -131,7 +147,7 @@
     {
       "id": "router",
       "name": "Router",
-      "responsibility": "Reads the part of the address after # and shows that folder, part, view, record or the Waiting view.",
+      "responsibility": "Reads the part of the address after # and shows that folder, part, view, record or the Waiting view; with ~space as its last segment, Cyberspace.",
       "folder": "."
     },
     {
@@ -183,6 +199,18 @@
       "folder": "."
     },
     {
+      "id": "cyberspace",
+      "name": "Cyberspace",
+      "responsibility": "The second way in: the repository in 3D, over a sky and on a ground grid, in place of the folder column and view. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
+      "folder": "."
+    },
+    {
+      "id": "stage",
+      "name": "Stage",
+      "responsibility": "The WebGL renderer, scene and camera: draws a frame only when something changed and none while hidden, follows the window's size and the system's light or dark colours, lets go of the scene on leaving and of the context a minute later, and offers Restore it when the context is lost.",
+      "folder": "."
+    },
+    {
       "id": "icons",
       "name": "Icons",
       "responsibility": "The page's own icon set on a 24-unit grid, and the rules that pick a component's icon from its name.",
@@ -205,6 +233,12 @@
       "id": "dagre",
       "name": "dagre 3.1.3",
       "responsibility": "The graph layout library, loaded from jsDelivr. Without it every view is shown as tables.",
+      "external": true
+    },
+    {
+      "id": "three",
+      "name": "three.js 0.187.0",
+      "responsibility": "The 3D library, core only, loaded from jsDelivr on first entry to Cyberspace. Without it Cyberspace says so and Flat shows.",
       "external": true
     },
     {
@@ -342,6 +376,12 @@
       "description": "Part of it."
     },
     {
+      "from": "cyberspace",
+      "to": "stage",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
       "from": "landing",
       "to": "loader",
       "kind": "depends-on",
@@ -426,6 +466,12 @@
       "description": "Shows it for #~waiting."
     },
     {
+      "from": "router",
+      "to": "cyberspace",
+      "kind": "depends-on",
+      "description": "Shows it for an address whose last segment is ~space, and Flat again for one without."
+    },
+    {
       "from": "folder-view",
       "to": "drawing",
       "kind": "depends-on",
@@ -448,6 +494,18 @@
       "to": "dagre",
       "kind": "depends-on",
       "description": "Places parts and routes lines."
+    },
+    {
+      "from": "stage",
+      "to": "three",
+      "kind": "depends-on",
+      "description": "Renders the scene with its WebGLRenderer, and the ground grid as a ShaderMaterial."
+    },
+    {
+      "from": "cyberspace",
+      "to": "status-line",
+      "kind": "depends-on",
+      "description": "Says why it can't run, and offers Restore it when the 3D view stops."
     },
     {
       "from": "models",

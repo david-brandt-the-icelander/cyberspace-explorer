@@ -188,6 +188,49 @@
       ]
     },
     {
+      "id": "works-without-webgl",
+      "title": "Works without WebGL",
+      "summary": "Without WebGL or three.js, everything is still readable in Flat.",
+      "statement": "When the browser has no WebGL 2, or three.js can't load, a Cyberspace address shows the same place in Flat and the status line says why; without WebGL the mode switch is not offered. When the 3D view's context is lost, the status line says so and offers to restore it.",
+      "rationale": "Cyberspace is another way into the same data, never the only one (decisions tables-always and cyberspace-mode).",
+      "priority": "must",
+      "acceptanceCriteria": [
+        "With WebGL turned off, #|~space shows the root folder flat and says: Cyberspace needs WebGL, which this browser has turned off. Showing the flat view.",
+        "With jsDelivr's three.js blocked, #|~space shows the root folder flat and says: Cyberspace couldn't load its 3D library. Showing the flat view.",
+        "When the WebGL context is lost, the status line says The 3D view stopped, and Restore it builds the view again."
+      ],
+      "relationships": [
+        {
+          "relation": "relates-to",
+          "path": ".dev/decisions.json",
+          "entityId": "cyberspace-mode"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "webgl"
+        },
+        {
+          "path": "index.html",
+          "symbol": "showSpace"
+        },
+        {
+          "path": "index.html",
+          "symbol": "loadThree"
+        },
+        {
+          "path": "index.html",
+          "symbol": "stageLost"
+        },
+        {
+          "path": "index.html",
+          "symbol": "restoreStage"
+        }
+      ]
+    },
+    {
       "id": "static",
       "title": "One static file",
       "summary": "No build, and no server needed.",
