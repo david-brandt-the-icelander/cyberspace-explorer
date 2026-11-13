@@ -3,7 +3,7 @@
   "kind": "operation",
   "title": "How the browser is reached",
   "folder": ".",
-  "description": "The entrypoints a reader or a link uses: the page's address, the part after #, and the token panel.",
+  "description": "The entrypoints a reader or a link uses: the page's address, the part after #, the sign-in on the landing page and the token panel.",
   "sources": [
     {
       "path": "index.html",
@@ -20,6 +20,10 @@
     {
       "path": "index.html",
       "symbol": "saveToken"
+    },
+    {
+      "path": "index.html",
+      "symbol": "showSignIn"
     }
   ],
   "entities": [
@@ -43,11 +47,11 @@
       },
       "action": "query",
       "transport": "?url=<address> in the page's address, or the landing page's form, which sets it",
-      "authorization": "None: the page has no sign-in. What a repository shows is up to its host and the reader's token.",
+      "authorization": "None: anyone can open the page. What a repository shows is up to its host, and to the reader's token or GitHub sign-in.",
       "result": "The folder tree, and the folder named after # or the shallowest one.",
       "failures": [
         "The address is not http or https, or names no repository.",
-        "The host refuses: no such repository or ref, a private repository without a token, a token refused, or GitHub's unauthenticated limit used up.",
+        "The host refuses: no such repository or ref, a private repository without a token or sign-in, a token or sign-in refused, or GitHub's unauthenticated limit used up.",
         "No .dev/*.json file (or .cyberspace-explorer/*.json file, where the root has that folder) is under the folder asked for."
       ]
     },
@@ -67,7 +71,7 @@
       },
       "action": "query",
       "transport": "#<folder> after the page's address",
-      "authorization": "None: the page has no sign-in. What a repository shows is up to its host and the reader's token.",
+      "authorization": "None: anyone can open the page. What a repository shows is up to its host, and to the reader's token or GitHub sign-in.",
       "result": "The folder's head and its tabs, on the kind already open if it has one.",
       "failures": [
         "A folder the page has no files for opens the shallowest folder instead."
@@ -89,7 +93,7 @@
       },
       "action": "query",
       "transport": "#<folder>|<kind>:<part ID or name>",
-      "authorization": "None: the page has no sign-in. What a repository shows is up to its host and the reader's token.",
+      "authorization": "None: anyone can open the page. What a repository shows is up to its host, and to the reader's token or GitHub sign-in.",
       "result": "The kind's tab opens, the drawing scrolls to the middle of the screen and the part is selected, pulsed and inspected.",
       "failures": [
         "Nothing is selected when no drawn part of that kind has that ID or name."
@@ -111,7 +115,7 @@
       },
       "action": "query",
       "transport": "#<folder>|view:<file name>",
-      "authorization": "None: the page has no sign-in. What a repository shows is up to its host and the reader's token.",
+      "authorization": "None: anyone can open the page. What a repository shows is up to its host, and to the reader's token or GitHub sign-in.",
       "result": "The view's tab opens and the page scrolls to it.",
       "failures": [
         "Nothing moves when the folder has no such file."
@@ -137,7 +141,7 @@
       },
       "action": "query",
       "transport": "#<folder>|entity:<file name>#<record ID>",
-      "authorization": "None: the page has no sign-in. What a repository shows is up to its host and the reader's token.",
+      "authorization": "None: anyone can open the page. What a repository shows is up to its host, and to the reader's token or GitHub sign-in.",
       "result": "The Knowledge tab opens, the page scrolls to the record and it flashes; without #<record ID>, to the file.",
       "failures": [
         "An unknown record ID scrolls to the file.",
@@ -164,7 +168,7 @@
       },
       "action": "query",
       "transport": "#~waiting",
-      "authorization": "None: the page has no sign-in. What a repository shows is up to its host and the reader's token.",
+      "authorization": "None: anyone can open the page. What a repository shows is up to its host, and to the reader's token or GitHub sign-in.",
       "result": "Two tables, of open decisions and of blockers, each row linked to its record.",
       "failures": []
     },
@@ -213,6 +217,88 @@
       "authorization": "The reader, in their own browser.",
       "result": "The token is gone from both; the page reloads if it was the one in use.",
       "failures": []
+    },
+    {
+      "id": "sign-in",
+      "name": "Sign in with GitHub",
+      "description": "Starts a GitHub sign-in on the Worker, or, without one, takes a pasted GitHub token.",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "showSignIn"
+        },
+        {
+          "path": "index.html",
+          "symbol": "signInUrl"
+        },
+        {
+          "path": "index.html",
+          "symbol": "tokenOffer"
+        }
+      ],
+      "entrypoint": {
+        "path": "index.html",
+        "symbol": "showSignIn"
+      },
+      "action": "command",
+      "transport": "Sign in with GitHub (optional) on the landing page, with or without include my private repositories; or Sign in with GitHub and Include private repositories on the status line after GitHub refuses",
+      "authorization": "None on the page; GitHub decides. On the Worker, sign-in is offered only when it is set up.",
+      "result": "On the Worker: the page goes to /auth/github/start with the current address as the return path, and comes back signed in. Without it: the token is checked against GitHub, kept for github.com in this tab (or this browser, with remember) and the reader's repositories fill the drop-down.",
+      "failures": [
+        "The reader cancels at GitHub: the landing page says GitHub sign-in was cancelled.",
+        "The Worker's sign-in fails: the landing page says GitHub sign-in didn't work.",
+        "Without the Worker, GitHub refuses the pasted token: the landing page says so and keeps nothing."
+      ]
+    },
+    {
+      "id": "sign-out",
+      "name": "Sign out",
+      "description": "Ends the GitHub sign-in.",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "showSignIn"
+        }
+      ],
+      "entrypoint": {
+        "path": "index.html",
+        "symbol": "showSignIn"
+      },
+      "action": "command",
+      "transport": "Sign out beside Signed in to GitHub as … on the landing page",
+      "authorization": "The reader, in their own browser.",
+      "result": "On the Worker: POST /auth/sign-out, then the landing page. Without it: the github.com token is forgotten and the page reloads.",
+      "failures": []
+    },
+    {
+      "id": "pick-repository",
+      "name": "Pick one of my repositories",
+      "description": "Opens one of the signed-in reader's repositories from the address box's drop-down.",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "setupCombo"
+        },
+        {
+          "path": "index.html",
+          "symbol": "filterText"
+        },
+        {
+          "path": "index.html",
+          "symbol": "loadMyRepos"
+        }
+      ],
+      "entrypoint": {
+        "path": "index.html",
+        "symbol": "setupCombo"
+      },
+      "action": "query",
+      "transport": "The drop-down on the landing page's address box: click, arrow keys and Enter, or typing to filter",
+      "authorization": "Signed in with GitHub, on the Worker or with a pasted token; the list is what GitHub shows that account.",
+      "result": "The repository's address goes into the box and the form is sent, which opens it as ?url=.",
+      "failures": [
+        "Nothing matches what is typed: the list says so, and Browse opens the address as typed."
+      ]
     }
   ],
   "relatedViews": [
@@ -227,6 +313,12 @@
       "folder": ".",
       "path": ".dev/feature.json",
       "relationship": "The features they open."
+    },
+    {
+      "kind": "operation",
+      "folder": "worker",
+      "path": "worker/.dev/operation.json",
+      "relationship": "The Worker's routes that sign-in, sign-out and a signed-in reader's reads go to."
     }
   ]
 }

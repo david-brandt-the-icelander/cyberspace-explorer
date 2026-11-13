@@ -1,0 +1,32 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/folder.schema.json",
+  "kind": "folder",
+  "title": "The workflow",
+  "folder": ".github",
+  "entities": [
+    {
+      "id": "folder",
+      "title": "The workflow",
+      "summary": "The GitHub Actions workflow that tests every pull request and deploys main to cyberspace-explorer.com.",
+      "purpose": "Keeps what runs at cyberspace-explorer.com the same as main, tested first.",
+      "boundaries": [
+        "The Worker's own secrets are set once on Cloudflare; a deploy does not touch them.",
+        "Branch protection and the production environment's reviewers are repository settings, not files here."
+      ],
+      "relationships": [
+        {
+          "relation": "delivers",
+          "path": ".dev/delivery.json",
+          "entityId": "production"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": ".github/workflows/cyberspace-explorer.yml",
+          "symbol": "jobs"
+        }
+      ]
+    }
+  ]
+}

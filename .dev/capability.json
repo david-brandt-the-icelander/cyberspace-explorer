@@ -22,7 +22,7 @@
     {
       "id": "read-repository",
       "name": "Read a repository's .dev files from a browser",
-      "description": "Lists and reads a GitHub or GitLab repository's .dev files with no server in between.",
+      "description": "Lists and reads a GitHub or GitLab repository's .dev files from the reader's browser, straight from the host or, for a reader signed in with GitHub, through the Worker.",
       "sources": [
         {
           "path": "index.html",
@@ -35,6 +35,10 @@
         {
           "path": "index.html",
           "symbol": "gitlab"
+        },
+        {
+          "path": "index.html",
+          "symbol": "githubApi"
         }
       ],
       "responsibility": "Turns an address into the repository's views and knowledge files, by folder, with the reader's token where one is needed, and says what it could not read.",
@@ -46,10 +50,15 @@
         {
           "path": "index.html",
           "symbol": "load"
+        },
+        {
+          "path": "index.html",
+          "symbol": "showSignIn"
         }
       ],
       "access": [
-        "Anyone who can open the page; the repository's host decides what they may read."
+        "Anyone who can open the page; the repository's host decides what they may read.",
+        "A signed-in reader reads GitHub with their own account, through the Worker; anyone else with their pasted token, or with none."
       ]
     },
     {
@@ -135,6 +144,12 @@
       "folder": ".",
       "path": ".dev/feature.json",
       "relationship": "The features they offer."
+    },
+    {
+      "kind": "capability",
+      "folder": "worker",
+      "path": "worker/.dev/capability.json",
+      "relationship": "The Worker's sign-in and door to GitHub, which a signed-in reader's reads go through."
     }
   ]
 }

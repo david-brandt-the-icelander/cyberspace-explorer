@@ -116,6 +116,72 @@
       ]
     },
     {
+      "id": "github-sign-in",
+      "name": "Sign in with GitHub, and pick from your repositories",
+      "description": "A reader can sign in with GitHub, optionally, and then choose from their own repositories.",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "showSignIn"
+        },
+        {
+          "path": "index.html",
+          "symbol": "setupCombo"
+        },
+        {
+          "path": "index.html",
+          "symbol": "loadMyRepos"
+        }
+      ],
+      "behavior": "The landing page asks the Worker whether it signs readers in. If it does, Sign in with GitHub (optional) goes to GitHub through the Worker, asking for private repositories only when include my private repositories is ticked; signed in, GitHub is read through the Worker. Without the Worker, signing in means pasting a GitHub personal access token, kept like any other token for the whole of github.com. Either way, the reader's repositories then fill a drop-down on the address box, which doubles as its filter: typing part of a name, or pasting a GitHub address, narrows it to that owner or repository. When GitHub refuses a repository on the Worker, the status line offers Sign in with GitHub, or Include private repositories to a reader already signed in.",
+      "outcome": "A reader opens their own repositories, private ones included, without copying addresses, and on cyberspace-explorer.com without making a token.",
+      "constraints": [
+        "Optional: an address can always be pasted, and public repositories need no sign-in.",
+        "GitHub only.",
+        "The list holds at most 1,000 repositories (ten pages of a hundred), those the reader owns, collaborates on or reaches through an organization.",
+        "It is sorted by last update, oldest first; OLDEST_FIRST in the page flips it.",
+        "Signed in through the Worker, pasted GitHub tokens are not used and the Tokens button is hidden for GitHub repositories."
+      ],
+      "implementation": [
+        {
+          "path": "index.html",
+          "symbol": "detectService"
+        },
+        {
+          "path": "index.html",
+          "symbol": "showSignIn"
+        },
+        {
+          "path": "index.html",
+          "symbol": "signInUrl"
+        },
+        {
+          "path": "index.html",
+          "symbol": "loadMyRepos"
+        },
+        {
+          "path": "index.html",
+          "symbol": "setupCombo"
+        },
+        {
+          "path": "index.html",
+          "symbol": "filterText"
+        },
+        {
+          "path": "index.html",
+          "symbol": "tokenOffer"
+        },
+        {
+          "path": "index.html",
+          "symbol": "viaService"
+        },
+        {
+          "path": "index.html",
+          "symbol": "OLDEST_FIRST"
+        }
+      ]
+    },
+    {
       "id": "folder-tree",
       "name": "A tree of the folders that have views",
       "description": "The left column lists the folders with .dev files, nested under the nearest such folder above them.",
@@ -674,6 +740,12 @@
       "folder": ".",
       "path": ".dev/component-diagram.json",
       "relationship": "The parts of the page that carry them out."
+    },
+    {
+      "kind": "feature",
+      "folder": "worker",
+      "path": "worker/.dev/feature.json",
+      "relationship": "The Worker's sign-in and door to GitHub, behind the sign-in feature."
     }
   ]
 }

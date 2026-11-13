@@ -1,0 +1,197 @@
+{
+  "$schema": "../../Meta/Agents/Skills/describe-operation/schema.json",
+  "kind": "operation",
+  "title": "The Worker's routes",
+  "folder": "worker",
+  "description": "Every route the Worker answers. Paths are at the root of cyberspace-explorer.com, since BASE is empty.",
+  "sources": [
+    {
+      "path": "worker/app.js",
+      "symbol": "createHandler"
+    },
+    {
+      "path": "worker/app.js",
+      "symbol": "BASE"
+    }
+  ],
+  "entities": [
+    {
+      "id": "serve-page",
+      "name": "Serve the page",
+      "description": "The page, for any browser.",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "createHandler"
+        },
+        {
+          "path": "worker/index.js",
+          "symbol": "default"
+        }
+      ],
+      "entrypoint": {
+        "path": "worker/app.js",
+        "symbol": "createHandler"
+      },
+      "action": "query",
+      "transport": "GET or HEAD / or /index.html (a trailing slash is ignored)",
+      "authorization": "None: the page is public.",
+      "result": "The source text of index.html, with Cache-Control: no-cache, X-Content-Type-Options: nosniff and Referrer-Policy: strict-origin-when-cross-origin.",
+      "failures": [
+        "Any other method: 405 with Allow: GET, HEAD.",
+        "Any path the Worker has no route for: 404."
+      ]
+    },
+    {
+      "id": "who-is-signed-in",
+      "name": "Say who is signed in",
+      "description": "Tells the page whether sign-in is set up and who is signed in.",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "me"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "session"
+        }
+      ],
+      "entrypoint": {
+        "path": "worker/app.js",
+        "symbol": "me"
+      },
+      "action": "query",
+      "transport": "GET /auth/me",
+      "authorization": "None; the answer depends on the session cookie.",
+      "result": "{ configured: false } without the three secrets; otherwise { configured: true, user: { login, avatar } } for a valid session, or user: null.",
+      "failures": []
+    },
+    {
+      "id": "start-sign-in",
+      "name": "Start a GitHub sign-in",
+      "description": "Sends the reader to GitHub to authorize the app.",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "start"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "safeReturn"
+        }
+      ],
+      "entrypoint": {
+        "path": "worker/app.js",
+        "symbol": "start"
+      },
+      "action": "command",
+      "transport": "GET /auth/github/start?return=<path>&private=1",
+      "authorization": "None: anyone may start a sign-in.",
+      "result": "A 303 to GitHub's authorize page with the client ID, the callback address, a random state and an S256 PKCE challenge, asking for the repo scope only with private=1; the state, the verifier and the return path are sealed in explorer_oauth for 10 minutes.",
+      "failures": [
+        "Sign-in not set up: 503 with an error message.",
+        "A return address off the app's host: the reader comes back to / instead."
+      ]
+    },
+    {
+      "id": "finish-sign-in",
+      "name": "Finish a GitHub sign-in",
+      "description": "Where GitHub sends the reader back: turns the code into a session.",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "callback"
+        }
+      ],
+      "entrypoint": {
+        "path": "worker/app.js",
+        "symbol": "callback"
+      },
+      "action": "command",
+      "transport": "GET /auth/github/callback?code=…&state=… (the OAuth App's callback)",
+      "authorization": "Only for the browser that holds the sealed explorer_oauth cookie whose state matches, within its 10 minutes.",
+      "result": "The code is exchanged with the client secret and the PKCE verifier, the account is looked up, explorer_session is set for 7 days and the reader is sent back to the return path.",
+      "failures": [
+        "Sign-in not set up: 503.",
+        "No pending cookie, an expired one, or another state: a redirect to /?signin=failed.",
+        "No code (the reader cancelled at GitHub): a redirect to the return path with signin=denied.",
+        "GitHub gives no access token, or GET /user names no account: a redirect to /?signin=failed."
+      ]
+    },
+    {
+      "id": "sign-out",
+      "name": "Sign out",
+      "description": "Forgets the session in this browser.",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "signOut"
+        }
+      ],
+      "entrypoint": {
+        "path": "worker/app.js",
+        "symbol": "signOut"
+      },
+      "action": "command",
+      "transport": "POST /auth/sign-out",
+      "authorization": "Only from the app's own page: the Origin header must be the app's origin.",
+      "result": "{ ok: true } and explorer_session cleared. The token is not revoked at GitHub.",
+      "failures": [
+        "Any other method, or another or no Origin: 403."
+      ]
+    },
+    {
+      "id": "read-github",
+      "name": "Read GitHub for the reader",
+      "description": "GitHub's REST API, read with the signed-in reader's token.",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "proxy"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "allowedPath"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "ALLOWED"
+        }
+      ],
+      "entrypoint": {
+        "path": "worker/app.js",
+        "symbol": "proxy"
+      },
+      "action": "query",
+      "transport": "GET /api/github/<path>?<query>, Accept: application/vnd.github.raw for a file's raw content",
+      "authorization": "A valid session, and a path on the allowlist: user, user/repos, a repository, its git trees and its contents, with no . or .. segment.",
+      "result": "GitHub's status and body, its content type and its rate-limit headers, marked private, no-store. The token is never in the answer.",
+      "failures": [
+        "Any method but GET: 405 with Allow: GET.",
+        "No valid session: 401.",
+        "A path off the allowlist: 404.",
+        "GitHub answers 401 (a revoked or expired token): the 401 is passed on and the session cleared."
+      ]
+    }
+  ],
+  "relatedViews": [
+    {
+      "kind": "capability",
+      "folder": "worker",
+      "path": "worker/.dev/capability.json",
+      "relationship": "The capabilities these routes reach."
+    },
+    {
+      "kind": "state",
+      "folder": "worker",
+      "path": "worker/.dev/Session.state-diagram.json",
+      "relationship": "How the sign-in routes move a browser's session."
+    },
+    {
+      "kind": "use-case",
+      "folder": ".",
+      "path": ".dev/use-case.json",
+      "relationship": "The reader's sign-in use case calls them from the page."
+    }
+  ]
+}

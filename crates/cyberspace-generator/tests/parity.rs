@@ -179,3 +179,32 @@ fn orphan_actor() {
     }
     std::fs::remove_dir_all(&root).unwrap();
 }
+
+// An actor named only inside code is not linked, so it is reported as an orphan; a reference definition links it.
+#[test]
+fn actor_links_follow_markdown() {
+    let root = fixture("links");
+    std::fs::write(root.join("Actors/ghost.md"), "# Ghost\n").unwrap();
+    std::fs::write(
+        root.join("NOTES.md"),
+        "Code: `Actors/ghost.md`\n\n```\n[x](Actors/ghost.md)\n```\n",
+    )
+    .unwrap();
+    let expected = "Actors/ghost.md: nothing links to this actor";
+    let (ok, out) = rust(&root);
+    assert!(!ok && out.contains(expected), "{out}");
+    if let Some(py) = python(&root) {
+        assert!(py.contains(expected), "{py}");
+    }
+    std::fs::write(
+        root.join("NOTES.md"),
+        "See [the ghost].\n\n[the ghost]: ./Actors/ghost.md\n",
+    )
+    .unwrap();
+    let (ok, out) = rust(&root);
+    assert!(ok, "{out}");
+    if let Some(py) = python(&root) {
+        assert!(!py.contains("nothing links"), "{py}");
+    }
+    std::fs::remove_dir_all(&root).unwrap();
+}

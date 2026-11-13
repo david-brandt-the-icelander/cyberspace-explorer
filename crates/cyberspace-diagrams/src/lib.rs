@@ -327,6 +327,32 @@ impl Skills {
     }
 }
 
+// A Markdown link to an actor: inline, [text](../Actors/name.md#part "title"), or a reference definition, [label]: Actors/name.md.
+const ACTOR_LINK: &str = r#"(?m)\]\(\s*<?(?:\.{1,2}/|/)*(Actors/[A-Za-z0-9._-]+\.md)(?:#[^\s)>]*)?>?(?:\s+["'(][^)]*)?\)|^\s{0,3}\[[^\]]+\]:\s*<?(?:\.{1,2}/|/)*(Actors/[A-Za-z0-9._-]+\.md)"#;
+
+// Removes fenced code blocks and inline code spans, so a path written as code is not a link.
+pub fn strip_code(text: &str) -> String {
+    let lines: Vec<&str> = text.split('\n').collect();
+    let mut kept = Vec::new();
+    let mut i = 0;
+    while i < lines.len() {
+        let fence = ["```", "~~~"].into_iter().find(|f| lines[i].starts_with(f));
+        let close = fence.and_then(|f| (i + 1..lines.len()).find(|&j| lines[j].starts_with(f)));
+        match close {
+            Some(j) => {
+                kept.push("");
+                i = j + 1;
+            }
+            None => {
+                kept.push(lines[i]);
+                i += 1;
+            }
+        }
+    }
+    let span = Regex::new(r"`[^`\n]+`").unwrap();
+    span.replace_all(&kept.join("\n"), "").into_owned()
+}
+
 // Checks that every actor file is linked from some other file and every link lands on a file.
 fn check_actors(
     root: &Path,
@@ -359,13 +385,16 @@ fn check_actors(
             ));
         }
     }
-    let link = Regex::new(r"\bActors/[A-Za-z0-9._-]+\.md\b").unwrap();
+    let link = Regex::new(ACTOR_LINK).unwrap();
     for (dir, files) in walk(root, Some(skills)) {
         for file in files.iter().filter(|f| f.ends_with(".md")) {
             let path = dir.join(file);
-            let text = std::fs::read_to_string(&path).unwrap_or_default();
-            let links: std::collections::BTreeSet<&str> =
-                link.find_iter(&text).map(|m| m.as_str()).collect();
+            let text = strip_code(&std::fs::read_to_string(&path).unwrap_or_default());
+            let links: std::collections::BTreeSet<&str> = link
+                .captures_iter(&text)
+                .filter_map(|c| c.get(1).or_else(|| c.get(2)))
+                .map(|m| m.as_str())
+                .collect();
             for found in links {
                 match actor_reference(root, found) {
                     Ok(target) if Some(&target) != path.canonicalize().ok().as_ref() => {

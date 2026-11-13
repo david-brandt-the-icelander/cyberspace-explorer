@@ -2,7 +2,7 @@
   "$schema": "../Meta/Agents/Skills/describe-component-diagram/schema.json",
   "kind": "component",
   "title": "Cyberspace explorer",
-  "description": "The parts of the page, which is one HTML file: what the reader sees, how a repository is read, how views are drawn and written, and the services it reaches from the reader's browser.",
+  "description": "The parts of the page, which is one HTML file: what the reader sees, how a repository is read, how views are drawn and written, and the services it reaches from the reader's browser; and the Worker in worker/ that serves it and signs readers in with GitHub.",
   "sources": [
     {
       "path": "index.html",
@@ -27,6 +27,14 @@
     {
       "path": "index.html",
       "symbol": "openTokenPanel"
+    },
+    {
+      "path": "index.html",
+      "symbol": "detectService"
+    },
+    {
+      "path": "index.html",
+      "symbol": "showSignIn"
     }
   ],
   "components": [
@@ -179,6 +187,19 @@
       "name": "Icons",
       "responsibility": "The page's own icon set on a 24-unit grid, and the rules that pick a component's icon from its name.",
       "folder": "."
+    },
+    {
+      "id": "sign-in",
+      "name": "Sign-in and my repositories",
+      "responsibility": "On the landing page: asks the Worker whether it signs readers in, offers Sign in with GitHub (or, without the Worker, a pasted GitHub token), and fills the address box's drop-down with the reader's repositories.",
+      "folder": "."
+    },
+    {
+      "id": "worker",
+      "name": "Worker",
+      "responsibility": "Serves the page at cyberspace-explorer.com, signs readers in with GitHub and reads GitHub for them with their token, which never reaches the page.",
+      "folder": "worker",
+      "diagram": "worker/.dev/component-diagram.json"
     },
     {
       "id": "dagre",
@@ -457,6 +478,48 @@
       "to": "router",
       "kind": "depends-on",
       "description": "Links records as #folder|entity:file#id."
+    },
+    {
+      "from": "landing",
+      "to": "sign-in",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "sign-in",
+      "to": "worker",
+      "kind": "depends-on",
+      "description": "Asks /auth/me who is signed in, starts and ends a sign-in, and lists the reader's repositories through /api/github."
+    },
+    {
+      "from": "sign-in",
+      "to": "github",
+      "kind": "depends-on",
+      "description": "Without the Worker, lists the reader's repositories with their pasted token."
+    },
+    {
+      "from": "sign-in",
+      "to": "token-store",
+      "kind": "depends-on",
+      "description": "Without the Worker, keeps the pasted GitHub token for the whole of github.com."
+    },
+    {
+      "from": "github-adapter",
+      "to": "worker",
+      "kind": "depends-on",
+      "description": "For a reader signed in through the Worker, lists and reads GitHub through /api/github instead of api.github.com and raw.githubusercontent.com."
+    },
+    {
+      "from": "status-line",
+      "to": "sign-in",
+      "kind": "depends-on",
+      "description": "On the Worker, a GitHub refusal offers Sign in with GitHub, or Include private repositories, instead of a token."
+    },
+    {
+      "from": "worker",
+      "to": "github",
+      "kind": "depends-on",
+      "description": "Signs readers in at github.com and reads api.github.com with their token."
     }
   ],
   "folder": "."

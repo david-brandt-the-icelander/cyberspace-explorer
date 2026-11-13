@@ -1,0 +1,78 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/pipeline.schema.json",
+  "kind": "pipeline",
+  "title": "Cyberspace explorer workflow",
+  "folder": ".github",
+  "entities": [
+    {
+      "id": "pull-request",
+      "title": "On a pull request",
+      "summary": "The Worker's tests.",
+      "trigger": "Any pull request (on.pull_request); a newer push to the same pull request cancels the run under way.",
+      "checks": [
+        "npm test on Node 22"
+      ],
+      "blocks": "nothing by itself; whether a failure blocks merging is a branch protection setting",
+      "notChecked": [
+        "index.html: nothing tests the page.",
+        "The .dev files: neither validator runs here.",
+        "That wrangler can build and deploy the Worker."
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": ".github/workflows/cyberspace-explorer.yml",
+          "symbol": "on.pull_request"
+        },
+        {
+          "path": ".github/workflows/cyberspace-explorer.yml",
+          "symbol": "jobs.test"
+        },
+        {
+          "path": ".github/workflows/cyberspace-explorer.yml",
+          "symbol": "concurrency"
+        }
+      ]
+    },
+    {
+      "id": "deploy",
+      "title": "On main",
+      "summary": "Test, deploy with wrangler, and check that the site answers.",
+      "trigger": "A push to main (on.push), or Run workflow (on.workflow_dispatch) on main. Deploys run one at a time and are not cancelled.",
+      "checks": [
+        "npm test on Node 22",
+        "wrangler deploy --config wrangler.jsonc, with a pinned wrangler version, in the production environment",
+        "The page at https://cyberspace-explorer.com/ answers and contains \"Cyberspace explorer\"",
+        "https://cyberspace-explorer.com/auth/me answers"
+      ],
+      "blocks": "release: a failed test stops the deploy",
+      "notChecked": [
+        "That sign-in works: /auth/me answers whether or not the secrets are set.",
+        "The .dev files."
+      ],
+      "secrets": [
+        "CLOUDFLARE_API_TOKEN"
+      ],
+      "details": "The production environment holds a deploy for approval if a required reviewer is set on it in the repository's settings (README.md, \"Setting it up once (the owner)\").",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": ".github/workflows/cyberspace-explorer.yml",
+          "symbol": "on.push"
+        },
+        {
+          "path": ".github/workflows/cyberspace-explorer.yml",
+          "symbol": "on.workflow_dispatch"
+        },
+        {
+          "path": ".github/workflows/cyberspace-explorer.yml",
+          "symbol": "jobs.deploy"
+        },
+        {
+          "path": ".github/workflows/cyberspace-explorer.yml",
+          "symbol": "concurrency"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,175 @@
+{
+  "$schema": "../../Meta/Agents/Skills/describe-component-diagram/schema.json",
+  "kind": "component",
+  "title": "The Worker",
+  "folder": "worker",
+  "description": "The parts of the Worker: the entry that binds the page to the handler, the routes, GitHub sign-in, the sealed cookies and the read-only door to GitHub's API.",
+  "sources": [
+    {
+      "path": "worker/index.js",
+      "symbol": "default"
+    },
+    {
+      "path": "worker/app.js",
+      "symbol": "createHandler"
+    },
+    {
+      "path": "worker/app.js",
+      "symbol": "start"
+    },
+    {
+      "path": "worker/app.js",
+      "symbol": "callback"
+    },
+    {
+      "path": "worker/app.js",
+      "symbol": "seal"
+    },
+    {
+      "path": "worker/app.js",
+      "symbol": "proxy"
+    }
+  ],
+  "components": [
+    {
+      "id": "worker",
+      "name": "Worker",
+      "responsibility": "Everything served at cyberspace-explorer.com.",
+      "folder": "worker"
+    },
+    {
+      "id": "entry",
+      "name": "Entry",
+      "responsibility": "index.js: imports the page's source text and exports createHandler(html) as the Worker's fetch handler.",
+      "folder": "worker"
+    },
+    {
+      "id": "routes",
+      "name": "Routes",
+      "responsibility": "createHandler: serves the page at / and /index.html, sends /auth/* and /api/github/* to their handlers, and answers 404 to anything else.",
+      "folder": "worker"
+    },
+    {
+      "id": "sign-in",
+      "name": "GitHub sign-in",
+      "responsibility": "start, callback, me and signOut: GitHub's OAuth code flow with PKCE, who is signed in, and signing out.",
+      "folder": "worker"
+    },
+    {
+      "id": "cookies",
+      "name": "Sealed cookies",
+      "responsibility": "seal, unseal, session and setCookie: values encrypted and authenticated with AES-GCM under a key derived from SESSION_SECRET, in HttpOnly, Secure, SameSite=Lax cookies.",
+      "folder": "worker"
+    },
+    {
+      "id": "door",
+      "name": "GitHub door",
+      "responsibility": "proxy and allowedPath: GET requests to the allowed GitHub API paths, with the session's token added and never returned.",
+      "folder": "worker"
+    },
+    {
+      "id": "page",
+      "name": "The page",
+      "responsibility": "index.html, the whole page, served as it is.",
+      "folder": "."
+    },
+    {
+      "id": "github-oauth",
+      "name": "GitHub OAuth",
+      "responsibility": "github.com/login/oauth: the authorize page the reader is sent to, and the code exchange.",
+      "external": true
+    },
+    {
+      "id": "github-api",
+      "name": "GitHub API",
+      "responsibility": "api.github.com: the signed-in account, its repositories, and repositories' trees and contents.",
+      "external": true
+    }
+  ],
+  "relationships": [
+    {
+      "from": "worker",
+      "to": "entry",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "worker",
+      "to": "routes",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "worker",
+      "to": "sign-in",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "worker",
+      "to": "cookies",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "worker",
+      "to": "door",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "entry",
+      "to": "page",
+      "kind": "depends-on",
+      "description": "Imports its source text."
+    },
+    {
+      "from": "entry",
+      "to": "routes",
+      "kind": "depends-on",
+      "description": "Hands the page to createHandler."
+    },
+    {
+      "from": "routes",
+      "to": "sign-in",
+      "kind": "depends-on",
+      "description": "/auth/me, /auth/github/start, /auth/github/callback and /auth/sign-out."
+    },
+    {
+      "from": "routes",
+      "to": "door",
+      "kind": "depends-on",
+      "description": "/api/github/<path>."
+    },
+    {
+      "from": "sign-in",
+      "to": "cookies",
+      "kind": "depends-on",
+      "description": "Seals the pending sign-in and the session, and reads them back."
+    },
+    {
+      "from": "door",
+      "to": "cookies",
+      "kind": "depends-on",
+      "description": "Reads the session for its token; clears it when GitHub answers 401."
+    },
+    {
+      "from": "sign-in",
+      "to": "github-oauth",
+      "kind": "depends-on",
+      "description": "Sends the reader to authorize, and exchanges the code with the client secret and the PKCE verifier."
+    },
+    {
+      "from": "sign-in",
+      "to": "github-api",
+      "kind": "depends-on",
+      "description": "Looks up the account the token belongs to (GET /user)."
+    },
+    {
+      "from": "door",
+      "to": "github-api",
+      "kind": "depends-on",
+      "description": "Forwards the allowed reads, with the reader's token."
+    }
+  ]
+}

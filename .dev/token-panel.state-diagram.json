@@ -15,6 +15,10 @@
     {
       "path": "index.html",
       "symbol": "showTokenButton"
+    },
+    {
+      "path": "index.html",
+      "symbol": "showTokenButton"
     }
   ],
   "machine": "Token panel",
@@ -22,7 +26,7 @@
   "states": [
     {
       "id": "closed",
-      "description": "Not shown. The bar's Tokens button shows only once a repository is open and at least one token is kept; it reads 'Token added' when one covers this repository and 'Tokens' when none does."
+      "description": "Not shown. The bar's Tokens button shows only once a repository is open and at least one token is kept; it reads 'Token added' when one covers this repository and 'Tokens' when none does. It stays hidden for a GitHub repository while the reader is signed in through the Worker."
     },
     {
       "id": "open",

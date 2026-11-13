@@ -1,6 +1,6 @@
 # Cyberspace explorer
 
-A web page, served by a small Cloudflare Worker at cyberspace-explorer.com, that shows a repository's architecture, behavior and knowledge from the JSON files in its `.dev/` folders. Four are diagrams, described by the skills in [Meta/Agents/Skills](Meta/Agents/Skills/README.md): component, class, state and deployment. Five describe behavior, with skills of their own: use-case, user-journey, capability, feature and operation. The rest are the knowledge files of the [knowledge catalogue](Meta/Agents/Knowledge/README.md): vision, backlog, decisions, requirements, delivery, operation and the other kinds. A folder can have any mix of them. The files sit in a `.dev/` folder in each folder they describe, or all together in a `.cyberspace-explorer/` folder at the root of the repository. A public repository needs nothing; a private one needs the reader to sign in with GitHub (OAuth, on icelander.net) or to give an access token, which stays in their browser.
+A web page, served by a small Cloudflare Worker at cyberspace-explorer.com, that shows a repository's architecture, behavior and knowledge from the JSON files in its `.dev/` folders. Four are diagrams, described by the skills in [Meta/Agents/Skills](Meta/Agents/Skills/README.md): component, class, state and deployment. Five describe behavior, with skills of their own: use-case, user-journey, capability, feature and operation. The rest are the knowledge files of the [knowledge catalogue](Meta/Agents/Knowledge/README.md): vision, backlog, decisions, requirements, delivery, operation and the other kinds. A folder can have any mix of them. The files sit in a `.dev/` folder in each folder they describe, or all together in a `.cyberspace-explorer/` folder at the root of the repository. A public repository needs nothing; a private one needs the reader to sign in with GitHub (OAuth, on cyberspace-explorer.com) or to give an access token, which stays in their browser.
 
 Live at <https://cyberspace-explorer.com>. For example, [retro-games](https://cyberspace-explorer.com/?url=https://github.com/david-brandt-the-icelander/retro-games).
 
@@ -35,7 +35,7 @@ The behavior views share one layout of facts and tables, except the use case and
 
 The icons are drawn for this page, on a 24-unit grid. A component's icon is chosen from its name (an engine gets a gear, a renderer a screen, a database a cylinder, and so on, with a cube when nothing matches), a deployment node's from its kind and a type's from its kind.
 
-dagre and the Barlow typefaces are loaded from jsDelivr. If dagre can't load, the tables still show everything; without the typefaces the page falls back to system fonts. There is no build step and no server: it is one HTML file.
+dagre and the Barlow typefaces are loaded from jsDelivr. If dagre can't load, the tables still show everything; without the typefaces the page falls back to system fonts. There is no build step: the page is one HTML file, which the Worker below serves as it is and which also works opened as a plain file, without the sign-in.
 
 ## The service
 
@@ -77,8 +77,7 @@ The session is `explorer_session`, `Path=/; HttpOnly; Secure; SameSite=Lax`, 7 d
 
 ## Its own description
 
-The browser is described in its own [`.dev/`](.dev) folder, and the browser shows it: its vision and stakeholders, the journeys and use cases of the people who use it ([`Actors/reader.md`](Actors/reader.md)), the states of the page, the token panel and a drawing, its features, capabilities and entrypoints, its parts and where it runs, and its requirements, contracts, current design decisions and limitations. The [design pass](.dev/backlog.json) item says what to read in what order before changing the design. Check the folder after changing it with both validators, from the repository root: `python3 Meta/Agents/Skills/validate_diagrams.py .` and `python3 Meta/Agents/Knowledge/validate_knowledge.py .`. `Meta/Agents/` is a copy of `Agents/Skills` and `Agents/Knowledge` from [human-assisted-software-development](https://github.com/david-brandt-the-icelander/human-assisted-software-development): change them there and copy them here, so there is one version.
-
+The explorer is described in its own `.dev/` folders, and [the explorer shows them](https://cyberspace-explorer.com/?url=https://github.com/david-brandt-the-icelander/cyberspace-explorer): the page in [`.dev/`](.dev) (its vision and stakeholders, the journeys and use cases of the [reader](Actors/reader.md), the states of the page, the token panel and a drawing, its features, capabilities and entrypoints, its parts and where it runs, and its requirements, contracts, design decisions and limitations), the Worker in [`worker/.dev/`](worker/.dev), and the workflow in [`.github/.dev/`](.github/.dev). The [design pass](.dev/backlog.json) item says what to read in what order before changing the design. [AGENTS.md](AGENTS.md) says how agents keep these files, and how to check them.
 
 ## cyberspace-generator
 

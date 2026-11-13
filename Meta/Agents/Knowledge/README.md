@@ -1,6 +1,6 @@
 # Knowledge files
 
-Everything a solution knows about itself, apart from its code, is kept as JSON in the `.dev/` folder of the folder it is about. Agents write these files and keep them current in the same commits as the code. The [describe-knowledge](../Skills/describe-knowledge/skill.md) skill tells an agent how, and [populate-dev](../Skills/populate-dev/skill.md) how to decide what each folder needs. People read them through tools such as the [software atlas](../../software-atlas/README.md). A file holds one kind of knowledge, and is named after its kind: `.dev/backlog.json`, `.dev/decisions.json`.
+Everything a solution knows about itself, apart from its code, is kept as JSON in the `.dev/` folder of the folder it is about. Agents write these files and keep them current in the same commits as the code. The [describe-knowledge](../Skills/describe-knowledge/skill.md) skill tells an agent how, and [populate-dev](../Skills/populate-dev/skill.md) how to decide what each folder needs. People read them through tools such as the [Cyberspace explorer](https://github.com/david-brandt-the-icelander/cyberspace-explorer). A file holds one kind of knowledge, and is named after its kind: `.dev/backlog.json`, `.dev/decisions.json`.
 
 The catalogue below is meant to cover what a whole solution needs. No single folder needs most of it. A folder has a file of a kind only when it has something of that kind to say, and nothing is created empty. The repository root's `.dev/` holds what is about the whole solution: its vision, roadmap and plans.
 

@@ -2,7 +2,7 @@
   "$schema": "../Meta/Agents/Skills/describe-deployment-diagram/schema.json",
   "kind": "deployment",
   "title": "Where the browser runs",
-  "description": "A page served by a Worker at cyberspace-explorer.com that runs entirely in the reader's browser and reads public repositories straight from their hosts; signed in, it reads GitHub through the Worker.",
+  "description": "A page served by a Worker at cyberspace-explorer.com that runs in the reader's browser and reads public repositories straight from their hosts; for a reader signed in with GitHub, it reads GitHub through the Worker, which holds their token.",
   "sources": [
     {
       "path": "index.html",
@@ -17,8 +17,20 @@
       "symbol": "DAGRE"
     },
     {
+      "path": "index.html",
+      "symbol": "detectService"
+    },
+    {
+      "path": "worker/index.js",
+      "symbol": "default"
+    },
+    {
+      "path": "wrangler.jsonc",
+      "symbol": "routes"
+    },
+    {
       "path": "README.md",
-      "symbol": "Publishing"
+      "symbol": "The service"
     }
   ],
   "nodes": [
@@ -46,7 +58,20 @@
       "id": "site",
       "name": "cyberspace-explorer.com",
       "kind": "host",
-      "description": "A Cloudflare Worker that serves the page at / and, when configured, the optional GitHub sign-in."
+      "description": "Cloudflare's network, answering for cyberspace-explorer.com as a Workers custom domain."
+    },
+    {
+      "id": "worker",
+      "name": "cyberspace-explorer Worker",
+      "kind": "process",
+      "description": "Serves the page, and the GitHub sign-in and the read-only door to GitHub's API when its secrets are set."
+    },
+    {
+      "id": "cookies",
+      "name": "Sealed cookies",
+      "kind": "database",
+      "description": "explorer_oauth during a sign-in and explorer_session after it, kept by the browser, HttpOnly, sealed by the Worker; the page cannot read them.",
+      "condition": "the reader signs in with GitHub"
     },
     {
       "id": "jsdelivr",
@@ -58,7 +83,7 @@
       "id": "github-api",
       "name": "GitHub API",
       "kind": "external-service",
-      "description": "api.github.com: the default branch, the recursive tree, and files when a token is in use.",
+      "description": "api.github.com: the default branch, the recursive tree, and files when a token is in use; for a signed-in reader, called by the Worker instead of the page.",
       "condition": "the address is on github.com"
     },
     {
@@ -74,6 +99,13 @@
       "kind": "external-service",
       "description": "/api/v4 on gitlab.com or a self-hosted GitLab that allows the page's origin.",
       "condition": "the address is not on github.com"
+    },
+    {
+      "id": "github-oauth",
+      "name": "GitHub OAuth",
+      "kind": "external-service",
+      "description": "github.com/login/oauth: where the reader authorizes the app, and where the Worker exchanges the code for a token.",
+      "condition": "the Worker's secrets are set and the reader signs in"
     }
   ],
   "artifacts": [
@@ -81,8 +113,15 @@
       "id": "index",
       "name": "index.html",
       "source": "index.html",
+      "deployedTo": "worker",
+      "description": "The whole page: markup, styles, script and icons. Bundled into the Worker as text and served at /."
+    },
+    {
+      "id": "worker-script",
+      "name": "Worker script",
+      "source": "worker/index.js",
       "deployedTo": "site",
-      "description": "The whole page: markup, styles, script and icons. Served by the Worker in worker/."
+      "description": "worker/index.js and worker/app.js, deployed by wrangler with wrangler.jsonc."
     }
   ],
   "relationships": [
@@ -114,13 +153,13 @@
       "from": "page",
       "to": "github-api",
       "kind": "connects-to",
-      "description": "Lists the repository; with a token, reads files too."
+      "description": "Lists the repository; with a pasted token, reads files too. Not used for a reader signed in through the Worker."
     },
     {
       "from": "page",
       "to": "github-raw",
       "kind": "connects-to",
-      "description": "Reads each .dev file."
+      "description": "Reads each .dev file when no token covers the repository and the reader is not signed in."
     },
     {
       "from": "page",
@@ -133,6 +172,42 @@
       "to": "storage",
       "kind": "connects-to",
       "description": "Reads and writes the reader's tokens."
+    },
+    {
+      "from": "site",
+      "to": "worker",
+      "kind": "hosts",
+      "description": "Runs the Worker for every request to cyberspace-explorer.com."
+    },
+    {
+      "from": "browser",
+      "to": "cookies",
+      "kind": "hosts",
+      "description": "Keeps the Worker's cookies for cyberspace-explorer.com."
+    },
+    {
+      "from": "page",
+      "to": "worker",
+      "kind": "connects-to",
+      "description": "Asks /auth/me on load; signed in, lists and reads GitHub through /api/github over HTTPS."
+    },
+    {
+      "from": "worker",
+      "to": "cookies",
+      "kind": "connects-to",
+      "description": "Sets and reads them on its responses and requests."
+    },
+    {
+      "from": "worker",
+      "to": "github-oauth",
+      "kind": "connects-to",
+      "description": "Redirects the reader there, and exchanges the code over HTTPS."
+    },
+    {
+      "from": "worker",
+      "to": "github-api",
+      "kind": "connects-to",
+      "description": "Looks up the signed-in account and forwards the page's reads, with the reader's token."
     }
   ],
   "folder": "."

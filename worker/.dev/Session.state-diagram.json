@@ -1,0 +1,126 @@
+{
+  "$schema": "../../Meta/Agents/Skills/describe-state-diagram/schema.json",
+  "kind": "state",
+  "title": "A reader's GitHub sign-in",
+  "folder": "worker",
+  "description": "What the Worker knows of one browser's sign-in, which is only what its two sealed cookies hold: explorer_oauth while a sign-in is under way (Path=/auth, 10 minutes) and explorer_session once it has finished (7 days). The Worker keeps no state of its own. The two cookies are independent, so a reader who is signed in and starts again (to include private repositories) stays signed in until the callback replaces the session.",
+  "sources": [
+    {
+      "path": "worker/app.js",
+      "symbol": "start"
+    },
+    {
+      "path": "worker/app.js",
+      "symbol": "callback"
+    },
+    {
+      "path": "worker/app.js",
+      "symbol": "session"
+    },
+    {
+      "path": "worker/app.js",
+      "symbol": "signOut"
+    },
+    {
+      "path": "worker/app.js",
+      "symbol": "proxy"
+    },
+    {
+      "path": "worker/app.js",
+      "symbol": "unseal"
+    }
+  ],
+  "machine": "Session",
+  "initialState": "signed-out",
+  "states": [
+    {
+      "id": "signed-out",
+      "description": "No explorer_session cookie that unseals under SESSION_SECRET and has not expired. /auth/me answers user: null and /api/github/* answers 401."
+    },
+    {
+      "id": "pending",
+      "description": "An explorer_oauth cookie holds the state, the PKCE verifier, the return path and an expiry 10 minutes ahead; the reader is at GitHub."
+    },
+    {
+      "id": "signed-in",
+      "description": "explorer_session holds the GitHub token, the login, the avatar address and an expiry 7 days ahead. /auth/me names the reader and /api/github/* reads GitHub with their token."
+    }
+  ],
+  "transitions": [
+    {
+      "from": "signed-out",
+      "to": "signed-out",
+      "trigger": "GET /auth/github/start",
+      "guard": "one of GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET or SESSION_SECRET is missing",
+      "action": "503: sign-in with GitHub is not set up on this server"
+    },
+    {
+      "from": "signed-out",
+      "to": "pending",
+      "trigger": "GET /auth/github/start",
+      "guard": "sign-in is set up",
+      "action": "seals a random state and PKCE verifier with the return path, and redirects to GitHub's authorize page with the S256 challenge; scope repo only with private=1"
+    },
+    {
+      "from": "signed-in",
+      "to": "pending",
+      "trigger": "GET /auth/github/start",
+      "guard": "sign-in is set up",
+      "action": "as from signed-out; the session cookie is left as it is"
+    },
+    {
+      "from": "pending",
+      "to": "signed-in",
+      "trigger": "GET /auth/github/callback",
+      "guard": "the state matches the sealed one within its 10 minutes, GitHub gives an access token for the code and verifier, and GET /user names an account",
+      "action": "seals the session, clears explorer_oauth and redirects to the return path"
+    },
+    {
+      "from": "pending",
+      "to": "signed-out",
+      "trigger": "GET /auth/github/callback",
+      "guard": "no session from before, and the pending cookie is missing, expired or holds another state, or GitHub gives no token or no account",
+      "action": "clears explorer_oauth and redirects to /?signin=failed"
+    },
+    {
+      "from": "pending",
+      "to": "signed-out",
+      "trigger": "GET /auth/github/callback without a code",
+      "guard": "no session from before, and the state matches",
+      "action": "clears explorer_oauth and redirects to the return path with signin=denied"
+    },
+    {
+      "from": "pending",
+      "to": "signed-in",
+      "trigger": "GET /auth/github/callback that fails or has no code",
+      "guard": "a session from before is still valid",
+      "action": "as for a failed callback; the earlier session stays"
+    },
+    {
+      "from": "pending",
+      "to": "signed-out",
+      "trigger": "10 minutes pass without a callback",
+      "guard": "no session from before",
+      "action": "the browser drops explorer_oauth (Max-Age 600), and callback would refuse it after its expiry anyway"
+    },
+    {
+      "from": "signed-in",
+      "to": "signed-out",
+      "trigger": "POST /auth/sign-out",
+      "guard": "the Origin header is the app's own origin",
+      "action": "clears explorer_session; the token is not revoked at GitHub"
+    },
+    {
+      "from": "signed-in",
+      "to": "signed-out",
+      "trigger": "GitHub answers 401 to a read through /api/github/*",
+      "action": "passes the 401 on and clears explorer_session"
+    },
+    {
+      "from": "signed-in",
+      "to": "signed-out",
+      "trigger": "the session's 7 days run out, or SESSION_SECRET changes",
+      "action": "session() no longer accepts the cookie"
+    }
+  ]
+}

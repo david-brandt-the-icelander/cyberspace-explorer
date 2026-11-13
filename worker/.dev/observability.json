@@ -1,0 +1,32 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/observability.schema.json",
+  "kind": "observability",
+  "title": "What the Worker leaves behind",
+  "folder": "worker",
+  "entities": [
+    {
+      "id": "workers-logs",
+      "title": "Cloudflare's invocation logs",
+      "summary": "Observability is on for the Worker, so Cloudflare records its invocations; the code writes nothing of its own.",
+      "signalType": "log",
+      "name": "Workers Logs for cyberspace-explorer",
+      "meaning": "One entry per request the Worker handles, as Cloudflare records it.",
+      "readBy": "Members of the Cloudflare account that owns the Worker.",
+      "excludes": [
+        "Anything about a sign-in: app.js has no logging calls, and README.md says nothing is logged about a sign-in."
+      ],
+      "details": "How long the entries are kept, and exactly what they hold, is set by Cloudflare, not in this repository.",
+      "evidenceStatus": "documented",
+      "sources": [
+        {
+          "path": "wrangler.jsonc",
+          "symbol": "observability"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "createHandler"
+        }
+      ]
+    }
+  ]
+}

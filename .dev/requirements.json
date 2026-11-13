@@ -190,12 +190,12 @@
     {
       "id": "static",
       "title": "One static file",
-      "summary": "No server and no build.",
-      "statement": "The browser is one HTML file that runs in the reader's browser, served as a static file, with its libraries from a CDN.",
-      "rationale": "Anyone can host it, copy it or run it from disk, and no server ever sees a reader's repository or token.",
+      "summary": "No build, and no server needed.",
+      "statement": "The page is one HTML file that runs in the reader's browser, with its libraries from a CDN, and works served as a static file; sign-in with GitHub is the only thing that needs its Worker.",
+      "rationale": "Anyone can host it, copy it or run it from disk, and a reader who doesn't sign in gives no server their repository or token.",
       "priority": "must",
       "acceptanceCriteria": [
-        "index.html served by any static server works."
+        "index.html served by any static server works, with pasted tokens in place of sign-in."
       ],
       "realizedBy": [
         {
@@ -208,6 +208,10 @@
         {
           "path": "README.md",
           "symbol": "How it works"
+        },
+        {
+          "path": "index.html",
+          "symbol": "detectService"
         }
       ]
     },

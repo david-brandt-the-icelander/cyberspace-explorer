@@ -144,7 +144,7 @@
     {
       "id": "private-repository",
       "name": "Reading a private repository",
-      "description": "A reader opens a repository the host does not show to everyone, and comes back to it later.",
+      "description": "A reader opens a repository the host does not show to everyone, and comes back to it later, with an access token: on GitLab, or wherever the page runs without a Worker that signs readers in with GitHub.",
       "sources": [
         {
           "path": "index.html",
@@ -258,6 +258,111 @@
             {
               "path": "index.html",
               "symbol": "openTokenPanel"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "signed-in-on-github",
+      "name": "Reading private GitHub repositories, signed in",
+      "description": "On cyberspace-explorer.com a reader signs in with GitHub instead of making a token, and comes back within the week and after it.",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "showSignIn"
+        },
+        {
+          "path": "index.html",
+          "symbol": "tokenOffer"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "callback"
+        }
+      ],
+      "persona": "Reader",
+      "actorDocument": "Actors/reader.md",
+      "goal": "Read their own private GitHub repositories without making or keeping a token.",
+      "stages": [
+        {
+          "id": "landing",
+          "context": "They arrive on the landing page, or GitHub has just refused a link to a private repository.",
+          "touchpoint": "Landing page, or the status line",
+          "action": "Ticks include my private repositories and presses Sign in with GitHub, or presses Sign in with GitHub on the status line.",
+          "outcome": "They are at GitHub.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "showSignIn"
+            },
+            {
+              "path": "index.html",
+              "symbol": "tokenOffer"
+            }
+          ]
+        },
+        {
+          "id": "authorize",
+          "context": "GitHub asks them to authorize Cyberspace explorer.",
+          "touchpoint": "GitHub's authorize page, outside the browser's page",
+          "action": "Authorizes it.",
+          "outcome": "They are back where they started, signed in.",
+          "sources": [
+            {
+              "path": "worker/app.js",
+              "symbol": "start"
+            },
+            {
+              "path": "worker/app.js",
+              "symbol": "callback"
+            }
+          ]
+        },
+        {
+          "id": "choose",
+          "context": "The landing page says who they are.",
+          "touchpoint": "Address box and its drop-down",
+          "action": "Picks one of their repositories, or the link opens as before.",
+          "outcome": "The repository opens, private or not.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "setupCombo"
+            },
+            {
+              "path": "index.html",
+              "symbol": "loadMyRepos"
+            }
+          ]
+        },
+        {
+          "id": "return",
+          "context": "They come back within 7 days, in the same browser.",
+          "touchpoint": "Shared link",
+          "action": "Opens it.",
+          "outcome": "It opens with no sign-in step.",
+          "sources": [
+            {
+              "path": "worker/app.js",
+              "symbol": "session"
+            }
+          ]
+        },
+        {
+          "id": "lapsed",
+          "context": "The 7 days have run out, or they revoked the app at GitHub.",
+          "touchpoint": "Status line",
+          "action": "Reads that GitHub can't see the repository, or no longer accepts their sign-in, and signs in again.",
+          "outcome": "As at the start.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "getJson"
+            },
+            {
+              "path": "index.html",
+              "symbol": "tokenOffer"
             }
           ]
         }
