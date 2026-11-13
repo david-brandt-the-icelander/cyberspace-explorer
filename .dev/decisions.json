@@ -337,17 +337,17 @@
     {
       "id": "space-skyline",
       "title": "What a repository with several folders looks like in Cyberspace",
-      "summary": "The spec has a layout rule for a repository with several folders. Artboard 7 on the canvas designs the skyline, and changes the rule.",
+      "summary": "Artboard 7 on the canvas designs the skyline of a repository with several folders, and the spec follows it. The owner accepts it or changes it.",
       "status": "open",
-      "context": "In Cyberspace a folder is a tower of floors. With several folders, the spec lays them out as buildings on a radial tree from the root, each as tall as it has views, with dashed ground lines from parent to child; clicking one flies into it. Most repositories have several folders. Artboard 7 on the canvas (docs/cyberspace-design/Skyline.dc.html) draws retro-games' 93 folders; the spec's angle rule overlaps 15 pairs of them, so it gives each subtree the angle its folders need and sets the rings 20 units apart.",
+      "context": "In Cyberspace a folder is a tower of floors. The spec first stood every folder as a building in the tower scene, round the address folder drawn in full, on a radial tree with each subtree's angle in proportion to its number of folders and rings 14 units apart. Drawn for retro-games' 93 folders, that rule stood 15 pairs of buildings closer together than a building is wide, and a full 16 × 12 tower with its drawer did not fit a ring. Artboard 7 (docs/cyberspace-design/Skyline.dc.html) makes the skyline a scene of its own, one level above the towers (~space:skyline): every folder the same building, each subtree given the angle its buildings need, the rings as far apart as that takes (20 units for retro-games), the camera on the address folder with the outer rings running to the horizon. The spec now says the same, so a ~space address still opens a folder's tower.",
       "options": [
         {
-          "title": "An artboard on the canvas first",
-          "consequences": "Step 6 builds to a design, and the skyline's polish waits for it."
+          "title": "Accept artboard 7 and the spec as it now stands",
+          "consequences": "Step 6 builds the skyline as a fourth scene. The tower scene, step 4 and the acceptance checklist's opening stay as they were."
         },
         {
-          "title": "Build the spec's rule, design it afterwards",
-          "consequences": "Nothing waits; the look may change later."
+          "title": "Keep the skyline inside the tower scene",
+          "consequences": "The address folder's full tower stands among the buildings, which needs wider rings and another layout rule than either the spec's first or the artboard's."
         }
       ],
       "waitingOn": "owner",
@@ -368,17 +368,17 @@
     {
       "id": "space-light-mode",
       "title": "Cyberspace in light mode",
-      "summary": "The spec derives light mode from the page's tokens. Artboards 4 to 6 on the canvas show what they give.",
+      "summary": "Artboards 4 to 6 on the canvas show the three scenes in light mode, drawn from the page's tokens, and the spec follows them. The owner accepts them or changes them.",
       "status": "open",
-      "context": "Every colour in Cyberspace comes from the page's tokens (quality requirement light-dark), with four new ones for the sky and the major grid, so light mode follows from the light values. Artboards 4 to 6 on the canvas (docs/cyberspace-design/*Light.dc.html) draw the three scenes from those values.",
+      "context": "Every colour in Cyberspace comes from the page's tokens (quality requirement light-dark), with four new ones for the sky and the major grid, so light mode follows from the light values. Artboards 4 to 6 (docs/cyberspace-design/StrataLight, MainLight and StreetLight) draw the three scenes from those values. What is lit turns ink-dark, because --hot is the ink colour in light mode: the selected tower's edges, the lit beams, the selected label. Flat's lit lines do the same.",
       "options": [
         {
-          "title": "One light artboard per scene before step 7",
-          "consequences": "Light mode is designed, not derived; step 7 waits for three artboards."
+          "title": "Accept artboards 4 to 6",
+          "consequences": "Light mode is what the tokens give, and step 7 checks the page against the three artboards."
         },
         {
-          "title": "Take what the tokens give, and review it in step 7",
-          "consequences": "Nothing waits; light mode may need a pass after the launch."
+          "title": "Give what is lit its own colour in light mode",
+          "consequences": "A new token beside --hot, which Flat does not have, and artboards 4 to 6 drawn again."
         }
       ],
       "waitingOn": "owner",
@@ -399,17 +399,17 @@
     {
       "id": "space-other-kinds",
       "title": "How state machines, use cases and parts that open a folder stand in Cyberspace",
-      "summary": "The spec gives defaults for the kinds the first artboards didn't show. Artboards 8 to 10 on the canvas show them, and change some.",
+      "summary": "Artboards 8 to 10 on the canvas show a state machine, a use case and a part that opens a folder, and the spec follows them. The owner accepts them or changes them.",
       "status": "open",
-      "context": "Cyberspace draws every drawn kind as a city. Artboards 8 to 10 on the canvas (docs/cyberspace-design/StateCity, UseCaseCity and Worker) show a state machine, a use case and a part that opens a folder, and change some of the defaults below (the design's README says which). The spec's defaults: a state machine's start point is a disc on the ground; a final state has a second band; a use case's alternative outcome is a short tower with dashed edges, not a beacon (a beacon is outside the browser); a part with diagrams of its own carries the drill icon and offers Enter its folder.",
+      "context": "Cyberspace draws every drawn kind as a city. Artboards 8 to 10 (docs/cyberspace-design/StateCity, UseCaseCity and Worker) show this repository's page state machine, its first use case and the Worker. They keep the spec's first defaults for the start point (a disc on the ground), a use case's alternative outcome (a short tower with dashed edges, not a beacon) and a part with diagrams of its own (Flat's badge on its label). They change the rest, and the spec now says the same: a final state is ringed twice and has a solid top, since a second band could not be told from the floor bands; beams between the same two parts fan out; a lit transition shows its trigger; a label is the node's own short label; the Layers panel has a row for each view of a kind; and the inspector shows the folder a part opens, with Enter its folder, in place of Flat's Open link.",
       "options": [
         {
-          "title": "Keep the defaults",
-          "consequences": "Nothing waits."
+          "title": "Accept artboards 8 to 10 and the spec as it now stands",
+          "consequences": "Steps 2, 3 and 6 build to them."
         },
         {
-          "title": "Add a state-machine city and a use-case city to the canvas",
-          "consequences": "The defaults change where the artboards say otherwise."
+          "title": "Change an artboard",
+          "consequences": "The spec follows the change before the step that builds it."
         }
       ],
       "waitingOn": "owner",
