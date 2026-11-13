@@ -48,7 +48,7 @@
       "status": "accepted",
       "priority": "medium",
       "summary": "A second way to read a repository beside the flat page: a folder as a tower of floors, a drawn view as a city of glass towers, and a walk through it at street level.",
-      "details": "The [implementation spec](docs/cyberspace-mode-spec.md) says how to build it: where the code goes in `index.html`, how a view becomes a 3D world, the exact look, the address forms, the fallbacks, the build order and the tests. The design it follows is the canvas *Cyberspace explorer in 3D*, linked from the spec.\n\nIt changes one recorded decision, `one-motion`, which the spec amends with a new decision `cyberspace-motion`. Its open questions (the skyline for repositories with several folders, light mode, which three.js version to pin, per-entity views, and which mode the landing page's example opens in) are listed at the end of the spec.",
+      "details": "The [implementation spec](docs/cyberspace-mode-spec.md) says how to build it: where the code goes in `index.html`, how a view becomes a 3D world, the exact look, the address forms, the fallbacks, the build order and the tests. The design it follows is the canvas *Cyberspace explorer in 3D*, linked from the spec and copied in [docs/cyberspace-design](docs/cyberspace-design/README.md).\n\nThe [plan](.dev/plan.json) builds it in eight pull requests and says how each is checked. It changes one recorded decision, `one-motion`, which the spec amends with a new decision `cyberspace-motion`. The questions still open are decisions: `space-skyline`, `space-light-mode`, `space-other-kinds`, `per-entity-cities` and `cross-browser-checks`.",
       "origin": {
         "kind": "request",
         "by": "owner",
@@ -59,13 +59,19 @@
         "Everything on the spec's acceptance checklist passes for this repository in current Chrome, Safari and Firefox, in light and dark.",
         "Without WebGL or three.js, everything is still readable in the flat view, which says why.",
         "Every existing form of the page's address keeps its meaning; Cyberspace links opened by an older copy of the page land on the same folder and part.",
-        "The `.dev` files listed in the spec's last section describe Cyberspace in the same change."
+        "Each step's pull request updates the `.dev` files for what it built, and when the last step lands the files listed in the spec's last section describe Cyberspace."
       ],
       "relationships": [
         {
           "relation": "documents",
           "path": "docs/cyberspace-mode-spec.md",
           "description": "The implementation spec."
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/plan.json",
+          "entityId": "cyberspace-mode",
+          "description": "The plan that builds it."
         },
         {
           "relation": "depends-on",

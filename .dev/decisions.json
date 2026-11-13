@@ -272,6 +272,198 @@
           "symbol": "load"
         }
       ]
+    },
+    {
+      "id": "cyberspace-launch",
+      "title": "Cyberspace appears when it is whole",
+      "summary": "Each step of Cyberspace is merged and deployed as it is built, but the Flat / Cyberspace switch appears only when step 7 is done.",
+      "status": "accepted",
+      "context": "Merging to main deploys to cyberspace-explorer.com, and the Worker has no preview URLs. Cyberspace is built in eight pull requests (plan cyberspace-mode).",
+      "options": [
+        {
+          "title": "Merge every step, the switch hidden until step 7",
+          "consequences": "Small changes that never drift from main, and nothing half-built for readers. The changes to route() and select() reach readers before the launch, so every step checks the flat page again."
+        },
+        {
+          "title": "Merge every step, the switch shown from step 1",
+          "consequences": "Readers find a mode that at first shows only a grid, and that lacks keyboard, reduced-motion and light-mode support until step 7."
+        },
+        {
+          "title": "One long-lived branch, merged once",
+          "consequences": "Nothing reaches readers early, but the branch drifts while others change index.html, and one large merge is hard to review."
+        }
+      ],
+      "decision": "One pull request per step into main. The switch is built in step 1 and stays hidden until step 7 meets the recorded quality requirements: keyboard, reduced motion, light and dark, fallbacks. Until then only an address with ~space in it opens Cyberspace.",
+      "rationale": "Changes stay small enough to review, and readers see Cyberspace only when it is whole.",
+      "decidedBy": "owner",
+      "decidedOn": "2026-11-13",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-13"
+      },
+      "relationships": [
+        {
+          "relation": "relates-to",
+          "path": ".dev/plan.json",
+          "entityId": "cyberspace-mode"
+        }
+      ],
+      "evidenceStatus": "documented"
+    },
+    {
+      "id": "design-copies",
+      "title": "The Cyberspace design is copied into the repository",
+      "summary": "docs/cyberspace-design/ holds the canvas's three artboards and a render of each; the canvas stays the source.",
+      "status": "accepted",
+      "context": "The design is a private claude.ai canvas. The agents who build Cyberspace, and anyone reviewing it, can't open it, so the spec's \"match the artboard\" couldn't be checked.",
+      "decision": "The three artboards (static HTML) and a 1440 × 900 render of each are copied into docs/cyberspace-design/, with a README that says what they show and what they don't. The design changes on the canvas and is copied here again.",
+      "rationale": "The design can be seen wherever the repository can.",
+      "decidedBy": "owner",
+      "decidedOn": "2026-11-13",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-13"
+      },
+      "links": [
+        {
+          "label": "The copies",
+          "path": "docs/cyberspace-design/README.md"
+        }
+      ],
+      "evidenceStatus": "documented"
+    },
+    {
+      "id": "space-skyline",
+      "title": "What a repository with several folders looks like in Cyberspace",
+      "summary": "The canvas has one folder only. The skyline that shows several has a layout rule in the spec, but no design.",
+      "status": "open",
+      "context": "In Cyberspace a folder is a tower of floors. With several folders, the spec lays them out as buildings on a radial tree from the root, each as tall as it has views, with dashed ground lines from parent to child; clicking one flies into it. No artboard shows this, and most repositories have several folders.",
+      "options": [
+        {
+          "title": "An artboard on the canvas first",
+          "consequences": "Step 6 builds to a design, and the skyline's polish waits for it."
+        },
+        {
+          "title": "Build the spec's rule, design it afterwards",
+          "consequences": "Nothing waits; the look may change later."
+        }
+      ],
+      "waitingOn": "owner",
+      "blocks": [
+        {
+          "path": ".dev/plan.json",
+          "entityId": "cyberspace-mode",
+          "description": "The skyline's polish, in step 6."
+        }
+      ],
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-13"
+      },
+      "evidenceStatus": "proposed"
+    },
+    {
+      "id": "space-light-mode",
+      "title": "Cyberspace in light mode",
+      "summary": "The canvas is dark only. The spec derives light mode from the page's tokens, and nobody has seen it.",
+      "status": "open",
+      "context": "Every colour in Cyberspace comes from the page's tokens (quality requirement light-dark), with four new ones for the sky and the major grid, so light mode follows from the light values. The canvas has no light artboard.",
+      "options": [
+        {
+          "title": "One light artboard per scene before step 7",
+          "consequences": "Light mode is designed, not derived; step 7 waits for three artboards."
+        },
+        {
+          "title": "Take what the tokens give, and review it in step 7",
+          "consequences": "Nothing waits; light mode may need a pass after the launch."
+        }
+      ],
+      "waitingOn": "owner",
+      "blocks": [
+        {
+          "path": ".dev/plan.json",
+          "entityId": "cyberspace-mode",
+          "description": "Light mode's sign-off, in step 7."
+        }
+      ],
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-13"
+      },
+      "evidenceStatus": "proposed"
+    },
+    {
+      "id": "space-other-kinds",
+      "title": "How state machines, use cases and parts that open a folder stand in Cyberspace",
+      "summary": "The canvas has only a component city. The spec gives defaults for what it doesn't show.",
+      "status": "open",
+      "context": "Cyberspace draws every drawn kind as a city, but the canvas shows a component diagram only. The spec's defaults: a state machine's start point is a disc on the ground; a final state has a second band; a use case's alternative outcome is a short tower with dashed edges, not a beacon (a beacon is outside the browser); a part with diagrams of its own carries the drill icon and offers Enter its folder.",
+      "options": [
+        {
+          "title": "Keep the defaults",
+          "consequences": "Nothing waits."
+        },
+        {
+          "title": "Add a state-machine city and a use-case city to the canvas",
+          "consequences": "The defaults change where the artboards say otherwise."
+        }
+      ],
+      "waitingOn": "owner",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-13"
+      },
+      "evidenceStatus": "proposed"
+    },
+    {
+      "id": "per-entity-cities",
+      "title": "Use cases and journeys side by side in Cyberspace",
+      "summary": "A file of several use cases becomes one city per use case. Whether readers can stand them side by side is decided after step 6.",
+      "status": "open",
+      "context": "Flat draws one canvas per use case or journey, and the spec builds one city per entity, chosen in the address. Standing several side by side would be the Layers mechanism of step 6 applied to entities.",
+      "waitingOn": "owner, after step 6",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-13"
+      },
+      "evidenceStatus": "proposed"
+    },
+    {
+      "id": "cross-browser-checks",
+      "title": "Who checks Cyberspace in Safari and Firefox",
+      "summary": "The acceptance checklist runs in Chrome, Safari and Firefox, and only Chrome can be driven by an agent on the machine the work is checked on.",
+      "status": "open",
+      "context": "That machine has Chrome for Testing, but no WebKit or Firefox build an agent can drive.",
+      "options": [
+        {
+          "title": "The owner runs the checklist in Safari and Firefox",
+          "consequences": "Nothing to download; the owner's time at steps 7 and 8."
+        },
+        {
+          "title": "Install Playwright's WebKit and Firefox builds",
+          "consequences": "About 200 MB downloaded once; an agent runs the checklist in all three."
+        }
+      ],
+      "waitingOn": "owner",
+      "blocks": [
+        {
+          "path": ".dev/plan.json",
+          "entityId": "cyberspace-mode",
+          "description": "Acceptance, in steps 7 and 8."
+        }
+      ],
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-13"
+      },
+      "evidenceStatus": "proposed"
     }
   ]
 }
