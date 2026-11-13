@@ -1,0 +1,14 @@
+[package]
+name = "cyberspace-diagrams"
+description = "Validates the diagrams .dev files the cyberspace explorer shows."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+cyberspace-common.workspace = true
+jsonschema.workspace = true
+serde_json.workspace = true
+regex.workspace = true
+serde.workspace = true

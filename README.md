@@ -79,3 +79,22 @@ The session is `explorer_session`, `Path=/; HttpOnly; Secure; SameSite=Lax`, 7 d
 
 The browser is described in its own [`.dev/`](.dev) folder, and the browser shows it: its vision and stakeholders, the journeys and use cases of the people who use it ([`Actors/reader.md`](Actors/reader.md)), the states of the page, the token panel and a drawing, its features, capabilities and entrypoints, its parts and where it runs, and its requirements, contracts, current design decisions and limitations. The [design pass](.dev/backlog.json) item says what to read in what order before changing the design. Check the folder after changing it with both validators, from the repository root: `python3 Meta/Agents/Skills/validate_diagrams.py .` and `python3 Meta/Agents/Knowledge/validate_knowledge.py .`. `Meta/Agents/` is a copy of `Agents/Skills` and `Agents/Knowledge` from [human-assisted-software-development](https://github.com/david-brandt-the-icelander/human-assisted-software-development): change them there and copy them here, so there is one version.
 
+
+## cyberspace-generator
+
+`crates/` is a Cargo workspace holding `cyberspace-generator`, a command-line tool that checks and maintains the `.dev` files this page shows, and the libraries it is built from:
+
+- `cyberspace-diagrams` and `cyberspace-knowledge` are Rust ports of `Meta/Agents/Skills/validate_diagrams.py` and `Meta/Agents/Knowledge/validate_knowledge.py`. They read the schemas from the checked repository's `Meta/Agents` at run time. Where the Python diagram validator stops at the first problem, they report every file's first problem.
+- `cyberspace-common` reads JSON strictly (a repeated key is an error) and walks a repository, skipping `.git`, dependencies and build output.
+
+Commands, from a repository's root:
+
+```bash
+cyberspace-generator validate          # both validators; exit 1 on any problem; --json for agents
+cyberspace-generator scan              # each folder's .dev kinds, and .dev folders without folder.json
+cyberspace-generator stale origin/main # .dev files citing files changed since that revision
+```
+
+Develop with `cargo fmt --all && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace`. The parity tests in `crates/cyberspace-generator/tests/parity.rs` break a copy of this repository in known ways and check that the Rust and, when `jsonschema` is installed, the Python validators report the same problem.
+
+Pushing a `generator-v*` tag (`.github/workflows/cyberspace-generator-release.yml`) builds it for macOS and static Linux, both CPU types, and attaches the binaries and `SHA256SUMS` to a GitHub release. It is installed as part of zazzle (`brew install zazzcat/z/zazzle`): software-developers-toolbox's `bump-cyberspace-generator` workflow opens a pull request pinning each new release, and its release includes the binary.

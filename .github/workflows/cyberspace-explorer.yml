@@ -25,8 +25,25 @@ jobs:
           node-version: 22
       - run: npm test
 
+  # The Rust validators and cyberspace-generator; the parity tests also run the Python validators they replace.
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install jsonschema
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo test --workspace --locked
+      - run: cargo run -q --locked -p cyberspace-generator -- validate
+
   deploy:
-    needs: test
+    needs: [test, rust]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
