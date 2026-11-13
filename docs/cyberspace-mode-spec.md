@@ -2,7 +2,7 @@
 
 2026-11-13 · David Hermann Brandt
 
-The design this spec implements is the canvas [Cyberspace explorer in 3D](https://claude.ai/artifact/VDLEAr9k5mUna6aAPuC1Pp). The spec was drafted as a doc ([Cyberspace mode: implementation spec](https://claude.ai/artifact/X4UTWACvWidkSSJHWom9iu)); this file is the copy the repository keeps, and the one to change from now on. Wanted work: backlog item `cyberspace-mode` in [.dev/backlog.json](../.dev/backlog.json). The canvas's three artboards, with renders of them, are copied in [cyberspace-design/](cyberspace-design/README.md) for anyone who can't open the canvas. The order of the work, and how each step is checked, is the plan `cyberspace-mode` in [.dev/plan.json](../.dev/plan.json).
+The design this spec implements is the canvas [Cyberspace explorer in 3D](https://claude.ai/artifact/VDLEAr9k5mUna6aAPuC1Pp). The spec was drafted as a doc ([Cyberspace mode: implementation spec](https://claude.ai/artifact/X4UTWACvWidkSSJHWom9iu)); this file is the copy the repository keeps, and the one to change from now on. Wanted work: backlog item `cyberspace-mode` in [.dev/backlog.json](../.dev/backlog.json). The canvas's artboards, with renders of them, are copied in [cyberspace-design/](cyberspace-design/README.md) for anyone who can't open the canvas. The order of the work, and how each step is checked, is the plan `cyberspace-mode` in [.dev/plan.json](../.dev/plan.json).
 
 ## Summary
 
@@ -171,7 +171,7 @@ Every geometry builder and camera call goes through `V`; world objects keep spec
    - A final state (a `state` node with `terminal`) gets a second band 0.25 below its top, at full edge alpha, as Flat draws a second ring.
    - A part with `n.nav` stands for a folder that has diagrams of its own (Flat draws a badge): its label starts with the `drill` icon, and selecting it offers **Enter its folder** (Scene 2, *Selection*).
 
-   These four are defaults: the canvas only has a component city (decision `space-other-kinds`).
+   These four are defaults (decision `space-other-kinds`). Artboards 8 to 10 on the canvas show a state machine, a use case and a part that opens a folder, and depart from them where [the design's README](cyberspace-design/README.md) says.
 
 4. Tower height from its degree, counting every edge of `model.edges` that touches it once, self-loops included: `h = 2.2 + 1.3 × min(degree, 9)` (so 2.2 to 13.9). In this repository Loader has degree 6 and height 10.0.
 5. Beams, one per `model.edges` entry, keyed by `e.key` so tooltips and selection match the flat page:
@@ -208,7 +208,7 @@ The world object:
    - Knowledge: one line per record, at most 6, length ∝ the record title's length.
 5. The pulled-out floor (one drawn view at a time) slides to `(+20, 0, −12)` relative to its slot, leaving a dashed ghost outline. On it stands the city of that view, scaled by `0.36` about the city's centre.
 
-**Several folders: the skyline.** When `byFolder.size > 1`, the tower scene shows every folder as its own building, with the folder in the address drawn in full, floors and all: footprint 6 × 4.5, floors 0.5 apart, so a building's height says how many views it holds. Lay buildings out as a radial tree from the root (root at the centre, depth `d` on a ring of radius `14 × d`, each subtree's angle ∝ its number of folders), with a dashed ground line from parent to child. Clicking a building flies into its folder tower. This layout is not on the design canvas yet; ask for an artboard before polishing it (last section).
+**Several folders: the skyline.** When `byFolder.size > 1`, the tower scene shows every folder as its own building, with the folder in the address drawn in full, floors and all: footprint 6 × 4.5, floors 0.5 apart, so a building's height says how many views it holds. Lay buildings out as a radial tree from the root (root at the centre, depth `d` on a ring of radius `14 × d`, each subtree's angle ∝ its number of folders), with a dashed ground line from parent to child. Clicking a building flies into its folder tower. Artboard 7 on the canvas draws retro-games' skyline and departs from this rule where [the design's README](cyberspace-design/README.md) says (decision `space-skyline`).
 
 ## Rendering
 
@@ -608,9 +608,9 @@ The repository describes itself, so the change is not done until its `.dev` file
 
 The questions still open are `status: open` records in [.dev/decisions.json](../.dev/decisions.json), so they show under **Waiting**:
 
-- **Skyline** (`space-skyline`). A repository with several folders shows a skyline, but the canvas only has a one-folder repository. The layout rule in *Scene model* holds until there is an artboard; step 6 doesn't polish it before then.
-- **Light mode** (`space-light-mode`). The canvas is dark only. This spec derives light from the page's tokens; one light artboard per scene would confirm it before step 7.
-- **The other kinds, and parts that open a folder** (`space-other-kinds`). The canvas only has a component city. The defaults are in *Scene model*: markers, short towers, a second band for final states, and **Enter its folder**.
+- **Skyline** (`space-skyline`). A repository with several folders shows a skyline. Artboard 7 draws retro-games' 93 folders, with another angle rule and wider rings than *Scene model* gives, because the spec's rule overlaps them. Step 6 builds to whichever the owner settles.
+- **Light mode** (`space-light-mode`). This spec derives light from the page's tokens. Artboards 4 to 6 show the three scenes drawn from those tokens, for the owner to accept or correct before step 7.
+- **The other kinds, and parts that open a folder** (`space-other-kinds`). The defaults are in *Scene model*: markers, short towers, a second band for final states, and **Enter its folder**. Artboards 8 to 10 show them on this repository's page state machine, its first use case and the Worker, and depart from them where [the design's README](cyberspace-design/README.md) says.
 - **Per-entity views** (`per-entity-cities`). A use-case file with many use cases becomes one city per use case. If readers want them side by side, that is the Layers mechanism applied to entities; decide after step 6.
 - **Safari and Firefox** (`cross-browser-checks`). Either the owner runs the acceptance checklist in them, or the owner approves installing Playwright's WebKit and Firefox builds so an agent can.
 

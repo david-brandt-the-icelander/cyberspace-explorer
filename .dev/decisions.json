@@ -337,9 +337,9 @@
     {
       "id": "space-skyline",
       "title": "What a repository with several folders looks like in Cyberspace",
-      "summary": "The canvas has one folder only. The skyline that shows several has a layout rule in the spec, but no design.",
+      "summary": "The spec has a layout rule for a repository with several folders. Artboard 7 on the canvas designs the skyline, and changes the rule.",
       "status": "open",
-      "context": "In Cyberspace a folder is a tower of floors. With several folders, the spec lays them out as buildings on a radial tree from the root, each as tall as it has views, with dashed ground lines from parent to child; clicking one flies into it. No artboard shows this, and most repositories have several folders.",
+      "context": "In Cyberspace a folder is a tower of floors. With several folders, the spec lays them out as buildings on a radial tree from the root, each as tall as it has views, with dashed ground lines from parent to child; clicking one flies into it. Most repositories have several folders. Artboard 7 on the canvas (docs/cyberspace-design/Skyline.dc.html) draws retro-games' 93 folders; the spec's angle rule overlaps 15 pairs of them, so it gives each subtree the angle its folders need and sets the rings 20 units apart.",
       "options": [
         {
           "title": "An artboard on the canvas first",
@@ -368,9 +368,9 @@
     {
       "id": "space-light-mode",
       "title": "Cyberspace in light mode",
-      "summary": "The canvas is dark only. The spec derives light mode from the page's tokens, and nobody has seen it.",
+      "summary": "The spec derives light mode from the page's tokens. Artboards 4 to 6 on the canvas show what they give.",
       "status": "open",
-      "context": "Every colour in Cyberspace comes from the page's tokens (quality requirement light-dark), with four new ones for the sky and the major grid, so light mode follows from the light values. The canvas has no light artboard.",
+      "context": "Every colour in Cyberspace comes from the page's tokens (quality requirement light-dark), with four new ones for the sky and the major grid, so light mode follows from the light values. Artboards 4 to 6 on the canvas (docs/cyberspace-design/*Light.dc.html) draw the three scenes from those values.",
       "options": [
         {
           "title": "One light artboard per scene before step 7",
@@ -399,9 +399,9 @@
     {
       "id": "space-other-kinds",
       "title": "How state machines, use cases and parts that open a folder stand in Cyberspace",
-      "summary": "The canvas has only a component city. The spec gives defaults for what it doesn't show.",
+      "summary": "The spec gives defaults for the kinds the first artboards didn't show. Artboards 8 to 10 on the canvas show them, and change some.",
       "status": "open",
-      "context": "Cyberspace draws every drawn kind as a city, but the canvas shows a component diagram only. The spec's defaults: a state machine's start point is a disc on the ground; a final state has a second band; a use case's alternative outcome is a short tower with dashed edges, not a beacon (a beacon is outside the browser); a part with diagrams of its own carries the drill icon and offers Enter its folder.",
+      "context": "Cyberspace draws every drawn kind as a city. Artboards 8 to 10 on the canvas (docs/cyberspace-design/StateCity, UseCaseCity and Worker) show a state machine, a use case and a part that opens a folder, and change some of the defaults below (the design's README says which). The spec's defaults: a state machine's start point is a disc on the ground; a final state has a second band; a use case's alternative outcome is a short tower with dashed edges, not a beacon (a beacon is outside the browser); a part with diagrams of its own carries the drill icon and offers Enter its folder.",
       "options": [
         {
           "title": "Keep the defaults",
