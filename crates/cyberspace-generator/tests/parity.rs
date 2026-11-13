@@ -62,10 +62,10 @@ fn rust(root: &Path) -> (bool, String) {
     )
 }
 
-// Runs both Python validators and returns their combined output, or None without python3 and jsonschema.
+// Runs both Python validators and returns their combined output, or None without python3, jsonschema and referencing.
 fn python(root: &Path) -> Option<String> {
     let has = Command::new("python3")
-        .args(["-c", "import jsonschema"])
+        .args(["-c", "import jsonschema, referencing"])
         .output()
         .ok()?
         .status
