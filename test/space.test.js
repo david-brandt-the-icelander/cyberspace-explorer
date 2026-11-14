@@ -237,3 +237,64 @@ test("every drawn kind stands, with an outside part, a start point, a final stat
   // A class diagram's outside types are towers: ext means something else there.
   assert.equal(cityWorldFrom({ ...KINDS.class, nodes: [...KINDS.class.nodes, leaf("Ext", { ext: true })] }, null, "class", "TB").beacons.length, 0);
 });
+
+// ── Selection ─────────────────────────────────────────────────────────────
+
+const { cityNeighbours, cityPlateOf, cityHash } = vm.runInContext("({ cityNeighbours, cityPlateOf, cityHash })", context);
+const hood = (w, key) => { const h = cityNeighbours(w, key); return h && { key: h.key, beams: [...h.beams], near: [...h.near] }; };
+
+test("selecting a part of the two-cluster city lights the beams that touch it and the parts at their other ends", () => {
+  const w = cityWorldFrom(TWO, TWO_L, "component", "LR");
+  assert.deepEqual(hood(w, "a"), { key: "a", beams: ["r0", "r4", "r6"], near: ["b", "x", "d"] });
+  assert.deepEqual(hood(w, "d"), { key: "d", beams: ["r2", "r3", "r6"], near: ["c", "e", "a"] });
+  // A plate can be selected; here no beam touches one.
+  assert.deepEqual(hood(w, "inner"), { key: "inner", beams: [], near: [] });
+  // Nothing else can: an unknown key is no selection.
+  assert.equal(cityNeighbours(w, "nowhere"), null);
+  // The plate a part stands on is its innermost; a nested plate stands on its parent; the bare ground has none.
+  assert.equal(cityPlateOf(w, "b").key, "inner");
+  assert.equal(cityPlateOf(w, "a").key, "outer");
+  assert.equal(cityPlateOf(w, "inner").key, "outer");
+  assert.equal(cityPlateOf(w, "d"), null);
+  assert.equal(cityPlateOf(w, "outer"), null);
+});
+
+test("a selected beacon lights its own beams and the towers they reach", () => {
+  const w = cityWorldFrom(TWO, TWO_L, "component", "LR");
+  assert.deepEqual(hood(w, "x"), { key: "x", beams: ["r4", "r5"], near: ["a", "e"] });
+});
+
+test("a part's loop back to itself lights and is no neighbour of it; fanned beams each light once, their other end near once", () => {
+  const loop = cityWorldFrom({ dir: "LR", nodes: [leaf("s"), leaf("t"), { key: "__start" }], edges: [edge("start", "__start", "s"), edge("t0", "s", "s", { self: true }), edge("t1", "s", "t"), edge("t2", "t", "s")] },
+    sheet({ s: [100, 100, 96, 42], t: [400, 100, 96, 42], __start: [20, 100, 16, 16] }, 500, 200), "state", "LR");
+  // The start point's beam lights, but a start point is no part: it is never near, and it can't be selected.
+  assert.deepEqual(hood(loop, "s"), { key: "s", beams: ["start", "t0", "t1", "t2"], near: ["t"] });
+  assert.equal(cityNeighbours(loop, "__start"), null);
+  const fan = ["e0", "e1", "e2", "e3", "e4"].map((k, i) => edge(k, i % 2 ? "q" : "p", i % 2 ? "p" : "q"));
+  const w = cityWorldFrom({ dir: "LR", nodes: [leaf("p"), leaf("q"), leaf("r")], edges: [...fan, edge("e5", "q", "r")] }, sheet({ p: [100, 100, 96, 42], q: [500, 100, 96, 42], r: [900, 100, 96, 42] }, 1000, 200), "state", "LR");
+  assert.deepEqual(hood(w, "p"), { key: "p", beams: ["e0", "e1", "e2", "e3", "e4"], near: ["q"] });
+  assert.deepEqual(hood(w, "q"), { key: "q", beams: ["e0", "e1", "e2", "e3", "e4", "e5"], near: ["p", "r"] });
+});
+
+test("selecting writes the part's own address and clearing the view's, which read alike in both spellings", () => {
+  const component = { kind: "component", file: "component-diagram.json" };
+  const cases = [
+    // [view, key selected, folder, selected (as written, as a person writes it), cleared (as written, as a person writes it)]
+    [component, "loader", "", ["#|component%3Aloader|~space:city", "#|component:loader|~space:city"], ["#|view%3Acomponent-diagram.json|~space:city", "#|view:component-diagram.json|~space:city"]],
+    [component, "handler", "worker", ["#worker|component%3Ahandler|~space:city", "#worker|component:handler|~space:city"], ["#worker|view%3Acomponent-diagram.json|~space:city", "#worker|view:component-diagram.json|~space:city"]],
+    // A use case's step is keyed <use case>:<step>, as the models key it, so the address names the use case too.
+    [{ kind: "use-case", file: "use-case.json", entity: "read-a-folder" }, "read-a-folder:open", "", ["#|use-case%3Aread-a-folder%3Aopen|~space:city", "#|use-case:read-a-folder:open|~space:city"], ["#|view%3Ause-case.json%23read-a-folder|~space:city", "#|view:use-case.json#read-a-folder|~space:city"]],
+  ];
+  for (const [view, key, folder, [selected, selectedPlain], [cleared, clearedPlain]] of cases) {
+    assert.equal(cityHash(folder, view, key), selected);
+    assert.equal(cityHash(folder, view, null), cleared);
+    assert.deepEqual(parse(selectedPlain), parse(selected));
+    assert.deepEqual(parse(clearedPlain), parse(cleared));
+    assert.deepEqual(parse(selected), { mode: "space", folder, focus: `${view.kind}:${key}`, scene: "city" });
+    assert.deepEqual(parse(cleared), { mode: "space", folder, focus: `view:${view.file}${view.entity ? "#" + view.entity : ""}`, scene: "city" });
+    // Shown flat, the part's address is the part in Flat.
+    assert.deepEqual(parse(switchHash("flat", { folder, kind: view.kind, part: key })), { mode: "flat", folder, focus: `${view.kind}:${key}`, scene: null });
+  }
+  // In the street the selection is the street's.
+  assert.equal(cityHash("", component, "loader", "street"), "#|component%3Aloader|~space:street");
+});

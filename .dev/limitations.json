@@ -138,9 +138,9 @@
     },
     {
       "id": "selection-not-linked",
-      "title": "A selection is not in the address",
-      "summary": "Selecting a part with the pointer does not change the address.",
-      "impact": "To link to a part, the reader has to write the |kind:part form themselves.",
+      "title": "A selection in Flat is not in the address",
+      "summary": "Selecting a part with the pointer in Flat does not change the address; in Cyberspace it does.",
+      "impact": "To link to a part in Flat, the reader has to write the |kind:part form themselves. In Cyberspace the address names the selected part (spaceSelect replaces the history entry), so its address can be copied as it is.",
       "evidenceStatus": "source-verified",
       "sources": [
         {
@@ -150,6 +150,10 @@
         {
           "path": "index.html",
           "symbol": "route"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceSelect"
         }
       ]
     },

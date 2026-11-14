@@ -79,6 +79,14 @@
     {
       "path": "index.html",
       "symbol": "spaceHud"
+    },
+    {
+      "path": "index.html",
+      "symbol": "showInfo"
+    },
+    {
+      "path": "index.html",
+      "symbol": "spaceSelect"
     }
   ],
   "components": [
@@ -121,7 +129,7 @@
     {
       "id": "inspector",
       "name": "Inspector",
-      "responsibility": "A panel at the right that holds everything a drawing says about the selected part, with its neighbours as links.",
+      "responsibility": "A panel at the right that holds everything a drawing says about the selected part, with its neighbours as links; in Cyberspace a floating card with the same body.",
       "folder": "."
     },
     {
@@ -229,7 +237,7 @@
     {
       "id": "cyberspace",
       "name": "Cyberspace",
-      "responsibility": "The second way in: the repository in 3D, over a sky and on a ground grid, in place of the folder column and view. A drawn view stands as a city of glass towers on the flat layout's ground plan. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
+      "responsibility": "The second way in: the repository in 3D, over a sky and on a ground grid, in place of the folder column and view. A drawn view stands as a city of glass towers on the flat layout's ground plan; clicking a tower, plate or beacon selects it, lights its beams and neighbours, opens the inspector on it and puts it in the address. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
       "folder": "."
     },
     {
@@ -624,6 +632,12 @@
       "to": "status-line",
       "kind": "depends-on",
       "description": "Says why it can't run, and offers Restore it when the 3D view stops."
+    },
+    {
+      "from": "cyberspace",
+      "to": "inspector",
+      "kind": "depends-on",
+      "description": "Writes the selected part into it through showInfo, with the text Flat shows."
     },
     {
       "from": "models",

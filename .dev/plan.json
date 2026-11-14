@@ -36,7 +36,7 @@
         {
           "id": "selection",
           "title": "Selection: picking, hover tips, spaceSelect, showInfo taken out of select(), lit beams, rings, the inspector card and the part in the address",
-          "status": "todo"
+          "status": "done"
         },
         {
           "id": "tower",

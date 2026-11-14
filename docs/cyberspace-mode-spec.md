@@ -216,7 +216,7 @@ The world object:
   towers:  [{ key, name, x, z, side, base, h, degree, plate, alt, final }],   // name: the node's label
   beacons: [{ key, name, x, y, z }],
   markers: [{ key, x, z, base }],
-  beams:   [{ key, from, to, points: [[x,y,z] × 33], ext, dashed, label }],
+  beams:   [{ key, from, to, points: [[x,y,z] × 33], ext, dashed, label, tip }],   // tip: the edge's, shown on hover
   parts:   Map(key → model node),   // keeps n.info for the inspector, n.tip for hover
   bounds:  { x0, x1, z0, z1, top },
 }
@@ -371,10 +371,10 @@ Written and knowledge kinds are listed with their counts but disabled, with the 
 
 **Selection.** Clicking a tower, plate or beacon calls `spaceSelect(key)`:
 
-1. The part gets state `sel`, every part joined to it by a beam gets `near`, and those beams switch to lit (core + glow). Everything else stays `norm`; nothing is dimmed, because the city must stay readable.
+1. The part gets state `sel`, every part joined to it by a beam gets `near`, and those beams switch to lit (core + glow). Everything else stays `norm`; nothing is dimmed, because the city must stay readable. The state table's alphas are a tower's: a selected or neighbouring plate or beacon keeps its glass and takes the table's edge colour (`--hot` selected, the kind colour at 100% as a neighbour). Which parts are near and which beams light is `cityNeighbours(world, key)`, in the `space-world` block.
 2. The selection rings appear round its base.
 3. The inspector opens with the same content the flat page shows for that part. Refactor `select()` so the part that writes `#inspector` from `n.info` is a function, `showInfo(info, onSel)`, used by both modes; `onSel` is `select` in Flat and `spaceSelect` in Cyberspace, so the inspector's own part links stay in the mode the reader is in.
-4. Cyberspace adds, under the inspector's title: `in <plate name> · <degree> beams · height <h>` (`on the ground · …` for a part no plate holds), and at its foot two actions: **Walk to \<name>** (primary, goes to Scene 3) and **Open flat** (goes to `#<folder>|<kind>:<key>` in flat mode).
+4. Cyberspace adds, under the inspector's title: `in <plate name> · <degree> beams · height <h>` (`on the ground · …` for a part no plate holds; a beacon's height is how high it hovers, and a plate, half a unit thick, gives none; `1 beam` for one), and at its foot two actions: **Walk to \<name>** (primary, goes to Scene 3) and **Open flat** (goes to `#<folder>|<kind>:<key>` in flat mode).
 5. A part with `n.nav` shows the folder it opens. The body the models write carries Flat's **Open \<folder>** link, which would leave Cyberspace; in its place, under the description, stands an *Its folder* block: a miniature of that folder's tower (one band per view, in its kind's colour), `ITS FOLDER` in caps, the folder's title `700 22px` Condensed, its path and number of files in monospace, a line saying what the tower holds (`A tower of its own: 2 drawn, 3 written and 8 knowledge floors. Its component diagram is pulled out.`), and the primary button **Enter its folder** (`#<folder>|~space`). Every other link in the body that leads within the page (an `href` starting with `#`) gains the mode marker, so the reader stays in Cyberspace.
 6. The address gains the part (section *Routing*). Clicking empty ground or pressing Esc clears the selection.
 
@@ -385,7 +385,7 @@ Written and knowledge kinds are listed with their counts but disabled, with the 
 | Panel | Where | Content |
 | --- | --- | --- |
 | Layers | left 20, top 98, 232 wide | `LAYERS`; `Folder . · 24 views`; the rows *What stands in the city* gives, 32 px each: tick box (accent = kind colour) or chevron (the `drill` icon, turned down when open), 10 px swatch, kind name, count in monospace. A heading's rows are indented 26 px, in 13 px type, with a 14 px tick box or radio button and the view's title, wrapped. |
-| Inspector | right 20, top 98, 340 wide | The existing `#inspector`, restyled as a floating card (radius 10, `--sheet` at 90%, 1 px `--rule`, shadow 0 12 32 rgba(0,0,0,.35)). Kind chip, title `700 34px/38px` Condensed in `--hot`, the extra line, the model body, the two actions. Scrolls inside itself past `100vh − 120 px`. |
+| Inspector | right 20, top 98, 340 wide | The existing `#inspector`, restyled as a floating card (radius 10, `--sheet` at 90%, 1 px `--rule`, shadow 0 12 32 rgba(0,0,0,.35)). Kind chip (the model's subtitle, `info.sub`, which for a component is its kind), title `700 34px/38px` Condensed in `--hot`, the extra line, the model body, the two actions at its foot, which stays in view. Scrolls inside itself past `100vh − 180 px`, so that it ends 10 px above the legend and camera controls: at `100vh − 120 px`, the first rule, a long body such as Loader's ran over the end of the legend at 1440 × 900. |
 | Camera controls | left 20, bottom 20 | Orbit (pressed), Pan, Walk; divider; Zoom in, Zoom out, Fit everything. 40 px icon buttons with `aria-label` and `aria-pressed`. |
 | Legend | left 340, bottom 20, 52 tall | Four items: tower `Part · taller with more beams`; plate `Plate · what contains them`; beacon `Beacon · outside the browser`; beam `Beam · depends on`. Words per kind come from `LEGENDS` where they exist (a deployment city says *connects to*, a journey *next stage*); a class diagram's are tower `Type · taller with more beams` and beam `Beam · extends, implements or uses`, a journey's tower `Stage · taller with more beams`. The plate and beacon items show only where the city has plates or beacons. A state machine's are disc `Start`; tower `State · taller with more transitions`; `Final state · ringed twice, solid top`; beam `Transition · leads to`. A use case's are tower `Step · taller with more beams`; dashed tower `Alternative outcome`; beam `Next step`; dashed beam `Otherwise`. A city with a part that opens a folder adds the badge, `Has views of its own`. |
 
