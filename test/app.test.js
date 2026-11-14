@@ -127,3 +127,38 @@ test("the proxy's allowlist", () => {
   for (const ok of ["user", "user/repos", "repos/o/r", "repos/o/r/git/trees/main", "repos/o/r/git/trees/feature%2Fx", "repos/o/r/contents/.dev/a.json"]) assert.ok(allowedPath(ok), ok);
   for (const bad of ["", "gists", "repos/o/r/issues", "repos/o/r/contents/%2e%2e/x", "repos/o/r/git/refs", "user/emails"]) assert.ok(!allowedPath(bad), bad);
 });
+
+// The doc-comment reader lives in the page's inline script, between markers; load it here.
+const page = (await import("node:fs")).readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const docs = new Function(`${page.match(/\/\/ <doc-comments>[\s\S]*?\/\/ <\/doc-comments>/)[0]}\n; return { docCommentOf, parseDoc, DOC_FILE };`)();
+
+const CS = `
+public class Ship
+{
+    /// <summary>Moves the ship by <paramref name="dx"/> and logs a <see cref="Wake"/>.</summary>
+    /// <param name="dx">Distance, in cells.</param>
+    /// <returns>The new x.</returns>
+    /// <exception cref="ArgumentException">If dx is NaN.</exception>
+    [Obsolete]
+    public int Move(int dx) { return 0; }
+
+    public int Plain() { return 1; }
+}`;
+
+test("doc comments: summary, params, returns and throws come out as text", () => {
+  const d = docs.docCommentOf(CS, "Ship.Move(int)");
+  assert.equal(d.summary, "Moves the ship by dx and logs a Wake.");
+  assert.deepEqual(d.params, [["dx", "Distance, in cells."]]);
+  assert.equal(d.returns, "The new x.");
+  assert.deepEqual(d.throws, [["ArgumentException", "If dx is NaN."]]);
+});
+
+test("doc comments: a symbol without one, or not in the file, gives null", () => {
+  assert.equal(docs.docCommentOf(CS, "Plain"), null);
+  assert.equal(docs.docCommentOf(CS, "Missing"), null);
+});
+
+test("doc comments: Visual Basic markers, and only source files qualify", () => {
+  assert.equal(docs.docCommentOf("''' <summary>Adds.</summary>\nPublic Function Add() As Integer", "Add").summary, "Adds.");
+  assert.ok(docs.DOC_FILE.test("src/Ship.cs") && !docs.DOC_FILE.test("src/ship.ts"));
+});
