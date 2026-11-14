@@ -317,11 +317,11 @@ Labels are HTML in `#space-labels`, never textures: they stay sharp, use Barlow,
 
 The folder tower is where Cyberspace opens: the folder in the address as a stack of floors, the first drawn view already slid out with its city on it. Match `Strata.dc.html`.
 
-**Camera.** Position (−14, 24, −44), target (8, 11, 2), vertical field of view 49.3°. The design centres the projection at (700, 440) in a 1440 × 900 frame, so set `camera.setViewOffset(W, H, (700 − 720) × W/1440, (440 − 450) × H/900, W, H)`. On wider screens keep the vertical field of view and let the stack sit left of centre. The pose frames 24 floors, the top one at y = 26.95. A taller stack opens climbed: camera and target rise together by `top − 26.95` units (1.05 for the root's 25 floors), but no further than leaves the bottom floor's label 24 px above the window's bottom edge. Past that the top is out of frame and the reader climbs to it.
+**Camera.** Position (−14, 24, −44), target (8, 11, 2), vertical field of view 49.3°. The design's frame is the whole window, 1440 × 900, bar included; the canvas is its part under the bar. So frame the camera in the window, with the canvas a part of it: `camera.aspect = W / Hw` and `camera.setViewOffset(W, Hw, (720 − 700) × W/1440, (450 − 440) × Hw/900, W, H)`, where `W × H` is the canvas, `Hw = H + top` the window's height and `top` how far down the window the canvas starts. The field of view then spans the window's height, as it does on the canvas, and the projection centre lands at (700, 440) of the window. three.js moves the window right by the offset, so the projection centre lands at W/2 − offset: the first rule's `(700 − 720) …` put it at (740, 460). Framed in the canvas alone, the stack stood 28 px lower and 6% smaller than on artboard 1. On wider screens keep the vertical field of view and let the stack sit left of centre. The pose frames 24 floors, the top one at y = 26.95. A taller stack opens climbed: camera and target rise together by `top − 26.95` units (1.05 for the root's 25 floors), but no further than leaves the bottom floor's label 24 px above the window's bottom edge. Past that the top is out of frame and the reader climbs to it.
 
 **Floors.** Built from `towerWorld(folder)` as section *Scene model* says. Floor slab: glass shader with top/underside alpha 0.13 (knowledge floors 0.10), side alpha ×2.2, edges at 85% (knowledge 70%), in the floor's kind colour. Four vertical rails at the back and front corners, kind-neutral `--k-component` at 18%, run from y −0.2 to the top floor + 1.2. Draw floors below eye height bottom-up and those above it top-down, so the nearer slab always paints last.
 
-**Pulled-out floor.** One drawn floor at a time. Its slot keeps a dashed outline (dash 4/6 px equivalent: 0.12/0.20 units) and three dashed drawer lines run from the slot's corners to the floor's. Under the pulled floor sits a soft glow: the same quad in the kind colour at 25% with a 10 px blur. Implement the blur as a second, larger quad with a radial alpha texture made once on a 64 × 64 canvas, not a post-process. The city on it is `buildCity(cityWorld(doc))` scaled by `k` (*Scene model*) about its centre, labels off, with Loader-style highlight for whatever is selected.
+**Pulled-out floor.** One drawn floor at a time. Its slot keeps a dashed outline (dash 4/6 px equivalent: 0.12/0.20 units) and three dashed drawer lines run from the slot's corners to the floor's. Under the pulled floor sits a soft glow: the same quad in the kind colour at 25% with a 10 px blur. Implement the blur as a second, larger quad with a radial alpha texture made once on a 64 × 64 canvas, not a post-process; its falloff is measured as a rounded square (the 4-norm of the distance from the centre), so that the glow keeps the floor's corners as a blurred quad does. The city on it is `buildCity(cityWorld(doc))` scaled by `k` (*Scene model*) about its centre, labels off, with Loader-style highlight for whatever is selected.
 
 **Floor labels** (HTML, left of the stack): right-aligned so their right edge is 14 px left of each floor's front-left corner, vertically centred on it. Kind name uppercase `600 11.5px` Semi Condensed, letter-spacing 0.08em, in the kind colour; then the view's `title` in `--ink` 13 px. The empty slot reads `component  pulled out` in `--ink3`, the second word italic. The kind word for knowledge files is the file's own kind (`vision`, `glossary`…), lowercased, hyphens as spaces.
 
@@ -344,12 +344,14 @@ The folder tower is where Cyberspace opens: the folder in the address as a stack
 | Input | Effect |
 | --- | --- |
 | Hover a floor | Its edges to 100% and its label text to `--hot`; cursor pointer. |
-| Click a drawn floor | Slides it out (the one already out slides back first); 450 ms, ease-out cubic; instant with reduced motion. Updates the address. |
-| Click a written or knowledge floor | Opens the inspector with the view's title, kind, description and a **Read it in Flat** link to `#<folder>\|view:<file>` in flat mode. |
+| Click a drawn floor | Slides it out while the one already out slides back, both in the same 450 ms, ease-out cubic; instant with reduced motion. Its city stands on it as it comes out; the one going back leaves its city at once. A new history entry, `#<folder>\|view:<file>\|~space`. |
+| Click a written or knowledge floor | Opens the inspector with the view's title, kind, description and a **Read it in Flat** link to `#<folder>\|view:<file>` in flat mode. The inspector takes the cards' place while it is open, and the floor's edges are drawn in `--hot`. The address names the floor (`#<folder>\|view:<file>\|~space`; `#<folder>\|entity:<file>#<record id>\|~space` opens it with the record), replacing the history entry; closing it gives the tower's address back. |
 | Double-click the pulled floor, **Enter the city**, or Enter on it | Flies into Scene 2 (section *Camera and input*). |
 | Wheel | Climbs: moves the camera and its target up or down 1.05 units a notch, clamped to the stack. ⌘/Ctrl + wheel or pinch zooms. |
 | ↑ / ↓ | Moves keyboard focus floor by floor (focus ring: the floor's edges in `--hot`). |
-| Esc | Slides the pulled floor back; with none out, rises to the skyline where the repository has one. |
+| Esc | Closes an inspector that is open; else slides the pulled floor back (as **Slide back** does); with none out, rises to the skyline where the repository has one (step 6; until then, nothing). |
+
+Sliding a floor back replaces the history entry with `#<folder>|~space`. That address also means "the first drawn view pulled out", so the tower keeps every floor in only until the reader goes somewhere; reloading it pulls the first drawn view out again.
 
 Status line: `The root folder is a tower of 24 floors, one per view. Pull a floor out to walk through it.`, right side `Scroll to climb · click a floor to pull it out`. For another folder, `<folder> is a tower of N floors…`.
 
@@ -555,6 +557,9 @@ The mode is the last segment, when it starts with `~space`. No focus starts with
 | --- | --- |
 | `#\|~space` | Tower of the root folder, first drawn view pulled out |
 | `#\|view:component-diagram.json\|~space` | Tower of the root, that view pulled out |
+| `#\|view:capability.json\|~space` | Tower of the root, the capability floor's inspector open (a written view or a knowledge file); the floor out stays out, or the first drawn view comes out |
+| `#\|entity:backlog.json#cyberspace-mode\|~space` | The same, the backlog floor's inspector open on that record |
+| `#\|component:loader\|~space` | Tower of the root, the component diagram pulled out with Loader lit in its city |
 | `#\|view:component-diagram.json\|~space:city` | City of that view, nothing selected |
 | `#\|component:loader\|~space:city` | City of the folder's component diagram, Loader selected |
 | `#\|component:loader\|~space:street` | Street scene, walked to Loader, Loader selected |
@@ -566,7 +571,7 @@ The mode is the last segment, when it starts with `~space`. No focus starts with
 
 **`route()` changes.** Split the hash on `|`; when the last part starts with `~space` it is the mode, and the parts before it are the folder and the focus. When there is a mode and Cyberspace can run, call `showSpace(folder, focus, scene)` and return; otherwise hide `#space`, remove `body.space` and run today's code unchanged. `showSpace` reuses what is already built: same folder and view → only the selection or camera changes; same folder, other view → rebuild the city; other folder → rebuild everything.
 
-**History.** A new entry (`location.hash = …`) for: switching mode, changing scene, changing folder, pulling out another floor. Replace the entry (`history.replaceState`) for: selecting or clearing a part, walking. So Back undoes a move, not every click; Forward redoes it.
+**History.** A new entry (`location.hash = …`) for: switching mode, changing scene, changing folder, pulling out another floor. Replace the entry (`history.replaceState`) for: selecting or clearing a part, opening or closing a floor's inspector in the tower, sliding a floor back, walking. So Back undoes a move, not every click; Forward redoes it.
 
 **Switching modes keeps the place.**
 
@@ -595,7 +600,7 @@ Cyberspace must never be the reason a repository can't be read (quality `fallbac
 | three.js fails to load | `loadThree()` resolves `null` (network, blocked CDN) | Flat, with `Cyberspace couldn't load its 3D library. Showing the flat view.` The switch stays, so a later try can work. |
 | dagre fails to load | `dagre === null` (already detected) | The city uses the fallback grid (section *Scene model*); the status line adds `The parts are set in a grid because the drawing library couldn't load.` |
 | dagre can't lay a view out | `sheetOf` throws (dagre 3.1.3 throws *Not possible to find intersection inside of the rectangle* on some dense compound graphs with many edges between clusters; Flat then shows tables) | The city uses the fallback grid; the status line adds `The parts are set in a grid because the drawing library couldn't lay this view out.` |
-| A folder with no drawn views, in the city | `#<folder>\|~space:city` finds no drawn view | The bare ground (the tower scene until step 4), and `<folder> has no drawn views, so it has no city. Its views are written; read them in Flat.` |
+| A folder with no drawn views, in the city | `#<folder>\|~space:city` finds no drawn view | The bare ground, and `<folder> has no drawn views, so it has no city. Its views are written; read them in Flat.` |
 | WebGL context lost | `webglcontextlost` on the canvas | Stop the loop, show `The 3D view stopped. Restore it` with a button that rebuilds the stage on `webglcontextrestored` or on press. |
 | A view the models can't build | `MODELS[kind]` throws | That floor stays in the tower; entering it opens the inspector with the error and a **Read it in Flat** link, as `drawDiagram` does for a drawing. |
 | A folder with no drawn views | `towerWorld` finds none | The tower has no drawer and no city; the pulled-floor card says `Nothing here is drawn. Its views are written; read them in Flat.` |

@@ -1,0 +1,203 @@
+{
+  "$schema": "../Meta/Agents/Skills/describe-state-diagram/schema.json",
+  "kind": "state",
+  "title": "Flat, the folder tower and the city",
+  "description": "Which of its ways in the page shows, and how the reader moves between them: Flat, Cyberspace's folder tower and its city, and the flat view a ~space address gets where Cyberspace can't run. The address decides it: route() reads its last segment, and every move here either changes the address (a new history entry, so Back and Forward retrace it) or replaces the entry (a selection, a floor slid back). The street (step 5 of the plan) is the city until it is built, and the skyline (step 6) is not built yet.",
+  "sources": [
+    {
+      "path": "index.html",
+      "symbol": "route"
+    },
+    {
+      "path": "index.html",
+      "symbol": "parseSpaceHash"
+    },
+    {
+      "path": "index.html",
+      "symbol": "showSpace"
+    },
+    {
+      "path": "index.html",
+      "symbol": "leaveSpace"
+    },
+    {
+      "path": "index.html",
+      "symbol": "webgl"
+    },
+    {
+      "path": "index.html",
+      "symbol": "loadThree"
+    },
+    {
+      "path": "index.html",
+      "symbol": "spaceScene"
+    },
+    {
+      "path": "index.html",
+      "symbol": "towerScene"
+    },
+    {
+      "path": "index.html",
+      "symbol": "towerClick"
+    },
+    {
+      "path": "index.html",
+      "symbol": "towerEnter"
+    },
+    {
+      "path": "index.html",
+      "symbol": "towerSlideBack"
+    },
+    {
+      "path": "index.html",
+      "symbol": "flyDown"
+    },
+    {
+      "path": "index.html",
+      "symbol": "flyUp"
+    },
+    {
+      "path": "index.html",
+      "symbol": "spaceSelect"
+    },
+    {
+      "path": "index.html",
+      "symbol": "itsFolder"
+    }
+  ],
+  "machine": "Cyberspace's scenes",
+  "initialState": "flat",
+  "states": [
+    {
+      "id": "flat",
+      "description": "The flat page: the folder column, and the folder's drawings, cards and tables. The address has no ~space segment."
+    },
+    {
+      "id": "tower",
+      "description": "Cyberspace's folder tower: the address folder as a stack of glass floors, one per .dev file, drawn at the bottom, then written, then knowledge, with labels and group brackets on the left, the folder's card and the pulled-out floor's card on the right. One drawn floor at a time is pulled out to the right with its city standing on it, small; the address names it (#<folder>|view:<file>|~space), or names none (#<folder>|~space, the first drawn view). A written or knowledge floor's inspector can be open in place of the cards. The status line says how many floors the tower has; its hint, Scroll to climb · click a floor to pull it out."
+    },
+    {
+      "id": "city",
+      "description": "Cyberspace's city: one drawn view (#<folder>|view:<file>|~space:city, or a part's focus with it selected) standing full size on the ground, with its labels, legend and camera controls; a selected part lights its beams and opens the inspector. The status line's hint is Esc goes up a level. A ~space:street address shows the city until the street is built."
+    },
+    {
+      "id": "webgl-missing",
+      "description": "A ~space address where Cyberspace can't run: the flat view of the place before the marker, with the status line saying Cyberspace needs WebGL, which this browser has turned off. Showing the flat view. The Flat / Cyberspace switch is hidden."
+    }
+  ],
+  "transitions": [
+    {
+      "from": "flat",
+      "to": "tower",
+      "trigger": "the address gains ~space or ~space:tower (a link, or the switch once it shows)",
+      "guard": "the browser has WebGL 2 and three.js loads",
+      "action": "three.js is imported on the first entry; the tower stands at once, the view the address names (or the folder's first drawn view) pulled out, the camera in its opening pose"
+    },
+    {
+      "from": "flat",
+      "to": "city",
+      "trigger": "the address gains ~space:city",
+      "guard": "the browser has WebGL 2 and three.js loads",
+      "action": "the city of the view or part it names stands, fitted to the room the panels leave"
+    },
+    {
+      "from": "flat",
+      "to": "webgl-missing",
+      "trigger": "the address gains ~space",
+      "guard": "no WebGL 2 context can be had, or a WebGLRenderer can't be made"
+    },
+    {
+      "from": "flat",
+      "to": "flat",
+      "trigger": "the address gains ~space",
+      "guard": "three.js can't be loaded",
+      "action": "the status line says Cyberspace couldn't load its 3D library. Showing the flat view; the next entry tries again"
+    },
+    {
+      "from": "tower",
+      "to": "tower",
+      "trigger": "a click on a drawn floor that is not out",
+      "action": "a new history entry #<folder>|view:<file>|~space; the floor out slides back as this one slides out with its city, 450 ms eased out, at once with reduced motion"
+    },
+    {
+      "from": "tower",
+      "to": "tower",
+      "trigger": "Slide back, or Esc with no inspector open",
+      "guard": "a floor is out",
+      "action": "the floor slides back and the entry is replaced with #<folder>|~space; until the reader goes elsewhere every floor stays in. With none out Esc does nothing yet"
+    },
+    {
+      "from": "tower",
+      "to": "tower",
+      "trigger": "a click on a written or knowledge floor, or an address naming one (view:<file>, entity:<file>[#<record id>])",
+      "action": "the inspector opens on that floor (title, kind, description, the record named, Read it in Flat) in place of the cards, its edges in --hot, and the entry is replaced with its address; Esc or a click on empty ground closes it and the entry is the tower's again"
+    },
+    {
+      "from": "tower",
+      "to": "tower",
+      "trigger": "Enter the city, a double-click on the pulled-out floor, or Enter",
+      "guard": "the models can't build the view on it",
+      "action": "the inspector opens on that floor with why, and Read it in Flat"
+    },
+    {
+      "from": "tower",
+      "to": "tower",
+      "trigger": "a folder's chip under Inside on the folder card",
+      "action": "a new history entry #<folder>|~space; that folder's tower stands at once"
+    },
+    {
+      "from": "tower",
+      "to": "city",
+      "trigger": "Enter the city, a double-click on the pulled-out floor, or Enter",
+      "guard": "the view on it was built",
+      "action": "a new history entry #<folder>|view:<file>|~space:city; the camera flies to the floor until its city fills the room the city's panels leave (600 ms), then in one frame the full-size city takes the small one's place, seen as it was, and the tower fades out behind it (200 ms). At once with reduced motion; input on the way lands it where the eye is"
+    },
+    {
+      "from": "city",
+      "to": "tower",
+      "trigger": "Esc with nothing selected",
+      "action": "a new history entry #<folder>|view:<file>|~space; in one frame the tower stands with this city pulled out on its floor, seen as the city was, fading in over 200 ms, and the camera flies to the tower's opening pose (600 ms). At once with reduced motion"
+    },
+    {
+      "from": "city",
+      "to": "tower",
+      "trigger": "Back or Forward to the tower address of the city's own view",
+      "action": "as Esc does; to a tower address with another view out, the tower stands at once"
+    },
+    {
+      "from": "tower",
+      "to": "city",
+      "trigger": "Back or Forward to a city address of the tower's folder",
+      "action": "as Enter the city does, the view it names pulled out first if it isn't"
+    },
+    {
+      "from": "city",
+      "to": "tower",
+      "trigger": "Enter its folder on a selected part that has views of its own, or a link in the inspector to a view or record",
+      "action": "a new history entry; that folder's tower stands at once, with the view pulled out or the floor's inspector open"
+    },
+    {
+      "from": "city",
+      "to": "city",
+      "trigger": "a click on a tower, plate or beacon; Esc or a click on empty ground with one selected",
+      "action": "the part is selected or cleared, and the entry is replaced with its address or the view's own"
+    },
+    {
+      "from": "tower",
+      "to": "flat",
+      "trigger": "an address without ~space: Read it in Flat, the switch, Back"
+    },
+    {
+      "from": "city",
+      "to": "flat",
+      "trigger": "an address without ~space: Open flat, the switch, Back"
+    },
+    {
+      "from": "webgl-missing",
+      "to": "flat",
+      "trigger": "an address without ~space",
+      "action": "the status line's message goes"
+    }
+  ],
+  "folder": "."
+}

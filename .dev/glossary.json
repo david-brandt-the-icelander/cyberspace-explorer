@@ -152,6 +152,30 @@
       "summary": "A line between two parts in a city, as an arc of light from one to the other; a part's own transition is a ring on its top."
     },
     {
+      "id": "folder-tower",
+      "title": "Folder tower",
+      "summary": "One folder in Cyberspace, where it opens: a stack of glass floors, one per .dev file, drawn views at the bottom, then written views, then knowledge, with one drawn floor pulled out and its city standing on it.",
+      "aliases": [
+        "Tower, of a folder"
+      ],
+      "notToBeConfusedWith": [
+        "Tower"
+      ]
+    },
+    {
+      "id": "floor",
+      "title": "Floor",
+      "summary": "One .dev file in a folder tower: a thin glass slab in its kind's colour, labelled with its kind and title, showing on its top a drawn view's plan, a written view's cards as bars, or a knowledge file's records as lines."
+    },
+    {
+      "id": "pulled-out-floor",
+      "title": "Pulled-out floor",
+      "summary": "The drawn floor slid out of the stack to the side, at most one at a time, with its view's city standing on it, small, over a soft glow; a dashed outline marks its empty slot. Entering it flies down into that city.",
+      "aliases": [
+        "Drawer"
+      ]
+    },
+    {
       "id": "token-scope",
       "title": "Scope",
       "summary": "What a token is for: every repository on a host, everything under an owner or group, or one repository."

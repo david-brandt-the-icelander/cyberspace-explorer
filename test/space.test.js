@@ -298,3 +298,130 @@ test("selecting writes the part's own address and clearing the view's, which rea
   // In the street the selection is the street's.
   assert.equal(cityHash("", component, "loader", "street"), "#|component%3Aloader|~space:street");
 });
+
+// ── The folder tower ──────────────────────────────────────────────────────
+
+const { towerWorldFrom, floorPlan, floorScale, FLOOR } = vm.runInContext("({ towerWorldFrom, floorPlan, floorScale, FLOOR })", context);
+// The page's own kinds, which towerWorldFrom is given: KIND_ORDER, KNOWLEDGE (from its groups) and the drawn kinds (MODELS).
+const page = vm.createContext({});
+for (const re of [/^const KIND_ORDER = .*$/m, /^const KNOWLEDGE_GROUPS = \[[\s\S]*?^\];$/m, /^const KNOWLEDGE = .*$/m]) vm.runInContext(html.match(re)[0], page);
+const KINDS = vm.runInContext("({ order: KIND_ORDER, knowledge: KNOWLEDGE })", page);
+KINDS.drawn = [...html.match(/^const MODELS = \{(.*)\};$/m)[1].matchAll(/"?([\w-]+)"?:/g)].map((m) => m[1]);
+// The root's 24 .dev files at commit 239ab8e (2026-11-13): each file's kind, path and titles.
+const ROOT = JSON.parse(await readFile(new URL("./fixtures/space/root-tower.json", import.meta.url), "utf8")).files;
+// The tower world is plain data; made in the other context, it is compared as such.
+const towerOf = (docs) => JSON.parse(JSON.stringify(towerWorldFrom(docs, KINDS)));
+
+test("the root's 24 files stand as a tower of 7 drawn, 3 written and 14 knowledge floors, the top one at 26.95", () => {
+  assert.deepEqual(KINDS.drawn, ["component", "deployment", "class", "state", "use-case", "user-journey"]);
+  const w = towerOf(ROOT);
+  assert.equal(w.floors.length, 24);
+  assert.deepEqual(w.groups.map((g) => [g.name, g.count]), [["drawn", 7], ["written", 3], ["knowledge", 14]]);
+  assert.equal(w.floors[0].kind, "component");
+  assert.equal(w.drawer, 0);
+  assert.ok(near(w.top, 26.95), String(w.top));
+  assert.equal(w.climb, 0);
+  // Bottom to top, as artboard 1 stands them (without plan.json, which came after).
+  assert.deepEqual(w.floors.map((f) => f.file), [
+    "component-diagram.json", "deployment-diagram.json", "drawing.state-diagram.json", "page.state-diagram.json", "token-panel.state-diagram.json", "use-case.json", "user-journey.json",
+    "capability.json", "feature.json", "operation.json",
+    "vision.json", "stakeholders.json", "requirements.json", "quality-requirements.json", "glossary.json", "backlog.json", "decisions.json", "folder.json", "contracts.json", "verification.json", "delivery.json", "runbooks.json", "limitations.json", "references.json",
+  ]);
+  // Floors 1.05 apart, 1.4 more between groups.
+  for (let i = 1; i < 24; i++) {
+    const gap = w.floors[i].group !== w.floors[i - 1].group ? 1.05 + 1.4 : 1.05;
+    assert.ok(near(w.floors[i].y - w.floors[i - 1].y, gap, 1e-6), `floor ${i}`);
+  }
+  // Labels: the kind as words, and the view's title.
+  assert.equal(w.floors.find((f) => f.kind === "quality-requirements").word, "quality requirements");
+  assert.equal(w.floors.find((f) => f.kind === "use-case").word, "use case");
+  assert.equal(w.floors[0].title, ROOT.find((d) => d.kind === "component").title);
+});
+
+test("a taller stack opens climbed: by 1.05 with a 25th file", () => {
+  const plan = { kind: "plan", path: ".dev/plan.json", title: "How the browser gets Cyberspace", entities: [{ id: "cyberspace-mode", title: "Build Cyberspace" }] };
+  const w = towerOf([...ROOT, plan]);
+  assert.equal(w.floors.length, 25);
+  assert.ok(near(w.top, 28));
+  assert.ok(near(w.climb, 1.05), String(w.climb));
+  // A 25th drawn file climbs the same, and stands with the drawn ones.
+  const more = towerOf([...ROOT, { kind: "state", path: ".dev/space.state-diagram.json", title: "Cyberspace" }]);
+  assert.ok(near(more.climb, 1.05));
+  assert.deepEqual(more.groups.map((g) => g.count), [8, 3, 14]);
+});
+
+test("a written floor shows a bar per card and a knowledge floor a line per record, as long as their titles, at most 4 and 6", () => {
+  const w = towerOf(ROOT);
+  for (const f of w.floors) {
+    const records = ROOT.find((d) => d.path === f.path).entities ?? [];
+    assert.deepEqual(f.bars, f.group === "written" ? records.slice(0, 4).map((e) => String(e.name ?? e.title ?? e.id).length) : [], f.file);
+    assert.deepEqual(f.lines, f.group === "knowledge" ? records.slice(0, 6).map((e) => String(e.title ?? e.name ?? e.id).length) : [], f.file);
+  }
+  assert.ok(w.floors.some((f) => f.lines.length === 6));
+  assert.ok(w.floors.filter((f) => f.group === "written").every((f) => f.bars.length > 0));
+});
+
+test("a folder with no drawn views has no drawer, and its first group starts on the ground", () => {
+  const github = [
+    { kind: "folder", path: ".github/.dev/folder.json", title: "The pipeline" },
+    { kind: "backlog", path: ".github/.dev/backlog.json", title: "Work wanted on the pipeline" },
+    { kind: "feature", path: ".github/.dev/feature.json", title: "What the pipeline offers", entities: [{ id: "a", name: "Test" }] },
+  ];
+  const w = towerOf(github);
+  assert.equal(w.drawer, -1);
+  assert.deepEqual(w.groups.map((g) => [g.name, g.count]), [["written", 1], ["knowledge", 2]]);
+  assert.deepEqual(w.floors.map((f) => f.kind), ["feature", "backlog", "folder"]);
+  assert.deepEqual(w.floors.map((f) => f.y), [0, 2.45, 3.5]);
+  assert.equal(w.climb, 0);
+  const none = towerOf([]);
+  assert.equal(none.floors.length, 0);
+  assert.equal(none.drawer, -1);
+});
+
+test("a city stands on its floor at k = min(0.36, 15 / width, 11 / depth): about 0.23 for this repository's component city", () => {
+  // 40.6 × 47.4 units on 2026-11-13.
+  const k = floorScale({ x0: -20.3, x1: 20.3, z0: -23.7, z1: 23.7 });
+  assert.ok(Math.abs(k - 0.23) < 0.005, String(k));
+  assert.ok(near(k * 47.4, 11));
+  assert.equal(floorScale({ x0: 0, x1: 10, z0: 0, z1: 10 }), 0.36);
+  assert.ok(near(floorScale({ x0: 0, x1: 60, z0: 0, z1: 20 }), 0.25));
+});
+
+test("a drawn floor's plan is its city's flat layout, inside 13 × 9 units: a tile per part, an outline per plate, a line per beam", () => {
+  const plan = floorPlan(cityWorldFrom(TWO, TWO_L, "component", "LR"));
+  assert.equal(plan.outlines.length, 2);
+  assert.equal(plan.tiles.length, 6);
+  assert.equal(plan.lines.length, 7);
+  const all = [...plan.tiles, ...plan.outlines];
+  assert.ok(all.every((t) => t.x0 >= -6.5 - 1e-9 && t.x1 <= 6.5 + 1e-9 && t.z0 >= -4.5 - 1e-9 && t.z1 <= 4.5 + 1e-9));
+  // The sheet is 1000 × 600 px, so its width fills the 13 units: 0.013 a pixel.
+  assert.ok(near(Math.min(...all.map((t) => t.x0)), (40 - 500) * 0.013) && near(Math.max(...all.map((t) => t.x1)), (960 - 500) * 0.013));
+  // Without a layout, the grid's boxes are the plan.
+  const grid = floorPlan(cityWorldFrom({ dir: "LR", nodes: Array.from({ length: 9 }, (_, i) => leaf("n" + i)), edges: [] }, null, "component", "LR"));
+  assert.equal(grid.tiles.length, 9);
+  assert.equal(FLOOR.w * FLOOR.d, 192);
+});
+
+test("sliding a floor out, entering its city and going up again write addresses that read back the same", () => {
+  const views = [
+    ["", { kind: "deployment", file: "deployment-diagram.json" }, "#|view%3Adeployment-diagram.json|~space", "#|view%3Adeployment-diagram.json|~space:city"],
+    ["worker", { kind: "component", file: "component-diagram.json" }, "#worker|view%3Acomponent-diagram.json|~space", "#worker|view%3Acomponent-diagram.json|~space:city"],
+    ["", { kind: "use-case", file: "use-case.json", entity: "switch-modes" }, "#|view%3Ause-case.json%23switch-modes|~space", "#|view%3Ause-case.json%23switch-modes|~space:city"],
+  ];
+  for (const [folder, view, tower, city] of views) {
+    const focus = `view:${view.file}${view.entity ? "#" + view.entity : ""}`;
+    // Sliding out: the tower, with that view's focus.
+    assert.equal(spaceHash({ folder, focus }), tower);
+    assert.deepEqual(parse(tower), { mode: "space", folder, focus, scene: "tower" });
+    // Entering: the same place in the city; going up: the same place in the tower again.
+    assert.equal(cityHash(folder, view, null, "city"), city);
+    assert.deepEqual(parse(city), { ...parse(tower), scene: "city" });
+    assert.equal(cityHash(folder, view, null, "tower"), tower);
+    assert.equal(spaceHash(parse(city)), city);
+  }
+  // Sliding back leaves the folder's tower; a written floor's or a record's inspector is named by view: or entity:.
+  assert.deepEqual(parse("#|~space"), { mode: "space", folder: "", focus: null, scene: "tower" });
+  assert.deepEqual(parse("#|view:capability.json|~space"), { mode: "space", folder: "", focus: "view:capability.json", scene: "tower" });
+  assert.deepEqual(parse("#|entity:backlog.json#cyberspace-mode|~space"), { mode: "space", folder: "", focus: "entity:backlog.json#cyberspace-mode", scene: "tower" });
+  assert.equal(spaceHash(parse("#|entity:backlog.json#cyberspace-mode|~space")), "#|entity%3Abacklog.json%23cyberspace-mode|~space");
+});
