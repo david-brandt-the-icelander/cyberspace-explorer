@@ -378,8 +378,34 @@
   body.space #status { position: fixed; z-index: 2; top: 54px; left: 0; right: 0; background: color-mix(in srgb, var(--paper) 88%, transparent); border-bottom: 1px solid var(--grid); }
   /* The sky is CSS: the canvas over it draws only the world, on a transparent clear colour. */
   #space { position: fixed; z-index: 1; top: 54px; left: 0; right: 0; bottom: 0; overflow: hidden; background: radial-gradient(75% 75% at 50% 35%, var(--space-sky-1), var(--space-sky-2) 45%, var(--space-sky-3)); }
-  #space-gl { position: absolute; inset: 0; display: block; width: 100%; height: 100%; outline: none; }
+  #space-gl { position: absolute; inset: 0; display: block; width: 100%; height: 100%; outline: none; touch-action: none; cursor: grab; }
+  #space-gl:active { cursor: grabbing; }
   #space-labels, #space-hud { position: absolute; inset: 0; pointer-events: none; }
+  #space-labels { z-index: 1; overflow: hidden; }
+  #space-hud { z-index: 2; }
+  #status .hint { float: right; margin-left: 16px; color: var(--ink3); }
+  /* Labels: a pill per part, each plate's name, and thin leaders from a part to a label pushed off it. */
+  #space-labels > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #space-labels path { fill: none; stroke: var(--ink3); stroke-width: 1; }
+  .sl { position: absolute; left: 0; top: 0; height: 22px; padding: 0 8px; display: flex; align-items: center; gap: 5px; white-space: nowrap; border: 1px solid var(--rule); border-radius: 4px; background: color-mix(in srgb, var(--paper) 78%, transparent); font: 500 13px/1 var(--semi); color: var(--ink2); will-change: transform; }
+  .sl svg { width: 14px; height: 14px; flex: none; color: var(--k); }
+  .sl.beacon { color: var(--k-deployment); border-color: color-mix(in srgb, var(--k-deployment) 40%, transparent); }
+  .spn { position: absolute; left: 0; top: 0; white-space: nowrap; font: 600 13px/1 var(--semi); letter-spacing: .1em; text-transform: uppercase; color: var(--k); will-change: transform; }
+  .spn span + span { color: var(--ink3); letter-spacing: .04em; }
+  /* Panels over the scene. */
+  .hud { position: absolute; pointer-events: auto; padding: 16px; border: 1px solid var(--rule); border-radius: 10px; background: color-mix(in srgb, var(--sheet) 90%, transparent); box-shadow: 0 12px 32px rgb(0 0 0 / .12); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  @media (prefers-color-scheme: dark) { .hud { box-shadow: 0 12px 32px rgb(0 0 0 / .35); } }
+  #space-controls { left: 20px; bottom: 20px; padding: 6px; display: flex; align-items: center; gap: 2px; }
+  #space-controls button { width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 6px; background: none; color: var(--ink2); cursor: pointer; }
+  #space-controls button:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent); }
+  #space-controls button[aria-pressed="true"] { background: var(--rule); color: var(--hot); }
+  #space-controls .ic { width: 20px; height: 20px; }
+  #space-controls .div { width: 1px; height: 24px; margin: 0 6px; background: var(--rule); }
+  #space-legend { left: 340px; bottom: 20px; height: 52px; padding: 0 16px; display: flex; align-items: center; gap: 18px; white-space: nowrap; font: 400 13px/1 var(--sans); color: var(--ink2); }
+  #space-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  #space-legend svg { width: 18px; height: 18px; flex: none; color: var(--k); }
+  #space-legend .amber svg { color: var(--k-deployment); }
+  #space-stats { position: absolute; z-index: 3; top: 48px; right: 20px; padding: 6px 10px; border: 1px solid var(--rule); border-radius: 6px; background: color-mix(in srgb, var(--sheet) 90%, transparent); font: 400 12px/1.45 var(--mono); color: var(--ink2); white-space: pre; pointer-events: none; }
   .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 </style>
 </head>
@@ -475,10 +501,11 @@ const kindCount = (k, n) => `${n} ${k === "knowledge" ? "knowledge file" : KIND_
 const DAGRE = "https://cdn.jsdelivr.net/npm/@dagrejs/dagre@3.1.3/+esm";
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 
-/** The line under the bar. `offer` puts a button after it, for the one thing worth doing about it. */
-function status(text, kind = "", offer = null) {
+/** The line under the bar. `offer` puts a button after it, for the one thing worth doing about it; `hint`, a quiet word at its right. */
+function status(text, kind = "", offer = null, hint = "") {
   const el = $("status");
   el.textContent = text; el.className = kind;
+  if (hint) { const h = document.createElement("span"); h.className = "hint"; h.textContent = hint; el.append(h); }
   if (!offer) return;
   const b = document.createElement("button");
   b.className = "quiet"; b.textContent = offer.label;
@@ -573,6 +600,11 @@ const ICONS = {
   fit: `<path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"/><rect x="8.5" y="8.5" width="7" height="7" rx="1.5" ${F}/>`,
   close: `<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>`,
   search: `<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/>`,
+  // Cyberspace: the camera's modes, and a city's parts in its legend
+  orbit: `<ellipse cx="12" cy="12" rx="9" ry="4"/><circle cx="12" cy="12" r="2.5" ${S}/><path d="M19 9.2 21 8"/>`,
+  pan: `<circle cx="12" cy="12" r="2.4" ${F}/><path d="M12 3v18M3 12h18M12 3l-2.5 2.5M12 3l2.5 2.5M12 21l-2.5-2.5M12 21l2.5-2.5M3 12l2.5-2.5M3 12l2.5 2.5M21 12l-2.5-2.5M21 12l-2.5 2.5"/>`,
+  beacon: `<path d="M12 2.5 17 9.5 12 16.5 7 9.5z" ${F}/><path d="M12 2.5 17 9.5 12 16.5 7 9.5zM7 9.5h10"/><circle cx="12" cy="19.2" r=".8" ${S}/><circle cx="12" cy="22" r=".8" ${S}/>`,
+  tower: `<path d="M8 21V6l4-2 4 2v15z" ${F}/><path d="M8 21V6l4-2 4 2v15z"/><path d="M8 11h8M8 16h8"/>`,
 };
 
 /** Which glyph a component gets, guessed from its name. Order matters: the first match wins. */
@@ -1046,14 +1078,14 @@ const loopRoom = (n) => (n.loops ? 22 + n.loops * 23 : 0);
 /** What a click on a part leads to: another folder, or null. */
 function navFor(folder, focus) { const f = normFolder(folder); return folder && f !== current && byFolder.has(f) ? folderHash(f, focus) : null; }
 
-function plateNode({ key, glyph, name, sub, nav, ext, tip, info, minW = 156, maxText = 186, maxLines = 2 }) {
+function plateNode({ key, glyph, name, label, sub, nav, ext, tip, info, minW = 156, maxText = 186, maxLines = 2 }) {
   const lines = wrap(name, F_NAME, maxText, maxLines);
   const subText = sub ? clip(sub, F_MONO, maxText) : "";
   const textW = Math.max(...lines.map((l) => tw(l, F_NAME)), subText ? tw(subText, F_MONO) : 0);
   const w = Math.max(minW, Math.ceil(54 + textW + (nav ? 30 : 16)));
   const h = Math.max(56, 20 + lines.length * 18 + (subText ? 15 : 0));
   return {
-    key, w, h, tip, info, nav,
+    key, w, h, tip, info, nav, ext, glyph, label: label ?? name,
     cls: `node${ext ? " ext" : ""}${nav ? " nav" : ""}`,
     draw() {
       const block = lines.length * 18 + (subText ? 15 : 0), top = (h - block) / 2;
@@ -1069,7 +1101,7 @@ function plateNode({ key, glyph, name, sub, nav, ext, tip, info, minW = 156, max
 function clusterNode({ key, glyph, name, sub, nav, ext, tip, info }) {
   const nameW = tw(name, F_HEAD), subW = sub ? tw(sub, F_MONO) + 10 : 0;
   return {
-    key, cluster: true, tip, info, nav, minW: 40 + nameW + subW + (nav ? 34 : 14),
+    key, cluster: true, tip, info, nav, ext, glyph, label: name, minW: 40 + nameW + subW + (nav ? 34 : 14),
     cls: `cl${ext ? " ext" : ""}${nav ? " nav" : ""}`,
     draw(w, h) {
       return `<rect class="box" width="${w}" height="${h}" rx="14"/><path class="band" d="M0 14a14 14 0 0 1 14-14h${w - 28}a14 14 0 0 1 14 14v${HEADER - 14}H0z"/>`
@@ -1203,7 +1235,7 @@ function classModel(d) {
       + relList("Relies on", out.map((r) => `<span class="kv">${esc(verb[r.kind])}</span> ${sel(r.to, byId.get(r.to).name)}<span class="d">${esc(r.description)}</span>`))
       + relList("Relied on by", inc.map((r) => `${sel(r.from, byId.get(r.from).name)} <span class="kv">${esc(verb[r.kind])} it</span><span class="d">${esc(r.description)}</span>`)));
     return {
-      key: t.id, w, h, nav, info,
+      key: t.id, w, h, nav, info, label: t.name,
       tip: `<b>${esc(t.name)}</b>${esc([stereo || "class", `${t.members.length} member${t.members.length === 1 ? "" : "s"}`].join(", "))}${navTip(nav)}`,
       cls: `node${t.external ? " ext" : ""}${nav ? " nav" : ""}`,
       draw() {
@@ -1248,7 +1280,7 @@ function stateModel(d) {
       + relList("Leaves for", out.map((t) => `${t.to === s.id ? `<span class="kv">itself</span>` : sel(t.to, t.to)}<span class="d">${describe(t)}</span>`))
       + relList("Entered from", inc.map((t) => `${sel(t.from, t.from)}<span class="d">${describe(t)}</span>`)));
     return {
-      key: s.id, w, h, loops: trans.filter((t) => t.from === s.id && t.to === s.id).length, info, cls: "node state",
+      key: s.id, w, h, loops: trans.filter((t) => t.from === s.id && t.to === s.id).length, info, cls: "node state", label: s.id, terminal: !!s.terminal,
       tip: `<b>${esc(s.id)}</b>${esc(s.description)}${navTip(null)}`,
       draw() {
         return `<rect class="shadow" x="2" y="3" width="${w}" height="${h}" rx="${h / 2}"/><rect class="plate" width="${w}" height="${h}" rx="${h / 2}"/>`
@@ -1290,7 +1322,7 @@ function useCaseModel(d) {
         + relList("Otherwise", here.map(([a, j]) => `${sel(jump(e, "alt" + j), a.outcome)}<span class="d">${esc(a.condition)}</span>`))
         + relList("Before", prev ? [sel(jump(e, prev.id), `${i}. ${prev.actor}`)] : [])
         + relList("After", next ? [sel(jump(e, next.id), `${i + 2}. ${next.actor}`)] : []));
-      nodes.push(plateNode({ key: jump(e, st.id), glyph: person ? "person" : "server", name: st.action, sub: `${i + 1} · ${st.actor}`, tip: `<b>${esc(st.actor)}</b>${esc(st.action)}${navTip(null)}`, info, minW: 200, maxText: 250, maxLines: 3 }));
+      nodes.push(plateNode({ key: jump(e, st.id), glyph: person ? "person" : "server", name: st.action, label: `${i + 1} · ${st.action}`, sub: `${i + 1} · ${st.actor}`, tip: `<b>${esc(st.actor)}</b>${esc(st.action)}${navTip(null)}`, info, minW: 200, maxText: 250, maxLines: 3 }));
       if (prev) edges.push({ key: `n${edges.length}`, from: jump(e, prev.id), to: jump(e, st.id), marker: "arr", tip: `<b>${esc(prev.actor)}, then ${esc(st.actor)}</b>${esc(st.action)}` });
     });
     alts.forEach((a, j) => {
@@ -1319,7 +1351,7 @@ function journeyModel(d) {
         + (st.sources?.length ? `<h4>Sources</h4>${symRefs(st.sources)}` : "")
         + relList("Before", prev ? [sel(jump(e, prev.id), `${i}. ${prev.touchpoint}`)] : [])
         + relList("After", next ? [sel(jump(e, next.id), `${i + 2}. ${next.touchpoint}`)] : []));
-      nodes.push(plateNode({ key: jump(e, st.id), glyph: "person", name: st.action, sub: `${i + 1} · ${st.touchpoint}`, tip: `<b>${esc(st.touchpoint)}</b>${esc(st.action)}<span class="hint">${esc(st.outcome)}</span>`, info, minW: 200, maxText: 250, maxLines: 3 }));
+      nodes.push(plateNode({ key: jump(e, st.id), glyph: "person", name: st.action, label: `${i + 1} · ${st.touchpoint}`, sub: `${i + 1} · ${st.touchpoint}`, tip: `<b>${esc(st.touchpoint)}</b>${esc(st.action)}<span class="hint">${esc(st.outcome)}</span>`, info, minW: 200, maxText: 250, maxLines: 3 }));
       if (prev) edges.push({ key: `n${edges.length}`, from: jump(e, prev.id), to: jump(e, st.id), marker: "arr", tip: `<b>Then</b>${esc(prev.outcome)}` });
     });
   }
@@ -1671,20 +1703,23 @@ function drawKind() {
   });
 }
 
+/** A view's model and the layout Flat draws it with: a state machine or a deployment is turned top to bottom when that
+ *  draws larger. Cyberspace stands its cities on the same layout, so both modes make the choice alike. */
+function sheetOf(d, folder, W, H) {
+  const model = MODELS[d.kind](d, folder);
+  let L = layout(model, W - 8), dir = model.dir;
+  if (d.kind === "state" || d.kind === "deployment") {
+    const tb = layout({ ...model, dir: "TB" }, W - 8), fit = (x) => Math.min(1, W / x.w, H / x.h);
+    if (fit(tb) > fit(L) * 1.08) { L = tb; dir = "TB"; }
+  }
+  return { model, L, dir };
+}
+
 function drawDiagram(d, i, folder, wrap = $("d" + i).querySelector(".canvas")) {
   if (!MODELS[d.kind] || !wrap) return null;
   if (!dagre) { wrap.innerHTML = `<p class="msg">The drawing library couldn't load. Everything in the diagram is in the tables below.</p>`; $("d" + i).querySelector("details").open = true; return null; }
-  let model, L;
-  try {
-    model = MODELS[d.kind](d, folder);
-    const W = wrap.clientWidth || 900, H = Math.max(460, innerHeight * 0.76);
-    L = layout(model, W - 8);
-    // A state machine or a deployment may read better top to bottom: keep whichever direction draws larger.
-    if (d.kind === "state" || d.kind === "deployment") {
-      const tb = layout({ ...model, dir: "TB" }, W - 8), fit = (x) => Math.min(1, W / x.w, H / x.h);
-      if (fit(tb) > fit(L) * 1.08) L = tb;
-    }
-  }
+  let L;
+  try { ({ L } = sheetOf(d, folder, wrap.clientWidth || 900, Math.max(460, innerHeight * 0.76))); }
   catch (e) { wrap.innerHTML = `<p class="msg">This diagram couldn't be drawn (${esc(e.message ?? e)}). The tables below have all of it.</p>`; $("d" + i).querySelector("details").open = true; return null; }
   wrap.innerHTML = `<svg class="dg" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="${esc(KIND_NAME[d.kind])}: ${esc(d.title)}"><g class="cam">${drawSvg(L)}</g></svg>
     <div class="tools"><button title="Zoom out" aria-label="Zoom out" data-z="out">${ic("minus")}</button><button title="Zoom in" aria-label="Zoom in" data-z="in">${ic("plus")}</button><button title="Fit to width" aria-label="Fit to width" data-z="fit">${ic("fit")}</button></div>`;
@@ -2248,6 +2283,132 @@ function switchHash(to, { folder = "", waiting = false, kind = null, part = null
   if (waiting) return spaceHash({});
   return spaceHash({ folder, focus, scene: kind && part ? "city" : "tower" });
 }
+
+/** World units per sheet pixel: one unit is 40 px of the flat drawing. */
+const SHEET = 1 / 40;
+/** A plate's thickness. */
+const PH = 0.5;
+const towerHeight = (degree) => 2.2 + 1.3 * Math.min(degree, 9);
+
+/** Where parts stand when there is no layout: leaves in rows of ceil(√n), 5 units apart, each cluster a box round what it
+ *  holds. It has the shape of a layout, so the city stands on it as on dagre's. */
+function gridSheet(nodes, isPlate) {
+  const kids = new Map();
+  for (const n of nodes) { const p = n.parent ?? null; if (!kids.has(p)) kids.set(p, []); kids.get(p).push(n); }
+  // Leaves in tree order, so a cluster's parts stand together.
+  const leaves = [], walk = (p) => { for (const n of kids.get(p) ?? []) { if (isPlate(n)) walk(n.key); else leaves.push(n); } };
+  walk(null);
+  for (const n of nodes) if (!isPlate(n) && !leaves.includes(n)) leaves.push(n);
+  const cols = Math.ceil(Math.sqrt(leaves.length)), step = 5 / SHEET, side = 2.2 / SHEET, box = new Map();
+  leaves.forEach((n, i) => box.set(n.key, { x: (i % cols) * step, y: Math.floor(i / cols) * step, w: side, h: side }));
+  const round = (k) => {
+    if (box.has(k)) return box.get(k);
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const n of kids.get(k) ?? []) { const b = round(n.key); x0 = Math.min(x0, b.x - b.w / 2); x1 = Math.max(x1, b.x + b.w / 2); y0 = Math.min(y0, b.y - b.h / 2); y1 = Math.max(y1, b.y + b.h / 2); }
+    const pad = 1.2 / SHEET, b = { x: (x0 + x1) / 2, y: (y0 + y1) / 2, w: x1 - x0 + pad * 2, h: y1 - y0 + pad * 2 };
+    box.set(k, b);
+    return b;
+  };
+  for (const n of nodes) if (isPlate(n)) round(n.key);
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const b of box.values()) { x0 = Math.min(x0, b.x - b.w / 2); x1 = Math.max(x1, b.x + b.w / 2); y0 = Math.min(y0, b.y - b.h / 2); y1 = Math.max(y1, b.y + b.h / 2); }
+  for (const b of box.values()) { b.x -= x0; b.y -= y0; }
+  return { box, w: x1 - x0, h: y1 - y0 };
+}
+
+/** One drawn view as a city, in world units (docs/cyberspace-mode-spec.md, City world): groups are plates, parts are towers
+ *  as tall as their beams make them, a component's or deployment's outside services are beacons, and every edge is a beam.
+ *  `L` is the layout Flat draws the model with, and null without one: the parts then stand on a grid. */
+function cityWorldFrom(model, L, kind, dir) {
+  const known = new Map(model.nodes.map((n) => [n.key, n]));
+  const holds = new Set(model.nodes.map((n) => n.parent).filter((p) => known.has(p)));
+  const isPlate = (n) => !!n.cluster && holds.has(n.key);
+  const sheet = L ?? gridSheet(model.nodes, isPlate);
+  const at = (b) => ({ x: (b.x - sheet.w / 2) * SHEET, z: (sheet.h / 2 - b.y) * SHEET });
+  const depthOf = (n) => { let d = 0; for (let p = known.get(n.parent); p; p = known.get(p.parent)) if (isPlate(p)) d++; return d; };
+  const plateOf = (n) => { for (let p = known.get(n.parent); p; p = known.get(p.parent)) if (isPlate(p)) return p.key; return null; };
+  const degree = new Map();
+  for (const e of model.edges) {
+    if (!known.has(e.from) || !known.has(e.to)) continue;
+    for (const k of new Set([e.from, e.to])) degree.set(k, (degree.get(k) ?? 0) + 1);
+  }
+  const world = { kind, dir, title: null, file: null, plates: [], towers: [], beacons: [], markers: [], beams: [], parts: new Map(), bounds: null };
+  const plates = new Map(), stand = new Map();
+  for (const n of model.nodes) {
+    const b = sheet.box.get(n.key);
+    if (!b || !isPlate(n)) continue;
+    const depth = depthOf(n), c0 = at({ x: b.x - b.w / 2, y: b.y + b.h / 2 }), c1 = at({ x: b.x + b.w / 2, y: b.y - b.h / 2 });
+    const p = { key: n.key, name: n.label ?? n.key, x0: c0.x + 0.2, x1: c1.x - 0.2, z0: c0.z + 0.2, z1: c1.z - 0.2, base: depth * PH, depth };
+    plates.set(n.key, p);
+    world.plates.push(p);
+  }
+  const baseOf = (n) => { const p = plates.get(plateOf(n)); return p ? p.base + PH : 0; };
+  const tall = [];
+  for (const n of model.nodes) {
+    const b = sheet.box.get(n.key);
+    if (!b || isPlate(n)) continue;
+    const { x, z } = at(b);
+    world.parts.set(n.key, n);
+    if (!n.info) { const m = { key: n.key, x, z, base: baseOf(n) }; world.markers.push(m); stand.set(n.key, { x, y: m.base, z }); }
+    else if (n.ext && (kind === "component" || kind === "deployment")) {
+      const y = 6.5 + 1.5 * (world.beacons.length % 3);
+      world.beacons.push({ key: n.key, name: n.label ?? n.key, x, y, z });
+      stand.set(n.key, { x, y, z, beacon: true });
+    } else tall.push({ n, x, z });
+  }
+  // Side: 0.8 of the way to the nearest other tower, measured along the ground's axes so two squares never overlap.
+  for (const { n, x, z } of tall) {
+    let near = Infinity;
+    for (const o of tall) if (o.n !== n) near = Math.min(near, Math.max(Math.abs(o.x - x), Math.abs(o.z - z)));
+    const alt = kind === "use-case" && !!n.ext, deg = degree.get(n.key) ?? 0;
+    const t = { key: n.key, name: n.label ?? n.key, x, z, side: Math.min(2.2, 0.8 * near), base: baseOf(n), h: alt ? 2.2 : towerHeight(deg), degree: deg, plate: plateOf(n), alt, final: kind === "state" && !!n.terminal };
+    world.towers.push(t);
+    stand.set(n.key, { x, y: t.base + t.h, z });
+  }
+  for (const n of model.nodes) if (plates.has(n.key)) { const p = plates.get(n.key); world.parts.set(n.key, n); stand.set(n.key, { x: (p.x0 + p.x1) / 2, y: p.base + PH + 0.2, z: (p.z0 + p.z1) / 2 }); }
+  // Beams between the same two parts fan out sideways, in the order of the edges, along the normal of the line from the
+  // part whose key sorts first to the other.
+  const pairOf = (e) => [e.from, e.to].sort().join("\u0000");
+  const fans = new Map();
+  for (const e of model.edges) if (stand.has(e.from) && stand.has(e.to) && e.from !== e.to) { const k = pairOf(e); fans.set(k, (fans.get(k) ?? 0) + 1); }
+  const seen = new Map(), loops = new Map();
+  for (const e of model.edges) if (e.from === e.to && stand.has(e.from)) loops.set(e.from, (loops.get(e.from) ?? 0) + 1);
+  const loopSeen = new Map();
+  for (const e of model.edges) {
+    const A = stand.get(e.from), B = stand.get(e.to);
+    if (!A || !B) continue;
+    const points = [];
+    if (e.from === e.to) {
+      // A vertical circle of radius 1.2 standing on the tower; a second loop on the same tower is turned about the vertical.
+      const i = loopSeen.get(e.from) ?? 0, turn = (Math.PI * i) / loops.get(e.from);
+      loopSeen.set(e.from, i + 1);
+      for (let s = 0; s <= 32; s++) {
+        const a = (2 * Math.PI * s) / 32, r = 1.2 * Math.sin(a);
+        points.push([A.x + r * Math.cos(turn), A.y + 1.2 - 1.2 * Math.cos(a), A.z + r * Math.sin(turn)]);
+      }
+    } else {
+      const k = pairOf(e), n = fans.get(k), i = seen.get(k) ?? 0;
+      seen.set(k, i + 1);
+      const [P, Q] = e.from < e.to ? [A, B] : [B, A], gx = Q.x - P.x, gz = Q.z - P.z, ground = Math.hypot(gx, gz);
+      const off = n > 1 && ground > 0 ? 1.1 * (i - (n - 1) / 2) : 0;
+      const C = { x: (A.x + B.x) / 2 - (gz / (ground || 1)) * off, y: Math.max(A.y, B.y) + 1.5 + 0.22 * ground, z: (A.z + B.z) / 2 + (gx / (ground || 1)) * off };
+      for (let s = 0; s <= 32; s++) {
+        const t = s / 32, a = (1 - t) * (1 - t), b = 2 * t * (1 - t), c = t * t;
+        points.push([a * A.x + b * C.x + c * B.x, a * A.y + b * C.y + c * B.y, a * A.z + b * C.z + c * B.z]);
+      }
+    }
+    world.beams.push({ key: e.key, from: e.from, to: e.to, points, ext: !!(A.beacon || B.beacon), dashed: /dashed|dotted/.test(e.cls ?? ""), label: e.label ?? null });
+  }
+  // Bounds: round every plate, tower, beacon and start point.
+  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity, top = 0;
+  const grow = (a, b, c, d, y) => { x0 = Math.min(x0, a); x1 = Math.max(x1, b); z0 = Math.min(z0, c); z1 = Math.max(z1, d); top = Math.max(top, y); };
+  for (const p of world.plates) grow(p.x0, p.x1, p.z0, p.z1, p.base + PH);
+  for (const t of world.towers) grow(t.x - t.side / 2, t.x + t.side / 2, t.z - t.side / 2, t.z + t.side / 2, t.base + t.h);
+  for (const b of world.beacons) grow(b.x - 1.25, b.x + 1.25, b.z - 1.25, b.z + 1.25, b.y + 1.3);
+  for (const m of world.markers) grow(m.x - 0.5, m.x + 0.5, m.z - 0.5, m.z + 0.5, m.base);
+  world.bounds = x0 < x1 ? { x0, x1, z0, z1, top } : { x0: -1, x1: 1, z0: -1, z1: 1, top: 1 };
+  return world;
+}
 /* space-world:end */
 
 const THREE_URL = "https://cdn.jsdelivr.net/npm/three@0.187.0/+esm";
@@ -2258,6 +2419,11 @@ const SPACE_SAYS = {
   three: "Cyberspace couldn't load its 3D library. Showing the flat view.",
   loading: "Loading Cyberspace's 3D library…",
   lost: "The 3D view stopped.",
+  /** Why a city stands on the grid: the drawing library couldn't load, or couldn't lay this view out. */
+  grid: {
+    load: "The parts are set in a grid because the drawing library couldn't load.",
+    layout: "The parts are set in a grid because the drawing library couldn't lay this view out.",
+  },
 };
 /** WebGL 2, which three.js needs, asked for once at start-up on a canvas never put on the page. Its context is let go at once,
  *  so a reader who stays in Flat holds none. */
@@ -2293,16 +2459,6 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { th
 
 /** The spec's frame, left-handed (the default camera looks along +z, +x to its right), to three.js's. The one place it is converted. */
 const V = (x, y, z) => new three.Vector3(x, y, -z);
-/** A fixed view of the ground, framed as the city render frames it: from a little to the left, and above. */
-const SPACE_VIEW = { target: [0, 0, 0], azimuth: -4.4, elevation: 33.6, distance: 60, fov: 54.1 };
-function aim(camera, { target: [x, y, z], azimuth, elevation, distance, fov }) {
-  const a = (azimuth * Math.PI) / 180, e = (elevation * Math.PI) / 180;
-  camera.fov = fov;
-  camera.position.copy(V(x + distance * Math.cos(e) * Math.sin(a), y + distance * Math.sin(e), z - distance * Math.cos(e) * Math.cos(a)));
-  camera.lookAt(V(x, y, z));
-  camera.updateProjectionMatrix();
-}
-
 /** The ground: a line every 2 units and a stronger one every 10, anti-aliased with fwidth, fading out from 40 to 140 units from the eye. */
 function groundGrid(T, colours) {
   const geometry = new T.PlaneGeometry(600, 600).rotateX(-Math.PI / 2);
@@ -2328,22 +2484,592 @@ function groundGrid(T, colours) {
   return { mesh, paint, dispose() { geometry.dispose(); material.dispose(); } };
 }
 
+/** Unlit glass: a face's alpha comes from the way it faces, so every tower reads alike from any side: tops the first of a
+ *  row, faces turned to -x or -z (the spec's frame) the second, the rest the third. Per instance: its colour, its state (a
+ *  row of the table), and the least its top may be (a final state's solid top). Writes no depth; front faces only. */
+const GLASS = {
+  // norm, near, dim, sel, hover
+  tower: [[0.30, 0.16, 0.10], [0.42, 0.24, 0.14], [0.12, 0.07, 0.04], [0.85, 0.55, 0.36], [0.42, 0.24, 0.14]],
+  plate: [[0.10, 0.22, 0.14]],
+  beacon: [[0.34, 0.16, 0.16]],
+};
+const STATES = { norm: 0, near: 1, dim: 2, sel: 3, hover: 4 };
+function glass(T, rows) {
+  return new T.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    defines: { ROWS: rows.length },
+    uniforms: { alphas: { value: rows.map(([a, b, c]) => new T.Vector3(a, b, c)) } },
+    vertexShader: `uniform vec3 alphas[ROWS]; attribute float aState; attribute float aSolid; varying vec4 vColor;
+      void main() {
+        vec3 a = alphas[int(aState + 0.5)];
+        vColor = vec4(instanceColor, normal.y > 0.5 ? max(a.x, aSolid) : normal.x < -0.5 || normal.z > 0.5 ? a.y : a.z);
+        gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: `varying vec4 vColor;
+      void main() {
+        gl_FragColor = vColor;
+        #include <colorspace_fragment>
+      }`,
+  });
+}
+
+/** The width a drawing has in Flat, worked out while #view is hidden: #layout's last column, less #view's padding and the canvas's border. */
+function flatRoom() {
+  const cols = getComputedStyle($("layout")).gridTemplateColumns.split(" "), pad = getComputedStyle($("view"));
+  return Math.round(parseFloat(cols[cols.length - 1]) - parseFloat(pad.paddingLeft) - parseFloat(pad.paddingRight) - 2);
+}
+/** A view's city: on the layout Flat draws it with in this window, or on the grid when there is none (`why` says so). */
+function cityWorld(doc, folder) {
+  let sheet = null, why = dagre ? null : "load";
+  if (dagre) try { sheet = sheetOf(doc, folder, flatRoom(), Math.max(460, innerHeight * 0.76)); } catch { why = "layout"; }
+  const world = cityWorldFrom(sheet?.model ?? MODELS[doc.kind](doc, folder), sheet?.L ?? null, doc.kind, sheet?.dir ?? "LR");
+  const one = PER_ENTITY.has(doc.kind) ? doc.entities?.[0] : null;
+  Object.assign(world, { title: one ? one.name ?? one.id : doc.title, file: doc._path });
+  return { world, why };
+}
+
+/** One world's meshes, with three.js core alone: plates and towers as instanced glass, their edges and floor bands as one set
+ *  of lines, beacons with their tethers and rings, start points, final states' rings and the beams in their quiet state. */
+function buildCity(world, colours) {
+  const T = three, group = new T.Group(), owned = [], kind = world.kind;
+  const keep = (x) => (owned.push(x), x);
+  const put = (obj, order) => { obj.renderOrder = order; obj.frustumCulled = false; group.add(obj); return obj; };
+  const roleColour = (c, role) => (role === "amber" ? c.kinds.deployment : role === "ink" ? c.ink : c.kinds[kind]);
+  const m4 = new T.Matrix4(), q = new T.Quaternion(), one = new T.Vector3(1, 1, 1);
+
+  // Glass, one instanced mesh per shape: unit boxes standing on their base for plates and towers, octahedra for beacons.
+  const glassMesh = (geometry, rows, list, place, role, order) => {
+    if (!list.length) return null;
+    geometry.setAttribute("aState", new T.InstancedBufferAttribute(new Float32Array(list.length), 1));
+    geometry.setAttribute("aSolid", new T.InstancedBufferAttribute(new Float32Array(list.length), 1));
+    const mesh = put(new T.InstancedMesh(keep(geometry), keep(glass(T, rows)), list.length), order);
+    list.forEach((x, i) => { mesh.setMatrixAt(i, place(x)); mesh.setColorAt(i, new T.Color()); });
+    mesh.userData.role = role;
+    return mesh;
+  };
+  const unitBox = () => new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0);
+  const plates = glassMesh(unitBox(), GLASS.plate, world.plates, (p) => m4.compose(V((p.x0 + p.x1) / 2, p.base, (p.z0 + p.z1) / 2), q, new T.Vector3(p.x1 - p.x0, PH, p.z1 - p.z0)), "kind", 1);
+  const towerAt = (t) => m4.compose(V(t.x, t.base, t.z), q, new T.Vector3(t.side, t.h, t.side));
+  const towers = glassMesh(unitBox(), GLASS.tower, world.towers, towerAt, "kind", 2);
+  const beacons = glassMesh(new T.OctahedronGeometry(1.25), GLASS.beacon, world.beacons, (b) => m4.compose(V(b.x, b.y, b.z), q, new T.Vector3(1, 1.04, 1)), "amber", 3);
+  // A tower's state and solid top, by tower; `slot` says which tower each instance draws, as they are sorted back to front.
+  const state = world.towers.map(() => STATES.norm), solid = world.towers.map((t) => (t.final ? 0.75 : 0));
+  let slot = world.towers.map((_, i) => i);
+  const writeTowers = () => {
+    if (!towers) return;
+    const st = towers.geometry.attributes.aState, so = towers.geometry.attributes.aSolid;
+    slot.forEach((t, i) => { towers.setMatrixAt(i, towerAt(world.towers[t])); st.array[i] = state[t]; so.array[i] = solid[t]; });
+    towers.instanceMatrix.needsUpdate = st.needsUpdate = so.needsUpdate = true;
+  };
+  writeTowers();
+
+  // Lines, coloured per vertex (RGBA) so that a change of state or theme rewrites colours, not geometry. Each run of vertices
+  // remembers its role (kind colour, amber or ink) and alpha.
+  const sets = { solid: { pos: [], runs: [] }, dash: { pos: [], runs: [] }, inset: { pos: [], runs: [] } };
+  let into = sets.solid;
+  const seg = (a, b) => into.pos.push(a.x, a.y, a.z, b.x, b.y, b.z);
+  const run = (set, role, alpha, draw) => { into = set; const start = set.pos.length / 3; draw(); const r = { start, count: set.pos.length / 3 - start, role, alpha }; set.runs.push(r); return r; };
+  const ring4 = (x0, x1, z0, z1, y) => { const c = [V(x0, y, z0), V(x1, y, z0), V(x1, y, z1), V(x0, y, z1)]; for (let i = 0; i < 4; i++) seg(c[i], c[(i + 1) % 4]); };
+  const boxEdges = (x0, x1, z0, z1, y0, y1) => { ring4(x0, x1, z0, z1, y0); ring4(x0, x1, z0, z1, y1); for (const [x, z] of [[x0, z0], [x1, z0], [x1, z1], [x0, z1]]) seg(V(x, y0, z), V(x, y1, z)); };
+  const circle = (x, y, z, r, n = 48) => { for (let i = 0; i < n; i++) { const a = (2 * Math.PI * i) / n, b = (2 * Math.PI * (i + 1)) / n; seg(V(x + r * Math.cos(a), y, z + r * Math.sin(a)), V(x + r * Math.cos(b), y, z + r * Math.sin(b))); } };
+  for (const p of world.plates) {
+    run(sets.solid, "kind", 0.55, () => boxEdges(p.x0, p.x1, p.z0, p.z1, p.base, p.base + PH));
+    run(sets.inset, "kind", 0.28, () => ring4(p.x0 + 0.5, p.x1 - 0.5, p.z0 + 0.5, p.z1 - 0.5, p.base + PH));
+  }
+  // Per tower, its edges and its bands, for selection to light (step 3 of the plan).
+  const towerRuns = world.towers.map((t) => {
+    const s = t.side / 2, set = t.alt ? sets.dash : sets.solid;
+    const edges = run(set, "kind", 0.75, () => boxEdges(t.x - s, t.x + s, t.z - s, t.z + s, t.base, t.base + t.h));
+    const bands = run(set, "kind", 0.75 * 0.35, () => { for (let y = 1; y < t.h - 0.05; y++) ring4(t.x - s, t.x + s, t.z - s, t.z + s, t.base + y); });
+    if (t.final) run(sets.solid, "kind", 0.9, () => { circle(t.x, t.base, t.z, 0.8 * t.side); circle(t.x, t.base, t.z, 0.8 * t.side + 0.45); });
+    return { edges, bands };
+  });
+  for (const b of world.beacons) {
+    const top = V(b.x, b.y + 1.3, b.z), low = V(b.x, b.y - 1.3, b.z), eq = [[1.25, 0], [0, 1.25], [-1.25, 0], [0, -1.25]].map(([dx, dz]) => V(b.x + dx, b.y, b.z + dz));
+    run(sets.solid, "amber", 0.9, () => eq.forEach((p, i) => { seg(p, eq[(i + 1) % 4]); seg(p, top); seg(p, low); }));
+    run(sets.solid, "amber", 0.6, () => circle(b.x, 0, b.z, 1.6));
+    run(sets.solid, "amber", 0.25, () => circle(b.x, 0, b.z, 2.6, 64));
+    run(sets.dash, "amber", 0.54, () => seg(V(b.x, b.y - 1.3, b.z), V(b.x, 0, b.z)));
+  }
+  const lineSets = [];
+  for (const [name, set, order, dash] of [["solid", sets.solid, 2, null], ["dash", sets.dash, 2, [0.12, 0.2]], ["inset", sets.inset, 1, [0.12, 0.3]]]) {
+    if (!set.pos.length) continue;
+    const geometry = keep(new T.BufferGeometry());
+    geometry.setAttribute("position", new T.Float32BufferAttribute(set.pos, 3));
+    geometry.setAttribute("color", new T.Float32BufferAttribute(new Float32Array((set.pos.length / 3) * 4), 4));
+    const opts = { vertexColors: true, transparent: true, depthWrite: false };
+    const lines = put(new T.LineSegments(geometry, keep(dash ? new T.LineDashedMaterial({ ...opts, dashSize: dash[0], gapSize: dash[1] }) : new T.LineBasicMaterial(opts))), order);
+    if (dash) lines.computeLineDistances();
+    lineSets.push({ name, geometry, runs: set.runs });
+  }
+
+  // Flat discs: the ground rings' fill under beacons, and start points.
+  const discMesh = (list, at, r, role, alpha, order) => {
+    if (!list.length) return null;
+    const material = keep(new T.MeshBasicMaterial({ transparent: true, opacity: alpha, depthWrite: false }));
+    const mesh = put(new T.InstancedMesh(keep(new T.CircleGeometry(r, 40).rotateX(-Math.PI / 2)), material, list.length), order);
+    list.forEach((x, i) => mesh.setMatrixAt(i, m4.compose(at(x), q, one)));
+    mesh.userData.role = role;
+    return mesh;
+  };
+  const discs = [discMesh(world.beacons, (b) => V(b.x, 0, b.z), 1.6, "amber", 0.06, 3), discMesh(world.markers, (m) => V(m.x, m.base, m.z), 0.5, "ink", 0.6, 2)].filter(Boolean);
+
+  // Beams: one tube each, merged by hand into one geometry (core three.js has no merge). A dashed beam keeps every other
+  // segment. Each ends in a dot where it arrives.
+  const pos = [], nor = [], idx = [], beamRuns = [], ends = [];
+  for (const b of world.beams) {
+    const p = b.points, self = b.from === b.to, mid = p[16];
+    const curve = self
+      ? new T.CatmullRomCurve3(p.slice(0, 32).map((x) => V(...x)), true)
+      : new T.QuadraticBezierCurve3(V(...p[0]), V(2 * mid[0] - (p[0][0] + p[32][0]) / 2, 2 * mid[1] - (p[0][1] + p[32][1]) / 2, 2 * mid[2] - (p[0][2] + p[32][2]) / 2), V(...p[32]));
+    const tube = new T.TubeGeometry(curve, 32, 0.035, 6, self), base = pos.length / 3, ix = tube.index.array;
+    pos.push(...tube.attributes.position.array);
+    nor.push(...tube.attributes.normal.array);
+    for (let k = 0; k < ix.length; k++) if (!b.dashed || Math.floor(k / 36) % 2 === 0) idx.push(ix[k] + base);
+    beamRuns.push({ start: base, count: pos.length / 3 - base, role: b.ext ? "amber" : "kind", alpha: 0.42 });
+    if (!self) ends.push({ at: V(...p[32]), role: b.ext ? "amber" : "kind" });
+    tube.dispose();
+  }
+  let beams = null;
+  if (pos.length) {
+    const geometry = keep(new T.BufferGeometry());
+    geometry.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
+    geometry.setAttribute("normal", new T.Float32BufferAttribute(nor, 3));
+    geometry.setAttribute("color", new T.Float32BufferAttribute(new Float32Array((pos.length / 3) * 4), 4));
+    geometry.setIndex(idx);
+    beams = put(new T.Mesh(geometry, keep(new T.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }))), 4);
+  }
+  const dots = ends.length ? put(new T.InstancedMesh(keep(new T.SphereGeometry(0.12, 10, 8)), keep(new T.MeshBasicMaterial({ transparent: true, opacity: 0.9, depthWrite: false })), ends.length), 4) : null;
+  ends.forEach((e, i) => { dots.setMatrixAt(i, m4.compose(e.at, q, one)); dots.setColorAt(i, new T.Color()); });
+
+  const tint = new T.Color();
+  const self = {
+    group, world, towerRuns,
+    /** The tower an instance of the towers' mesh draws. */
+    towerOf: (instance) => slot[instance],
+    /** Colours from the theme, into uniforms and colour attributes: the geometry stays. */
+    paint(c) {
+      for (const mesh of [plates, towers, beacons]) {
+        if (!mesh) continue;
+        tint.setStyle(roleColour(c, mesh.userData.role));
+        for (let i = 0; i < mesh.count; i++) mesh.setColorAt(i, tint);
+        mesh.instanceColor.needsUpdate = true;
+      }
+      for (const d of discs) d.material.color.setStyle(roleColour(c, d.userData.role));
+      const fill = (attr, runs) => {
+        for (const r of runs) {
+          tint.setStyle(roleColour(c, r.role));
+          for (let v = r.start; v < r.start + r.count; v++) attr.setXYZW(v, tint.r, tint.g, tint.b, r.alpha);
+        }
+        attr.needsUpdate = true;
+      };
+      for (const s of lineSets) fill(s.geometry.attributes.color, s.runs);
+      if (beams) fill(beams.geometry.attributes.color, beamRuns);
+      ends.forEach((e, i) => dots.setColorAt(i, tint.setStyle(roleColour(c, e.role))));
+      if (dots) dots.instanceColor.needsUpdate = true;
+    },
+    /** Puts the towers' instances in order, furthest from the eye first, since three.js doesn't sort the instances of one mesh. */
+    sort(eye) {
+      const far = world.towers.map((t) => V(t.x, t.base + t.h / 2, t.z).distanceToSquared(eye));
+      slot = slot.slice().sort((a, b) => far[b] - far[a]);
+      writeTowers();
+    },
+    dispose() { for (const x of owned) x.dispose(); for (const m of [plates, towers, beacons, dots, ...discs]) m?.dispose(); },
+  };
+  self.paint(colours);
+  return self;
+}
+
+/** The panels over the canvas, and the room they leave: the free rectangle the city is fitted into. In #space's pixels. */
+function spaceRoom() {
+  const box = $("space").getBoundingClientRect(), panels = [];
+  for (const el of [...$("space-hud").querySelectorAll(".hud"), $("status"), $("inspector")]) {
+    const r = el.getBoundingClientRect();
+    if (r.width && r.height) panels.push({ x0: r.left - box.left, y0: r.top - box.top, x1: r.right - box.left, y1: r.bottom - box.top });
+  }
+  // Each panel takes the side of the room it costs least to give up.
+  let f = { x0: 0, y0: 0, x1: box.width, y1: box.height };
+  for (const p of panels) {
+    if (p.x1 <= f.x0 || p.x0 >= f.x1 || p.y1 <= f.y0 || p.y0 >= f.y1) continue;
+    const cut = [{ ...f, x0: p.x1 }, { ...f, x1: p.x0 }, { ...f, y0: p.y1 }, { ...f, y1: p.y0 }];
+    f = cut.reduce((a, b) => ((b.x1 - b.x0) * (b.y1 - b.y0) > (a.x1 - a.x0) * (a.y1 - a.y0) ? b : a));
+  }
+  return { W: box.width, H: box.height, free: f, panels };
+}
+
+/** The camera, in orbit and pan modes (walk comes with the street): where it looks, from which way and how far, fitted to the
+ *  free rectangle with the projection centred on it. Drag, wheel, pinch and the keys move it. */
+function spaceRig(stage) {
+  const T = three, { camera, canvas } = stage, rad = Math.PI / 180;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rig = {
+    mode: "orbit", target: [0, 0, 0], azimuth: -40, elevation: 33.6, distance: 60, fov: 54.1,
+    bounds: null, fitDistance: 60, room: null, touched: false, moved: true,
+    /** Puts the camera where the pose says, the projection centred on the free rectangle. */
+    apply() {
+      rig.room ??= spaceRoom();
+      const { W, H, free } = rig.room, [x, y, z] = rig.target, a = rig.azimuth * rad, e = rig.elevation * rad, d = rig.distance;
+      camera.fov = rig.fov;
+      camera.aspect = W / H;
+      camera.position.copy(V(x + d * Math.cos(e) * Math.sin(a), y + d * Math.sin(e), z - d * Math.cos(e) * Math.cos(a)));
+      camera.lookAt(V(x, y, z));
+      camera.setViewOffset(W, H, W / 2 - (free.x0 + free.x1) / 2, H / 2 - (free.y0 + free.y1) / 2, W, H);
+      camera.updateMatrixWorld();
+      rig.moved = true;
+      stage.request();
+      clearTimeout(rig.rest);
+      rig.rest = setTimeout(() => { stage.city?.sort(camera.position); stage.request(); }, 150);
+    },
+    set(pose) { Object.assign(rig, pose); rig.apply(); },
+    /** The opening pose: the least distance at which the corners of everything that stands (`points`: each plate's, tower's
+     *  and beacon's box, each start point) are all inside the free rectangle, 24 px from its edges, with the target moved across
+     *  the view so that they stand in the middle of it. Labels stand above their towers and are pushed further up to clear each
+     *  other: where some then run into the top of the room (`crowded` counts them), it fits again with 28 px more left above,
+     *  up to 30% of the room's height, and keeps the least room that leaves the fewest out. */
+    fit() {
+      rig.room = spaceRoom();
+      if (!rig.points?.length) { rig.set({ target: [0, 0, 0], azimuth: -40, elevation: 33.6, distance: 60 }); return; }
+      const height = rig.room.free.y1 - rig.room.free.y0;
+      let best = null;
+      for (let above = 0; above <= 0.3 * height; above += 28) {
+        frame(above);
+        const left = rig.crowded?.() ?? 0;
+        if (!best || left < best.left) best = { above, left };
+        if (!left) break;
+      }
+      // With none left out the last framing is the one kept; otherwise frame the best again.
+      if (best.left) frame(best.above);
+    },
+    /** After a resize: the room is measured again, and an untouched camera fitted again. */
+    resized() { if (rig.touched || !rig.points?.length) { rig.room = spaceRoom(); rig.apply(); } else rig.fit(); },
+    /** How far labels show: 90 units, or the far side of the city as fitted when that is further. */
+    cut() { const b = rig.bounds; return b ? Math.max(90, rig.fitDistance + Math.hypot(b.x1 - b.x0, b.z1 - b.z0) / 2) : 90; },
+    /** Keeps the pose inside the limits: elevation 8° to 85°, distance 8 to three times the fit, the target near the city. */
+    limit() {
+      rig.elevation = clamp(rig.elevation, 8, 85);
+      rig.distance = clamp(rig.distance, 8, Math.max(8, 3 * rig.fitDistance));
+      const b = rig.bounds;
+      if (b) rig.target = [clamp(rig.target[0], b.x0 - 20, b.x1 + 20), clamp(rig.target[1], -20, b.top + 20), clamp(rig.target[2], b.z0 - 20, b.z1 + 20)];
+    },
+    move(change) { change(); rig.touched = true; rig.limit(); rig.apply(); },
+    orbit(da, de) { rig.move(() => { rig.azimuth += da; rig.elevation += de; }); },
+    /** Moves the target across the ground by a step in spec units, right and ahead as the camera faces. */
+    slide(right, ahead) {
+      const a = rig.azimuth * rad;
+      rig.move(() => { rig.target = [rig.target[0] + right * Math.cos(a) - ahead * Math.sin(a), rig.target[1], rig.target[2] + right * Math.sin(a) + ahead * Math.cos(a)]; });
+    },
+    /** Flies towards (or away from) the point under (px, py), or the target. */
+    dolly(k, px, py) {
+      const d = clamp(rig.distance * k, 8, Math.max(8, 3 * rig.fitDistance)), f = d / rig.distance, p = px === undefined ? null : ground(px, py);
+      rig.move(() => {
+        rig.distance = d;
+        if (p) rig.target = rig.target.map((v, i) => p[i] + (v - p[i]) * f);
+      });
+    },
+    setMode(mode) { rig.mode = mode; for (const b of document.querySelectorAll("#space-controls [data-cam=orbit], #space-controls [data-cam=pan]")) b.setAttribute("aria-pressed", String(b.dataset.cam === mode)); },
+  };
+  /** Frames rig.points from the opening angles, `above` px more room left at the top of the free rectangle. */
+  function frame(above) {
+    const { H, free } = rig.room, b = rig.bounds, centre = [(b.x0 + b.x1) / 2, b.top / 2, (b.z0 + b.z1) / 2];
+    Object.assign(rig, { target: centre, azimuth: -40, elevation: 33.6, distance: 1, touched: false });
+    rig.apply();
+    const right = new T.Vector3(), up = new T.Vector3(), ahead = new T.Vector3();
+    camera.matrixWorld.extractBasis(right, up, ahead);
+    ahead.negate();
+    const F = H / 2 / Math.tan((rig.fov * rad) / 2), hx = Math.max(40, (free.x1 - free.x0) / 2 - 24), hy = Math.max(40, (free.y1 - free.y0) / 2 - 24);
+    const at = V(...centre), points = rig.points.map((p) => V(...p).sub(at));
+    // At distance d, the shifts of the target along an axis of the view that keep every point between `low` px below (or left
+    // of) the projection centre and `high` px above (or right of) it: an interval, empty when d is too short.
+    const span = (d, axis, low, high) => {
+      let lo = -Infinity, hi = Infinity;
+      for (const p of points) { const m = (d + p.dot(ahead)) / F, s = p.dot(axis); lo = Math.max(lo, s - high * m); hi = Math.min(hi, s + low * m); }
+      return [lo, hi];
+    };
+    const top = Math.max(40 - hy, hy - above);
+    const fits = (d) => { const [a, c] = span(d, right, hx, hx), [e, g] = span(d, up, hy, top); return a <= c && e <= g && points.every((p) => d + p.dot(ahead) > 1); };
+    let near = 1, far = 2;
+    while (!fits(far) && far < 1e5) { near = far; far *= 2; }
+    for (let i = 0; i < 40; i++) { const mid = (near + far) / 2; if (fits(mid)) far = mid; else near = mid; }
+    const d = Math.max(8, far), [a, c] = span(d, right, hx, hx), [e, g] = span(d, up, hy, top);
+    const shift = right.multiplyScalar((a + c) / 2).add(up.multiplyScalar((e + g) / 2));
+    rig.fitDistance = d;
+    rig.set({ distance: d, target: [centre[0] + shift.x, centre[1] + shift.y, centre[2] - shift.z] });
+  }
+  // The point on the level of the target under a pixel of the canvas, in the spec's frame.
+  const ray = new T.Raycaster(), plane = new T.Plane(new T.Vector3(0, 1, 0), 0), hit = new T.Vector3(), ndc = new T.Vector2();
+  const ground = (px, py) => {
+    const { W, H } = rig.room;
+    ray.setFromCamera(ndc.set((px / W) * 2 - 1, 1 - (py / H) * 2), camera);
+    plane.constant = -rig.target[1];
+    return ray.ray.intersectPlane(plane, hit) && hit.distanceTo(camera.position) < 600 ? [hit.x, hit.y, -hit.z] : null;
+  };
+  const pan = (x0, y0, x1, y1) => {
+    const a = ground(x0, y0), b = a && ground(x1, y1);
+    if (b) rig.move(() => { rig.target = rig.target.map((v, i) => v + a[i] - b[i]); });
+  };
+  const pointers = new Map();
+  let drag = null;
+  const local = (e) => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  canvas.addEventListener("pointerdown", (e) => {
+    pointers.set(e.pointerId, local(e));
+    if (pointers.size === 1) drag = { at: local(e), last: local(e), button: e.button, shift: e.shiftKey, moved: false };
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener("pointermove", (e) => {
+    if (!pointers.has(e.pointerId)) return;
+    const was = pointers.get(e.pointerId), now = local(e);
+    pointers.set(e.pointerId, now);
+    if (pointers.size === 2) {
+      // Two fingers: the gap between them flies, and their middle pans (orbits in pan mode).
+      const [p, o] = [...pointers.entries()].map(([id, v]) => (id === e.pointerId ? [was, v] : [v, v]));
+      const gap = (i) => Math.hypot(p[i][0] - o[i][0], p[i][1] - o[i][1]), mid = (i) => [(p[i][0] + o[i][0]) / 2, (p[i][1] + o[i][1]) / 2];
+      if (drag) drag.moved = true;
+      if (gap(1) > 0 && gap(0) > 0) rig.dolly(gap(0) / gap(1), ...mid(1));
+      const [m0, m1] = [mid(0), mid(1)];
+      if (rig.mode === "pan") rig.orbit(-(m1[0] - m0[0]) * 0.3, (m1[1] - m0[1]) * 0.3); else pan(...m0, ...m1);
+      return;
+    }
+    if (!drag) return;
+    if (!drag.moved && Math.hypot(now[0] - drag.at[0], now[1] - drag.at[1]) < 4) return;
+    drag.moved = true;
+    const [lx, ly] = drag.last;
+    drag.last = now;
+    if ((rig.mode === "pan") !== (drag.button === 2 || drag.shift)) pan(lx, ly, ...now);
+    else rig.orbit(-(now[0] - lx) * 0.3, (now[1] - ly) * 0.3);
+  });
+  const up = (e) => {
+    pointers.delete(e.pointerId);
+    // Under 4 px a drag is a click, which selects in a later step of the plan; for now it does nothing.
+    if (!pointers.size) drag = null;
+    else if (drag) drag.last = [...pointers.values()][0];
+  };
+  canvas.addEventListener("pointerup", up);
+  canvas.addEventListener("pointercancel", up);
+  canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+  canvas.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? rig.room.H : 1;
+    if (e.deltaX && !e.ctrlKey) rig.orbit(-e.deltaX * unit * 0.2, 0);
+    if (e.deltaY) rig.dolly(1.0015 ** (e.deltaY * unit), ...local(e));
+  }, { passive: false });
+  canvas.addEventListener("keydown", (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const panning = rig.mode === "pan", k = e.key;
+    if (k === "ArrowLeft" || k === "ArrowRight") { const s = k === "ArrowLeft" ? -1 : 1; if (panning) rig.slide(2 * s, 0); else rig.orbit(5 * s, 0); }
+    else if (k === "ArrowUp" || k === "ArrowDown") { const s = k === "ArrowUp" ? 1 : -1; if (panning) rig.slide(0, 2 * s); else rig.orbit(0, 5 * s); }
+    else if (k === "+" || k === "=") rig.dolly(1 / 1.25);
+    else if (k === "-" || k === "_") rig.dolly(1.25);
+    else if (k === "f" || k === "F") rig.fit();
+    else return;
+    e.preventDefault();
+  });
+  return rig;
+}
+
+const F_PILL = `500 13px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
+const F_PLATE = `600 13px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
+/** The labels over a city: a pill per tower and beacon, cut at 150 px, and each plate's name with its number of parts. HTML,
+ *  never textures, with their text set as text. Widths are measured once, when they are made, in the page's typefaces. */
+function spaceLabels(world) {
+  const T = three, layer = $("space-labels"), per = PER_ENTITY.has(world.kind);
+  layer.textContent = "";
+  layer.className = `kind-${world.kind}`;
+  const leaders = document.createElementNS("http://www.w3.org/2000/svg", "svg"), path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  leaders.append(path);
+  layer.append(leaders);
+  const items = [], plates = [];
+  const make = (cls, icon, text, width) => {
+    const el = document.createElement("div");
+    el.className = cls;
+    el.hidden = true;
+    if (icon) el.insertAdjacentHTML("afterbegin", icon);
+    el.append(text);
+    layer.append(el);
+    return { el, w: width, h: 22, shown: false };
+  };
+  const pill = (key, name, at, lift, beacon) => {
+    const n = world.parts.get(key), text = clip(String(name), F_PILL, 150);
+    const icon = n?.nav ? BADGE : per && n?.glyph ? ic(n.glyph) : "";
+    items.push({ ...make(beacon ? "sl beacon" : "sl", icon, text, Math.ceil(tw(text, F_PILL)) + 18 + (icon ? 19 : 0)), at: V(...at), lift });
+  };
+  for (const t of world.towers) pill(t.key, t.name, [t.x, t.base + t.h, t.z], 10, false);
+  for (const b of world.beacons) pill(b.key, b.name, [b.x, b.y + 1.3 + 1.7, b.z], 0, true);
+  // A plate's parts: every tower and beacon standing on it or on a plate within it.
+  const held = new Map(world.plates.map((p) => [p.key, 0]));
+  for (const { key } of [...world.towers, ...world.beacons]) {
+    for (let up = world.parts.get(key)?.parent, n = 0; up && n < held.size; up = world.parts.get(up)?.parent) if (held.has(up)) { held.set(up, held.get(up) + 1); n++; }
+  }
+  for (const p of world.plates) {
+    const n = held.get(p.key), el = document.createElement("div");
+    const name = document.createElement("span"), count = document.createElement("span");
+    name.textContent = p.name;
+    count.textContent = ` · ${n} part${n === 1 ? "" : "s"}`;
+    el.className = "spn";
+    el.hidden = true;
+    el.append(name, count);
+    layer.append(el);
+    const y = p.base + PH, w = tw(p.name.toUpperCase(), F_PLATE) + p.name.length * 1.3 + tw(count.textContent, F_PLATE) + count.textContent.length * 0.52;
+    plates.push({ el, w: Math.ceil(w), h: 14, shown: false, corners: [[p.x0, p.z0], [p.x1, p.z0], [p.x1, p.z1], [p.x0, p.z1]].map(([x, z]) => V(x, y, z)) });
+  }
+  const v = new T.Vector3(), view = new T.Vector3();
+  const show = (it, x, y, opacity) => {
+    it.el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
+    it.el.style.opacity = opacity < 1 ? opacity.toFixed(2) : "";
+    if (!it.shown) { it.el.hidden = false; it.shown = true; }
+  };
+  const hide = (it) => { if (it.shown) { it.el.hidden = true; it.shown = false; } };
+  return {
+    /** Places the labels for the camera as it now stands: nearest first, each pushed up until it is clear of those placed, and
+     *  moved sideways off a panel. `cut`: beyond it labels are hidden, fading out over the last 10 units. Returns `topped`, the
+     *  number of part labels left out because they ran up past the top of the free rectangle, which the fit makes room for. */
+    place(camera, { W, H, panels, free }, cut) {
+      const grid = new Map(), cell = 64;
+      let topped = 0;
+      const cells = (r, f) => { for (let i = Math.floor(r.x0 / cell); i <= Math.floor(r.x1 / cell); i++) for (let j = Math.floor(r.y0 / cell); j <= Math.floor(r.y1 / cell); j++) f(i + "," + j); };
+      const clear = (r) => { let ok = true; cells(r, (k) => { for (const o of grid.get(k) ?? []) if (r.x0 < o.x1 + 4 && r.x1 > o.x0 - 4 && r.y0 < o.y1 + 4 && r.y1 > o.y0 - 4) ok = false; }); return ok; };
+      const take = (r) => cells(r, (k) => { if (!grid.has(k)) grid.set(k, []); grid.get(k).push(r); });
+      const screen = (p) => {
+        view.copy(p).applyMatrix4(camera.matrixWorldInverse);
+        if (view.z > -camera.near) return null;
+        v.copy(p).project(camera);
+        return { x: ((v.x + 1) / 2) * W, y: ((1 - v.y) / 2) * H, d: p.distanceTo(camera.position) };
+      };
+      const fade = (d) => Math.max(0, Math.min(1, (cut - d) / 10));
+      // Off a panel, sideways by at most half its width; one still under a panel once placed is hidden.
+      const over = (r, p) => r.x1 > p.x0 && r.x0 < p.x1 && r.y1 > p.y0 && r.y0 < p.y1;
+      const under = (r) => panels.some((p) => over(r, p));
+      const aside = (r, w) => {
+        for (const p of panels) {
+          if (!over(r, p)) continue;
+          const left = p.x0 - 4 - r.x1, right = p.x1 + 4 - r.x0, dx = Math.abs(left) < Math.abs(right) ? left : right;
+          if (Math.abs(dx) <= w / 2) { r.x0 += dx; r.x1 += dx; }
+        }
+      };
+      for (const p of plates) {
+        const s = p.corners.map(screen);
+        if (s.some((c) => !c) || fade(s[0].d) <= 0) { hide(p); continue; }
+        // The front edge is the two corners lowest on the screen; the name hangs 8 px under its left end.
+        const [a, b] = s.slice().sort((m, n) => n.y - m.y), c = a.x < b.x ? a : b;
+        const r = { x0: c.x, y0: c.y + 8, x1: c.x + p.w, y1: c.y + 8 + p.h };
+        if (r.x1 < 0 || r.x0 > W || r.y0 > H || r.y1 < 0) { hide(p); continue; }
+        aside(r, p.w);
+        // A nested plate's corner can sit by its parent's: the later name steps down until it is clear, or is left out.
+        let step = 0;
+        while (!clear(r) && step < 6) { r.y0 += 6; r.y1 += 6; step++; }
+        if (step >= 6 || under(r)) { hide(p); continue; }
+        take(r);
+        show(p, r.x0, r.y0, fade(s[0].d));
+      }
+      const placed = [];
+      for (const it of items) {
+        const s = screen(it.at);
+        if (!s || s.d > cut || s.x < -it.w || s.x > W + it.w || s.y < 0 || s.y > H + 40) { hide(it); continue; }
+        placed.push([it, s]);
+      }
+      placed.sort((a, b) => b[1].y - a[1].y);
+      let d = "";
+      for (const [it, s] of placed) {
+        const r = { x0: s.x - it.w / 2, x1: s.x + it.w / 2, y1: s.y - it.lift, y0: s.y - it.lift - it.h };
+        aside(r, it.w);
+        let step = 0;
+        while (!clear(r) && step < 40) { r.y0 -= 6; r.y1 -= 6; step++; }
+        if (step >= 40 || under(r)) { if (r.y0 < free.y0) topped++; hide(it); continue; }
+        take(r);
+        if (step * 6 > 12) d += `M${s.x.toFixed(1)},${(s.y - it.lift).toFixed(1)}L${((r.x0 + r.x1) / 2).toFixed(1)},${r.y1.toFixed(1)}`;
+        show(it, r.x0, r.y0, fade(s.d));
+      }
+      path.setAttribute("d", d);
+      return { topped };
+    },
+    clear() { layer.textContent = ""; },
+  };
+}
+
+/** What each kind's city legend says: the parts, what holds them, what is outside, and what the beams mean. */
+const LEGEND_ICONS = {
+  tower: ic("tower"),
+  alt: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2 2"><path d="M7 21V13l5-2 5 2v8z"/></svg>`,
+  final: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 18V6l3-1.5L15 6v12z" fill="currentColor" fill-opacity=".5"/><ellipse cx="12" cy="19" rx="6" ry="2"/><ellipse cx="12" cy="19" rx="9.5" ry="3.2"/></svg>`,
+  plate: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 15l10-5 10 5-10 5z" fill="currentColor" fill-opacity=".2"/></svg>`,
+  beacon: ic("beacon"),
+  beam: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 19C6 6 18 6 21 19"/><circle cx="21" cy="19" r="1.6" fill="currentColor" stroke="none"/></svg>`,
+  dashed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="2.5 3"><path d="M3 19C6 6 18 6 21 19"/></svg>`,
+  start: `<svg viewBox="0 0 24 24"><ellipse cx="12" cy="14" rx="7" ry="3.5" fill="var(--ink)" fill-opacity=".6"/></svg>`,
+};
+function cityLegend(world) {
+  const has = (list) => list.length > 0, nav = [...world.parts.values()].some((n) => n.nav);
+  const items = world.kind === "state"
+    ? [["start", "Start"], ["tower", "State · taller with more transitions"], ["final", "Final state · ringed twice, solid top"], ["beam", "Transition · leads to"]]
+    : world.kind === "use-case"
+      ? [["tower", "Step · taller with more beams"], ["alt", "Alternative outcome"], ["beam", "Next step"], ["dashed", "Otherwise"]]
+      : [
+        ["tower", `${{ class: "Type", "user-journey": "Stage" }[world.kind] ?? "Part"} · taller with more beams`],
+        has(world.plates) && ["plate", "Plate · what contains them"],
+        has(world.beacons) && ["beacon", "Beacon · outside the browser"],
+        ["beam", `Beam · ${{ component: LEGENDS.component[0][1], deployment: LEGENDS.deployment[0][1], class: "extends, implements or uses", "user-journey": LEGENDS["user-journey"][0][1] }[world.kind]}`],
+      ];
+  return items.filter(Boolean).map(([icon, text]) => `<span${icon === "beacon" ? ` class="amber"` : ""}>${LEGEND_ICONS[icon]}${esc(text)}</span>`).join("")
+    + (nav ? `<span>${BADGE}Has views of its own</span>` : "");
+}
+/** The panels over a city: the camera controls (made once) and the legend. With no city, only the controls. */
+function spaceHud(world) {
+  const hud = $("space-hud");
+  if (!$("space-controls")) {
+    hud.insertAdjacentHTML("beforeend", `<div class="hud" id="space-controls" role="toolbar" aria-label="Camera">`
+      + `<button type="button" data-cam="orbit" aria-label="Orbit" aria-pressed="true" title="Orbit: drag to turn round the city">${ic("orbit")}</button>`
+      + `<button type="button" data-cam="pan" aria-label="Pan" aria-pressed="false" title="Pan: drag to move across the ground">${ic("pan")}</button><span class="div"></span>`
+      + `<button type="button" data-cam="in" aria-label="Zoom in" title="Zoom in">${ic("plus")}</button>`
+      + `<button type="button" data-cam="out" aria-label="Zoom out" title="Zoom out">${ic("minus")}</button>`
+      + `<button type="button" data-cam="fit" aria-label="Fit everything" title="Fit everything">${ic("fit")}</button></div>`
+      + `<div class="hud" id="space-legend" hidden></div>`);
+    $("space-controls").addEventListener("click", (e) => {
+      const c = e.target.closest("button")?.dataset.cam;
+      if (!rig || !c) return;
+      if (c === "orbit" || c === "pan") rig.setMode(c);
+      else if (c === "fit") rig.fit();
+      else rig.dolly(c === "in" ? 1 / 1.25 : 1.25);
+    });
+  }
+  const legend = $("space-legend");
+  legend.hidden = !world;
+  legend.className = `hud kind-${world?.kind ?? "component"}`;
+  legend.innerHTML = world ? cityLegend(world) : "";
+}
+
+/** The ?spacestats readout: frame time, draw calls, and what the world holds. */
+const SPACE_STATS = new URLSearchParams(location.search).has("spacestats");
+
 /** The renderer, the scene and the camera. It draws a frame only when something changed, and none while #space or the tab is hidden. */
 function spaceStage(T, canvas) {
   const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setClearAlpha(0);
-  const scene = new T.Scene(), camera = new T.PerspectiveCamera(SPACE_VIEW.fov, 1, 0.6, 600);
-  let grid = null, frame = 0, lost = false;
+  const scene = new T.Scene(), camera = new T.PerspectiveCamera(54.1, 1, 0.6, 600);
+  let grid = null, city = null, frame = 0, lost = false, last = 0, took = 0, every = 0;
   const showing = () => !lost && !$("space").hidden && !document.hidden;
-  const draw = () => { frame = 0; if (showing()) renderer.render(scene, camera); };
+  const draw = (now) => {
+    frame = 0;
+    if (!showing()) return;
+    const t0 = performance.now();
+    self.onFrame?.();
+    renderer.render(scene, camera);
+    if (!SPACE_STATS) return;
+    // The readout waits for the GPU, so the time it gives is the whole frame's.
+    renderer.getContext().finish();
+    took = took ? took * 0.9 + (performance.now() - t0) * 0.1 : performance.now() - t0;
+    if (now - last < 100) every = every ? every * 0.9 + (now - last) * 0.1 : now - last;
+    last = now;
+    const w = city?.world, el = $("space-stats") ?? $("space").appendChild(Object.assign(document.createElement("div"), { id: "space-stats" }));
+    el.textContent = `frame ${took.toFixed(1)} ms${every ? ` · every ${every.toFixed(1)} ms` : ""}\n${renderer.info.render.calls} draw calls\n`
+      + (w ? `${w.plates.length} plates · ${w.towers.length} towers · ${w.beacons.length} beacons · ${w.beams.length} beams` : "no city");
+  };
   const request = () => { if (!frame && showing()) frame = requestAnimationFrame(draw); };
   const resize = () => {
     const { width, height } = $("space").getBoundingClientRect();
     if (!width || !height) return;
     renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
+    self.onResize?.();
     request();
   };
   const watch = new ResizeObserver(resize);
@@ -2353,18 +3079,27 @@ function spaceStage(T, canvas) {
   canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); lost = true; cancelAnimationFrame(frame); frame = 0; if (canvas.isConnected) stageLost(); });
   canvas.addEventListener("webglcontextrestored", () => { if (canvas.isConnected) restoreStage(); });
   const self = {
+    camera, canvas, request,
     get lost() { return lost; },
-    /** Builds the scene, again after a stay in Flat. */
+    get city() { return city; },
+    /** Lays the ground, again after a stay in Flat. */
     fill(colours) {
       if (!grid) { grid = groundGrid(T, colours); scene.add(grid.mesh); }
-      aim(camera, SPACE_VIEW);
       resize();
       request();
     },
-    retheme(colours) { grid?.paint(colours); request(); },
+    /** Stands a city (buildCity's) on the ground in place of the one there; null takes it away. */
+    show(next) {
+      if (city) { scene.remove(city.group); city.dispose(); }
+      city = next;
+      if (city) scene.add(city.group);
+      request();
+    },
+    retheme(colours) { grid?.paint(colours); city?.paint(colours); request(); },
     /** Lets go of every geometry and material; the renderer stays for a return. */
     empty() {
       cancelAnimationFrame(frame); frame = 0;
+      self.show(null);
       if (grid) { scene.remove(grid.mesh); grid.dispose(); grid = null; }
     },
     /** Lets go of the renderer and its context too, and puts a fresh canvas in its place for the next one. */
@@ -2380,12 +3115,19 @@ function spaceStage(T, canvas) {
   return self;
 }
 
-let stage = null, stageIdle = 0;
-/** Starts the stage, or wakes the one kept since the reader left. False when no WebGL context can be had. */
+let stage = null, stageIdle = 0, rig = null, labels = null;
+/** Starts the stage and its camera, or wakes the ones kept since the reader left. False when no WebGL context can be had. */
 function stageOn() {
   clearTimeout(stageIdle);
   if (!stage) {
     try { stage = spaceStage(three, $("space-gl")); } catch { return false; }
+    rig = spaceRig(stage);
+    stage.onResize = () => { rig.resized(); clearTimeout(reshape); reshape = setTimeout(spaceTurn, 250); };
+    stage.onFrame = () => {
+      if (!rig.moved) return;
+      rig.moved = false;
+      if (labels && rig.bounds) labels.place(stage.camera, rig.room, rig.cut());
+    };
   }
   stage.fill((theme ??= spaceTheme()));
   return true;
@@ -2393,7 +3135,8 @@ function stageOn() {
 function closeStage() {
   clearTimeout(stageIdle);
   try { stage?.close(); } catch { /* a lost context has nothing left to let go */ }
-  stage = null;
+  stage = null; rig = null; standing = null;
+  labels?.clear(); labels = null;
 }
 function stageLost() {
   if (space.on) spaceSay(SPACE_SAYS.lost, "error", { label: "Restore it", run: restoreStage }); else closeStage();
@@ -2402,14 +3145,112 @@ function stageLost() {
 function restoreStage() {
   closeStage();
   if (!space.on) return;
-  if (stageOn()) spaceSay(""); else { spaceFailed = SPACE_SAYS.webgl; route(); }
+  if (stageOn()) { spaceSay(""); spaceScene(); } else { spaceFailed = SPACE_SAYS.webgl; route(); }
 }
 
 /** Says something in the status line after whatever the loader had to say; saying "" leaves the loader's words alone again. */
-function spaceSay(text, kind = "", offer = null) {
+function spaceSay(text, kind = "", offer = null, hint = "") {
   if (!spaceSaid) loaderSaid = $("status").textContent;
   spaceSaid = text;
-  status([loaderSaid, text].filter(Boolean).join(" "), text ? kind : "", text ? offer : null);
+  status([loaderSaid, text].filter(Boolean).join(" "), text ? kind : "", text ? offer : null, text ? hint : "");
+}
+/** A scene's own sentence, said only when the loader has nothing to report; `note` follows the loader's words either way. */
+function sceneSay(sentence, note = "", hint = "") {
+  if (!spaceSaid) loaderSaid = $("status").textContent;
+  spaceSay([loaderSaid ? "" : sentence, note].filter(Boolean).join(" "), "", null, hint);
+}
+
+/** Worlds already built, by view (its file, and the entity for a use case or journey): the direction the last was built for,
+ *  and the world for each direction. Dropped when a late typeface changes the text widths. */
+const cityWorlds = new Map();
+/** The city standing: its view's key, and what cityFor made of it. */
+let standing = null, reshape = 0;
+document.fonts.addEventListener("loadingdone", () => { cityWorlds.clear(); standing = null; if (space.on && stage) spaceScene(); });
+
+/** The drawn view a city address stands: the view it names (one use case or journey of a file by #<entity id>, else its first),
+ *  the view of that kind holding the part it names, or the folder's first drawn view. Null for a folder with none. */
+function cityView(folder, focus) {
+  const views = (byFolder.get(folder) ?? []).filter((d) => MODELS[d.kind]).flatMap((d) => PER_ENTITY.has(d.kind)
+    ? (d.entities ?? []).map((e) => ({ key: `${d._path}#${e.id}`, d, e, doc: { ...d, entities: [e] } }))
+    : [{ key: d._path, d, e: null, doc: d }]);
+  const [kind, ...rest] = (focus ?? "").split(":"), name = rest.join(":");
+  const holds = (v) => { try { return MODELS[kind](v.doc, folder).nodes.some((n) => n.key === name || n.info?.title === name); } catch { return false; } };
+  let found = null;
+  if (kind === "view") {
+    const at = name.indexOf("#"), file = at < 0 ? name : name.slice(0, at), id = at < 0 ? null : name.slice(at + 1);
+    const of = views.filter((v) => v.d._path.split("/").pop() === file);
+    found = (id && of.find((v) => v.e?.id === id)) || of[0];
+  } else if (MODELS[kind] && name) found = views.find((v) => v.d.kind === kind && holds(v));
+  return found ?? views[0] ?? null;
+}
+/** The city for a view, built once for each direction sheetOf chooses. */
+function cityFor(v, dir = null) {
+  if (!cityWorlds.has(v.key)) cityWorlds.set(v.key, { last: null, built: {} });
+  const memo = cityWorlds.get(v.key), want = dir ?? memo.last;
+  if (want && memo.built[want]) { memo.last = want; return memo.built[want]; }
+  const made = cityWorld(v.doc, space.folder);
+  memo.built[made.world.dir] = made;
+  memo.last = made.world.dir;
+  return made;
+}
+const plural = (n, one) => `${n} ${one}${n === 1 ? "" : "s"}`;
+/** Stands the scene the address asks for. Until the folder tower and the street are built (steps 4 and 5 of the plan), the
+ *  tower is the bare ground and the street is the city. */
+function spaceScene() {
+  if (!stage || !rig) return;
+  if (space.scene === "tower") { standCity(null); spaceSay(""); return; }
+  const v = cityView(space.folder, space.focus);
+  if (!v) {
+    standCity(null);
+    sceneSay(`${space.folder ? space.folder : "The root folder"} has no drawn views, so it has no city. Its views are written; read them in Flat.`);
+    return;
+  }
+  let made;
+  try { made = standing?.key === v.key ? standing.made : cityFor(v); } catch (e) {
+    standCity(null);
+    sceneSay(`This view couldn't be built (${e.message ?? e}). Read it in Flat.`);
+    return;
+  }
+  if (standing?.key !== v.key || standing.made !== made) standCity({ key: v.key, made });
+  const n = [...byFolder.values()].reduce((s, docs) => s + docs.length, 0), what = KIND_NAME[v.d.kind].toLowerCase() + (v.e ? ` ${v.e.name ?? v.e.id}` : "");
+  // No hint yet: Esc does nothing in the city until the folder tower (step 4) gives it a level to go up to; step 4 adds "Esc goes up a level".
+  sceneSay(`Read ${plural(n, "view")} in ${plural(byFolder.size, "folder")}. Flying the ${what}: drag to orbit, scroll to fly, click a tower to read it.`,
+    made.why ? SPACE_SAYS.grid[made.why] : "");
+}
+/** Builds a city's meshes, labels and legend and fits the camera to it; null stands the bare ground. */
+function standCity(next) {
+  standing = next;
+  labels?.clear(); labels = null;
+  const world = next?.made.world ?? null;
+  stage.show(world ? buildCity(world, theme) : null);
+  spaceHud(world);
+  if (world) labels = spaceLabels(world);
+  rig.bounds = world?.bounds ?? null;
+  rig.points = world ? standingPoints(world) : null;
+  rig.crowded = labels ? () => labels.place(stage.camera, rig.room, rig.cut()).topped : null;
+  rig.fit();
+}
+/** The corners of what stands, which the camera is fitted to: each plate's, tower's and beacon's box (a beacon's from the
+ *  ground its tether reaches), each start point, and the beams' arcs. The bounds' own corners are often bare ground nearest the eye. */
+function standingPoints(world) {
+  const points = [], box = (x0, x1, y0, y1, z0, z1) => { for (const x of [x0, x1]) for (const y of [y0, y1]) for (const z of [z0, z1]) points.push([x, y, z]); };
+  for (const p of world.plates) box(p.x0, p.x1, p.base, p.base + PH, p.z0, p.z1);
+  for (const t of world.towers) box(t.x - t.side / 2, t.x + t.side / 2, t.base, t.base + t.h, t.z - t.side / 2, t.z + t.side / 2);
+  for (const b of world.beacons) box(b.x - 1.25, b.x + 1.25, 0, b.y + 1.3, b.z - 1.25, b.z + 1.25);
+  for (const m of world.markers) for (const [dx, dz] of [[-0.5, -0.5], [0.5, -0.5], [0.5, 0.5], [-0.5, 0.5]]) points.push([m.x + dx, m.base, m.z + dz]);
+  // And each beam's quarter points, so that its arc stays in the frame.
+  for (const b of world.beams) points.push(b.points[8], b.points[16], b.points[24]);
+  return points;
+}
+/** After the window changed size: a state machine or a deployment stands again if sheetOf would now turn it the other way. */
+function spaceTurn() {
+  const w = standing?.made.world;
+  if (!space.on || !w || !dagre || !(w.kind === "state" || w.kind === "deployment")) return;
+  const v = cityView(space.folder, space.focus);
+  if (!v || v.key !== standing.key) return;
+  let dir;
+  try { dir = sheetOf(v.doc, space.folder, flatRoom(), Math.max(460, innerHeight * 0.76)).dir; } catch { return; }
+  if (dir !== w.dir) standCity({ key: v.key, made: cityFor(v, dir) });
 }
 
 /** The switch shows which mode is on. It is offered only with WebGL, and not before the launch. */
@@ -2436,7 +3277,7 @@ function showSpace(folder, focus, scene) {
   if (!three) spaceSay(SPACE_SAYS.loading, "loading");
   loadThree().then((T) => {
     if (!space.on) return;
-    if (T && stageOn()) { if (spaceSaid === SPACE_SAYS.loading) spaceSay(""); return; }
+    if (T && stageOn()) { if (spaceSaid === SPACE_SAYS.loading) spaceSay(""); spaceScene(); return; }
     spaceFailed = T ? SPACE_SAYS.webgl : SPACE_SAYS.three;
     route();
   });
@@ -2451,6 +3292,8 @@ function leaveSpace(asked) {
     space.on = false;
     document.body.classList.remove("space");
     $("space").hidden = true;
+    standing = null;
+    labels?.clear(); labels = null;
     // A stage whose context was lost is no use to a return: the next entry starts a new one.
     if (stage?.lost) closeStage();
     else if (stage) { stage.empty(); stageIdle = setTimeout(closeStage, 60_000); }

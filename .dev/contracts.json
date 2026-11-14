@@ -21,7 +21,8 @@
         "#<folder>|view:<file name> scrolls to a view.",
         "#<folder>|entity:<file name>#<record ID> scrolls to a record; without #<record ID>, to the file.",
         "#~waiting opens Waiting.",
-        "A last segment ~space or ~space:<scene> asks for the same place in Cyberspace: #<folder>[|<part, view or record>]|~space[:<scene>], where <scene> is tower (the default), city or street. Segments are encoded as the other forms encode them. #~waiting|~space is the root folder's tower. Where Cyberspace can't run, the place before the marker is shown flat; a page that predates the marker reads the folder and part the same way."
+        "A last segment ~space or ~space:<scene> asks for the same place in Cyberspace: #<folder>[|<part, view or record>]|~space[:<scene>], where <scene> is tower (the default), city or street. Segments are encoded as the other forms encode them. #~waiting|~space is the root folder's tower. Where Cyberspace can't run, the place before the marker is shown flat; a page that predates the marker reads the folder and part the same way.",
+        "In Cyberspace, #<folder>|view:<file name>#<entity ID>|~space:city stands one use case or journey of a file that holds several; without #<entity ID>, the file's first. Shown flat, the place before the marker opens the folder."
       ],
       "compatibility": "A new form may be added. A form that shared links already use keeps its meaning.",
       "evidenceStatus": "source-verified",
@@ -53,6 +54,10 @@
         {
           "path": "README.md",
           "symbol": "Using it"
+        },
+        {
+          "path": "index.html",
+          "symbol": "cityView"
         }
       ]
     },

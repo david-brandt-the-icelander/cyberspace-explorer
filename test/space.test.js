@@ -75,3 +75,165 @@ test("switching modes keeps the place", () => {
     assert.deepEqual(parse(switchHash("flat", at)), { mode: "flat", folder, focus, scene: null });
   }
 });
+
+// ── The city world ────────────────────────────────────────────────────────
+
+const { cityWorldFrom } = vm.runInContext("({ cityWorldFrom })", context);
+const near = (a, b, eps = 1e-9) => Math.abs(a - b) < eps;
+const leaf = (key, more = {}) => ({ key, label: key.toUpperCase(), info: { title: key }, ...more });
+const edge = (key, from, to, more = {}) => ({ key, from, to, ...more });
+/** A hand-written layout: boxes centred at (x, y) in sheet px. */
+const sheet = (boxes, w, h) => ({ box: new Map(Object.entries(boxes).map(([k, [x, y, bw, bh]]) => [k, { x, y, w: bw, h: bh }])), w, h });
+
+// Two clusters, one inside the other; six leaves, one of them outside; seven edges.
+const TWO = {
+  dir: "LR",
+  nodes: [
+    { key: "outer", cluster: true, label: "Outer", info: {} },
+    { key: "inner", cluster: true, label: "Inner", parent: "outer", info: {} },
+    leaf("a", { parent: "outer" }), leaf("b", { parent: "inner" }), leaf("c", { parent: "inner" }),
+    leaf("d"), leaf("e"), leaf("x", { ext: true }),
+  ],
+  edges: [edge("r0", "a", "b"), edge("r1", "b", "c"), edge("r2", "c", "d"), edge("r3", "d", "e"), edge("r4", "a", "x"), edge("r5", "e", "x"), edge("r6", "a", "d")],
+};
+const TWO_L = sheet({ outer: [300, 300, 520, 440], inner: [380, 340, 300, 280], a: [140, 200, 120, 56], b: [320, 300, 120, 56], c: [440, 400, 120, 56], d: [700, 200, 120, 56], e: [700, 400, 120, 56], x: [900, 300, 120, 56] }, 1000, 600);
+
+test("a model of two clusters and six leaves stands as 2 plates, 5 towers, 1 beacon and 7 beams", () => {
+  const w = cityWorldFrom(TWO, TWO_L, "component", "LR");
+  assert.equal(w.plates.length, 2);
+  assert.equal(w.towers.length, 5);
+  assert.equal(w.beacons.length, 1);
+  assert.equal(w.beams.length, 7);
+  const deg = { a: 3, b: 2, c: 2, d: 3, e: 2 };
+  for (const t of w.towers) { assert.equal(t.degree, deg[t.key], t.key); assert.ok(near(t.h, 2.2 + 1.3 * deg[t.key]), t.key); }
+  const outer = w.plates.find((p) => p.key === "outer"), inner = w.plates.find((p) => p.key === "inner");
+  assert.equal(outer.base, 0);
+  assert.equal(inner.base, outer.base + 0.5);
+  assert.equal(inner.depth, 1);
+  // A plate is its box, 40 px a unit, shrunk 0.2 on every side, centred on the sheet, the top of the sheet furthest away.
+  assert.ok(near(outer.x0, (40 - 500) / 40 + 0.2) && near(outer.x1, (560 - 500) / 40 - 0.2));
+  assert.ok(near(outer.z1, (300 - 80) / 40 - 0.2) && near(outer.z0, (300 - 520) / 40 + 0.2));
+  // A tower stands on its innermost plate.
+  const b = w.towers.find((t) => t.key === "b"), a = w.towers.find((t) => t.key === "a"), d = w.towers.find((t) => t.key === "d");
+  assert.equal(b.plate, "inner"); assert.equal(b.base, 1);
+  assert.equal(a.plate, "outer"); assert.equal(a.base, 0.5);
+  assert.equal(d.plate, null); assert.equal(d.base, 0);
+  // Beams leave a tower's top centre and reach a beacon's centre; the beam to a beacon is amber.
+  const r4 = w.beams.find((x) => x.key === "r4"), beacon = w.beacons[0];
+  assert.deepEqual([...r4.points[0]], [a.x, a.base + a.h, a.z]);
+  assert.deepEqual([...r4.points[32]], [beacon.x, beacon.y, beacon.z]);
+  assert.equal(r4.ext, true);
+  assert.equal(w.beams.find((x) => x.key === "r0").ext, false);
+  assert.equal(beacon.y, 6.5);
+  assert.equal(w.beams.every((x) => x.points.length === 33), true);
+});
+
+test("a tower's height stops growing at nine beams", () => {
+  const model = { dir: "LR", nodes: [leaf("hub"), ...Array.from({ length: 12 }, (_, i) => leaf("p" + i))], edges: Array.from({ length: 12 }, (_, i) => edge("r" + i, "hub", "p" + i)) };
+  const L = sheet(Object.fromEntries(model.nodes.map((n, i) => [n.key, [100 + i * 200, 100, 100, 50]])), 2700, 200);
+  const hub = cityWorldFrom(model, L, "component", "LR").towers.find((t) => t.key === "hub");
+  assert.equal(hub.degree, 12);
+  assert.ok(near(hub.h, 13.9));
+});
+
+test("towers 2 units apart are 1.6 wide, and no two footprints overlap", () => {
+  const model = { dir: "LR", nodes: ["a", "b", "c", "d"].map((k) => leaf(k)), edges: [] };
+  const L = sheet({ a: [100, 100, 60, 40], b: [180, 100, 60, 40], c: [260, 100, 60, 40], d: [180, 180, 60, 40] }, 400, 300);
+  const w = cityWorldFrom(model, L, "component", "LR");
+  for (const t of w.towers) assert.ok(near(t.side, 1.6), t.key);
+  for (const s of w.towers) for (const t of w.towers) if (s !== t) assert.ok(Math.abs(s.x - t.x) >= (s.side + t.side) / 2 - 1e-9 || Math.abs(s.z - t.z) >= (s.side + t.side) / 2 - 1e-9);
+  // A lone tower is 2.2 wide.
+  assert.equal(cityWorldFrom({ dir: "LR", nodes: [leaf("a")], edges: [] }, sheet({ a: [50, 50, 60, 40] }, 100, 100), "component", "LR").towers[0].side, 2.2);
+});
+
+test("a transition back to the same state is a closed circle of radius 1.2 standing on the tower", () => {
+  const model = { dir: "LR", nodes: [leaf("s"), leaf("t")], edges: [edge("t0", "s", "s", { self: true }), edge("t1", "s", "t")] };
+  const w = cityWorldFrom(model, sheet({ s: [100, 100, 96, 42], t: [400, 100, 96, 42] }, 500, 200), "state", "LR");
+  const s = w.towers.find((t) => t.key === "s"), loop = w.beams.find((b) => b.key === "t0");
+  assert.equal(s.degree, 2);
+  assert.equal(loop.points.length, 33);
+  loop.points[0].forEach((v, i) => assert.ok(near(v, loop.points[32][i])));
+  const top = s.base + s.h, centre = [s.x, top + 1.2, s.z];
+  for (const p of loop.points) {
+    assert.ok(near(Math.hypot(p[0] - centre[0], p[1] - centre[1], p[2] - centre[2]), 1.2));
+    assert.ok(p[1] >= top - 1e-9);
+  }
+  assert.ok(near(loop.points[0][1], top));
+});
+
+test("five beams between the same two towers stand on five arcs, their crests 0.55 apart, in the order of the edges", () => {
+  const edges = [edge("e0", "p", "q"), edge("e1", "q", "p"), edge("e2", "p", "q"), edge("e3", "q", "p"), edge("e4", "p", "q")];
+  const crests = (first, second) => {
+    // The same two towers, named so that one sorts first and then the other.
+    const name = { p: first, q: second };
+    const model = { dir: "LR", nodes: [leaf(first), leaf(second)], edges: edges.map((e) => ({ ...e, from: name[e.from], to: name[e.to] })) };
+    const w = cityWorldFrom(model, sheet({ [first]: [100, 100, 96, 42], [second]: [500, 100, 96, 42] }, 600, 200), "state", "LR");
+    return w.beams.map((b) => b.points[16]);
+  };
+  const runs = [crests("p", "q"), crests("q", "p")];
+  for (const c of runs) {
+    assert.equal(c.length, 5);
+    // The towers stand along x, so the arcs fan out along z, each 0.55 from the next, in the order of the edges.
+    const zs = c.map((p) => p[2]), step = zs[1] - zs[0];
+    assert.ok(near(Math.abs(step), 0.55), String(zs));
+    for (let i = 1; i < 5; i++) assert.ok(near(zs[i] - zs[i - 1], step));
+    assert.ok(near(zs[2], 0));
+    for (const p of c) assert.ok(near(p[1], c[0][1]));
+  }
+  // Whichever end sorts first, the fan is in the order of the edges, from one side to the other.
+  assert.ok(near(Math.abs(runs[0][0][2] - runs[0][4][2]), 2.2) && near(Math.abs(runs[1][0][2] - runs[1][4][2]), 2.2));
+});
+
+test("without a layout, nine parts stand in three rows of three, 5 units apart", () => {
+  const model = { dir: "LR", nodes: Array.from({ length: 9 }, (_, i) => leaf("n" + i)), edges: [edge("r0", "n0", "n8")] };
+  const w = cityWorldFrom(model, null, "component", "LR");
+  const xs = [...new Set(w.towers.map((t) => +t.x.toFixed(6)))].sort((a, b) => a - b), zs = [...new Set(w.towers.map((t) => +t.z.toFixed(6)))].sort((a, b) => a - b);
+  assert.deepEqual(xs.map((x) => x - xs[0]), [0, 5, 10]);
+  assert.deepEqual(zs.map((z) => z - zs[0]), [0, 5, 10]);
+  for (const z of zs) assert.equal(w.towers.filter((t) => near(t.z, z, 1e-6)).length, 3);
+  assert.equal(w.beams.length, 1);
+  // A cluster stands as a plate round its parts.
+  const grouped = { dir: "LR", nodes: [{ key: "g", cluster: true, label: "G", info: {} }, leaf("a", { parent: "g" }), leaf("b", { parent: "g" }), leaf("c")], edges: [] };
+  const g = cityWorldFrom(grouped, null, "component", "LR"), plate = g.plates[0];
+  assert.equal(g.plates.length, 1);
+  for (const t of g.towers.filter((t) => t.plate === "g")) assert.ok(t.x - t.side / 2 >= plate.x0 && t.x + t.side / 2 <= plate.x1 && t.z - t.side / 2 >= plate.z0 && t.z + t.side / 2 <= plate.z1);
+});
+
+test("every drawn kind stands, with an outside part, a start point, a final state, an alternative outcome and a part with views of its own", () => {
+  const box = (nodes) => sheet(Object.fromEntries(nodes.map((n, i) => [n.key, n.cluster ? [400, 300, 760, 560] : [100 + (i % 4) * 180, 150 + Math.floor(i / 4) * 140, 120, 50]])), 900, 700);
+  const KINDS = {
+    component: { dir: "LR", nodes: [{ key: "g", cluster: true, label: "Group", info: {} }, leaf("a", { parent: "g", nav: "#worker" }), leaf("b", { parent: "g" }), leaf("x", { ext: true })], edges: [edge("r0", "a", "b"), edge("r1", "b", "x")] },
+    deployment: { dir: "LR", nodes: [{ key: "h", cluster: true, label: "Host", info: {} }, leaf("art:p", { parent: "h" }), leaf("c"), leaf("svc", { ext: true })], edges: [edge("r0", "c", "h", { label: "calls" }), edge("dep:q", "art:p", "svc", { cls: "dotted" })] },
+    class: { dir: "TB", nodes: [leaf("A"), leaf("B", { nav: "#engine" }), leaf("C")], edges: [edge("r0", "A", "B", { reversed: true }), edge("r1", "C", "A", { cls: "dashed" })] },
+    state: { dir: "LR", nodes: [leaf("idle"), leaf("done", { terminal: true }), { key: "__start", w: 16, h: 16 }], edges: [edge("start", "__start", "idle"), edge("t0", "idle", "done", { label: "go" }), edge("t1", "idle", "idle", { self: true })] },
+    "use-case": { dir: "TB", nodes: [leaf("u:s1", { glyph: "person" }), leaf("u:s2", { glyph: "server" }), leaf("u:alt0", { glyph: "branch", ext: true })], edges: [edge("n0", "u:s1", "u:s2"), edge("n1", "u:s1", "u:alt0", { cls: "dashed", label: "if not" })] },
+    "user-journey": { dir: "LR", nodes: [leaf("j:a", { glyph: "person" }), leaf("j:b", { glyph: "person" })], edges: [edge("n0", "j:a", "j:b")] },
+  };
+  const finite = (x) => (Array.isArray(x) ? x.every(finite) : x && typeof x === "object" ? Object.values(x).every(finite) : typeof x !== "number" || Number.isFinite(x));
+  for (const [kind, model] of Object.entries(KINDS)) {
+    for (const L of [box(model.nodes), null]) {
+      const w = cityWorldFrom(model, L, kind, model.dir);
+      assert.ok(finite([w.plates, w.towers, w.beacons, w.markers, w.beams.map((b) => b.points), w.bounds]), kind);
+      assert.equal(w.beams.length, model.edges.length, kind);
+      assert.equal(w.beacons.length > 0, kind === "component" || kind === "deployment", kind);
+      for (const t of w.towers) assert.equal(t.name, model.nodes.find((n) => n.key === t.key).label, kind);
+      assert.equal(w.kind, kind);
+      assert.equal(w.dir, model.dir);
+    }
+  }
+  const state = cityWorldFrom(KINDS.state, box(KINDS.state.nodes), "state", "LR");
+  assert.deepEqual([...state.markers.map((m) => m.key)], ["__start"]);
+  assert.equal(state.towers.some((t) => t.key === "__start"), false);
+  assert.equal(state.towers.find((t) => t.key === "done").final, true);
+  assert.equal(state.towers.find((t) => t.key === "idle").final, false);
+  assert.equal(state.beams.find((b) => b.key === "t0").label, "go");
+  const uc = cityWorldFrom(KINDS["use-case"], box(KINDS["use-case"].nodes), "use-case", "TB"), alt = uc.towers.find((t) => t.key === "u:alt0");
+  assert.equal(alt.alt, true);
+  assert.equal(alt.h, 2.2);
+  assert.equal(uc.beams.find((b) => b.key === "n1").dashed, true);
+  const comp = cityWorldFrom(KINDS.component, box(KINDS.component.nodes), "component", "LR");
+  assert.equal(comp.parts.get("a").nav, "#worker");
+  assert.deepEqual([...comp.beacons.map((b) => b.key)], ["x"]);
+  // A class diagram's outside types are towers: ext means something else there.
+  assert.equal(cityWorldFrom({ ...KINDS.class, nodes: [...KINDS.class.nodes, leaf("Ext", { ext: true })] }, null, "class", "TB").beacons.length, 0);
+});
