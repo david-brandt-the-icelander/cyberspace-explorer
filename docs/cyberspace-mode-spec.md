@@ -146,11 +146,11 @@ const space = {
 
 Every scene is built in two steps: a pure function turns loaded `.dev` data into a **world** (plain objects in world units, no three.js), and a builder turns the world into meshes. Keep the first step free of three.js so it can be unit-tested in Node and reused for the map and the label layer.
 
-**Units and axes.** World units are metres in spirit. `y` is up. The flat sheet lies on the ground: sheet `x` → world `x`, sheet `y` → world `z`, flipped so the top of the sheet is furthest from the default camera. One world unit = 40 sheet px (`S = 1/40`).
+**Units and axes.** World units are metres in spirit. `y` is up. The flat sheet lies on the ground: sheet `x` → world `x`, sheet `y` → world `z`, flipped so the top of the sheet is furthest from the default camera. One world unit = 40 sheet px (`SHEET = 1/40`; the page already has a module-level `S`, the icons' fill attributes).
 
 ```js
-const S = 1 / 40;
-const toWorld = (L, b) => ({ x: (b.x - L.w / 2) * S, z: (L.h / 2 - b.y) * S });  // centred on the origin
+const SHEET = 1 / 40;
+const toWorld = (L, b) => ({ x: (b.x - L.w / 2) * SHEET, z: (L.h / 2 - b.y) * SHEET });  // centred on the origin
 ```
 
 **One frame for every number in this spec.** All positions here (and on the design canvas) use a left-handed frame: the default camera looks along +z with +x to its right. three.js is right-handed, so convert in exactly one place and nowhere else:
@@ -186,9 +186,9 @@ Every geometry builder and camera call goes through `V`; world objects keep spec
    `getComputedStyle` gives both in pixels while `#view` is hidden: checked in Chrome at 1440 and 1100 px wide, where `flatRoom()` is 1062 and 742, the widths the drawing's `.canvas` measures. For `use-case` and `user-journey`, build one city per entity, as `drawKind()` draws one canvas per entity; the address picks which (section *Routing*).
 2. If `dagre` is null there is no layout to ask `sheetOf` for: take `MODELS[doc.kind](doc, folder)` alone, with `dir` left to right, and use the fallback grid: leaf nodes in rows of `ceil(sqrt(n))`, 5 units apart, clusters as plates round their children. Say so in the status line.
 3. Classify every node of `model.nodes`:
-   - **plate** — `n.cluster` is true. Footprint = its `L.box` × `S`, shrunk 0.2 on every side. Plate thickness `PH = 0.5`. A plate nested in a plate sits on its parent's top: `base = depth × PH`.
+   - **plate** — `n.cluster` is true. Footprint = its `L.box` × `SHEET`, shrunk 0.2 on every side. Plate thickness `PH = 0.5`. A plate nested in a plate sits on its parent's top: `base = depth × PH`.
    - **beacon** — `n.ext` is true, it is not a cluster, and the view is a component or deployment diagram (component `external`, deployment nodes with a `condition` or of kind `external-service`). `plateNode` and `clusterNode` return `ext` for this (*Architecture*). Position = its box centre; hover height `y = 6.5 + 1.5 × (index among beacons mod 3)`.
-   - **tower** — everything else, with the exceptions below. Footprint is square, side `TW = min(2.2, 0.8 × distance to the nearest other tower centre)`, centred on its box. It stands on the top of its innermost plate (or the ground).
+   - **tower** — everything else, with the exceptions below. Footprint is square, side `TW = min(2.2, 0.8 × distance to the nearest other tower centre)`, centred on its box. The distance is measured along the ground's axes (the larger of |Δx| and |Δz|): two squares of side 0.8 × their Euclidean distance overlap when they stand diagonally, and along the axes they never do. For towers in a row the two are the same. It stands on the top of its innermost plate (or the ground).
    - **marker** — a node with no `info`: a state machine's start point (`__start`). A disc of radius 0.5 on the ground (or plate) in `--ink` at 60%; it can't be picked or selected, and its beam starts at its centre.
    - In the other kinds `ext` means something else: a use case's alternative outcome is `ext` only to get its dashed outline. There it draws a **short tower**: height 2.2 whatever its degree, its edges dashed (`LineDashedMaterial`, dash 0.12, gap 0.20).
    - A final state (a `state` node with `terminal`) has a solid top (top face alpha 0.75 in every state) and two rings on the ground round its base, of radius 0.8 × its side and that + 0.45, in the kind colour at 90%, as Flat draws it a second ring. A second band under its top, the first default, can't be told from the floor bands at city distance.
@@ -200,10 +200,10 @@ Every geometry builder and camera call goes through `V`; world objects keep spec
 5. Beams, one per `model.edges` entry, keyed by `e.key` so tooltips and selection match the flat page:
    - anchors: a tower's top centre; a beacon's centre; a plate's centre at its top + 0.2.
    - path: quadratic Bézier, `A` → `B`, control point at the midpoint raised to `max(A.y, B.y) + 1.5 + 0.22 × groundDistance(A, B)`; 32 segments.
-   - a self-loop (`e.self`): a vertical circle of radius 1.2 standing on the tower top.
+   - a self-loop (`e.self`): a vertical circle of radius 1.2 standing on the tower top, in the x–y plane. A second and later loop on the same part (retro-games' chess game has three on `inPlay`) is turned about the vertical by 180° / k each, so the k loops can be told apart.
    - beams that join the same two parts, either way round, would lie on one arc: `opened` and `choosing` in this repository's page state machine have five. They fan out: beam `i` of the `k` between two parts moves its control point sideways by `1.1 × (i − (k − 1) / 2)` units, along the ground normal of the line from the part whose key sorts first to the other, so their crests stand 0.55 apart.
    - colour: the drawn kind's colour; amber (deployment colour) when either end is a beacon.
-6. Bounds = the box round every plate, tower and beacon; used by fit and the map.
+6. Bounds = the box round every plate, tower, beacon and start point; used by fit and the map. Beams' crests are left out: an arc may rise above the fitted frame, and that is better than every city standing smaller.
 
 Part sizes come from text widths (`tw()`), so a web font that arrives late moves `layout()`'s positions, and `load()` then routes again (`loadingdone`). Drop the memoised worlds at that point and build the scene once more. The direction `sheetOf` chooses depends on the window, as it does in Flat, which chooses when it draws: keep a world with the direction it was built for, and build it again when `sheetOf` would now choose the other.
 
@@ -282,7 +282,7 @@ The two sky ramps and the major grid colour are new: add them as tokens `--space
 | Towers | One `InstancedMesh` of unit boxes | Glass shader, per-instance colour and state (table below). |
 | Tower edges and floor bands | One merged `LineSegments`: the 12 box edges plus a horizontal ring every 1.0 unit up each tower | `LineBasicMaterial({ vertexColors: true, transparent: true })`; colours and alpha rewritten in the attribute when selection changes. Bands at 35% of the edge alpha. |
 | Beacons | `OctahedronGeometry(1.25)`, scaled 1.04 in y | Upper faces 34%, lower 16%, edges 90%, all `--k-deployment`. A dashed tether to the ground (dash 0.12, gap 0.20, 54%) and two ground rings, r 1.6 (fill 6%, stroke 60%) and r 2.6 (stroke 25%). |
-| Beams | `TubeGeometry(QuadraticBezierCurve3, 32, r, 6)` | Quiet: r 0.035, 42% alpha. Lit: a core r 0.06 in `--hot` plus a glow tube r 0.25 in the kind colour, 35% alpha, `AdditiveBlending` (normal blending in light mode). End dot: sphere r 0.12. |
+| Beams | `TubeGeometry(QuadraticBezierCurve3, 32, r, 6)` | Quiet: r 0.035, 42% alpha. Lit: a core r 0.06 in `--hot` plus a glow tube r 0.25 in the kind colour, 35% alpha, `AdditiveBlending` (normal blending in light mode). End dot: sphere r 0.12, where the beam arrives (none on a self-loop). A dashed beam (a use case's *otherwise*, a class's *implements* and *uses*, a deployment's *routes* and *runs on*) keeps every other of its 32 segments. |
 | Selection rings | Two rings on the plate top round the selected tower | r 2.0 filled `--hot` 8%, stroked 80%; r 3.0 dashed (4/6) kind colour 50%. |
 | Final-state rings | Two rings on the ground round a final state's base | r 0.8 × its side and that + 0.45, kind colour 90%. |
 | Skyline buildings | One `InstancedMesh` of unit boxes for every floor plate, one for the shells, and one merged `LineSegments` for their edges and the ground lines | Plate: 0.05 thick, its kind's colour, top 0.18, edges 80%. Shell: `--k-component`, sides 0.05, edges 25%. The address folder's: sides 0.16, edges `--hot` 90%, and the selection rings at r 4.3 and r 5.2. Under the pointer: sides 0.12, edges `--hot`. Ground lines: dashed 0.12/0.20, `--k-component` 55%. |
@@ -310,7 +310,7 @@ Labels are HTML in `#space-labels`, never textures: they stay sharp, use Barlow,
 - A label that would run under a panel moves sideways, by at most half its width, to clear the panel by 4 px. One that still would is hidden.
 - Hide labels behind the camera, off the canvas, or further than the cut-off: 45 units in the street; in the city 90 units, or the far side of the city as fitted when that is further (the fit distance plus half the diagonal of the bounds on the ground). A fixed 90 hides the far labels of a larger city in its opening view, the selected part's among them: 3 of the 159 drawn views of this repository and retro-games reach past it, this repository's component diagram for one. Fade them over the last 10 units. The selected part's label and its neighbours' stay whatever the distance.
 - Beam labels: in a state machine or a deployment, a lit beam shows its edge's `label` (the trigger, the link's kind) at its crest, in a pill 20 px tall, radius 10, `500 12px` Semi Condensed, `--ink` on `--paper` at 86%, with a 1 px dashed border in the kind colour at 70%. They are placed with the part labels and are never hidden. A use case's conditions are sentences: they stay in the inspector and the beam's tooltip.
-- Plate names: uppercase, `600 13px` Semi Condensed, letter-spacing 0.1em, kind colour, then `· N parts` in `--ink3`; placed 8 px under the plate's front-left corner.
+- Plate names: uppercase, `600 13px` Semi Condensed, letter-spacing 0.1em, kind colour, then `· N parts` in `--ink3`; placed 8 px under the plate's front-left corner: the left end of the edge lowest on the screen. Plate names are placed before the part labels, which keep clear of them; a name that would cover another steps down 6 px at a time (at most 5 times, else it is hidden) and moves off a panel as a label does.
 - Font loading: wait for `document.fonts` as `load()` already does; re-measure labels on `loadingdone`.
 
 ## Scene 1: the folder tower
@@ -359,7 +359,7 @@ The city is one drawn view standing on the ground: what the flat page draws as p
 
 **What the artboard shows.** The component diagram of 2026-11-13: 4 plates (Landing page is one, standing on Screen), 23 towers, 5 beacons and 29 beams. Plates come only from clusters in the model. A part no cluster contains stands on the bare ground where dagre put it, as Router and Worker do, and a nested plate stands on its parent's top (section *Scene model*). The first artboard 2 was drawn by hand, with an older diagram and an invented fourth plate, *Loose parts*; it was drawn again from the repository on 2026-11-14.
 
-**Camera.** An orbit camera aimed at the centre of the world's bounds, elevation 33.6°, azimuth −40° (from the front left), vertical field of view 54.1°. Fit: choose the distance at which the bounds' eight corners all project inside the *free rectangle* — the canvas minus the layers panel, the inspector (when open) and the bottom bars — with 24 px to spare; then shift the projection centre to the free rectangle's centre with `setViewOffset`. Refit when the inspector opens or closes, animated over 300 ms (instant with reduced motion).
+**Camera.** An orbit camera aimed at the centre of the world's bounds, elevation 33.6°, azimuth −40° (from the front left), vertical field of view 54.1°. Fit: choose the distance at which the bounds' eight corners all project inside the *free rectangle* — the canvas minus the layers panel, the inspector (when open) and the bottom bars — with 24 px to spare; then shift the projection centre to the free rectangle's centre with `setViewOffset(W, H, W/2 − cx, H/2 − cy, W, H)`, where (cx, cy) is that centre: three.js moves the window right by the offset, so the projection centre lands at W/2 − offset. Aimed at the bounds' centre, the box projects lopsided (its near bottom corners reach the margin while the top of the frame stays empty: 160 px of 730 for this repository's component city), so the fit takes the least distance at which the eight corners *can* stand inside the margins, and moves the target across the view, in the camera's right and up directions, to stand them in the middle. The camera still looks from azimuth −40° and elevation 33.6°; only the point it turns about is off the centre, within the limits below. The free rectangle is worked out from the panels showing: each takes the side of the room that costs least to give up, so the Layers panel and the inspector join it by being visible, and the status line over the canvas's top counts as a bar. Refit when the inspector opens or closes, animated over 300 ms (instant with reduced motion).
 
 The first design looked from the front, −4.4°, at a city placed by hand. In a real layout the parts of one rank stand in a line, and from the front they hide each other. Over the 130 drawn views of this repository and retro-games with four parts or more, towers cover each other least from about −40°: 0.079 of their area on screen against 0.140 from the front in left-to-right layouts, 0.068 against 0.111 in top-to-bottom ones. Labels are pushed 2 px further on average.
 
@@ -387,7 +387,7 @@ Written and knowledge kinds are listed with their counts but disabled, with the 
 | Layers | left 20, top 98, 232 wide | `LAYERS`; `Folder . · 24 views`; the rows *What stands in the city* gives, 32 px each: tick box (accent = kind colour) or chevron (the `drill` icon, turned down when open), 10 px swatch, kind name, count in monospace. A heading's rows are indented 26 px, in 13 px type, with a 14 px tick box or radio button and the view's title, wrapped. |
 | Inspector | right 20, top 98, 340 wide | The existing `#inspector`, restyled as a floating card (radius 10, `--sheet` at 90%, 1 px `--rule`, shadow 0 12 32 rgba(0,0,0,.35)). Kind chip, title `700 34px/38px` Condensed in `--hot`, the extra line, the model body, the two actions. Scrolls inside itself past `100vh − 120 px`. |
 | Camera controls | left 20, bottom 20 | Orbit (pressed), Pan, Walk; divider; Zoom in, Zoom out, Fit everything. 40 px icon buttons with `aria-label` and `aria-pressed`. |
-| Legend | left 340, bottom 20, 52 tall | Four items: tower `Part · taller with more beams`; plate `Plate · what contains them`; beacon `Beacon · outside the browser`; beam `Beam · depends on`. Words per kind come from `LEGENDS` where they exist (a deployment city says *connects to*). A state machine's are disc `Start`; tower `State · taller with more transitions`; `Final state · ringed twice, solid top`; beam `Transition · leads to`. A use case's are tower `Step · taller with more beams`; dashed tower `Alternative outcome`; beam `Next step`; dashed beam `Otherwise`. A city with a part that opens a folder adds the badge, `Has views of its own`. |
+| Legend | left 340, bottom 20, 52 tall | Four items: tower `Part · taller with more beams`; plate `Plate · what contains them`; beacon `Beacon · outside the browser`; beam `Beam · depends on`. Words per kind come from `LEGENDS` where they exist (a deployment city says *connects to*, a journey *next stage*); a class diagram's are tower `Type · taller with more beams` and beam `Beam · extends, implements or uses`, a journey's tower `Stage · taller with more beams`. The plate and beacon items show only where the city has plates or beacons. A state machine's are disc `Start`; tower `State · taller with more transitions`; `Final state · ringed twice, solid top`; beam `Transition · leads to`. A use case's are tower `Step · taller with more beams`; dashed tower `Alternative outcome`; beam `Next step`; dashed beam `Otherwise`. A city with a part that opens a folder adds the badge, `Has views of its own`. |
 
 Status line: `Read <n> views in <m> folders. Flying the <kind name>: drag to orbit, scroll to fly, click a tower to read it.` Right side: `Esc goes up a level` (the switch in the bar returns to Flat; Esc does not).
 
@@ -507,7 +507,7 @@ The scene changes:
 3. **Street → city.** Fly back to the orbit pose the reader left, or the fit pose if there was none.
 4. **Tower ↔ skyline.** Rising, fly up and back from the tower's pose for 600 ms while the tower fades out and the skyline in, and land on the skyline's pose aimed at that folder's building. Entering a building is the reverse.
 
-**Rendering on demand.** Request a frame only when something changed: input, a flight, a fade, a label being placed, a theme change, a resize. When nothing moves, no frames are drawn. Stop completely while `#space` is hidden or `document.hidden` is true. Resize with a `ResizeObserver` on `#space`, then refit.
+**Rendering on demand.** Request a frame only when something changed: input, a flight, a fade, a label being placed, a theme change, a resize. When nothing moves, no frames are drawn. Stop completely while `#space` is hidden or `document.hidden` is true. Resize with a `ResizeObserver` on `#space`, then refit: a camera the reader hasn't moved is fitted again; one they have moved keeps its pose, with the projection centred on the new free rectangle.
 
 ## HUD and overlays
 
@@ -526,8 +526,8 @@ Every panel is ordinary HTML over the canvas, built from the page's own CSS vari
 | `orbit` | an ellipse 18 × 8 round a 5 px dot, with a short tick on its right end |
 | `pan` | a cross of four arrows |
 | `walk` | a walking figure |
-| `zoom-in`, `zoom-out` | plus and minus |
-| `fit` | four corner brackets |
+| `plus`, `minus` (Zoom in, Zoom out) | plus and minus: Flat's zoom buttons' icons, already in `ICONS` |
+| `fit` (Fit everything) | four corner brackets: Flat's, already in `ICONS` |
 | `beacon` | a diamond on a dotted tether |
 | `tower` | a glass tower with two floor bands |
 | `space` | the mode itself: three stacked floors in perspective |
@@ -594,6 +594,8 @@ Cyberspace must never be the reason a repository can't be read (quality `fallbac
 | No WebGL | `canvas.getContext("webgl2")` null, tested once at start-up on a canvas never added to the page, whose context is then released (`WEBGL_lose_context`), so a reader who stays in Flat holds none. Only WebGL 2 counts: three.js has needed it since r163. A `WebGLRenderer` that can't be made later is treated the same way. | The mode switch is hidden. A `~space` address shows Flat, and the status line says `Cyberspace needs WebGL, which this browser has turned off. Showing the flat view.` |
 | three.js fails to load | `loadThree()` resolves `null` (network, blocked CDN) | Flat, with `Cyberspace couldn't load its 3D library. Showing the flat view.` The switch stays, so a later try can work. |
 | dagre fails to load | `dagre === null` (already detected) | The city uses the fallback grid (section *Scene model*); the status line adds `The parts are set in a grid because the drawing library couldn't load.` |
+| dagre can't lay a view out | `sheetOf` throws (dagre 3.1.3 throws *Not possible to find intersection inside of the rectangle* on some dense compound graphs with many edges between clusters; Flat then shows tables) | The city uses the fallback grid; the status line adds `The parts are set in a grid because the drawing library couldn't lay this view out.` |
+| A folder with no drawn views, in the city | `#<folder>\|~space:city` finds no drawn view | The bare ground (the tower scene until step 4), and `<folder> has no drawn views, so it has no city. Its views are written; read them in Flat.` |
 | WebGL context lost | `webglcontextlost` on the canvas | Stop the loop, show `The 3D view stopped. Restore it` with a button that rebuilds the stage on `webglcontextrestored` or on press. |
 | A view the models can't build | `MODELS[kind]` throws | That floor stays in the tower; entering it opens the inspector with the error and a **Read it in Flat** link, as `drawDiagram` does for a drawing. |
 | A folder with no drawn views | `towerWorld` finds none | The tower has no drawer and no city; the pulled-floor card says `Nothing here is drawn. Its views are written; read them in Flat.` |
@@ -611,7 +613,7 @@ Cyberspace must never be the reason a repository can't be read (quality `fallbac
 | Extra requests on page load in Flat | none | three.js is `import()`ed on first entry to Cyberspace. The Cyberspace code itself is inline (decision `one-file`), so `index.html` grows by roughly 3,000–3,500 lines, about 35 KB compressed. |
 | GPU memory when leaving Cyberspace | released | Dispose every geometry, material and texture; keep the renderer for 60 s, then `forceContextLoss()`. |
 
-**Measuring.** With `?spacestats` in the page's address, a corner readout shows the frame time, the draw calls (`renderer.info.render.calls`) and the world's counts of plates, towers, beacons and beams. The budgets and the acceptance numbers are checked with it. On an M1 Pro, whose GPU is about twice an M1 Air's, the frame-time targets are half the ones above.
+**Measuring.** With `?spacestats` in the page's address, a corner readout shows the frame time (from the start of a frame to the GPU finishing it: the readout calls `gl.finish()`, so only with `?spacestats`; and the interval between frames while they come one after another), the draw calls (`renderer.info.render.calls`) and the world's counts of plates, towers, beacons and beams. The budgets and the acceptance numbers are checked with it. On an M1 Pro, whose GPU is about twice an M1 Air's, the frame-time targets are half the ones above.
 
 ### Accessibility
 

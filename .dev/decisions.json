@@ -243,7 +243,7 @@
           "entityId": "reduced-motion"
         }
       ],
-      "details": "Cyberspace has no motion yet: its camera stands still until the camera rig is built (plan cyberspace-mode, step city).",
+      "details": "The camera rig is built (plan cyberspace-mode, step city): the camera moves only while the reader drags, scrolls, pinches or presses a key, and stands still otherwise. Flights between scenes come with the folder tower and the street.",
       "evidenceStatus": "proposed"
     },
     {
@@ -391,7 +391,7 @@
           "entityId": "works-without-webgl"
         }
       ],
-      "details": "Built so far: the address, the switch (hidden until the launch), the fallbacks, and a scene of sky and ground grid. The city, laid out on the flat layout, comes with the plan's next step.",
+      "details": "Built so far: the address, the switch (hidden until the launch), the fallbacks, and the city: a drawn view standing on the flat layout's ground plan, with its labels, legend and camera controls, which can be turned, panned and zoomed but not yet selected in. The folder tower, the street and the skyline come with the plan's later steps.",
       "evidenceStatus": "proposed",
       "sources": [
         {
@@ -413,6 +413,14 @@
         {
           "path": "index.html",
           "symbol": "spaceStage"
+        },
+        {
+          "path": "index.html",
+          "symbol": "cityWorldFrom"
+        },
+        {
+          "path": "index.html",
+          "symbol": "buildCity"
         }
       ]
     },

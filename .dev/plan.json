@@ -31,7 +31,7 @@
         {
           "id": "city",
           "title": "City, still: cityWorldFrom and buildCity, the glass shader, edges, bands, beams, beacons, plate names, labels, fitting, orbit, pan and zoom, and the ?spacestats readout",
-          "status": "todo"
+          "status": "done"
         },
         {
           "id": "selection",

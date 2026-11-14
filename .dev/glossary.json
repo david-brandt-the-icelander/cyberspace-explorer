@@ -59,7 +59,10 @@
     {
       "id": "plate",
       "title": "Plate",
-      "summary": "A part drawn as a rounded box with its icon on a tinted square, its name and a line under it."
+      "summary": "A part drawn as a rounded box with its icon on a tinted square, its name and a line under it.",
+      "notToBeConfusedWith": [
+        "Plate, in a city"
+      ]
     },
     {
       "id": "cluster",
@@ -116,6 +119,37 @@
       "notToBeConfusedWith": [
         "Cyberspace explorer"
       ]
+    },
+    {
+      "id": "city",
+      "title": "City",
+      "summary": "One drawn view in Cyberspace, standing on the ground where the flat drawing lays it out: groups are plates, parts are towers, outside services are beacons and the lines between parts are beams."
+    },
+    {
+      "id": "city-plate",
+      "title": "Plate, in a city",
+      "summary": "A group of parts in a city (a cluster in the flat drawing), raised as a slab of glass that its parts stand on; a group inside a group stands on its top.",
+      "notToBeConfusedWith": [
+        "Plate"
+      ]
+    },
+    {
+      "id": "tower",
+      "title": "Tower",
+      "summary": "A part in a city, as a glass tower on its plate: the more beams it has, the taller it stands.",
+      "notToBeConfusedWith": [
+        "Folder tower"
+      ]
+    },
+    {
+      "id": "beacon",
+      "title": "Beacon",
+      "summary": "An outside service in a city of a component or deployment diagram: an amber diamond floating over the ground on a dotted tether."
+    },
+    {
+      "id": "beam",
+      "title": "Beam",
+      "summary": "A line between two parts in a city, as an arc of light from one to the other; a part's own transition is a ring on its top."
     },
     {
       "id": "token-scope",

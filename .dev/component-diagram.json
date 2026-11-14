@@ -51,6 +51,34 @@
     {
       "path": "index.html",
       "symbol": "loadThree"
+    },
+    {
+      "path": "index.html",
+      "symbol": "sheetOf"
+    },
+    {
+      "path": "index.html",
+      "symbol": "cityWorldFrom"
+    },
+    {
+      "path": "index.html",
+      "symbol": "cityWorld"
+    },
+    {
+      "path": "index.html",
+      "symbol": "buildCity"
+    },
+    {
+      "path": "index.html",
+      "symbol": "spaceRig"
+    },
+    {
+      "path": "index.html",
+      "symbol": "spaceLabels"
+    },
+    {
+      "path": "index.html",
+      "symbol": "spaceHud"
     }
   ],
   "components": [
@@ -201,13 +229,37 @@
     {
       "id": "cyberspace",
       "name": "Cyberspace",
-      "responsibility": "The second way in: the repository in 3D, over a sky and on a ground grid, in place of the folder column and view. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
+      "responsibility": "The second way in: the repository in 3D, over a sky and on a ground grid, in place of the folder column and view. A drawn view stands as a city of glass towers on the flat layout's ground plan. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
       "folder": "."
     },
     {
       "id": "stage",
       "name": "Stage",
-      "responsibility": "The WebGL renderer, scene and camera: draws a frame only when something changed and none while hidden, follows the window's size and the system's light or dark colours, lets go of the scene on leaving and of the context a minute later, and offers Restore it when the context is lost.",
+      "responsibility": "The WebGL renderer, scene and camera: stands a city's meshes (instanced glass plates and towers, merged lines, beacons and beams, a dozen draw calls) on the ground, draws a frame only when something changed and none while hidden, follows the window's size and the system's light or dark colours, lets go of the scene on leaving and of the context a minute later, and offers Restore it when the context is lost.",
+      "folder": "."
+    },
+    {
+      "id": "world-builders",
+      "name": "World builders",
+      "responsibility": "Turn a drawn view into a city in world units, from the layout Flat draws it with (or a grid without one): groups as plates, parts as towers as tall as their beams make them, a component's or deployment's outside services as beacons, start points as discs and every edge as an arc, those between the same two parts fanned out. Pure functions, tested in Node; built once per view and direction.",
+      "folder": "."
+    },
+    {
+      "id": "camera-rig",
+      "name": "Camera rig",
+      "responsibility": "The camera in orbit and pan modes: fits the city into the room the panels leave, with the projection centred on it, and turns, pans and flies with a drag, the wheel, a pinch, the arrow keys, + and −, and F, within limits.",
+      "folder": "."
+    },
+    {
+      "id": "labels",
+      "name": "Labels",
+      "responsibility": "HTML labels over the canvas: a pill for each part, cut at 150 px, with Flat's badge or the step's glyph, and each plate's name with its number of parts; placed nearest first, pushed clear of each other and off the panels, with leaders, and faded out with distance.",
+      "folder": "."
+    },
+    {
+      "id": "hud",
+      "name": "HUD",
+      "responsibility": "The panels over the city: the camera controls (orbit, pan, zoom in and out, fit everything) and the legend, worded for the kind of view.",
       "folder": "."
     },
     {
@@ -382,6 +434,30 @@
       "description": "Part of it."
     },
     {
+      "from": "cyberspace",
+      "to": "world-builders",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "cyberspace",
+      "to": "camera-rig",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "cyberspace",
+      "to": "labels",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "cyberspace",
+      "to": "hud",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
       "from": "landing",
       "to": "loader",
       "kind": "depends-on",
@@ -500,6 +576,48 @@
       "to": "three",
       "kind": "depends-on",
       "description": "Renders the scene with its WebGLRenderer, and the ground grid as a ShaderMaterial."
+    },
+    {
+      "from": "world-builders",
+      "to": "models",
+      "kind": "depends-on",
+      "description": "Takes each part, group and edge of the view from its model."
+    },
+    {
+      "from": "world-builders",
+      "to": "layout",
+      "kind": "depends-on",
+      "description": "Stands every part where the flat layout puts it, turned top to bottom where Flat turns it (sheetOf)."
+    },
+    {
+      "from": "stage",
+      "to": "world-builders",
+      "kind": "depends-on",
+      "description": "Draws the worlds they build as meshes."
+    },
+    {
+      "from": "camera-rig",
+      "to": "stage",
+      "kind": "depends-on",
+      "description": "Moves its camera and asks it for a frame."
+    },
+    {
+      "from": "labels",
+      "to": "fonts",
+      "kind": "depends-on",
+      "description": "Measures its labels in the Barlow typefaces, again when a late one arrives."
+    },
+    {
+      "from": "hud",
+      "to": "icons",
+      "kind": "depends-on",
+      "description": "Draws its buttons and legend with the page's icons."
+    },
+    {
+      "from": "hud",
+      "to": "camera-rig",
+      "kind": "depends-on",
+      "description": "Its buttons turn, zoom and fit the camera."
     },
     {
       "from": "cyberspace",
