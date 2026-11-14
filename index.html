@@ -405,6 +405,40 @@
   #space-legend span { display: inline-flex; align-items: center; gap: 6px; }
   #space-legend svg { width: 18px; height: 18px; flex: none; color: var(--k); }
   #space-legend .amber svg { color: var(--k-deployment); }
+  /* Selection: the selected label and its neighbours', a lit beam's label, and the pointer over what can be selected. */
+  #space-gl.pick { cursor: pointer; }
+  .sl.near { color: var(--hot); border-color: var(--k); }
+  .sl.beacon.near { border-color: var(--k-deployment); }
+  .sl.sel { background: var(--hot); border-color: var(--hot); color: var(--paper); font-weight: 600; }
+  .spn.sel span:first-child { color: var(--hot); }
+  .sbl { position: absolute; left: 0; top: 0; height: 20px; padding: 0 8px; display: flex; align-items: center; white-space: nowrap; border: 1px dashed color-mix(in srgb, var(--k) 70%, transparent); border-radius: 10px; background: color-mix(in srgb, var(--paper) 86%, transparent); font: 500 12px/1 var(--semi); color: var(--ink); will-change: transform; }
+  /* The inspector as a floating card over the scene: the same element and the same body as in Flat. */
+  body.space #inspector { top: 98px; right: 20px; bottom: auto; width: 340px; max-height: calc(100vh - 180px); border-radius: 10px; background: color-mix(in srgb, var(--sheet) 90%, transparent); box-shadow: 0 12px 32px rgb(0 0 0 / .12); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  @media (prefers-color-scheme: dark) { body.space #inspector { box-shadow: 0 12px 32px rgb(0 0 0 / .35); } }
+  body.space #inspector .ihead { padding: 18px 18px 0; border-bottom: 0; }
+  body.space #inspector .ihead .tile { display: none; }
+  body.space #inspector .ihead > div { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
+  body.space #inspector .isub { order: -1; margin: 0 0 6px; padding: 2px 8px; border-radius: 4px; background: color-mix(in srgb, var(--k) 16%, transparent); font: 600 12px/1.4 var(--semi); letter-spacing: .08em; text-transform: uppercase; }
+  body.space #inspector h3 { font: 700 34px/38px var(--cond); color: var(--hot); }
+  body.space #inspector .iline { font-size: 13px; color: var(--ink3); }
+  body.space #inspector .ibody { padding: 12px 18px 4px; font-size: 14px; line-height: 21px; }
+  body.space #inspector h4 { font: 600 11.5px/1.2 var(--semi); letter-spacing: .08em; text-transform: uppercase; margin: 14px 0 4px; }
+  body.space #inspector li .d { font-size: 13px; }
+  body.space #inspector .ifoot { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 18px 18px; }
+  #inspector .ibtn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 6px; color: var(--ink); text-decoration: none; font: 600 14px/1 var(--semi); white-space: nowrap; }
+  #inspector .ibtn:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+  #inspector .ibtn.primary { background: var(--k); border-color: var(--k); color: var(--paper); }
+  #inspector .ibtn.primary:hover { background: color-mix(in srgb, var(--k) 85%, var(--hot)); }
+  #inspector .ibtn.primary svg { width: 15px; height: 15px; color: var(--paper); }
+  #inspector .ibtn.primary svg use { color: var(--k); }
+  /* The folder a part opens: a miniature of its tower, one band per view in its kind's colour. */
+  #inspector .ifolder { margin-top: 14px; padding: 12px; border: 1px solid color-mix(in srgb, var(--k) 55%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--k) 6%, transparent); }
+  #inspector .ifolder .ifh { display: flex; gap: 12px; align-items: center; }
+  #inspector .ifolder path { fill: color-mix(in srgb, var(--k) 18%, transparent); stroke: color-mix(in srgb, var(--k) 85%, transparent); stroke-width: 1; }
+  #inspector .ifolder .caps { font: 600 11.5px/1.2 var(--semi); letter-spacing: .08em; text-transform: uppercase; color: var(--k); }
+  #inspector .ifolder .ift { margin-top: 2px; font: 700 22px/26px var(--cond); color: var(--hot); }
+  #inspector .ifolder .ifp { font: 400 12px/1.4 var(--mono); color: var(--ink3); }
+  #inspector .ifolder p { margin: 10px 0; font-size: 13px; line-height: 19px; color: var(--ink2); }
   #space-stats { position: absolute; z-index: 3; top: 48px; right: 20px; padding: 6px 10px; border: 1px solid var(--rule); border-radius: 6px; background: color-mix(in srgb, var(--sheet) 90%, transparent); font: 400 12px/1.45 var(--mono); color: var(--ink2); white-space: pre; pointer-events: none; }
   .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 </style>
@@ -464,6 +498,7 @@
     <div id="space-hud"></div>
     <p id="space-help" class="sr">The repository's .dev views in 3D, standing on a ground grid. Everything here can be read in the flat view too.</p>
     <ul id="space-parts" class="sr" aria-label="Parts in this scene"></ul>
+    <p id="space-live" class="sr" aria-live="polite"></p>
   </section>
 </div>
 <aside id="inspector" hidden aria-label="Selected part"></aside>
@@ -1827,17 +1862,25 @@ function select(entry, key, pulse = false) {
   lightPart(entry, key);
   entry.cam.reveal(entry.L.box.get(key));
   if (pulse && g) { g.classList.remove("pulse"); g.getBoundingClientRect(); g.classList.add("pulse"); }
-  const info = n.info, ins = $("inspector");
+  showInfo(n.info, (k) => select(entry, k, true));
+}
+
+/** Writes a part's info into the inspector and opens it, in either mode. `onSel` is what its own part links call with a key:
+ *  select in Flat, spaceSelect in Cyberspace, so the reader stays in the mode they are in. Returns the inspector. */
+function showInfo(info, onSel) {
+  const ins = $("inspector");
   ins.className = `kind-${info.kind}`;
   ins.innerHTML = `<div class="ihead"><span class="tile sm">${ic("kind-" + info.kind)}</span><div><h3>${esc(info.title)}</h3><div class="isub">${esc(info.sub)}</div></div><button class="x" aria-label="Close">${ic("close")}</button></div><div class="ibody">${info.body}</div>`;
   ins.hidden = false;
   ins.querySelector(".x").addEventListener("click", closeInspector);
-  for (const b of ins.querySelectorAll("[data-sel]")) b.addEventListener("click", () => select(entry, b.dataset.sel, true));
+  for (const b of ins.querySelectorAll("[data-sel]")) b.addEventListener("click", () => onSel(b.dataset.sel));
+  return ins;
 }
 
 function closeInspector() {
   $("inspector").hidden = true;
   for (const e of drawn.flat()) if (e?.pinned) { e.svg.querySelector(".sel")?.classList.remove("sel"); e.pinned = null; rest(e); }
+  spaceUnselect();
 }
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !document.body.classList.contains("space") && !$("inspector").hidden) closeInspector(); });
 
@@ -2397,7 +2440,7 @@ function cityWorldFrom(model, L, kind, dir) {
         points.push([a * A.x + b * C.x + c * B.x, a * A.y + b * C.y + c * B.y, a * A.z + b * C.z + c * B.z]);
       }
     }
-    world.beams.push({ key: e.key, from: e.from, to: e.to, points, ext: !!(A.beacon || B.beacon), dashed: /dashed|dotted/.test(e.cls ?? ""), label: e.label ?? null });
+    world.beams.push({ key: e.key, from: e.from, to: e.to, points, ext: !!(A.beacon || B.beacon), dashed: /dashed|dotted/.test(e.cls ?? ""), label: e.label ?? null, tip: e.tip ?? null });
   }
   // Bounds: round every plate, tower, beacon and start point.
   let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity, top = 0;
@@ -2408,6 +2451,31 @@ function cityWorldFrom(model, L, kind, dir) {
   for (const m of world.markers) grow(m.x - 0.5, m.x + 0.5, m.z - 0.5, m.z + 0.5, m.base);
   world.bounds = x0 < x1 ? { x0, x1, z0, z1, top } : { x0: -1, x1: 1, z0: -1, z1: 1, top: 1 };
   return world;
+}
+
+/** What selecting a part of a city lights: the beams that touch it, in the order of the edges, and the parts at their other
+ *  ends, each once. Only a tower, a plate or a beacon can be selected; a start point is no part, so it is never near either. */
+function cityNeighbours(world, key) {
+  const parts = new Set([...world.towers, ...world.beacons, ...world.plates].map((x) => x.key));
+  if (!parts.has(key)) return null;
+  const beams = [], near = [];
+  for (const b of world.beams) {
+    if (b.from !== key && b.to !== key) continue;
+    beams.push(b.key);
+    for (const k of [b.from, b.to]) if (k !== key && parts.has(k) && !near.includes(k)) near.push(k);
+  }
+  return { key, beams, near };
+}
+/** The plate a part stands on, or a plate stands on: the nearest plate above it among its parents. Null on the bare ground. */
+function cityPlateOf(world, key) {
+  const plates = new Map(world.plates.map((p) => [p.key, p]));
+  for (let up = world.parts.get(key)?.parent, n = 0; up != null && n <= world.parts.size; up = world.parts.get(up)?.parent, n++) if (plates.has(up)) return plates.get(up);
+  return null;
+}
+/** A city's address with a part selected (its kind's own focus, a use case's or journey's <entity>:<step> as the models key
+ *  it), or with none: the view's own focus, with #<entity id> for one of a file's use cases or journeys. */
+function cityHash(folder, { kind, file, entity = null }, key, scene = "city") {
+  return spaceHash({ folder, focus: key != null ? `${kind}:${key}` : `view:${file}${entity ? "#" + entity : ""}`, scene });
 }
 /* space-world:end */
 
@@ -2435,8 +2503,8 @@ const webgl = (() => {
   } catch { return false; }
 })();
 
-/** What Cyberspace shows: the place the address names. */
-const space = { on: false, scene: null, folder: null, focus: null };
+/** What Cyberspace shows: the place the address names, and the part selected and the one under the pointer, by key. */
+const space = { on: false, scene: null, folder: null, focus: null, selected: null, hovered: null };
 /** Why Cyberspace couldn't start, for route() to say as it shows Flat instead; and the status line's text around Cyberspace's own. */
 let spaceFailed = null, spaceSaid = "", loaderSaid = "";
 
@@ -2452,7 +2520,7 @@ function loadThree() {
 const SPACE_TOKENS = { sky1: "--space-sky-1", sky2: "--space-sky-2", sky3: "--space-sky-3", grid: "--grid", gridMajor: "--space-grid-major", edge: "--edge", hot: "--hot", ink: "--ink", ink2: "--ink2", ink3: "--ink3", paper: "--paper", sheet: "--sheet", rule: "--rule" };
 function spaceTheme() {
   const css = getComputedStyle(document.documentElement), read = (v) => css.getPropertyValue(v).trim();
-  return { ...Object.fromEntries(Object.entries(SPACE_TOKENS).map(([k, v]) => [k, read(v)])), kinds: Object.fromEntries([...Object.keys(KIND_ORDER), "knowledge"].map((k) => [k, read("--k-" + k)])) };
+  return { ...Object.fromEntries(Object.entries(SPACE_TOKENS).map(([k, v]) => [k, read(v)])), kinds: Object.fromEntries([...Object.keys(KIND_ORDER), "knowledge"].map((k) => [k, read("--k-" + k)])), dark: matchMedia("(prefers-color-scheme: dark)").matches };
 }
 let theme = null;
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { theme = spaceTheme(); stage?.retheme(theme); });
@@ -2535,7 +2603,7 @@ function buildCity(world, colours) {
   const T = three, group = new T.Group(), owned = [], kind = world.kind;
   const keep = (x) => (owned.push(x), x);
   const put = (obj, order) => { obj.renderOrder = order; obj.frustumCulled = false; group.add(obj); return obj; };
-  const roleColour = (c, role) => (role === "amber" ? c.kinds.deployment : role === "ink" ? c.ink : c.kinds[kind]);
+  const roleColour = (c, role) => (role === "amber" ? c.kinds.deployment : role === "ink" ? c.ink : role === "hot" ? c.hot : c.kinds[kind]);
   const m4 = new T.Matrix4(), q = new T.Quaternion(), one = new T.Vector3(1, 1, 1);
 
   // Glass, one instanced mesh per shape: unit boxes standing on their base for plates and towers, octahedra for beacons.
@@ -2569,14 +2637,16 @@ function buildCity(world, colours) {
   const sets = { solid: { pos: [], runs: [] }, dash: { pos: [], runs: [] }, inset: { pos: [], runs: [] } };
   let into = sets.solid;
   const seg = (a, b) => into.pos.push(a.x, a.y, a.z, b.x, b.y, b.z);
-  const run = (set, role, alpha, draw) => { into = set; const start = set.pos.length / 3; draw(); const r = { start, count: set.pos.length / 3 - start, role, alpha }; set.runs.push(r); return r; };
+  const run = (set, role, alpha, draw) => { into = set; const start = set.pos.length / 3; draw(); const r = { start, count: set.pos.length / 3 - start, role, alpha, set }; set.runs.push(r); return r; };
   const ring4 = (x0, x1, z0, z1, y) => { const c = [V(x0, y, z0), V(x1, y, z0), V(x1, y, z1), V(x0, y, z1)]; for (let i = 0; i < 4; i++) seg(c[i], c[(i + 1) % 4]); };
   const boxEdges = (x0, x1, z0, z1, y0, y1) => { ring4(x0, x1, z0, z1, y0); ring4(x0, x1, z0, z1, y1); for (const [x, z] of [[x0, z0], [x1, z0], [x1, z1], [x0, z1]]) seg(V(x, y0, z), V(x, y1, z)); };
   const circle = (x, y, z, r, n = 48) => { for (let i = 0; i < n; i++) { const a = (2 * Math.PI * i) / n, b = (2 * Math.PI * (i + 1)) / n; seg(V(x + r * Math.cos(a), y, z + r * Math.sin(a)), V(x + r * Math.cos(b), y, z + r * Math.sin(b))); } };
-  for (const p of world.plates) {
-    run(sets.solid, "kind", 0.55, () => boxEdges(p.x0, p.x1, p.z0, p.z1, p.base, p.base + PH));
+  // A plate's and a beacon's edges, which selection lights as it lights a tower's.
+  const plateRuns = world.plates.map((p) => {
+    const edges = run(sets.solid, "kind", 0.55, () => boxEdges(p.x0, p.x1, p.z0, p.z1, p.base, p.base + PH));
     run(sets.inset, "kind", 0.28, () => ring4(p.x0 + 0.5, p.x1 - 0.5, p.z0 + 0.5, p.z1 - 0.5, p.base + PH));
-  }
+    return { edges };
+  });
   // Per tower, its edges and its bands, for selection to light (step 3 of the plan).
   const towerRuns = world.towers.map((t) => {
     const s = t.side / 2, set = t.alt ? sets.dash : sets.solid;
@@ -2585,13 +2655,14 @@ function buildCity(world, colours) {
     if (t.final) run(sets.solid, "kind", 0.9, () => { circle(t.x, t.base, t.z, 0.8 * t.side); circle(t.x, t.base, t.z, 0.8 * t.side + 0.45); });
     return { edges, bands };
   });
-  for (const b of world.beacons) {
+  const beaconRuns = world.beacons.map((b) => {
     const top = V(b.x, b.y + 1.3, b.z), low = V(b.x, b.y - 1.3, b.z), eq = [[1.25, 0], [0, 1.25], [-1.25, 0], [0, -1.25]].map(([dx, dz]) => V(b.x + dx, b.y, b.z + dz));
-    run(sets.solid, "amber", 0.9, () => eq.forEach((p, i) => { seg(p, eq[(i + 1) % 4]); seg(p, top); seg(p, low); }));
+    const edges = run(sets.solid, "amber", 0.9, () => eq.forEach((p, i) => { seg(p, eq[(i + 1) % 4]); seg(p, top); seg(p, low); }));
     run(sets.solid, "amber", 0.6, () => circle(b.x, 0, b.z, 1.6));
     run(sets.solid, "amber", 0.25, () => circle(b.x, 0, b.z, 2.6, 64));
     run(sets.dash, "amber", 0.54, () => seg(V(b.x, b.y - 1.3, b.z), V(b.x, 0, b.z)));
-  }
+    return { edges };
+  });
   const lineSets = [];
   for (const [name, set, order, dash] of [["solid", sets.solid, 2, null], ["dash", sets.dash, 2, [0.12, 0.2]], ["inset", sets.inset, 1, [0.12, 0.3]]]) {
     if (!set.pos.length) continue;
@@ -2601,6 +2672,7 @@ function buildCity(world, colours) {
     const opts = { vertexColors: true, transparent: true, depthWrite: false };
     const lines = put(new T.LineSegments(geometry, keep(dash ? new T.LineDashedMaterial({ ...opts, dashSize: dash[0], gapSize: dash[1] }) : new T.LineBasicMaterial(opts))), order);
     if (dash) lines.computeLineDistances();
+    set.geometry = geometry;
     lineSets.push({ name, geometry, runs: set.runs });
   }
 
@@ -2615,41 +2687,97 @@ function buildCity(world, colours) {
   };
   const discs = [discMesh(world.beacons, (b) => V(b.x, 0, b.z), 1.6, "amber", 0.06, 3), discMesh(world.markers, (m) => V(m.x, m.base, m.z), 0.5, "ink", 0.6, 2)].filter(Boolean);
 
-  // Beams: one tube each, merged by hand into one geometry (core three.js has no merge). A dashed beam keeps every other
-  // segment. Each ends in a dot where it arrives.
-  const pos = [], nor = [], idx = [], beamRuns = [], ends = [];
-  for (const b of world.beams) {
-    const p = b.points, self = b.from === b.to, mid = p[16];
-    const curve = self
+  // Beams: tubes along each beam's curve, merged by hand into one geometry (core three.js has no merge). A dashed beam keeps
+  // every other segment. Each run of vertices and of triangles is remembered, so that a colour can change and a face hit by
+  // the pointer can be traced back to its beam. Each beam ends in a dot where it arrives.
+  const curves = world.beams.map((b) => {
+    const p = b.points, mid = p[16];
+    return b.from === b.to
       ? new T.CatmullRomCurve3(p.slice(0, 32).map((x) => V(...x)), true)
       : new T.QuadraticBezierCurve3(V(...p[0]), V(2 * mid[0] - (p[0][0] + p[32][0]) / 2, 2 * mid[1] - (p[0][1] + p[32][1]) / 2, 2 * mid[2] - (p[0][2] + p[32][2]) / 2), V(...p[32]));
-    const tube = new T.TubeGeometry(curve, 32, 0.035, 6, self), base = pos.length / 3, ix = tube.index.array;
-    pos.push(...tube.attributes.position.array);
-    nor.push(...tube.attributes.normal.array);
-    for (let k = 0; k < ix.length; k++) if (!b.dashed || Math.floor(k / 36) % 2 === 0) idx.push(ix[k] + base);
-    beamRuns.push({ start: base, count: pos.length / 3 - base, role: b.ext ? "amber" : "kind", alpha: 0.42 });
-    if (!self) ends.push({ at: V(...p[32]), role: b.ext ? "amber" : "kind" });
-    tube.dispose();
-  }
-  let beams = null;
-  if (pos.length) {
-    const geometry = keep(new T.BufferGeometry());
+  });
+  const roleOf = (b) => (b.ext ? "amber" : "kind");
+  /** The tubes of some beams (indices into world.beams), radius r, as one geometry with a colour per vertex. */
+  const tubes = (list, r, { along = 32, radial = 6, dashes = true } = {}) => {
+    const pos = [], nor = [], idx = [], runs = [];
+    for (const i of list) {
+      const b = world.beams[i], tube = new T.TubeGeometry(curves[i], along, r, radial, b.from === b.to), base = pos.length / 3, ix = tube.index.array, tri = idx.length / 3;
+      pos.push(...tube.attributes.position.array);
+      nor.push(...tube.attributes.normal.array);
+      for (let k = 0; k < ix.length; k++) if (!dashes || !b.dashed || Math.floor(k / (radial * 6)) % 2 === 0) idx.push(ix[k] + base);
+      runs.push({ beam: i, start: base, count: pos.length / 3 - base, tri0: tri, role: roleOf(b), alpha: 0.42 });
+      tube.dispose();
+    }
+    if (!pos.length) return null;
+    const geometry = new T.BufferGeometry();
     geometry.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
     geometry.setAttribute("normal", new T.Float32BufferAttribute(nor, 3));
     geometry.setAttribute("color", new T.Float32BufferAttribute(new Float32Array((pos.length / 3) * 4), 4));
     geometry.setIndex(idx);
-    beams = put(new T.Mesh(geometry, keep(new T.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }))), 4);
-  }
+    return { geometry, runs };
+  };
+  const all = world.beams.map((_, i) => i), quiet = tubes(all, 0.035);
+  const beamRuns = quiet?.runs ?? [], ends = [];
+  for (const b of world.beams) if (b.from !== b.to) ends.push({ at: V(...b.points[32]), role: roleOf(b) });
+  const tubeMaterial = () => new T.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false });
+  const beams = quiet ? put(new T.Mesh(keep(quiet.geometry), keep(tubeMaterial())), 4) : null;
   const dots = ends.length ? put(new T.InstancedMesh(keep(new T.SphereGeometry(0.12, 10, 8)), keep(new T.MeshBasicMaterial({ transparent: true, opacity: 0.9, depthWrite: false })), ends.length), 4) : null;
   ends.forEach((e, i) => { dots.setMatrixAt(i, m4.compose(e.at, q, one)); dots.setColorAt(i, new T.Color()); });
+  // What the pointer finds a beam by: a tube 0.6 thick round each, never drawn.
+  const pickTube = tubes(all, 0.3, { along: 16, radial: 4, dashes: false });
+  const pickBeams = pickTube ? new T.Mesh(keep(pickTube.geometry), keep(new T.MeshBasicMaterial())) : null;
+  pickBeams?.updateMatrixWorld();
+  // Lit beams, a core in --hot and a glow round it in the kind colour, and the beam under the pointer: made when they change.
+  const coreMaterial = keep(new T.MeshBasicMaterial({ transparent: true, depthWrite: false }));
+  const glowMaterial = keep(tubeMaterial()), hoverMaterial = keep(tubeMaterial());
+  const lit = { core: null, glow: null, hover: null };
+  const swap = (name, made, material, order) => {
+    if (lit[name]) { group.remove(lit[name]); lit[name].geometry.dispose(); }
+    lit[name] = made ? put(new T.Mesh(made.geometry, material), order) : null;
+    if (lit[name]) lit[name].userData.runs = made.runs;
+  };
 
+  // Selection rings round the selected tower's base: r 2.0 filled and stroked in --hot, r 3.0 dashed in the kind colour.
+  const ringAt = (r, n) => new T.BufferGeometry().setFromPoints(Array.from({ length: n }, (_, i) => V(r * Math.cos((2 * Math.PI * i) / n), 0, r * Math.sin((2 * Math.PI * i) / n))));
+  const rings = new T.Group(), ringFill = keep(new T.MeshBasicMaterial({ transparent: true, opacity: 0.08, depthWrite: false }));
+  const ringLine = keep(new T.LineBasicMaterial({ transparent: true, opacity: 0.8, depthWrite: false }));
+  const ringDash = keep(new T.LineDashedMaterial({ transparent: true, opacity: 0.5, depthWrite: false, dashSize: 0.12, gapSize: 0.2 }));
+  rings.add(new T.Mesh(keep(new T.CircleGeometry(2, 64).rotateX(-Math.PI / 2)), ringFill), new T.LineLoop(keep(ringAt(2, 96)), ringLine), new T.LineLoop(keep(ringAt(3, 128)), ringDash).computeLineDistances());
+  for (const o of rings.children) { o.renderOrder = 1; o.frustumCulled = false; }
+  rings.visible = false;
+  group.add(rings);
+
+  // What selection and the pointer mark: the selected part, its neighbours, the part under the pointer, the lit beams and the
+  // beam under the pointer. A part's look is a row of the state table, and its edges and bands are drawn as that row says.
+  const index = new Map([...world.towers.map((t, i) => [t.key, ["tower", i]]), ...world.plates.map((p, i) => [p.key, ["plate", i]]), ...world.beacons.map((b, i) => [b.key, ["beacon", i]])]);
+  const beamIndex = new Map(world.beams.map((b, i) => [b.key, i]));
+  const edgeAlpha = { tower: 0.75, plate: 0.55, beacon: 0.9 };
+  let marks = { sel: null, near: new Set(), hover: null, lit: new Set(), beam: null }, painted = colours;
+  const lookOf = (key) => (key === marks.sel ? "sel" : key === marks.hover ? "hover" : marks.near.has(key) ? "near" : "norm");
   const tint = new T.Color();
+  const refill = (attr, r) => {
+    tint.setStyle(roleColour(painted, r.role));
+    for (let v = r.start; v < r.start + r.count; v++) attr.setXYZW(v, tint.r, tint.g, tint.b, r.alpha);
+    attr.needsUpdate = true;
+  };
+  /** Draws a part as it now looks: a tower's glass takes its row, and its edges (bands at 35% of them) their colour. */
+  const look = (key) => {
+    const [what, i] = index.get(key) ?? [];
+    if (!what) return;
+    const l = lookOf(key), role = l === "sel" || l === "hover" ? "hot" : what === "beacon" ? "amber" : "kind", alpha = l === "norm" ? edgeAlpha[what] : 1;
+    const own = what === "tower" ? towerRuns[i] : what === "plate" ? plateRuns[i] : beaconRuns[i];
+    Object.assign(own.edges, { role, alpha });
+    refill(own.edges.set.geometry.attributes.color, own.edges);
+    if (own.bands) { Object.assign(own.bands, { role, alpha: alpha * 0.35 }); refill(own.bands.set.geometry.attributes.color, own.bands); }
+    if (what === "tower") state[i] = STATES[l];
+  };
   const self = {
     group, world, towerRuns,
     /** The tower an instance of the towers' mesh draws. */
     towerOf: (instance) => slot[instance],
     /** Colours from the theme, into uniforms and colour attributes: the geometry stays. */
     paint(c) {
+      painted = c;
       for (const mesh of [plates, towers, beacons]) {
         if (!mesh) continue;
         tint.setStyle(roleColour(c, mesh.userData.role));
@@ -2657,17 +2785,73 @@ function buildCity(world, colours) {
         mesh.instanceColor.needsUpdate = true;
       }
       for (const d of discs) d.material.color.setStyle(roleColour(c, d.userData.role));
-      const fill = (attr, runs) => {
-        for (const r of runs) {
-          tint.setStyle(roleColour(c, r.role));
-          for (let v = r.start; v < r.start + r.count; v++) attr.setXYZW(v, tint.r, tint.g, tint.b, r.alpha);
-        }
-        attr.needsUpdate = true;
-      };
+      const fill = (attr, runs) => { for (const r of runs) refill(attr, r); };
       for (const s of lineSets) fill(s.geometry.attributes.color, s.runs);
       if (beams) fill(beams.geometry.attributes.color, beamRuns);
+      for (const name of ["glow", "hover"]) if (lit[name]) fill(lit[name].geometry.attributes.color, lit[name].userData.runs);
       ends.forEach((e, i) => dots.setColorAt(i, tint.setStyle(roleColour(c, e.role))));
       if (dots) dots.instanceColor.needsUpdate = true;
+      coreMaterial.color.setStyle(c.hot);
+      ringFill.color.setStyle(c.hot);
+      ringLine.color.setStyle(c.hot);
+      ringDash.color.setStyle(c.kinds[kind]);
+      // A glow adds light to the dark sky; on the light one adding would wash it out, so there it is laid over.
+      glowMaterial.blending = c.dark ? T.AdditiveBlending : T.NormalBlending;
+      glowMaterial.needsUpdate = true;
+    },
+    /** What a ray from the eye meets first: { key, beam }, beam true for a beam, or null. A start point is never met. */
+    pick(ray) {
+      let best = null;
+      const meet = (hit, key, beam) => { if (hit && (!best || hit.distance < best.distance)) best = { key, beam, distance: hit.distance }; };
+      let h;
+      if (towers && (h = ray.intersectObject(towers, false)[0])) meet(h, world.towers[slot[h.instanceId]].key, false);
+      if (plates && (h = ray.intersectObject(plates, false)[0])) meet(h, world.plates[h.instanceId].key, false);
+      if (beacons && (h = ray.intersectObject(beacons, false)[0])) meet(h, world.beacons[h.instanceId].key, false);
+      if (pickBeams && (h = ray.intersectObject(pickBeams, false)[0])) {
+        const runs = pickTube.runs;
+        let lo = 0, hi = runs.length - 1;
+        while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (runs[mid].tri0 <= h.faceIndex) lo = mid; else hi = mid - 1; }
+        meet(h, world.beams[runs[lo].beam].key, true);
+      }
+      return best;
+    },
+    /** Marks the selection and its neighbourhood (sel, near, lit: cityNeighbours's) and what is under the pointer (hover, a
+     *  part; beam, a beam). What is left out stays as it was, and only what changed is drawn again. */
+    mark(next) {
+      const was = marks;
+      marks = { ...was, ...next, near: new Set(next.near ?? was.near), lit: new Set(next.lit ?? was.lit) };
+      const keys = new Set([was.sel, was.hover, marks.sel, marks.hover, ...was.near, ...marks.near].filter((k) => k != null));
+      for (const k of keys) look(k);
+      if (towers && keys.size) writeTowers();
+      const litChanged = was.lit.size !== marks.lit.size || [...marks.lit].some((k) => !was.lit.has(k));
+      if (!litChanged && was.beam === marks.beam) return self.ring();
+      // A lit beam's quiet tube, and that of the beam under the pointer, give way to the thicker one drawn in its place.
+      if (beams) {
+        for (const k of new Set([...was.lit, ...marks.lit, was.beam, marks.beam])) {
+          const i = beamIndex.get(k);
+          if (i === undefined) continue;
+          beamRuns[i].alpha = marks.lit.has(k) || k === marks.beam ? 0 : 0.42;
+          refill(beams.geometry.attributes.color, beamRuns[i]);
+        }
+      }
+      if (litChanged) {
+        const list = [...marks.lit].map((k) => beamIndex.get(k)).filter((i) => i !== undefined);
+        swap("core", tubes(list, 0.06), coreMaterial, 4);
+        const glow = tubes(list, 0.25, { dashes: false });
+        glow?.runs.forEach((r) => { r.alpha = 0.35; refill(glow.geometry.attributes.color, r); });
+        swap("glow", glow, glowMaterial, 5);
+      }
+      // A beam under the pointer thickens to the lit core's radius; a lit one already has it.
+      const i = beamIndex.get(marks.beam), made = i !== undefined && !marks.lit.has(marks.beam) ? tubes([i], 0.06) : null;
+      made?.runs.forEach((r) => refill(made.geometry.attributes.color, r));
+      swap("hover", made, hoverMaterial, 4);
+      self.ring();
+    },
+    /** Stands the selection rings round the selected tower's base; a plate or a beacon has none. */
+    ring() {
+      const [what, i] = index.get(marks.sel) ?? [];
+      rings.visible = what === "tower";
+      if (rings.visible) { const t = world.towers[i]; rings.position.copy(V(t.x, t.base + 0.02, t.z)); }
     },
     /** Puts the towers' instances in order, furthest from the eye first, since three.js doesn't sort the instances of one mesh. */
     sort(eye) {
@@ -2675,7 +2859,11 @@ function buildCity(world, colours) {
       slot = slot.slice().sort((a, b) => far[b] - far[a]);
       writeTowers();
     },
-    dispose() { for (const x of owned) x.dispose(); for (const m of [plates, towers, beacons, dots, ...discs]) m?.dispose(); },
+    dispose() {
+      for (const name of Object.keys(lit)) swap(name, null);
+      for (const x of owned) x.dispose();
+      for (const m of [plates, towers, beacons, dots, ...discs]) m?.dispose();
+    },
   };
   self.paint(colours);
   return self;
@@ -2705,16 +2893,18 @@ function spaceRig(stage) {
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const rig = {
     mode: "orbit", target: [0, 0, 0], azimuth: -40, elevation: 33.6, distance: 60, fov: 54.1,
-    bounds: null, fitDistance: 60, room: null, touched: false, moved: true,
-    /** Puts the camera where the pose says, the projection centred on the free rectangle. */
+    bounds: null, fitDistance: 60, room: null, touched: false, moved: true, centre: null, tween: null, pressed: false,
+    /** Puts the camera where the pose says, the projection centred on the free rectangle (or, while it moves to a new one,
+     *  on `centre`). */
     apply() {
       rig.room ??= spaceRoom();
       const { W, H, free } = rig.room, [x, y, z] = rig.target, a = rig.azimuth * rad, e = rig.elevation * rad, d = rig.distance;
+      const [cx, cy] = rig.centre ?? middle(free);
       camera.fov = rig.fov;
       camera.aspect = W / H;
       camera.position.copy(V(x + d * Math.cos(e) * Math.sin(a), y + d * Math.sin(e), z - d * Math.cos(e) * Math.cos(a)));
       camera.lookAt(V(x, y, z));
-      camera.setViewOffset(W, H, W / 2 - (free.x0 + free.x1) / 2, H / 2 - (free.y0 + free.y1) / 2, W, H);
+      camera.setViewOffset(W, H, W / 2 - cx, H / 2 - cy, W, H);
       camera.updateMatrixWorld();
       rig.moved = true;
       stage.request();
@@ -2742,7 +2932,30 @@ function spaceRig(stage) {
       if (best.left) frame(best.above);
     },
     /** After a resize: the room is measured again, and an untouched camera fitted again. */
-    resized() { if (rig.touched || !rig.points?.length) { rig.room = spaceRoom(); rig.apply(); } else rig.fit(); },
+    resized() { rig.tween = rig.centre = null; if (rig.touched || !rig.points?.length) { rig.room = spaceRoom(); rig.apply(); } else rig.fit(); },
+    /** After a panel opened or closed (the inspector): the free rectangle is measured again, and the camera moves to it over
+     *  300 ms, at once with reduced motion or when `now`. An untouched camera is fitted again; one the reader moved keeps its
+     *  pose, the projection centred on the new rectangle, as on a resize. */
+    reroom(now = false) {
+      const was = rig.room ?? spaceRoom(), room = spaceRoom();
+      if (["x0", "y0", "x1", "y1"].every((k) => Math.abs(was.free[k] - room.free[k]) < 1) && was.W === room.W && was.H === room.H) { rig.room = room; return; }
+      if (rig.tween) rig.apply();
+      const from = { target: [...rig.target], distance: rig.distance, centre: rig.centre ?? middle(was.free) };
+      rig.tween = rig.centre = null;
+      if (rig.touched || !rig.points?.length) { rig.room = room; rig.apply(); } else rig.fit();
+      if (now || reducedMotion.matches) return;
+      const to = { target: [...rig.target], distance: rig.distance, centre: middle(rig.room.free) }, t0 = performance.now(), touched = rig.touched;
+      const tween = (rig.tween = {});
+      const step = (t) => {
+        if (rig.tween !== tween) return;
+        const k = Math.min(1, (t - t0) / 300), e = k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2, mix = (a, b) => a + (b - a) * e;
+        Object.assign(rig, { target: from.target.map((v, i) => mix(v, to.target[i])), distance: mix(from.distance, to.distance), centre: k < 1 ? [mix(from.centre[0], to.centre[0]), mix(from.centre[1], to.centre[1])] : null, touched });
+        if (k >= 1) rig.tween = null;
+        rig.apply();
+        if (rig.tween) requestAnimationFrame(step);
+      };
+      step(t0);
+    },
     /** How far labels show: 90 units, or the far side of the city as fitted when that is further. */
     cut() { const b = rig.bounds; return b ? Math.max(90, rig.fitDistance + Math.hypot(b.x1 - b.x0, b.z1 - b.z0) / 2) : 90; },
     /** Keeps the pose inside the limits: elevation 8° to 85°, distance 8 to three times the fit, the target near the city. */
@@ -2752,7 +2965,11 @@ function spaceRig(stage) {
       const b = rig.bounds;
       if (b) rig.target = [clamp(rig.target[0], b.x0 - 20, b.x1 + 20), clamp(rig.target[1], -20, b.top + 20), clamp(rig.target[2], b.z0 - 20, b.z1 + 20)];
     },
-    move(change) { change(); rig.touched = true; rig.limit(); rig.apply(); },
+    move(change) {
+      // Input during a move to a new free rectangle stops it where it is, centred on the new one.
+      if (rig.tween) { rig.tween = rig.centre = null; }
+      change(); rig.touched = true; rig.limit(); rig.apply();
+    },
     orbit(da, de) { rig.move(() => { rig.azimuth += da; rig.elevation += de; }); },
     /** Moves the target across the ground by a step in spec units, right and ahead as the camera faces. */
     slide(right, ahead) {
@@ -2769,6 +2986,7 @@ function spaceRig(stage) {
     },
     setMode(mode) { rig.mode = mode; for (const b of document.querySelectorAll("#space-controls [data-cam=orbit], #space-controls [data-cam=pan]")) b.setAttribute("aria-pressed", String(b.dataset.cam === mode)); },
   };
+  const middle = (f) => [(f.x0 + f.x1) / 2, (f.y0 + f.y1) / 2];
   /** Frames rig.points from the opening angles, `above` px more room left at the top of the free rectangle. */
   function frame(above) {
     const { H, free } = rig.room, b = rig.bounds, centre = [(b.x0 + b.x1) / 2, b.top / 2, (b.z0 + b.z1) / 2];
@@ -2813,6 +3031,7 @@ function spaceRig(stage) {
   const local = (e) => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
   canvas.addEventListener("pointerdown", (e) => {
     pointers.set(e.pointerId, local(e));
+    rig.pressed = true;
     if (pointers.size === 1) drag = { at: local(e), last: local(e), button: e.button, shift: e.shiftKey, moved: false };
     canvas.setPointerCapture(e.pointerId);
   });
@@ -2839,10 +3058,12 @@ function spaceRig(stage) {
     else rig.orbit(-(now[0] - lx) * 0.3, (now[1] - ly) * 0.3);
   });
   const up = (e) => {
+    const was = pointers.size === 1 && pointers.has(e.pointerId) ? drag : null;
     pointers.delete(e.pointerId);
-    // Under 4 px a drag is a click, which selects in a later step of the plan; for now it does nothing.
-    if (!pointers.size) drag = null;
+    if (!pointers.size) { drag = null; rig.pressed = false; }
     else if (drag) drag.last = [...pointers.values()][0];
+    // Under 4 px a drag is a click: one finger, or the main button.
+    if (e.type === "pointerup" && was && !was.moved && was.button === 0) rig.onClick?.(...local(e), e);
   };
   canvas.addEventListener("pointerup", up);
   canvas.addEventListener("pointercancel", up);
@@ -2869,6 +3090,7 @@ function spaceRig(stage) {
 
 const F_PILL = `500 13px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
 const F_PLATE = `600 13px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
+const F_BEAM = `500 12px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
 /** The labels over a city: a pill per tower and beacon, cut at 150 px, and each plate's name with its number of parts. HTML,
  *  never textures, with their text set as text. Widths are measured once, when they are made, in the page's typefaces. */
 function spaceLabels(world) {
@@ -2891,7 +3113,9 @@ function spaceLabels(world) {
   const pill = (key, name, at, lift, beacon) => {
     const n = world.parts.get(key), text = clip(String(name), F_PILL, 150);
     const icon = n?.nav ? BADGE : per && n?.glyph ? ic(n.glyph) : "";
-    items.push({ ...make(beacon ? "sl beacon" : "sl", icon, text, Math.ceil(tw(text, F_PILL)) + 18 + (icon ? 19 : 0)), at: V(...at), lift });
+    // Selected, its text is set in the plate names' weight, so the pill is wider.
+    const width = (font) => Math.ceil(tw(text, font)) + 18 + (icon ? 19 : 0);
+    items.push({ ...make(beacon ? "sl beacon" : "sl", icon, text, width(F_PILL)), at: V(...at), lift, key, look: "norm", widths: [width(F_PILL), width(F_PLATE)] });
   };
   for (const t of world.towers) pill(t.key, t.name, [t.x, t.base + t.h, t.z], 10, false);
   for (const b of world.beacons) pill(b.key, b.name, [b.x, b.y + 1.3 + 1.7, b.z], 0, true);
@@ -2902,6 +3126,7 @@ function spaceLabels(world) {
   }
   for (const p of world.plates) {
     const n = held.get(p.key), el = document.createElement("div");
+    el.dataset.key = p.key;
     const name = document.createElement("span"), count = document.createElement("span");
     name.textContent = p.name;
     count.textContent = ` · ${n} part${n === 1 ? "" : "s"}`;
@@ -2912,6 +3137,8 @@ function spaceLabels(world) {
     const y = p.base + PH, w = tw(p.name.toUpperCase(), F_PLATE) + p.name.length * 1.3 + tw(count.textContent, F_PLATE) + count.textContent.length * 0.52;
     plates.push({ el, w: Math.ceil(w), h: 14, shown: false, corners: [[p.x0, p.z0], [p.x1, p.z0], [p.x1, p.z1], [p.x0, p.z1]].map(([x, z]) => V(x, y, z)) });
   }
+  // The selection: the selected tower's corners, which no other label may cover, and the lit beams' labels.
+  let selBox = null, beamItems = [];
   const v = new T.Vector3(), view = new T.Vector3();
   const show = (it, x, y, opacity) => {
     it.el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
@@ -2963,24 +3190,70 @@ function spaceLabels(world) {
       }
       const placed = [];
       for (const it of items) {
-        const s = screen(it.at);
-        if (!s || s.d > cut || s.x < -it.w || s.x > W + it.w || s.y < 0 || s.y > H + 40) { hide(it); continue; }
-        placed.push([it, s]);
+        // The selection's label and its neighbours' stay whatever the distance.
+        const s = screen(it.at), kept = it.look !== "norm";
+        if (!s || (s.d > cut && !kept) || s.x < -it.w || s.x > W + it.w || s.y < 0 || s.y > H + 40) { hide(it); continue; }
+        placed.push([it, s, kept]);
       }
       placed.sort((a, b) => b[1].y - a[1].y);
       let d = "";
-      for (const [it, s] of placed) {
+      const one = ([it, s, kept]) => {
         const r = { x0: s.x - it.w / 2, x1: s.x + it.w / 2, y1: s.y - it.lift, y0: s.y - it.lift - it.h };
         aside(r, it.w);
         let step = 0;
         while (!clear(r) && step < 40) { r.y0 -= 6; r.y1 -= 6; step++; }
-        if (step >= 40 || under(r)) { if (r.y0 < free.y0) topped++; hide(it); continue; }
+        if (step >= 40 || under(r)) { if (r.y0 < free.y0) topped++; hide(it); return; }
         take(r);
         if (step * 6 > 12) d += `M${s.x.toFixed(1)},${(s.y - it.lift).toFixed(1)}L${((r.x0 + r.x1) / 2).toFixed(1)},${r.y1.toFixed(1)}`;
-        show(it, r.x0, r.y0, fade(s.d));
+        show(it, r.x0, r.y0, kept ? 1 : fade(s.d));
+      };
+      // The selected label first; then the selected tower's box on the screen, which no other label may cover; then the lit
+      // beams' labels, at their crests, never hidden; then the rest, nearest first.
+      const sel = placed.find(([it]) => it.look === "sel");
+      if (sel) one(sel);
+      const box = selBox?.map(screen);
+      if (box?.every(Boolean)) take({ x0: Math.min(...box.map((c) => c.x)), x1: Math.max(...box.map((c) => c.x)), y0: Math.min(...box.map((c) => c.y)), y1: Math.max(...box.map((c) => c.y)) });
+      for (const b of beamItems) {
+        const s = screen(b.at);
+        if (!s || s.x < -b.w || s.x > W + b.w || s.y < -b.h || s.y > H + b.h) { hide(b); continue; }
+        const r = { x0: s.x - b.w / 2, x1: s.x + b.w / 2, y0: s.y - b.h / 2, y1: s.y + b.h / 2 };
+        let step = 0;
+        while (!clear(r) && step < 40) { r.y0 -= 6; r.y1 -= 6; step++; }
+        // One that can't be placed clear stays on its crest.
+        if (step >= 40) { r.y0 = s.y - b.h / 2; r.y1 = s.y + b.h / 2; }
+        take(r);
+        show(b, r.x0, r.y0, 1);
       }
+      for (const p of placed) if (p !== sel) one(p);
       path.setAttribute("d", d);
       return { topped };
+    },
+    /** Marks the selection (cityNeighbours's: key, near, beams; null for none): the selected label and its neighbours' in
+     *  their styles, and in a state machine or a deployment a label at the crest of each lit beam that has one. `box`: the
+     *  selected tower's eight corners. They are placed on the next frame. */
+    select(hood, box = null) {
+      const near = new Set(hood?.near);
+      for (const it of items) {
+        it.look = it.key === hood?.key ? "sel" : near.has(it.key) ? "near" : "norm";
+        it.el.classList.toggle("sel", it.look === "sel");
+        it.el.classList.toggle("near", it.look === "near");
+        it.w = it.widths[it.look === "sel" ? 1 : 0];
+      }
+      for (const p of plates) p.el.classList.toggle("sel", p.el.dataset.key === hood?.key);
+      selBox = box;
+      for (const b of beamItems) b.el.remove();
+      beamItems = [];
+      if (!hood || (world.kind !== "state" && world.kind !== "deployment")) return;
+      const lit = new Set(hood.beams);
+      for (const b of world.beams) {
+        if (!lit.has(b.key) || !b.label) continue;
+        const el = document.createElement("div");
+        el.className = "sbl";
+        el.hidden = true;
+        el.textContent = b.label;
+        layer.append(el);
+        beamItems.push({ el, w: Math.ceil(tw(b.label, F_BEAM)) + 18, h: 20, shown: false, at: V(...b.points[16]) });
+      }
     },
     clear() { layer.textContent = ""; },
   };
@@ -3123,11 +3396,13 @@ function stageOn() {
     try { stage = spaceStage(three, $("space-gl")); } catch { return false; }
     rig = spaceRig(stage);
     stage.onResize = () => { rig.resized(); clearTimeout(reshape); reshape = setTimeout(spaceTurn, 250); };
+    // Labels are placed on a frame where the camera moved or the selection changed, never for the pointer alone.
     stage.onFrame = () => {
       if (!rig.moved) return;
       rig.moved = false;
       if (labels && rig.bounds) labels.place(stage.camera, rig.room, rig.cut());
     };
+    spacePointer(stage, rig);
   }
   stage.fill((theme ??= spaceTheme()));
   return true;
@@ -3199,7 +3474,9 @@ const plural = (n, one) => `${n} ${one}${n === 1 ? "" : "s"}`;
 function spaceScene() {
   if (!stage || !rig) return;
   if (space.scene === "tower") { standCity(null); spaceSay(""); return; }
-  const v = cityView(space.folder, space.focus);
+  let v = cityView(space.folder, space.focus);
+  // A part selected in a city stays in it, though another view of its kind may hold a part of that name too.
+  if (standing && standing.v.d._folder === space.folder && focusedPart(standing.made.world, space.focus)) v = standing.v;
   if (!v) {
     standCity(null);
     sceneSay(`${space.folder ? space.folder : "The root folder"} has no drawn views, so it has no city. Its views are written; read them in Flat.`);
@@ -3211,7 +3488,9 @@ function spaceScene() {
     sceneSay(`This view couldn't be built (${e.message ?? e}). Read it in Flat.`);
     return;
   }
-  if (standing?.key !== v.key || standing.made !== made) standCity({ key: v.key, made });
+  const fresh = standing?.key !== v.key || standing.made !== made;
+  if (fresh) standCity({ key: v.key, made, v });
+  spaceFocus(fresh);
   const n = [...byFolder.values()].reduce((s, docs) => s + docs.length, 0), what = KIND_NAME[v.d.kind].toLowerCase() + (v.e ? ` ${v.e.name ?? v.e.id}` : "");
   // No hint yet: Esc does nothing in the city until the folder tower (step 4) gives it a level to go up to; step 4 adds "Esc goes up a level".
   sceneSay(`Read ${plural(n, "view")} in ${plural(byFolder.size, "folder")}. Flying the ${what}: drag to orbit, scroll to fly, click a tower to read it.`,
@@ -3220,6 +3499,10 @@ function spaceScene() {
 /** Builds a city's meshes, labels and legend and fits the camera to it; null stands the bare ground. */
 function standCity(next) {
   standing = next;
+  // A new city starts with nothing selected or under the pointer; the address's part is selected in it again (spaceFocus).
+  Object.assign(space, { selected: null, hovered: null });
+  $("inspector").hidden = true;
+  hideTip();
   labels?.clear(); labels = null;
   const world = next?.made.world ?? null;
   stage.show(world ? buildCity(world, theme) : null);
@@ -3227,7 +3510,7 @@ function standCity(next) {
   if (world) labels = spaceLabels(world);
   rig.bounds = world?.bounds ?? null;
   rig.points = world ? standingPoints(world) : null;
-  rig.crowded = labels ? () => labels.place(stage.camera, rig.room, rig.cut()).topped : null;
+  rig.crowded = labels ? () => labels?.place(stage.camera, rig.room, rig.cut()).topped ?? 0 : null;
   rig.fit();
 }
 /** The corners of what stands, which the camera is fitted to: each plate's, tower's and beacon's box (a beacon's from the
@@ -3250,7 +3533,152 @@ function spaceTurn() {
   if (!v || v.key !== standing.key) return;
   let dir;
   try { dir = sheetOf(v.doc, space.folder, flatRoom(), Math.max(460, innerHeight * 0.76)).dir; } catch { return; }
-  if (dir !== w.dir) standCity({ key: v.key, made: cityFor(v, dir) });
+  if (dir !== w.dir) { standCity({ key: v.key, made: cityFor(v, dir), v }); spaceFocus(true); }
+}
+
+/** The part a focus names in a city: <kind>:<key or title>, of the city's kind, that can be selected. Null for a view's focus. */
+function focusedPart(world, focus) {
+  const [kind, ...rest] = (focus ?? "").split(":"), name = rest.join(":");
+  if (!world || kind !== world.kind || !name) return null;
+  const n = world.parts.get(name) ?? [...world.parts.values()].find((p) => p.info?.title === name);
+  return n?.info && cityNeighbours(world, n.key) ? n.key : null;
+}
+/** The view a city stands, as cityHash takes it. */
+const standingView = () => ({ kind: standing.v.d.kind, file: standing.v.d._path.split("/").pop(), entity: standing.v.e?.id ?? null });
+/** Makes the selection what the address says: the part it names, or none. `now`: the city was just stood, so the camera
+ *  goes to the room the inspector leaves at once. */
+function spaceFocus(now = false) {
+  const key = focusedPart(standing?.made.world, space.focus);
+  if (key) { if (key !== space.selected) spaceSelect(key, { quiet: true, now }); }
+  else spaceUnselect({ quiet: true });
+}
+
+/** Selects a part of the city standing (a tower, a plate or a beacon): it lights, its neighbours brighten, the beams between
+ *  them light, rings stand round a tower's base, the inspector opens with what Flat shows for it, and the address names it
+ *  (the history entry is replaced). `quiet`: the address already does. */
+function spaceSelect(key, { quiet = false, now = false } = {}) {
+  const city = stage?.city, world = city?.world, n = world?.parts.get(key), hood = world && cityNeighbours(world, key);
+  if (!hood || !n?.info) return;
+  space.selected = key;
+  city.mark({ sel: key, near: hood.near, lit: hood.beams });
+  const t = world.towers.find((x) => x.key === key), s = t && t.side / 2;
+  labels?.select(hood, t ? [t.base, t.base + t.h].flatMap((y) => [[-s, -s], [s, -s], [s, s], [-s, s]].map(([dx, dz]) => V(t.x + dx, y, t.z + dz))) : null);
+  const plate = spaceInspect(n, hood);
+  space.focus = `${world.kind}:${key}`;
+  if (!quiet) history.replaceState(history.state, "", cityHash(space.folder, standingView(), key, space.scene));
+  $("space-live").textContent = `${world.towers.concat(world.beacons, world.plates).find((x) => x.key === key).name} selected. ${plural(hood.beams.length, "beam")}. ${plate ? `In ${plate.name}` : "On the ground"}.`;
+  rig.moved = true;
+  rig.reroom(now);
+  stage.request();
+}
+/** Clears the Cyberspace selection, which closeInspector() does in either mode: the city goes back to how it stood and the
+ *  address to the view's own (the history entry is replaced). `quiet`: the address already says so. In Flat there is only
+ *  the selection to forget. */
+function spaceUnselect({ quiet = false } = {}) {
+  if (space.selected == null) return;
+  space.selected = null;
+  if (!space.on || !stage?.city) return;
+  stage.city.mark({ sel: null, near: [], lit: [] });
+  labels?.select(null);
+  $("inspector").hidden = true;
+  if (!quiet) {
+    const hash = cityHash(space.folder, standingView(), null, space.scene);
+    space.focus = parseSpaceHash(hash).focus;
+    history.replaceState(history.state, "", hash);
+  }
+  $("space-live").textContent = "Nothing selected.";
+  rig.moved = true;
+  rig.reroom();
+  stage.request();
+}
+
+/** Opens the inspector on a part of the city, with the body Flat shows for it; under its title where it stands, its beams and
+ *  its height, and at its foot Open flat. A part that opens a folder shows that folder in place of Flat's link out of the page,
+ *  and every other link within the page stays in Cyberspace. Returns the plate it stands on, or null. */
+function spaceInspect(n, hood) {
+  const world = stage.city.world, ins = showInfo(n.info, (k) => spaceSelect(k));
+  const plate = cityPlateOf(world, n.key), t = world.towers.find((x) => x.key === n.key), b = world.beacons.find((x) => x.key === n.key);
+  const line = document.createElement("div");
+  line.className = "iline";
+  // A plate has no height of its own worth giving: it is half a unit thick.
+  line.textContent = [plate ? `in ${plate.name}` : "on the ground", plural(hood.beams.length, "beam"), t ? `height ${+t.h.toFixed(1)}` : b ? `height ${+b.y.toFixed(1)}` : ""].filter(Boolean).join(" · ");
+  ins.querySelector(".isub").after(line);
+  // Until the folder tower (step 4 of the plan) a folder's own address shows bare ground, so a link within the page opens a city.
+  for (const a of ins.querySelectorAll('.ibody a[href^="#"]')) {
+    const at = parseSpaceHash(a.getAttribute("href"));
+    if (at.mode === "flat") a.setAttribute("href", spaceHash({ folder: at.folder, focus: at.focus, scene: "city" }));
+  }
+  if (n.nav) {
+    const block = itsFolder(parseSpaceHash(n.nav).folder), open = ins.querySelector(".ibody a.open"), first = ins.querySelector(".ibody > p");
+    if (open) open.replaceWith(block); else if (first) first.after(block); else ins.querySelector(".ibody").prepend(block);
+  }
+  // Walk to <name> waits for the street (step 5 of the plan).
+  ins.insertAdjacentHTML("beforeend", `<div class="ifoot"><a class="ibtn" href="${esc(flatHash(space.folder, `${world.kind}:${n.key}`))}">Open flat</a></div>`);
+  return plate;
+}
+/** The folder a part opens, as a block for the inspector: a miniature of its tower, one band per view in its kind's colour
+ *  (drawn, then written, then knowledge, from the bottom), its title, path and number of files, what its tower holds, and
+ *  Enter its folder. */
+function itsFolder(folder) {
+  const docs = byFolder.get(folder) ?? [], group = (d) => (MODELS[d.kind] ? 0 : d.kind in KIND_ORDER ? 1 : 2);
+  const floors = docs.slice().sort((a, b) => group(a) - group(b)), counts = [0, 0, 0];
+  for (const d of floors) counts[group(d)]++;
+  const step = floors.length > 1 ? Math.min(4.1, 49.2 / (floors.length - 1)) : 0;
+  const bands = floors.map((d, i) => `<path class="kind-${tabOf(d)}" d="M4 ${+(58 - i * step).toFixed(2)}l19 -5 19 5 -19 5z"/>`).join("");
+  const title = (docs.find((d) => d.kind === "folder")?.entities?.[0]?.title ?? folder.split("/").pop()) || "/";
+  const path = docs.some((d) => inTree(d._path)) ? `${TREE}/${folder}` : `./${folder ? folder + "/" : ""}.dev`;
+  const held = [`${counts[0]} drawn`, `${counts[1]} written`, `${counts[2]} knowledge`].filter((_, i) => counts[i]);
+  const drawnFirst = floors.find((d) => MODELS[d.kind]);
+  const says = `A tower of its own: ${held.length > 1 ? held.slice(0, -1).join(", ") + " and " + held[held.length - 1] : held[0] ?? "no"} floor${floors.length === 1 ? "" : "s"}.`
+    + (drawnFirst ? ` Its ${KIND_NAME[drawnFirst.kind].toLowerCase()} is pulled out.` : "");
+  const el = document.createElement("div");
+  el.className = "ifolder";
+  // Step 4 of the plan builds the folder tower and points this at #<folder>|~space; until then it opens the folder's city.
+  el.innerHTML = `<div class="ifh"><svg width="46" height="64" viewBox="0 0 46 64" aria-hidden="true">${bands}</svg><div><div class="caps">Its folder</div>`
+    + `<div class="ift">${esc(title)}</div><div class="ifp">${esc(path)} · ${plural(docs.length, "file")}</div></div></div>`
+    + `<p>${esc(says)}</p><a class="ibtn primary" href="${esc(spaceHash({ folder, scene: "city" }))}"><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8.5" fill="currentColor"/><use href="#i-drill" x="2.5" y="2.5" width="13" height="13"/></svg>Enter its folder</a>`;
+  return el;
+}
+
+/** Hover and click in a city. What is under the pointer is found at most once a frame: a tower or beacon gets state hover
+ *  and a beam thickens, each showing its tooltip as Flat places it, and the cursor says it can be selected. A click selects
+ *  it, and a click on empty ground clears the selection. Neither moves the camera. */
+function spacePointer(stage, rig) {
+  const ray = new three.Raycaster(), ndc = new three.Vector2(), canvas = stage.canvas;
+  let at = null, queued = 0, city = null, beam = null;
+  const hit = (x, y) => {
+    if (!stage.city || !rig.room) return null;
+    ray.setFromCamera(ndc.set((x / rig.room.W) * 2 - 1, 1 - (y / rig.room.H) * 2), stage.camera);
+    return stage.city.pick(ray);
+  };
+  const local = (e) => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const hover = () => {
+    queued = 0;
+    if (stage.city !== city) { city = stage.city; beam = null; }
+    const h = at && !rig.pressed ? hit(...at.xy) : null, world = city?.world;
+    const part = h && !h.beam && (world.towers.some((t) => t.key === h.key) || world.beacons.some((b) => b.key === h.key)) ? h.key : null;
+    const tip = part ? world.parts.get(part).tip : h?.beam ? world.beams.find((b) => b.key === h.key).tip : null;
+    if (tip) showTip(tip, at.cx, at.cy); else hideTip();
+    canvas.classList.toggle("pick", !!h);
+    const next = h?.beam ? h.key : null;
+    if (city && (part !== space.hovered || next !== beam)) {
+      space.hovered = part; beam = next;
+      city.mark({ hover: part, beam });
+      stage.request();
+    }
+  };
+  canvas.addEventListener("pointermove", (e) => {
+    if (e.pointerType === "touch") return;
+    at = { xy: local(e), cx: e.clientX, cy: e.clientY };
+    if (!queued) queued = requestAnimationFrame(hover);
+  });
+  canvas.addEventListener("pointerleave", () => { at = null; if (!queued) queued = requestAnimationFrame(hover); });
+  canvas.addEventListener("pointerdown", hideTip);
+  rig.onClick = (x, y) => {
+    const h = hit(x, y);
+    if (h && !h.beam) spaceSelect(h.key);
+    else if (!h && space.selected != null) closeInspector();
+  };
 }
 
 /** The switch shows which mode is on. It is offered only with WebGL, and not before the launch. */
@@ -3293,7 +3721,12 @@ function leaveSpace(asked) {
     document.body.classList.remove("space");
     $("space").hidden = true;
     standing = null;
+    Object.assign(space, { selected: null, hovered: null });
+    $("space-gl").classList.remove("pick");
+    $("space-live").textContent = "";
     labels?.clear(); labels = null;
+    // Nothing stands for the camera to fit to until the next city: a return would otherwise fit to this one's labels.
+    if (rig) Object.assign(rig, { bounds: null, points: null, crowded: null });
     // A stage whose context was lost is no use to a return: the next entry starts a new one.
     if (stage?.lost) closeStage();
     else if (stage) { stage.empty(); stageIdle = setTimeout(closeStage, 60_000); }
@@ -3327,7 +3760,8 @@ $("modes").addEventListener("click", (e) => {
 // Cyberspace's own Esc (the document's listener above steps aside while it shows), so that one press does one thing.
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape" || !space.on) return;
-  if (!$("inspector").hidden) closeInspector();
+  // It clears the selection; with none it does nothing yet: the folder tower (step 4 of the plan) gives it a level to go up to.
+  if (space.selected != null || !$("inspector").hidden) { e.preventDefault(); closeInspector(); }
 });
 
 // ── Start: the address comes from ?url=; the form is only for choosing one ──
