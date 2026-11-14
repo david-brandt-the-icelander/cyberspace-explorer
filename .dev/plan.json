@@ -46,7 +46,7 @@
         {
           "id": "street",
           "title": "Street: walking, collision, the map, the breadcrumb, the hover card, and flying between city and street",
-          "status": "todo"
+          "status": "done"
         },
         {
           "id": "layers",

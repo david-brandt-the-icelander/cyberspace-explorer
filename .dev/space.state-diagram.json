@@ -1,8 +1,8 @@
 {
   "$schema": "../Meta/Agents/Skills/describe-state-diagram/schema.json",
   "kind": "state",
-  "title": "Flat, the folder tower and the city",
-  "description": "Which of its ways in the page shows, and how the reader moves between them: Flat, Cyberspace's folder tower and its city, and the flat view a ~space address gets where Cyberspace can't run. The address decides it: route() reads its last segment, and every move here either changes the address (a new history entry, so Back and Forward retrace it) or replaces the entry (a selection, a floor slid back). The street (step 5 of the plan) is the city until it is built, and the skyline (step 6) is not built yet.",
+  "title": "Flat, the folder tower, the city and the street",
+  "description": "Which of its ways in the page shows, and how the reader moves between them: Flat, Cyberspace's folder tower, its city and the city's street, and the flat view a ~space address gets where Cyberspace can't run. The address decides it: route() reads its last segment, and every move here either changes the address (a new history entry, so Back and Forward retrace it) or replaces the entry (a selection, a floor slid back, walking). The skyline (step 6 of the plan) is not built yet.",
   "sources": [
     {
       "path": "index.html",
@@ -63,6 +63,42 @@
     {
       "path": "index.html",
       "symbol": "itsFolder"
+    },
+    {
+      "path": "index.html",
+      "symbol": "walkTo"
+    },
+    {
+      "path": "index.html",
+      "symbol": "enterStreet"
+    },
+    {
+      "path": "index.html",
+      "symbol": "streetOn"
+    },
+    {
+      "path": "index.html",
+      "symbol": "riseToCity"
+    },
+    {
+      "path": "index.html",
+      "symbol": "streetFly"
+    },
+    {
+      "path": "index.html",
+      "symbol": "streetGo"
+    },
+    {
+      "path": "index.html",
+      "symbol": "keepWalk"
+    },
+    {
+      "path": "index.html",
+      "symbol": "streetPose"
+    },
+    {
+      "path": "index.html",
+      "symbol": "walkStep"
     }
   ],
   "machine": "Cyberspace's scenes",
@@ -78,7 +114,11 @@
     },
     {
       "id": "city",
-      "description": "Cyberspace's city: one drawn view (#<folder>|view:<file>|~space:city, or a part's focus with it selected) standing full size on the ground, with its labels, legend and camera controls; a selected part lights its beams and opens the inspector. The status line's hint is Esc goes up a level. A ~space:street address shows the city until the street is built."
+      "description": "Cyberspace's city: one drawn view (#<folder>|view:<file>|~space:city, or a part's focus with it selected) standing full size on the ground, with its labels, legend and camera controls; a selected part lights its beams and opens the inspector. The status line's hint is Esc goes up a level."
+    },
+    {
+      "id": "street",
+      "description": "Cyberspace's street: the city's own meshes seen from eye height (#<folder>|<kind>:<part>|~space:street, walked to that part, or #<folder>|view:<file>|~space:street, to the middle of the city), 61.2° of view with its centre low, a vignette and a crosshair. The reader walks with W A S D or the arrows, looks by dragging, rises and sinks with Space and Z; towers are solid and plates are steps. The breadcrumb, the key hints, the map and, over a part under the pointer, the hover card take the place of the city's legend and camera controls. The status line says where the eye walks; its hint, Esc rises back to orbit."
     },
     {
       "id": "webgl-missing",
@@ -181,6 +221,72 @@
       "to": "city",
       "trigger": "a click on a tower, plate or beacon; Esc or a click on empty ground with one selected",
       "action": "the part is selected or cleared, and the entry is replaced with its address or the view's own"
+    },
+    {
+      "from": "city",
+      "to": "street",
+      "trigger": "Walk to <name> in the inspector, or Walk in the camera controls",
+      "action": "a new history entry #<folder>|<kind>:<part>|~space:street (#<folder>|view:<file>|~space:street with nothing selected); the camera flies from the orbit pose to the street's, 12 units from the part across the layout's flow, eased on an arc for 400 ms and 12 more a unit travelled (500 to 1200), and the HUD changes when it lands. At once with reduced motion; input on the way lands it where the eye is"
+    },
+    {
+      "from": "flat",
+      "to": "street",
+      "trigger": "the address gains ~space:street",
+      "guard": "the browser has WebGL 2 and three.js loads",
+      "action": "the city of the view or part it names stands, and the eye is put in the street at once"
+    },
+    {
+      "from": "tower",
+      "to": "street",
+      "trigger": "Back or Forward to a street address",
+      "action": "the city stands at once, and the eye is put in the street, where the reader walked in that entry if they did"
+    },
+    {
+      "from": "street",
+      "to": "street",
+      "trigger": "W A S D or the arrows, Alt with ← →, a drag, Space or Z",
+      "action": "the eye walks at 6 units a second (14 with Shift), turns, looks (pitch within ±60°), rises or sinks (1.7 to 30 above the ground), sliding along towers and stepping onto plates over 150 ms; the history entry is replaced, its state holding where the eye is, at most four times a second"
+    },
+    {
+      "from": "street",
+      "to": "street",
+      "trigger": "a click on a part, Enter on the part under the crosshair, or Esc with one selected",
+      "action": "the part is selected or cleared and the entry replaced, as in the city; the eye stays"
+    },
+    {
+      "from": "street",
+      "to": "street",
+      "trigger": "a click on the map, or Walk to <name> in the inspector",
+      "action": "the eye flies there, as high above the ground as it walks, out of any tower; at once with reduced motion"
+    },
+    {
+      "from": "street",
+      "to": "city",
+      "trigger": "Esc with nothing selected, or the breadcrumb's view",
+      "action": "a new history entry #<folder>|view:<file>|~space:city; the camera flies back to the orbit pose the reader left, or to the fit where they hadn't moved it or came in by the street, and the city's HUD returns at once. At once with reduced motion"
+    },
+    {
+      "from": "street",
+      "to": "city",
+      "trigger": "Back or Forward to a city address of the street's view",
+      "action": "as Esc does"
+    },
+    {
+      "from": "city",
+      "to": "street",
+      "trigger": "Back or Forward to a street address of the city's view",
+      "action": "as Walk to does, to where the reader walked in that entry if they did"
+    },
+    {
+      "from": "street",
+      "to": "tower",
+      "trigger": "the breadcrumb's folder, or Back or Forward to a tower address of its folder",
+      "action": "a new history entry #<folder>|~space for the breadcrumb; the tower stands with this city pulled out, as it does from the city"
+    },
+    {
+      "from": "street",
+      "to": "flat",
+      "trigger": "an address without ~space: Open flat, the switch, Back"
     },
     {
       "from": "tower",

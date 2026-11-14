@@ -282,7 +282,7 @@ The two sky ramps and the major grid colour are new: add them as tokens `--space
 | Towers | One `InstancedMesh` of unit boxes | Glass shader, per-instance colour and state (table below). |
 | Tower edges and floor bands | One merged `LineSegments`: the 12 box edges plus a horizontal ring every 1.0 unit up each tower | `LineBasicMaterial({ vertexColors: true, transparent: true })`; colours and alpha rewritten in the attribute when selection changes. Bands at 35% of the edge alpha. |
 | Beacons | `OctahedronGeometry(1.25)`, scaled 1.04 in y | Upper faces 34%, lower 16%, edges 90%, all `--k-deployment`. A dashed tether to the ground (dash 0.12, gap 0.20, 54%) and two ground rings, r 1.6 (fill 6%, stroke 60%) and r 2.6 (stroke 25%). |
-| Beams | `TubeGeometry(QuadraticBezierCurve3, 32, r, 6)` | Quiet: r 0.035, 42% alpha. Lit: a core r 0.06 in `--hot` plus a glow tube r 0.25 in the kind colour, 35% alpha, `AdditiveBlending` (normal blending in light mode). End dot: sphere r 0.12, where the beam arrives (none on a self-loop). A dashed beam (a use case's *otherwise*, a class's *implements* and *uses*, a deployment's *routes* and *runs on*) keeps every other of its 32 segments. |
+| Beams | `TubeGeometry(QuadraticBezierCurve3, 32, r, 6)` | Quiet: r 0.035, 42% alpha. Lit: a core r 0.06 in `--hot` plus a glow tube r 0.25 in the kind colour, 35% alpha, `AdditiveBlending` (normal blending in light mode). End dot: sphere r 0.12, where the beam arrives (none on a self-loop). A dashed beam (a use case's *otherwise*, a class's *implements* and *uses*, a deployment's *routes* and *runs on*) keeps every other of its 32 segments. In the street every radius here, the end dot's included, is multiplied by 0.28 (`STREET_WEIGHT`): the eye stands a few units from the beams, and artboard 3 draws Loader's lit beams, 14 to 16 units away, with a 1.8 px core and a 7 px glow, and the quiet ones 1 to 1.2 px wide. The drawn tubes are made again on going down and on rising back up; the pick tube stays r 0.3, so a beam is as easy to point at in the street as in the city. |
 | Selection rings | Two rings on the plate top round the selected tower | r 2.0 filled `--hot` 8%, stroked 80%; r 3.0 dashed (4/6) kind colour 50%. |
 | Final-state rings | Two rings on the ground round a final state's base | r 0.8 × its side and that + 0.45, kind colour 90%. |
 | Skyline buildings | One `InstancedMesh` of unit boxes for every floor plate, one for the shells, and one merged `LineSegments` for their edges and the ground lines | Plate: 0.05 thick, its kind's colour, top 0.18, edges 80%. Shell: `--k-component`, sides 0.05, edges 25%. The address folder's: sides 0.16, edges `--hot` 90%, and the selection rings at r 4.3 and r 5.2. Under the pointer: sides 0.12, edges `--hot`. Ground lines: dashed 0.12/0.20, `--k-component` 55%. |
@@ -401,23 +401,27 @@ The street scene is the city's own meshes seen from eye height, with walking con
 
 1. Direction `d` = across the layout's flow, so that the flow runs left to right in front of the reader as it does in Flat, turned 20° upstream: (−sin 20°, 0, −cos 20°) for a left-to-right layout (`world.dir`), (−cos 20°, 0, sin 20°) for a top-to-bottom one. The first rule came from the orbit camera's side, which hides a part's dependencies behind it whenever the reader looks down the flow, as the opening view now does.
 2. Eye = part base + 12 × `d`, at the ground height there + 1.7. If that point is inside any tower's footprint grown by 0.6, step 1 unit further along `d` until it is clear.
-3. Look at the part's centre line at `base + min(0.55 × h, 6.5)`.
-4. Vertical field of view 61.2°; projection centre at (700, 520) of 1440 × 900, so the horizon sits low and towers rise into the frame.
+3. Look at the part's centre line at `base + min(0.55 × h, 6.5)`. A beacon's `h` is its top's height (`y + 1.3`, from a base on the ground), a plate's is its thickness; **Walk** with nothing selected walks to the centre of the bounds, its `h` the bounds' `top`.
+4. Vertical field of view 61.2°; projection centre at (700, 520) of 1440 × 900, so the horizon sits low and towers rise into the frame. As in the tower, 1440 × 900 is the whole window, bar included, so frame the camera in the window: `camera.aspect = W / Hw` and `camera.setViewOffset(W, Hw, (720 − 700) × W/1440, (450 − 520) × Hw/900, W, H)`, with `W × H` the canvas and `Hw = H + top` the window. Artboard 3 draws the horizon at y = 792.7, which this framing gives (794 from the rounded pose below); framed in the canvas alone, with `H/900`, it would be about 14 px higher and the scene about 6% smaller.
 
-For this repository that puts the eye at (−14.1, 1.7, −31.2), looking at (−10.0, 6.0, −20.0): artboard 3's view, with Loader centred and both adapters and the GitHub and GitLab beacons to its right, wherever the orbit camera was.
+For this repository on 2026-11-13 that put the eye at (−14.1, 1.7, −31.2), looking at (−10.0, 6.0, −20.0): artboard 3's view, with Loader centred and both adapters and the GitHub and GitLab beacons to its right, wherever the orbit camera was. Cyberspace's own parts have joined the component diagram since (a fifth plate, five towers and the three.js beacon), and its layout is wider: on 2026-11-14 Loader stands at (−4.4, −21.2), 5.6 units right of and 1.2 nearer than on the artboard, so the eye arrives at (−8.5, 1.7, −32.4), looking at (−4.4, 6.0, −21.2). The view is artboard 3's still. The unit test keeps the artboard's numbers.
+
+Arriving, the inspector closes, as artboard 3 has it, and what was selected stays lit; a click on a part opens it again. In the street it ends 10 px above the map.
 
 **Walking.**
 
 | Input | Effect |
 | --- | --- |
-| W A S D or arrow keys | Walk at 6 units/s; with Shift, 14 units/s. Arrow keys turn instead of strafing when the canvas has focus and Alt is held. |
-| Drag | Look: 0.25° per px; pitch clamped to ±60°. |
+| W A S D or arrow keys | Walk at 6 units/s; with Shift, 14 units/s. Arrow keys turn instead of strafing when the canvas has focus and Alt is held, at 90°/s. W A S D and Z are read by the key's place on the keyboard (`KeyboardEvent.code`), as games do. |
+| Drag | Look: 0.25° per px, the scene following the pointer; pitch clamped to ±60°. |
 | Space / Z | Rise / sink at 4 units/s; eye height 1.7 to 30 above the ground under it. |
 | Click | Select what is under the pointer (as in the city). |
 | Enter | Select what is under the crosshair. |
 | Esc | Clear the selection; with none, rise back to the city orbit. |
 
-Towers are solid: the eye is a circle of radius 0.4 and slides along a footprint it walks into, below that tower's top. Plates are steps: the eye's ground height eases to the plate top under it over 150 ms. Beams and beacons are not solid. Walking ends at the world bounds grown by 30 units.
+Towers are solid: the eye is a circle of radius 0.4 and slides along a footprint it walks into, below that tower's top. Plates are steps: the eye's ground height eases to the plate top under it over 150 ms. Beams and beacons are not solid. Walking ends at the world bounds grown by 30 units. Each frame moves the eye by the real time since the last, cut into steps of at most 0.2 units so that a fast one can't pass through a thin tower (`walkStep`, in the `space-world` block).
+
+The address has no place for the eye, so walking replaces the history entry with the same address and the eye's place in the entry's state (`history.state.walk`), at most four times a second. Back or Forward to a street entry puts the eye where the reader walked in it, or, in an entry not walked in yet, where Walk to puts it.
 
 **Look.**
 
@@ -425,15 +429,16 @@ Towers are solid: the eye is a circle of radius 0.4 and slides along a footprint
 - A CSS vignette over the canvas: radial, transparent to 60%, black at 55% by the edge; street scene only, and not in light mode (use `--ink` at 12% there).
 - A crosshair at the projection centre: four 7 px strokes, 1.5 px, `--hot` at 70%, 8 px gap from the centre.
 - Labels only within 45 units.
+- Beams at the street's weight, 0.28 of their city radii (*Meshes and materials*, Beams): at the arrival by this repository's Loader the lit cores measure 1.6 to 1.8 px and the glows 7.0 to 7.35 px where they leave its top, as artboard 3 draws them.
 
 **Panels** (from the canvas):
 
 | Panel | Where | Content |
 | --- | --- | --- |
 | Breadcrumb | left 20, top 98, 36 tall | `<repository> › <kind name> › <plate> › <part>`; the first two are links to the tower and the city, the plate is plain text, the part (selected, else the one under the crosshair) is `--hot`, weight 600. A `<nav aria-label="Where you are">`. |
-| Hover card | 18 px right of the hovered tower's top right corner, 24 px above it; 280 wide. Where that would pass the canvas's 20 px margin it goes 18 px left of the tower's top left corner instead; where the breadcrumb, the map or the key hints are in its way it slides up or down, whichever is nearer, to clear them by 8 px. | Kind icon, the part name `700 20px` Condensed, its `n.tip` text, then `<degree> beams · click to read it` in `--ink3`. Labels it would cover are hidden. Border in the kind colour. |
+| Hover card | 18 px right of the hovered tower's top right corner (the corner of its top face furthest right on the screen), its top 24 px above that corner; 280 wide. A beacon's corners are its equator's, at its top's height. Where that would pass the canvas's 20 px margin it goes 18 px left of the tower's top left corner instead; where the breadcrumb, the map or the key hints are in its way it slides up or down, whichever is nearer, to clear them by 8 px. It is never under the inspector: while that is open, its left edge less 20 px is the right margin, so the card goes left of its tower, and one that would still reach the inspector moves left until it clears it by 20 px. | Kind icon, the part name `700 20px` Condensed, its `n.tip` text, then `<degree> beams · click to read it` in `--ink3`. Labels it would cover are hidden. Border in the kind colour. |
 | Key hints | left 20, bottom 20, 52 tall | Key caps for W A S D *walk*, Drag *look*, Space *rise*, Click *read a part*, Esc *orbit*. |
-| Map | right 20, bottom 20, 260 wide | Plan view of the world bounds: plates as rounded rectangles (kind colour 12%, stroke 50%), towers as 5 px squares (selected in `--hot`), beacons as amber diamonds, the eye as a 4.5 px `--hot` dot ringed in `--paper`, and a view cone of ±24° reaching 36 units. Clicking the map flies the eye there. `role="img"`, `aria-label` *Map of the city with your position*. |
+| Map | right 20, bottom 20, 260 wide | Plan view of the world bounds: plates as rounded rectangles (kind colour 12%, stroke 50%), towers as 5 px squares (selected in `--hot`), beacons as amber diamonds, the eye as a 4.5 px `--hot` dot ringed in `--paper` (kept on the map's edge while the eye walks beyond the bounds), and a view cone of ±24° reaching 36 units. Clicking the map flies the eye there, as high above the ground as it walks, facing the way it faces, out of any tower. `role="img"`, `aria-label` *Map of the city with your position*. |
 
 The card gives the number of a part's beams, not their names: a list gets long for a busy part. Artboard 3 has the card left of its tower, artboard 6 right of it.
 
@@ -506,7 +511,7 @@ The scene changes:
 
 1. **Tower → city.** Fly to the pulled-out floor until it fills the free rectangle (600 ms). Then, in one frame, swap the scene for the full-size city and put the camera at the equivalent pose: the same view of the floor divided by the floor's scale, `k`, relative to the city's centre. The tower fades out over 200 ms behind it. Reverse it to go back up.
 2. **City → street.** Fly from the orbit pose to the street pose (section *Scene 3*), swapping the HUD when the flight lands.
-3. **Street → city.** Fly back to the orbit pose the reader left, or the fit pose if there was none.
+3. **Street → city.** Fly back to the orbit pose the reader left, or the fit pose if there was none. A camera the reader hadn't moved before going down is fitted again to the room as it now is, as it would have been had they stayed (the inspector they had open has closed on arriving).
 4. **Tower ↔ skyline.** Rising, fly up and back from the tower's pose for 600 ms while the tower fades out and the skyline in, and land on the skyline's pose aimed at that folder's building. Entering a building is the reverse.
 
 **Rendering on demand.** Request a frame only when something changed: input, a flight, a fade, a label being placed, a theme change, a resize. When nothing moves, no frames are drawn. Stop completely while `#space` is hidden or `document.hidden` is true. Resize with a `ResizeObserver` on `#space`, then refit: a camera the reader hasn't moved is fitted again; one they have moved keeps its pose, with the projection centred on the new free rectangle.
@@ -618,7 +623,7 @@ Cyberspace must never be the reason a repository can't be read (quality `fallbac
 | Extra requests on page load in Flat | none | three.js is `import()`ed on first entry to Cyberspace. The Cyberspace code itself is inline (decision `one-file`), so `index.html` grows by roughly 3,000–3,500 lines, about 35 KB compressed. |
 | GPU memory when leaving Cyberspace | released | Dispose every geometry, material and texture; keep the renderer for 60 s, then `forceContextLoss()`. |
 
-**Measuring.** With `?spacestats` in the page's address, a corner readout shows the frame time (from the start of a frame to the GPU finishing it: the readout calls `gl.finish()`, so only with `?spacestats`; and the interval between frames while they come one after another), the draw calls (`renderer.info.render.calls`) and the world's counts of plates, towers, beacons and beams. The budgets and the acceptance numbers are checked with it. On an M1 Pro, whose GPU is about twice an M1 Air's, the frame-time targets are half the ones above.
+**Measuring.** With `?spacestats` in the page's address, a corner readout shows the frame time (from the start of a frame to the GPU finishing it: the readout calls `gl.finish()`, so only with `?spacestats`; averaged over the last frames, so the slow first frame, which compiles the shaders, weighs on it for a while; the latest frame's own time, `last`; and the interval between frames while they come one after another), the draw calls (`renderer.info.render.calls`) and the world's counts of plates, towers, beacons and beams. The budgets and the acceptance numbers are checked with it. On an M1 Pro, whose GPU is about twice an M1 Air's, the frame-time targets are half the ones above.
 
 ### Accessibility
 

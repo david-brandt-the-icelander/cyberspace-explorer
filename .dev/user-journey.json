@@ -455,6 +455,127 @@
           ]
         }
       ]
+    },
+    {
+      "id": "walk-a-district",
+      "name": "Walking through a district",
+      "description": "A reader who has a repository's city in front of them goes down among its parts to read one where it stands.",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "walkTo"
+        },
+        {
+          "path": "index.html",
+          "symbol": "enterStreet"
+        },
+        {
+          "path": "index.html",
+          "symbol": "streetFrame"
+        },
+        {
+          "path": "index.html",
+          "symbol": "riseToCity"
+        }
+      ],
+      "persona": "Reader",
+      "actorDocument": "Actors/reader.md",
+      "goal": "Understand a part by what stands round it, and come back up knowing where it was.",
+      "stages": [
+        {
+          "id": "choose",
+          "context": "A city: the view's parts as towers, the selected one lit with its beams.",
+          "touchpoint": "Inspector",
+          "action": "Selects a part and presses Walk to <name>.",
+          "outcome": "The eye flies down beside it, looking up at it, with its dependencies running left to right in front.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "spaceInspect"
+            },
+            {
+              "path": "index.html",
+              "symbol": "walkTo"
+            },
+            {
+              "path": "index.html",
+              "symbol": "enterStreet"
+            }
+          ]
+        },
+        {
+          "id": "look",
+          "context": "Eye level, 12 units from the part: labels within 45 units, a crosshair, the map in the corner.",
+          "touchpoint": "Street",
+          "action": "Walks with W A S D and looks round by dragging.",
+          "outcome": "They see what the part depends on and what depends on it, at the size it stands.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "spaceRig"
+            },
+            {
+              "path": "index.html",
+              "symbol": "walkStep"
+            }
+          ]
+        },
+        {
+          "id": "where",
+          "context": "The breadcrumb names the folder, the view, the plate and the part ahead; the map shows the eye and the way it faces.",
+          "touchpoint": "Map and breadcrumb",
+          "action": "Reads where they are, or clicks the map to go elsewhere.",
+          "outcome": "They don't get lost.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "streetFrame"
+            },
+            {
+              "path": "index.html",
+              "symbol": "streetGo"
+            }
+          ]
+        },
+        {
+          "id": "read",
+          "context": "A part under the pointer shows a card with what it does and how many beams it has.",
+          "touchpoint": "Hover card",
+          "action": "Points at the parts nearby and clicks the one they want.",
+          "outcome": "Its inspector opens with what Flat says about it.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "streetHover"
+            },
+            {
+              "path": "index.html",
+              "symbol": "streetCard"
+            },
+            {
+              "path": "index.html",
+              "symbol": "spaceSelect"
+            }
+          ]
+        },
+        {
+          "id": "rise",
+          "context": "The status line's hint says Esc rises back to orbit.",
+          "touchpoint": "Esc",
+          "action": "Presses Esc, once to clear the selection and again to rise.",
+          "outcome": "The eye flies back to the city as they left it; Back takes them down again to where they walked.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "riseToCity"
+            },
+            {
+              "path": "index.html",
+              "symbol": "keepWalk"
+            }
+          ]
+        }
+      ]
     }
   ],
   "relatedViews": [
