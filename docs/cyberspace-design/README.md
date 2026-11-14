@@ -1,6 +1,6 @@
 # Cyberspace design
 
-The design that [the Cyberspace spec](../cyberspace-mode-spec.md) implements. These are copies of the canvas [Cyberspace explorer in 3D](https://claude.ai/artifact/VDLEAr9k5mUna6aAPuC1Pp), taken on 2026-11-13, so that whoever builds or reviews Cyberspace can see the design without access to the canvas. The canvas is the source. Change the design there, then copy it here again.
+The design that [the Cyberspace spec](../cyberspace-mode-spec.md) implements. These are copies of the canvas [Cyberspace explorer in 3D](https://claude.ai/artifact/VDLEAr9k5mUna6aAPuC1Pp), taken on 2026-11-14, so that whoever builds or reviews Cyberspace can see the design without access to the canvas. The canvas is the source. Change the design there, then copy it here again.
 
 | Scene | Artboard | Render |
 | --- | --- | --- |
@@ -21,11 +21,7 @@ The owner accepted artboards 4 to 10 on 2026-11-13: decisions `space-light-mode`
 
 ## What they show, and what they don't
 
-- **Artboards 1 to 3 are drawn by hand.** The look, the panels, the type and the colours are the design. The positions are not: in the page, a city stands where `cityWorld` puts it, from the flat drawing's layout.
-- **Artboards 4 to 10 are drawn from the repositories.** Each part stands where the spec's `cityWorld`, `towerWorld` and `skylineWorld` put it, from the page's own models and dagre layout of this repository and of retro-games on 2026-11-13, projected with the spec's cameras and drawn in the spec's glass, beam and label styles. Nothing on them is invented, and the spec and they agree.
-- **The spec no longer follows artboards 1 to 3 in these things**, which artboards 4 to 10 show as the spec has them:
-  - The city on artboard 2 is the component diagram as it was before 2026-11-13: 3 plates, 22 towers, 5 beacons and 23 beams, with an invented *Loose parts* plate. It now has 4 plates (Landing page is one), 23 towers, 5 beacons and 29 beams (artboards 5 and 10).
-  - Artboard 2 looks at its city from the front (−4.4°). The page looks from the front left (−40°), where towers cover each other least.
-  - Artboard 2's Layers panel has one row per kind, ticks Deployment without standing it, and shows the written kinds live. The panel has a row for each view of a kind with several, and the written kinds are disabled (artboards 8 and 9).
-  - Artboard 1 is the root folder's 24 files; it has 25 with `plan.json`, and gains more as the work goes on. Its knowledge floors are not in the page's order. Its folder card says *No folders inside it*, but the root has four, and the pulled-floor card sits under a folder card that has grown (artboard 4).
-  - Artboard 3's hover card lists its part's beams by name and overlaps the map. The card gives their number and keeps clear of the panels (artboard 6).
+- **All ten are drawn from the repositories.** Each part stands where the spec's `cityWorld`, `towerWorld` and `skylineWorld` put it, from the page's own models and dagre layout, projected with the spec's cameras and drawn in the spec's glass, beam and label styles. Nothing on them is invented, and the spec and they agree.
+- **They show the repositories as they were on 2026-11-13**, this one and retro-games, like the numbers in the spec's acceptance checklist. The root folder had 25 files, and the component diagram 4 plates, 23 towers, 5 beacons and 29 beams. Step 1 of the build has since added Cyberspace's own parts to it (a fifth plate, a tower and a beacon), and every step adds more.
+- **Artboards 1 to 3 are the dark twins of 4 to 6**: the same tower, city and street, drawn with the other block of the page's tokens. Only the hovered part differs between 3 and 6 (the GitHub adapter, the GitLab adapter), so that between them they show the hover card on each side of its tower.
+- **Artboards 1 to 3 were first drawn by hand**, before the spec was checked against the code: an older component diagram with an invented *Loose parts* plate, a view from the front, one Layers row per kind. They were drawn again from the repository on 2026-11-14. The originals are in this folder's history.
