@@ -255,7 +255,7 @@ The look is glass wireframe on a dark survey grid: translucent faces, crisp edge
 
 ### Palette
 
-`spaceTheme()` reads these custom properties; the dark values are what the canvas shows, the light values come from the same tokens.
+`spaceTheme()` reads these custom properties. Artboards 1 to 3 show the dark values, artboards 4 to 6 the light ones.
 
 | Role | Token | Dark | Light |
 | --- | --- | --- | --- |
@@ -306,7 +306,8 @@ Labels are HTML in `#space-labels`, never textures: they stay sharp, use Barlow,
 - Neighbour of the selection: text `--hot`, border kind colour. Selected: background and border `--hot`, text `--paper`, weight 600. Beacon: text `--k-deployment`, border the same at 40%.
 - Anchor: a tower's top centre (label bottom 10 px above it); a beacon's top point + 1.7 units.
 - Overlap: sort by anchor screen y, nearest first; push each label up in 6 px steps until clear of the ones placed (4 px gap), at most 40 steps, else hide it. When pushed more than 12 px, draw a 1 px leader in `--ink3` from the anchor to the label's bottom centre.
-- A label that would run under a panel moves sideways, by at most half its width, to clear the panel by 4 px.
+- The selected tower's box on screen and the plate names count as placed, so no other label covers them. A neighbour's label that can't be placed clear is hidden like any other: the cut-off below spares it, this rule does not.
+- A label that would run under a panel moves sideways, by at most half its width, to clear the panel by 4 px. One that still would is hidden.
 - Hide labels behind the camera, off the canvas, or further than the cut-off: 45 units in the street; in the city 90 units, or the far side of the city as fitted when that is further (the fit distance plus half the diagonal of the bounds on the ground). A fixed 90 hides the far labels of a larger city in its opening view, the selected part's among them: 3 of the 159 drawn views of this repository and retro-games reach past it, this repository's component diagram for one. Fade them over the last 10 units. The selected part's label and its neighbours' stay whatever the distance.
 - Beam labels: in a state machine or a deployment, a lit beam shows its edge's `label` (the trigger, the link's kind) at its crest, in a pill 20 px tall, radius 10, `500 12px` Semi Condensed, `--ink` on `--paper` at 86%, with a 1 px dashed border in the kind colour at 70%. They are placed with the part labels and are never hidden. A use case's conditions are sentences: they stay in the inspector and the beam's tooltip.
 - Plate names: uppercase, `600 13px` Semi Condensed, letter-spacing 0.1em, kind colour, then `· N parts` in `--ink3`; placed 8 px under the plate's front-left corner.
@@ -336,7 +337,7 @@ The folder tower is where Cyberspace opens: the folder in the address as a stack
 6. Folders inside it as chips linking to their towers, under `INSIDE` in caps: at most two rows of them, the rest folded into a last chip, `and N more`, which opens the skyline. With none, `No folders inside it.` in `--ink3`.
 7. Where the repository has several folders, a button **See the skyline** (`#<folder>|~space:skyline`).
 
-**Pulled-floor card** (300 px wide, 8 px under the folder card, their right edges in line; the canvas has it there, at bottom 300 px, under a folder card with no chips): a 10 px kind swatch and the kind name in caps and kind colour; the view title `700 24px` Condensed; a count line built from the city world, `23 parts · 5 beacons · 29 beams` for this repository's component diagram on 2026-11-13 (the canvas shows an older one); buttons **Enter the city** (primary, a link to the city address) and **Slide back**.
+**Pulled-floor card** (300 px wide, 8 px under the folder card, their right edges in line): a 10 px kind swatch and the kind name in caps and kind colour; the view title `700 24px` Condensed; a count line built from the city world, `23 parts · 5 beacons · 29 beams` for this repository's component diagram on 2026-11-13; buttons **Enter the city** (primary, a link to the city address) and **Slide back**.
 
 **Interaction.**
 
@@ -354,19 +355,19 @@ Status line: `The root folder is a tower of 24 floors, one per view. Pull a floo
 
 ## Scene 2: the city
 
-The city is one drawn view standing on the ground: what the flat page draws as plates and lines, raised into towers and beams. Match `Main.dc.html` for the look; take every position from `cityWorld`, not from the canvas.
+The city is one drawn view standing on the ground: what the flat page draws as plates and lines, raised into towers and beams. Match `Main.dc.html`: its positions are `cityWorld`'s, for this repository on 2026-11-13.
 
-**Where the canvas is only an illustration.** The canvas placed its four districts by hand and invented a fourth plate, *Loose parts*, for the parts no group contains. Build neither: plates come only from clusters in the model, and a part no cluster contains stands on the bare ground where dagre put it. The canvas also ends towers at the same base height on every plate; nested plates stack instead (section *Scene model*). And it shows the component diagram as it was before 2026-11-13: today's has 4 plates (Landing page is one), 23 towers, 5 beacons and 29 beams.
+**What the artboard shows.** The component diagram of 2026-11-13: 4 plates (Landing page is one, standing on Screen), 23 towers, 5 beacons and 29 beams. Plates come only from clusters in the model. A part no cluster contains stands on the bare ground where dagre put it, as Router and Worker do, and a nested plate stands on its parent's top (section *Scene model*). The first artboard 2 was drawn by hand, with an older diagram and an invented fourth plate, *Loose parts*; it was drawn again from the repository on 2026-11-14.
 
 **Camera.** An orbit camera aimed at the centre of the world's bounds, elevation 33.6°, azimuth −40° (from the front left), vertical field of view 54.1°. Fit: choose the distance at which the bounds' eight corners all project inside the *free rectangle* — the canvas minus the layers panel, the inspector (when open) and the bottom bars — with 24 px to spare; then shift the projection centre to the free rectangle's centre with `setViewOffset`. Refit when the inspector opens or closes, animated over 300 ms (instant with reduced motion).
 
-Artboard 2 looks from −4.4°, but its city was placed by hand. In a real layout the parts of one rank stand in a line, and from the front they hide each other. Over the 130 drawn views of this repository and retro-games with four parts or more, towers cover each other least from about −40°: 0.079 of their area on screen against 0.140 from the front in left-to-right layouts, 0.068 against 0.111 in top-to-bottom ones. Labels are pushed 2 px further on average.
+The first design looked from the front, −4.4°, at a city placed by hand. In a real layout the parts of one rank stand in a line, and from the front they hide each other. Over the 130 drawn views of this repository and retro-games with four parts or more, towers cover each other least from about −40°: 0.079 of their area on screen against 0.140 from the front in left-to-right layouts, 0.068 against 0.111 in top-to-bottom ones. Labels are pushed 2 px further on average.
 
-**What stands in the city.** The view in the address, always. The **Layers** panel lists the folder's other cities and can stand them beside it: each one ticked is built with `cityWorld` and placed to the right of the last, 12 units apart, in its own kind colour. `space.layers` holds them and starts empty (artboard 2 ticks Deployment without standing it).
+**What stands in the city.** The view in the address, always. The **Layers** panel lists the folder's other cities and can stand them beside it: each one ticked is built with `cityWorld` and placed to the right of the last, 12 units apart, in its own kind colour. `space.layers` holds them and starts empty.
 
 A drawn kind with one city is a row with a tick box. A kind with several (three state diagrams; a file's six use cases) is a heading with a chevron and a count, open for the kind being flown, over one row per city, so the panel says which is standing. A view in a file of its own has a tick box. The use cases or journeys of a file have radio buttons: choosing one changes the address to it (a new history entry), which is how a reader reaches a file's second use case; standing several side by side waits for decision `per-entity-cities`. The view in the address is ticked and stays so. Counts are `countOf`'s, as in the folder tree: a use-case file counts its use cases.
 
-Written and knowledge kinds are listed with their counts but disabled, with the hint `Written views and knowledge stand as floors in the folder tower` (the canvas shows them as live checkboxes; that was a mock). Untick a drawn view and its district fades to the `dim` state for 200 ms, then is removed.
+Written and knowledge kinds are listed with their counts but disabled, with the hint `Written views and knowledge stand as floors in the folder tower`. Untick a drawn view and its district fades to the `dim` state for 200 ms, then is removed.
 
 **Selection.** Clicking a tower, plate or beacon calls `spaceSelect(key)`:
 
@@ -388,7 +389,7 @@ Written and knowledge kinds are listed with their counts but disabled, with the 
 | Camera controls | left 20, bottom 20 | Orbit (pressed), Pan, Walk; divider; Zoom in, Zoom out, Fit everything. 40 px icon buttons with `aria-label` and `aria-pressed`. |
 | Legend | left 340, bottom 20, 52 tall | Four items: tower `Part · taller with more beams`; plate `Plate · what contains them`; beacon `Beacon · outside the browser`; beam `Beam · depends on`. Words per kind come from `LEGENDS` where they exist (a deployment city says *connects to*). A state machine's are disc `Start`; tower `State · taller with more transitions`; `Final state · ringed twice, solid top`; beam `Transition · leads to`. A use case's are tower `Step · taller with more beams`; dashed tower `Alternative outcome`; beam `Next step`; dashed beam `Otherwise`. A city with a part that opens a folder adds the badge, `Has views of its own`. |
 
-Status line: `Read <n> views in <m> folders. Flying the <kind name>: drag to orbit, scroll to fly, click a tower to read it.` Right side: `Esc goes up a level` (the canvas says *returns to the flat view*; the switch in the bar does that, Esc does not).
+Status line: `Read <n> views in <m> folders. Flying the <kind name>: drag to orbit, scroll to fly, click a tower to read it.` Right side: `Esc goes up a level` (the switch in the bar returns to Flat; Esc does not).
 
 ## Scene 3: walking a district
 
@@ -401,7 +402,7 @@ The street scene is the city's own meshes seen from eye height, with walking con
 3. Look at the part's centre line at `base + min(0.55 × h, 6.5)`.
 4. Vertical field of view 61.2°; projection centre at (700, 520) of 1440 × 900, so the horizon sits low and towers rise into the frame.
 
-For this repository that puts the eye at (−14.1, 1.7, −31.2), looking at (−10.0, 6.0, −20.0): the canvas's view, with Loader centred and both adapters and the GitHub and GitLab beacons to its right, wherever the orbit camera was.
+For this repository that puts the eye at (−14.1, 1.7, −31.2), looking at (−10.0, 6.0, −20.0): artboard 3's view, with Loader centred and both adapters and the GitHub and GitLab beacons to its right, wherever the orbit camera was.
 
 **Walking.**
 
@@ -432,7 +433,7 @@ Towers are solid: the eye is a circle of radius 0.4 and slides along a footprint
 | Key hints | left 20, bottom 20, 52 tall | Key caps for W A S D *walk*, Drag *look*, Space *rise*, Click *read a part*, Esc *orbit*. |
 | Map | right 20, bottom 20, 260 wide | Plan view of the world bounds: plates as rounded rectangles (kind colour 12%, stroke 50%), towers as 5 px squares (selected in `--hot`), beacons as amber diamonds, the eye as a 4.5 px `--hot` dot ringed in `--paper`, and a view cone of ±24° reaching 36 units. Clicking the map flies the eye there. `role="img"`, `aria-label` *Map of the city with your position*. |
 
-The canvas's hover card says *Beam from Loader · beam to GitHub*; listing beams by name gets long for busy parts, so the card shows the count.
+The card gives the number of a part's beams, not their names: a list gets long for a busy part. Artboard 3 has the card left of its tower, artboard 6 right of it.
 
 Status line: `Walking through <plate>, eye level at the plate.` while the eye is over a plate, and `Walking on open ground near <plate>.` while it is not (the plate of the nearest part, or that part where it stands on none): arriving 12 units from a part usually lands beside its plate. Then `<Selected> is selected; its beams are lit.` (dropped with nothing selected). Right side: `Esc rises back to orbit`.
 
