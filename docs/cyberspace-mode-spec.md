@@ -138,7 +138,7 @@ const space = {
   world: null,        // output of towerWorld / cityWorld
   selected: null,     // part key
   hovered: null,      // part key
-  layers: new Set(),  // views standing beside the one in the address: "<file>" or "<file>#<entity id>"
+  layers: new Set(),  // views standing beside the one in the address, by cityView's key: the file's path, with "#<entity id>" for a use case or journey
 };
 ```
 
@@ -237,15 +237,19 @@ The world object:
 
 When `byFolder.size > 1` the repository also has a skyline: every folder as a building, in a scene of its own one level above the folder towers (*The skyline*). The first rule stood the buildings in the tower scene, round the address folder drawn in full; a 16 × 12 tower with its drawer does not fit a ring of them.
 
-1. One building per folder, all alike: 4.5 units along its ring and 6 towards the centre, one floor plate per `.dev` file 0.5 apart, in the order and the colours of the folder's tower, inside a glass shell 0.3 taller. A building's height says how many views its folder holds.
+1. One building per folder, all alike: 4.5 units along its ring and 6 towards the centre, one floor plate per `.dev` file 0.5 apart, in the order and the colours of the folder's tower, inside a glass shell 0.3 taller. A building's height says how many views its folder holds: 0.3 + 0.5 × its files. The plates' tops stand at 0.5, 1.0, … 0.5 × files, so the shell reaches 0.3 above the top one. The world takes the folders as `[{ folder, floors: [kind, …] }]`, the floors already in the tower's order (`floorOrder`, which `towerWorldFrom` also uses).
 2. The folders are the tree `parentOf` gives. The root stands at the origin; a folder at depth `d` stands on a ring of radius `ring × d`, turned to face the centre. Where several folders have no parent (no views at the repository's root), they are the first ring and the centre is empty.
 3. Each folder needs an angle, `need(f, d) = max(6 / (ring × d), Σ need(child, d + 1))`: its own building's 4.5 units and a gap of 1.5 on its ring, or what its children need, whichever is more. The root's children share the full circle in proportion to their needs, in `folders()` order, starting behind the centre (+z) and going clockwise seen from above. Every other folder shares its own span among its children the same way. A folder stands at the middle of its span.
 4. `ring` starts at 14 and grows by 0.5 until the root's children need no more than 94% of the circle. This repository's 5 folders keep 14; retro-games' 93 take 20. (Sharing the circle by number of folders on rings 14 apart, the first rule, stood 15 pairs of retro-games' buildings closer together than a building is wide.)
 5. A dashed ground line joins each folder to its parent.
 
 ```js
-{ ring, buildings: [{ folder, x, z, angle, depth, floors: [kind, …], h }], lines: [[folder, parent], …], bounds }
+{ ring, buildings: [{ folder, parent, x, z, angle, depth, floors: [kind, …], h }], lines: [[folder, parent], …], bounds }
 ```
+
+`angle` is in radians from +z, clockwise seen from above (+x is a quarter turn on), so a building stands at `(ring × depth × sin angle, ring × depth × cos angle)`; `buildingCorners(b)` gives its footprint. `folders()` order is `localeCompare`'s, as the page sorts it.
+
+**Layer placement** (*Scene 2, What stands in the city*): `layerOffsets(bounds)`, in the `space-world` block, gives each city standing its offset along x: 0 for the first, and for each next one the offset that starts its bounds 12 units (`LAYER_GAP`) right of the last one's. `districtWorld(stands, lead)` joins the cities standing (`[{ key, world, dx }]`) into one world to walk in and map, each part moved by its offset and marked with its view.
 
 ## Rendering
 
@@ -285,7 +289,7 @@ The two sky ramps and the major grid colour are new: add them as tokens `--space
 | Beams | `TubeGeometry(QuadraticBezierCurve3, 32, r, 6)` | Quiet: r 0.035, 42% alpha. Lit: a core r 0.06 in `--hot` plus a glow tube r 0.25 in the kind colour, 35% alpha, `AdditiveBlending` (normal blending in light mode). End dot: sphere r 0.12, where the beam arrives (none on a self-loop). A dashed beam (a use case's *otherwise*, a class's *implements* and *uses*, a deployment's *routes* and *runs on*) keeps every other of its 32 segments. In the street every radius here, the end dot's included, is multiplied by 0.28 (`STREET_WEIGHT`): the eye stands a few units from the beams, and artboard 3 draws Loader's lit beams, 14 to 16 units away, with a 1.8 px core and a 7 px glow, and the quiet ones 1 to 1.2 px wide. The drawn tubes are made again on going down and on rising back up; the pick tube stays r 0.3, so a beam is as easy to point at in the street as in the city. |
 | Selection rings | Two rings on the plate top round the selected tower | r 2.0 filled `--hot` 8%, stroked 80%; r 3.0 dashed (4/6) kind colour 50%. |
 | Final-state rings | Two rings on the ground round a final state's base | r 0.8 × its side and that + 0.45, kind colour 90%. |
-| Skyline buildings | One `InstancedMesh` of unit boxes for every floor plate, one for the shells, and one merged `LineSegments` for their edges and the ground lines | Plate: 0.05 thick, its kind's colour, top 0.18, edges 80%. Shell: `--k-component`, sides 0.05, edges 25%. The address folder's: sides 0.16, edges `--hot` 90%, and the selection rings at r 4.3 and r 5.2. Under the pointer: sides 0.12, edges `--hot`. Ground lines: dashed 0.12/0.20, `--k-component` 55%. |
+| Skyline buildings | One `InstancedMesh` of unit boxes for every floor plate, one for the shells, and one merged `LineSegments` for their edges and the ground lines; the address folder's rings are a fill and a `LineSegments` of their own, moved when the address changes. Six draw calls with the ground grid, however many folders. | Plate: 0.05 thick, its kind's colour, top 0.18, edges 80% (its top's outline). Shell: `--k-component`, sides 0.05, edges 25%. The address folder's: sides 0.16, edges `--hot` 90%, and the selection rings at r 4.3 (filled `--hot` 8%, stroked 80%) and r 5.2 (dashed, `--k-component` 50%). Under the pointer, or focused with Tab: sides 0.12, edges `--hot`. Ground lines: dashed, `--k-component` 55%. The dashes are drawn as segments of the merged lines, 4 px long with gaps of 5 px (the outer ring's, 6 px) seen from the opening distance, as artboard 7 draws them: 0.0284 × `ring` and 0.0355 × `ring` units (0.0426 × `ring` for the ring's gaps). The first rule, dashes of 0.12/0.20 units like a city's, are under a pixel at 6.25 rings and read as a faint solid line. |
 
 **The glass shader.** Unlit. Alpha comes from the face normal so every tower reads the same from any side: top faces `aTop`, faces whose normal points to −x or −z `aLit`, the rest `aDark`. Depth write off, `transparent: true`, front faces only. Render order: grid 0, plates 1, towers 2, beacons 3, beams 4, glow 5.
 
@@ -349,7 +353,7 @@ The folder tower is where Cyberspace opens: the folder in the address as a stack
 | Double-click the pulled floor, **Enter the city**, or Enter on it | Flies into Scene 2 (section *Camera and input*). |
 | Wheel | Climbs: moves the camera and its target up or down 1.05 units a notch, clamped to the stack. ⌘/Ctrl + wheel or pinch zooms. |
 | ↑ / ↓ | Moves keyboard focus floor by floor (focus ring: the floor's edges in `--hot`). |
-| Esc | Closes an inspector that is open; else slides the pulled floor back (as **Slide back** does); with none out, rises to the skyline where the repository has one (step 6; until then, nothing). |
+| Esc | Closes an inspector that is open; else slides the pulled floor back (as **Slide back** does); with none out, rises to the skyline where the repository has one (a new history entry). |
 
 Sliding a floor back replaces the history entry with `#<folder>|~space`. That address also means "the first drawn view pulled out", so the tower keeps every floor in only until the reader goes somewhere; reloading it pulls the first drawn view out again.
 
@@ -370,6 +374,15 @@ The first design looked from the front, −4.4°, at a city placed by hand. In a
 A drawn kind with one city is a row with a tick box. A kind with several (three state diagrams; a file's six use cases) is a heading with a chevron and a count, open for the kind being flown, over one row per city, so the panel says which is standing. A view in a file of its own has a tick box. The use cases or journeys of a file have radio buttons: choosing one changes the address to it (a new history entry), which is how a reader reaches a file's second use case; standing several side by side waits for decision `per-entity-cities`. The view in the address is ticked and stays so. Counts are `countOf`'s, as in the folder tree: a use-case file counts its use cases.
 
 Written and knowledge kinds are listed with their counts but disabled, with the hint `Written views and knowledge stand as floors in the folder tower`. Untick a drawn view and its district fades to the `dim` state for 200 ms, then is removed.
+
+Several cities standing (decided in step 6; the cities standing are a `buildDistrict`, which the stage stands as one thing):
+
+- **Placement.** In the order they were stood, each 12 units right of the last (`layerOffsets`). When an unticked city goes, the ones right of it close up at once, after its fade. The panel's view in the address is ticked and stays so.
+- **Picking and labels** belong to a city and a part: two views can share a part's key. The pointer finds what it is over in any city; labels are made for every city standing, each in its own kind's colour.
+- **Selecting a part of a layer** makes that view the address's: `#F|<kind>:<key>|~space:city`, replacing the entry as a selection does. The view that was in the address stays standing as a layer. Nothing moves; the beams that light are that city's, and the legend and the status line follow it.
+- **Fitting.** A camera the reader hasn't moved fits again, over 300 ms, to everything standing when a layer is ticked or unticked (after the fade); one they have moved keeps its pose, as on a resize. F and **Fit everything** fit everything standing.
+- **The street** walks among every city standing: walking, collision, plates as steps, labels, the map and the hover card cover them all (`districtWorld`). **Walk** with nothing selected walks to the centre of them all. The street hides the Layers panel (its breadcrumb is in the same place); rising back to the city shows it again with the same layers.
+- **The address.** Layers are not in it. They last while the reader stays in that folder's city and its street. When the address names another view of the folder (a radio button, Back or Forward between that folder's city addresses, a link in the inspector), a view standing as a layer becomes the address's where it stands, and the one that was there stays as a layer; a view not standing takes the address view's place, and the other layers stay. Leaving the city for the tower, the skyline, another folder or Flat, and reloading, stand the address's view alone.
 
 **Selection.** Clicking a tower, plate or beacon calls `spaceSelect(key)`:
 
@@ -448,7 +461,7 @@ Status line: `Walking through <plate>, eye level at the plate.` while the eye is
 
 The skyline is the level above the folder towers, for a repository with several folders: `skylineWorld()` seen from above the folder in the address. It is a scene of its own, `~space:skyline`, so a `~space` address still opens the tower of the folder it names, and this repository, which has five folders, still opens on its root tower. Match `Skyline.dc.html`.
 
-**Camera.** The orbit rig, aimed at the address folder's building at height 2: azimuth −40°, elevation 24°, distance `6.25 × ring`, vertical field of view 54.1°, the projection centred 40 px under the centre of the free rectangle (the canvas minus the folder card and the bottom bars). That frames the address folder with the rings next to it and lets the outer rings run to the horizon; fitted whole, retro-games' 93 buildings would each be 20 px wide. **Fit everything** (F) shows them all.
+**Camera.** The orbit rig, aimed at the address folder's building at height 2: azimuth −40°, elevation 24°, distance `6.25 × ring`, vertical field of view 54.1°, the projection centred 40 px under the centre of the free rectangle (the canvas minus the folder card and the bottom bars). That frames the address folder with the rings next to it and lets the outer rings run to the horizon; fitted whole, retro-games' 93 buildings would each be 20 px wide. **Fit everything** (F) shows them all, from the same angles. As in the tower and the street, the design's frame is the whole window, so the field of view spans the window (`top`, *Scene 1, Camera*), not the canvas alone; framed in the canvas, the skyline stood about 6% smaller than on artboard 7. A camera the reader hasn't moved opens there again after a resize.
 
 **What stands there.** Every folder's building. The address folder's is lit and ringed like a selected tower.
 
@@ -460,9 +473,9 @@ The skyline is the level above the folder towers, for a repository with several 
 
 | Input | Effect |
 | --- | --- |
-| Hover a building | Its shell lights, and a hover card opens, placed as the street's is and clear of the folder card: folder icon, the folder's title `700 20px` Condensed, its path and number of files in monospace, its purpose (at most three lines), then `<a> drawn · <b> written · <c> knowledge · <n> folders inside · click to fly in` in `--ink3`. |
-| Click a building, Enter on it, or **Enter …** | Flies into that folder's tower (`#<folder>\|~space`). |
-| Tab / Shift+Tab | Next / previous building, in `folders()` order. |
+| Hover a building | Its shell lights, and a hover card opens, placed as the street's is and clear of the folder card: folder icon, the folder's title `700 20px` Condensed, its path and number of files in monospace, its purpose (at most three lines), then `<a> drawn · <b> written · <c> knowledge · <n> folders inside · click to fly in` in `--ink3`; the folders inside are every folder below it, as artboard 7 counts Hivestorm's six. The card lies over the labels rather than hiding those it covers, as the street's does, so that the label of the building it is about stays. |
+| Click a building, Enter on it, or **Enter …** | Flies into that folder's tower (`#<folder>\|~space`). Enter takes the building under the pointer or focused with Tab, else the address folder's. |
+| Tab / Shift+Tab | Next / previous building, in `folders()` order, from the one focused or the address folder's: it lights as under the pointer and its hover card opens. The canvas's own key handler takes the key; past the last building (or before the first) it is left to the page, so the focus can leave the canvas. |
 | Drag, wheel, arrows, + −, F | The orbit rig (*Camera and input*). Walk is disabled. |
 | Esc | Nothing: the skyline is the top. |
 
@@ -616,7 +629,8 @@ Cyberspace must never be the reason a repository can't be read (quality `fallbac
 | Measure | Budget | How |
 | --- | --- | --- |
 | Draw calls, city of 400 parts | ≤ 40 | Instancing for towers and plates; one merged `LineSegments` for edges and bands; beams merged into one geometry per state (quiet, lit, glow). |
-| Draw calls, skyline of 100 folders | ≤ 8 | Two instanced meshes and one merged `LineSegments`. |
+| Draw calls, skyline of 100 folders | ≤ 8 | Two instanced meshes and one merged `LineSegments`, and the address folder's rings: six with the ground (retro-games' 93 folders, step 6). |
+| Draw calls, a city with its layers | ≤ 40 for this repository's six drawn views standing together | Each city standing is its own meshes, 6 to 10 draw calls: this repository's component diagram with its deployment diagram and four state machines beside it draws in 39 (step 6). |
 | Frame time, this repository, 1440 × 900, M1 MacBook Air | ≤ 16 ms | On-demand rendering; labels placed only on frames where the camera moved. |
 | Frame time, 400 parts | ≤ 33 ms | Same; labels beyond the cut-off culled before placing. |
 | First Cyberspace frame after a click on the switch | ≤ 1.5 s on a cold cache, ≤ 300 ms warm | three.js fetched once and cached by the browser; worlds built on demand, memoised per `doc._path` and direction. |
@@ -711,7 +725,7 @@ The repository describes itself, so the change is not done until its `.dev` file
 
 The questions still open are `status: open` records in [.dev/decisions.json](../.dev/decisions.json), so they show under **Waiting**:
 
-- **Per-entity views** (`per-entity-cities`). A use-case file with many use cases becomes one city per use case. The Layers panel lists a file's use cases as radio buttons, so one stands at a time and a reader can reach each. Whether several can stand side by side, as tick boxes, is decided after step 6.
+- **Per-entity views** (`per-entity-cities`). A use-case file with many use cases becomes one city per use case. The Layers panel lists a file's use cases as radio buttons, so one stands at a time and a reader can reach each. Whether several can stand side by side, as tick boxes, is decided after step 6. What step 6 found: standing views side by side works without new rules, since every city is placed by its bounds and picked, labelled and walked by its view and part; but each city is its own meshes, 6 to 10 draw calls, so this repository's six drawn views standing together take 39 of the 40 a city may use, and a file's six use cases beside its other views would pass it. Ticking several use cases would need their cities merged into shared meshes, or a lower cap on what stands.
 - **Safari and Firefox** (`cross-browser-checks`). Either the owner runs the acceptance checklist in them, or the owner approves installing Playwright's WebKit and Firefox builds so an agent can.
 
 Settled: step 1 pins three.js to the newest stable release on that day (0.187.0 on 2026-11-13), as an exact version in `THREE_URL` like `DAGRE`. jsDelivr's `+esm` build can't carry a subresource-integrity hash, the same trust the page already gives dagre. A shared link opens in whatever mode it says, and the landing page's example keeps opening Flat.

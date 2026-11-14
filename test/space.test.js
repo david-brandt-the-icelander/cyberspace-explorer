@@ -22,6 +22,8 @@ const ADDRESSES = [
   ["#|component%3Aloader|~space:street", "#|component:loader|~space:street", { mode: "space", folder: "", focus: "component:loader", scene: "street" }],
   ["#|view%3Ause-case.json%23read-a-folder|~space:city", "#|view:use-case.json#read-a-folder|~space:city", { mode: "space", folder: "", focus: "view:use-case.json#read-a-folder", scene: "city" }],
   ["#worker/my%20part|component%3Ahandler|~space:city", "#worker/my part|component:handler|~space:city", { mode: "space", folder: "worker/my part", focus: "component:handler", scene: "city" }],
+  ["#worker|~space:skyline", "#worker|~space:skyline", { mode: "space", folder: "worker", focus: null, scene: "skyline" }],
+  ["#|~space:skyline", "#|~space:skyline", { mode: "space", folder: "", focus: null, scene: "skyline" }],
 ];
 
 test("every address in the table reads the same in both spellings, and spaceHash writes the encoded one", () => {
@@ -563,4 +565,116 @@ test("street addresses read back the same, with a part and without", () => {
     // Esc rises to the same place in the city.
     assert.deepEqual(parse(cityHash(folder, view, key, "city")), { ...want, scene: "city" });
   }
+});
+
+// ── The skyline and layers ────────────────────────────────────────────────
+
+const { skylineWorldFrom, buildingCorners, BUILDING, layerOffsets, LAYER_GAP, spaceSceneFor, spacePlaceOf } = vm.runInContext("({ skylineWorldFrom, buildingCorners, BUILDING, layerOffsets, LAYER_GAP, spaceSceneFor, spacePlaceOf })", context);
+const RETRO = JSON.parse(await readFile(new URL("./fixtures/space/retro-folders.json", import.meta.url), "utf8"));
+const skyline = (folders) => JSON.parse(JSON.stringify(skylineWorldFrom(folders.map((f) => ({ folder: f.folder, floors: f.kinds ?? f.floors })))));
+/** Whether two buildings' footprints overlap: no axis of either rectangle separates them. */
+const overlaps = (a, b) => {
+  const A = buildingCorners(a), B = buildingCorners(b);
+  for (const P of [A, B]) for (let i = 0; i < 4; i++) {
+    const [x0, z0] = P[i], [x1, z1] = P[(i + 1) % 4], n = [z0 - z1, x1 - x0], on = (Q) => Q.map(([x, z]) => x * n[0] + z * n[1]);
+    const p = on(A), q = on(B);
+    if (Math.max(...p) <= Math.min(...q) || Math.max(...q) <= Math.min(...p)) return false;
+  }
+  return true;
+};
+/** Angles in [0, 2π) from +z, clockwise seen from above: +x is a quarter turn on. */
+const bearing = (b) => (Math.atan2(b.x, b.z) + 2 * Math.PI) % (2 * Math.PI);
+
+test("retro-games' 93 folders of 2026-11-13 stand on rings 20 units apart, no two footprints overlapping", () => {
+  assert.equal(RETRO.folders.length, 93);
+  assert.equal(RETRO.folders.reduce((s, f) => s + f.kinds.length, 0), 491);
+  const w = skyline(RETRO.folders);
+  assert.equal(w.buildings.length, 93);
+  assert.equal(w.ring, 20);
+  for (let i = 0; i < w.buildings.length; i++) for (let j = i + 1; j < w.buildings.length; j++) assert.ok(!overlaps(w.buildings[i], w.buildings[j]), `${w.buildings[i].folder} and ${w.buildings[j].folder}`);
+  // A building is as tall as its views: 0.3 and 0.5 a file.
+  const files = new Map(RETRO.folders.map((f) => [f.folder, f.kinds.length]));
+  for (const b of w.buildings) assert.ok(near(b.h, 0.3 + 0.5 * files.get(b.folder)), b.folder);
+  // Each folder stands on the ring of its depth, a dashed line to the folder it is in.
+  for (const b of w.buildings) assert.ok(near(Math.hypot(b.x, b.z), 20 * b.depth, 1e-5), b.folder);
+  assert.equal(w.lines.length, 92);
+  assert.deepEqual(w.lines.find(([f]) => f === "games/hivestorm"), ["games/hivestorm", "games"]);
+  // The bounds hold every footprint, and the tallest building: lodestar's 16 files.
+  for (const b of w.buildings) for (const [x, z] of buildingCorners(b)) assert.ok(x >= w.bounds.x0 - 1e-9 && x <= w.bounds.x1 + 1e-9 && z >= w.bounds.z0 - 1e-9 && z <= w.bounds.z1 + 1e-9);
+  assert.ok(near(w.bounds.top, 8.3));
+});
+
+test("this repository's five folders keep ring 14, the root at the origin and the rest round it", () => {
+  const five = ["", ".github", "crates", "test", "worker"].map((folder) => ({ folder, floors: ["component", "folder"] }));
+  const w = skyline(five);
+  assert.equal(w.ring, 14);
+  assert.deepEqual([w.buildings[0].x, w.buildings[0].z, w.buildings[0].depth], [0, 0, 0]);
+  for (const b of w.buildings.slice(1)) { assert.equal(b.depth, 1); assert.ok(near(Math.hypot(b.x, b.z), 14, 1e-5)); assert.equal(b.parent, ""); }
+  for (const b of w.buildings) assert.ok(near(b.h, 1.3));
+});
+
+test("the root's first child stands behind the centre, and the rest follow it clockwise seen from above, in folder order", () => {
+  const w = skyline(["", "a", "b", "c", "d"].map((folder) => ({ folder, floors: ["component"] })));
+  const kids = w.buildings.filter((b) => b.depth === 1);
+  assert.deepEqual(kids.map((b) => b.folder), ["a", "b", "c", "d"]);
+  // Four equal needs share the circle: the first in the middle of the first quarter, from +z towards +x.
+  assert.ok(near(bearing(kids[0]), Math.PI / 4, 1e-6) && kids[0].z > 0 && kids[0].x > 0);
+  const turns = kids.map(bearing);
+  for (let i = 1; i < turns.length; i++) assert.ok(turns[i] > turns[i - 1], "clockwise");
+  // A folder with a subtree needs the angle its subtree needs, and its children share its span.
+  const deep = skyline(["", "a", "a/x", "a/y", "b"].map((folder) => ({ folder, floors: ["component"] })));
+  const a = deep.buildings.find((b) => b.folder === "a"), kidsOfA = deep.buildings.filter((b) => b.parent === "a");
+  assert.equal(kidsOfA.length, 2);
+  assert.ok(near(bearing(a), (bearing(kidsOfA[0]) + bearing(kidsOfA[1])) / 2, 1e-9));
+  assert.ok(bearing(kidsOfA[0]) < bearing(kidsOfA[1]));
+});
+
+test("one folder is one building at the origin; folders with no parent are the first ring, and the centre is empty", () => {
+  const one = skyline([{ folder: "", floors: ["component", "vision"] }]);
+  assert.equal(one.buildings.length, 1);
+  assert.deepEqual([one.buildings[0].x, one.buildings[0].z, one.buildings[0].h], [0, 0, 1.3]);
+  assert.equal(one.ring, 14);
+  assert.deepEqual(one.lines, []);
+  const tops = skyline(["games", "games/chess", "tools"].map((folder) => ({ folder, floors: ["component"] })));
+  assert.equal(tops.buildings.length, 3);
+  assert.ok(tops.buildings.every((b) => Math.hypot(b.x, b.z) > 1), "nothing at the centre");
+  assert.deepEqual(tops.buildings.filter((b) => b.depth === 1).map((b) => b.folder), ["games", "tools"]);
+  assert.equal(tops.buildings.find((b) => b.folder === "games/chess").depth, 2);
+  assert.deepEqual(tops.lines, [["games/chess", "games"]]);
+});
+
+test("a building's footprint is 4.5 along its ring and 6 towards the centre", () => {
+  const w = skyline(["", "a"].map((folder) => ({ folder, floors: ["component"] }))), b = w.buildings[1];
+  const c = buildingCorners(b), side = (i, j) => Math.hypot(c[i][0] - c[j][0], c[i][1] - c[j][1]);
+  assert.ok(near(side(0, 1), BUILDING.w) && near(side(1, 2), BUILDING.d));
+  // Its depth points at the centre: the middle of its near side is 3 nearer the centre than its own.
+  const mid = (i, j) => Math.hypot((c[i][0] + c[j][0]) / 2, (c[i][1] + c[j][1]) / 2);
+  assert.ok(near(Math.min(mid(0, 1), mid(2, 3)), Math.hypot(b.x, b.z) - 3, 1e-9));
+});
+
+test("a second and a third city each stand 12 units right of the last one's bounds", () => {
+  const first = { x0: -20, x1: 20.3 }, second = { x0: -7, x1: 9 }, third = { x0: -30, x1: 4 };
+  const dx = layerOffsets([first, second, third]);
+  assert.equal(LAYER_GAP, 12);
+  assert.equal(dx[0], 0);
+  assert.ok(near(second.x0 + dx[1], first.x1 + 12));
+  assert.ok(near(third.x0 + dx[2], second.x1 + dx[1] + 12));
+  assert.deepEqual([...layerOffsets([first])], [0]);
+});
+
+test("a skyline address opens the tower in a repository of one folder, and the skyline otherwise", () => {
+  assert.equal(spaceSceneFor("skyline", 1), "tower");
+  assert.equal(spaceSceneFor("skyline", 0), "tower");
+  assert.equal(spaceSceneFor("skyline", 5), "skyline");
+  for (const scene of ["tower", "city", "street"]) assert.equal(spaceSceneFor(scene, 1), scene);
+});
+
+test("switching to Flat from the skyline opens the folder", () => {
+  assert.equal(switchHash("flat", spacePlaceOf(parse("#worker|~space:skyline"))), "#worker");
+  assert.equal(switchHash("flat", spacePlaceOf(parse("#|~space:skyline"))), "#");
+  // Whatever else the address names.
+  assert.equal(switchHash("flat", spacePlaceOf(parse("#worker|component:handler|~space:skyline"))), "#worker");
+  // The other scenes keep the part or view, as before.
+  assert.equal(switchHash("flat", spacePlaceOf(parse("#worker|component:handler|~space:city"))), "#worker|component%3Ahandler");
+  assert.equal(switchHash("flat", spacePlaceOf(parse("#|view:use-case.json#a|~space:city"))), "#|view%3Ause-case.json%23a");
 });

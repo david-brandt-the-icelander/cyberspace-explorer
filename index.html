@@ -509,6 +509,38 @@
   #inspector .ibtn.primary svg.ic use { color: var(--paper); }
   /* In the street the inspector ends 10 px above the map. */
   body.street #inspector { max-height: calc(100vh - 128px - var(--map-h, 250px)); }
+  /* The Layers panel over a city: a row per kind, a heading over a kind's several cities, the written and knowledge kinds disabled. */
+  #space-layers { left: 20px; top: 44px; width: 232px; box-sizing: border-box; max-height: calc(100% - 136px); overflow-y: auto; }
+  #space-layers .caps { font: 600 12px/1.2 var(--semi); letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+  #space-layers .lf { margin-top: 2px; font-size: 13px; color: var(--ink3); }
+  #space-layers .lf code { font: 400 13px var(--mono); }
+  #space-layers .lrows { margin-top: 10px; display: flex; flex-direction: column; }
+  #space-layers .lk { display: flex; align-items: center; gap: 10px; width: 100%; height: 32px; padding: 0; border: 0; background: none; text-align: left; font: 400 14px/1 var(--sans); color: var(--ink2); cursor: pointer; }
+  #space-layers .lk.on { color: var(--ink); }
+  #space-layers .lk.off { cursor: default; color: var(--ink3); }
+  #space-layers .lk .t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #space-layers .lk .ic { width: 16px; height: 16px; flex: none; color: var(--ink3); }
+  #space-layers .lk[aria-expanded="true"] .ic { transform: rotate(90deg); }
+  #space-layers .sw { width: 10px; height: 10px; flex: none; border-radius: 2px; background: var(--k); }
+  #space-layers .off .sw { opacity: .5; }
+  #space-layers .n { font: 400 12px/1 var(--mono); color: var(--ink3); }
+  #space-layers input { margin: 0; flex: none; accent-color: var(--k); }
+  #space-layers .lk input { width: 16px; height: 16px; }
+  #space-layers .lr { display: flex; align-items: flex-start; gap: 8px; padding: 4px 0 4px 26px; font: 400 13px/17px var(--sans); color: var(--ink2); cursor: pointer; }
+  #space-layers .lr.on { color: var(--ink); }
+  #space-layers .lr input { width: 14px; height: 14px; margin-top: 1px; }
+  #space-layers .lh { margin: 8px 0 0; font-size: 12.5px; line-height: 17px; color: var(--ink3); }
+  #space-controls button:disabled { opacity: .35; cursor: default; background: none; }
+  /* The skyline: a building's label with its folder's segment, the legend's swatches, the folder card's foot, the hover card. */
+  .sl .seg { font: 400 11.5px/1 var(--mono); color: var(--ink3); }
+  .sl.sel .seg { color: inherit; opacity: .7; }
+  #space-legend .sws { display: inline-flex; gap: 2px; }
+  #space-legend .sws i { width: 8px; height: 8px; border-radius: 2px; background: var(--k); }
+  #space-cards .scr { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--rule); font-size: 13px; line-height: 19px; color: var(--ink2); }
+  #space-cards .ibtn .ic { width: 16px; height: 16px; }
+  #space-card.folder .shh span { color: var(--k-knowledge); }
+  #space-card .shp { font: 400 12px/1.4 var(--mono); color: var(--ink3); }
+  #space-card.folder p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
   #space-stats { position: absolute; z-index: 3; top: 48px; right: 20px; padding: 6px 10px; border: 1px solid var(--rule); border-radius: 6px; background: color-mix(in srgb, var(--sheet) 90%, transparent); font: 400 12px/1.45 var(--mono); color: var(--ink2); white-space: pre; pointer-events: none; }
   .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 </style>
@@ -710,6 +742,8 @@ const ICONS = {
   pan: `<circle cx="12" cy="12" r="2.4" ${F}/><path d="M12 3v18M3 12h18M12 3l-2.5 2.5M12 3l2.5 2.5M12 21l-2.5-2.5M12 21l2.5-2.5M3 12l2.5-2.5M3 12l2.5 2.5M21 12l-2.5-2.5M21 12l-2.5 2.5"/>`,
   beacon: `<path d="M12 2.5 17 9.5 12 16.5 7 9.5z" ${F}/><path d="M12 2.5 17 9.5 12 16.5 7 9.5zM7 9.5h10"/><circle cx="12" cy="19.2" r=".8" ${S}/><circle cx="12" cy="22" r=".8" ${S}/>`,
   tower: `<path d="M8 21V6l4-2 4 2v15z" ${F}/><path d="M8 21V6l4-2 4 2v15z"/><path d="M8 11h8M8 16h8"/>`,
+  // A folder in the skyline: four floor lines between two faint rails.
+  building: `<path d="M5 20h14M5 16.5h14M5 13h14M5 9.5h14"/><path d="M5 20V9.5M19 20V9.5" stroke-opacity=".5"/>`,
   walk: `<circle cx="13.5" cy="4.5" r="2.2" ${F}/><circle cx="13.5" cy="4.5" r="2.2"/><path d="M12.8 8.4 11 14.2l-2.6 3.3L6.8 21M11 14.2l3 2.6.9 4.2M12.5 9.6 9.2 11.6l-1 3.1M12.6 9.8l2.3 2.8 3.1.8"/>`,
 };
 
@@ -2371,7 +2405,9 @@ function showWaiting() {
 // Functions of their arguments only: test/space.test.js runs this block in Node.
 
 /** The scenes; an address that names none opens the tower. */
-const SPACE_SCENES = ["tower", "city", "street"];
+const SPACE_SCENES = ["tower", "city", "street", "skyline"];
+/** The scene an address opens: the one it names, but the tower for the skyline of a repository with one folder, which has none. */
+const spaceSceneFor = (scene, folders) => (scene === "skyline" && folders < 2 ? "tower" : scene);
 const decoded = (f, s) => { try { return f(s); } catch { return s; } };
 /** A place in Flat, encoded as folderHash encodes it. */
 const flatHash = (folder, focus) => "#" + encodeURI(folder) + (focus ? "|" + encodeURIComponent(focus) : "");
@@ -2396,6 +2432,12 @@ function switchHash(to, { folder = "", waiting = false, kind = null, part = null
   if (to === "flat") return flatHash(folder, focus);
   if (waiting) return spaceHash({});
   return spaceHash({ folder, focus, scene: kind && part ? "city" : "tower" });
+}
+/** Where the reader is in Cyberspace, as switchHash takes it: the part or view the address names; in the skyline, the folder alone. */
+function spacePlaceOf({ folder = "", focus = null, scene = "tower" }) {
+  if (scene === "skyline") return { folder };
+  const [kind, ...name] = (focus ?? "").split(":");
+  return kind === "view" ? { folder, view: name.join(":") } : { folder, kind: kind || null, part: name.join(":") || null };
 }
 
 /** World units per sheet pixel: one unit is 40 px of the flat drawing. */
@@ -2551,6 +2593,36 @@ function cityHash(folder, { kind, file, entity = null }, key, scene = "city") {
   return spaceHash({ folder, focus: key != null ? `${kind}:${key}` : `view:${file}${entity ? "#" + entity : ""}`, scene });
 }
 
+/** How far apart the cities standing side by side are: the gap between one's bounds and the next one's. */
+const LAYER_GAP = 12;
+/** Where the cities standing side by side go (Scene 2, What stands in the city): the first where it was built, and each next
+ *  one moved along x until its bounds start 12 units right of the last one's. `bounds`: each city's, in standing order. */
+function layerOffsets(bounds) {
+  const dx = [];
+  let right = 0;
+  bounds.forEach((b, i) => { dx.push(i ? right + LAYER_GAP - b.x0 : 0); right = b.x1 + dx[i]; });
+  return dx;
+}
+/** The cities standing side by side as one world to walk in and map (Scene 3): each one's plates, towers, beacons and start
+ *  points moved by its offset and marked with its view (and each part with the name of the plate it stands in), and the
+ *  bounds round them all. The city in the address (`lead`) gives the kind and the direction. `stands`: [{ key, world, dx }]. */
+function districtWorld(stands, lead = stands[0]?.key) {
+  const first = stands.find((s) => s.key === lead) ?? stands[0];
+  const w = { kind: first.world.kind, dir: first.world.dir, plates: [], towers: [], beacons: [], markers: [], bounds: null };
+  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity, top = 0;
+  for (const { key: view, world, dx } of stands) {
+    const plateName = (k) => cityPlateOf(world, k)?.name ?? null;
+    for (const p of world.plates) w.plates.push({ ...p, x0: p.x0 + dx, x1: p.x1 + dx, view });
+    for (const t of world.towers) w.towers.push({ ...t, x: t.x + dx, view, plateName: plateName(t.key) });
+    for (const b of world.beacons) w.beacons.push({ ...b, x: b.x + dx, view, plateName: plateName(b.key) });
+    for (const m of world.markers) w.markers.push({ ...m, x: m.x + dx, view });
+    const b = world.bounds;
+    x0 = Math.min(x0, b.x0 + dx); x1 = Math.max(x1, b.x1 + dx); z0 = Math.min(z0, b.z0); z1 = Math.max(z1, b.z1); top = Math.max(top, b.top);
+  }
+  w.bounds = { x0, x1, z0, z1, top };
+  return w;
+}
+
 /** A floor of the folder tower: 16 × 12 units and 0.14 thick, the floors 1.05 apart with 1.4 more between groups. */
 const FLOOR = { w: 16, d: 12, h: 0.14, step: 1.05, gap: 1.4 };
 /** Where the pulled-out floor stands, from its slot. */
@@ -2564,11 +2636,8 @@ const round6 = (v) => Math.round(v * 1e6) / 1e6;
  *  written ones, then knowledge, each group in the page's order of kinds. `kinds`: the drawn kinds, the page's KIND_ORDER and
  *  KNOWLEDGE. A written floor shows a bar per card (at most 4) and a knowledge floor a line per record (at most 6), each as
  *  long as its title; a drawn floor's plan comes from its city (floorPlan). `drawer` is the first drawn floor, -1 for none. */
-function towerWorldFrom(docs, { drawn, order, knowledge }) {
-  const groupOf = (d) => (drawn.includes(d.kind) ? "drawn" : d.kind in order ? "written" : d.kind in knowledge ? "knowledge" : null);
-  const rank = (d) => order[d.kind] ?? knowledge[d.kind]?.order ?? 999;
-  const listed = docs.map((d, i) => ({ d, i, g: groupOf(d) })).filter((x) => x.g)
-    .sort((a, b) => TOWER_GROUPS.indexOf(a.g) - TOWER_GROUPS.indexOf(b.g) || rank(a.d) - rank(b.d) || a.i - b.i);
+function towerWorldFrom(docs, kinds) {
+  const { knowledge } = kinds, listed = floorOrder(docs, kinds);
   const floors = [], groups = [];
   for (const { d, g } of listed) {
     if (groups[groups.length - 1]?.name !== g) groups.push({ name: g, count: 0, first: floors.length, last: floors.length });
@@ -2588,6 +2657,59 @@ function towerWorldFrom(docs, { drawn, order, knowledge }) {
   }
   const top = floors.length ? floors[floors.length - 1].y : 0;
   return { floors, groups, top, climb: Math.max(0, round6(top - TOWER_TOP)), drawer: floors.findIndex((f) => f.group === "drawn") };
+}
+/** A folder's files in the order its tower stacks them, each with its group (`g`): drawn views, then written ones, then
+ *  knowledge, each group in the page's order of kinds. A file of no kind the page knows is left out. */
+function floorOrder(docs, { drawn, order, knowledge }) {
+  const groupOf = (d) => (drawn.includes(d.kind) ? "drawn" : d.kind in order ? "written" : d.kind in knowledge ? "knowledge" : null);
+  const rank = (d) => order[d.kind] ?? knowledge[d.kind]?.order ?? 999;
+  return docs.map((d, i) => ({ d, i, g: groupOf(d) })).filter((x) => x.g)
+    .sort((a, b) => TOWER_GROUPS.indexOf(a.g) - TOWER_GROUPS.indexOf(b.g) || rank(a.d) - rank(b.d) || a.i - b.i);
+}
+
+/** A building of the skyline: 4.5 units along its ring and 6 towards the centre; a floor plate 0.05 thick per file, their
+ *  tops 0.5 apart, in a glass shell 0.3 taller; and on its ring the building and a gap of 1.5. */
+const BUILDING = { w: 4.5, d: 6, gap: 1.5, floor: 0.5, plate: 0.05, shell: 0.3 };
+/** The corners of a building's footprint, [x, z] in the spec's frame: turned so that its depth points at the centre. */
+function buildingCorners(b) {
+  const r = [Math.sin(b.angle), Math.cos(b.angle)], t = [r[1], -r[0]], w = BUILDING.w / 2, d = BUILDING.d / 2;
+  return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([i, j]) => [b.x + i * w * t[0] + j * d * r[0], b.z + i * w * t[1] + j * d * r[1]]);
+}
+/** A repository's folders as a skyline (docs/cyberspace-mode-spec.md, Skyline world): a building per folder on the radial
+ *  tree of folders, the root at the origin and a folder at depth d on a ring of radius ring × d. A folder needs the angle its
+ *  own building takes on its ring or what its children need, whichever is more; the first ring shares the full circle in
+ *  proportion to their needs, in folder order, from +z (behind the centre) clockwise seen from above, and every folder shares
+ *  its span among its children the same way, standing in the middle of its own. `ring` grows from 14 by 0.5 until the first
+ *  ring needs no more than 94% of the circle. With no root folder the folders without a parent are the first ring, and the
+ *  centre is empty. `folders`: [{ folder, floors: [kind, …] }], the floors in the order of the folder's tower. */
+function skylineWorldFrom(folders) {
+  const all = folders.map((f) => ({ folder: f.folder, floors: [...f.floors] })).sort((a, b) => a.folder.localeCompare(b.folder));
+  const has = new Set(all.map((f) => f.folder));
+  // The nearest folder above, as parentOf finds it.
+  const parentOf = (f) => { const parts = f.split("/"); for (let n = parts.length - 1; n >= 0; n--) { const p = parts.slice(0, n).join("/"); if (p !== f && has.has(p)) return p; } return null; };
+  const kids = new Map(all.map((f) => [f.folder, []])), tops = [];
+  for (const f of all) { f.parent = parentOf(f.folder); if (f.parent === null) tops.push(f); else kids.get(f.parent).push(f); }
+  const centre = tops.length === 1 && tops[0].folder === "" ? tops[0] : null, first = centre ? kids.get("") : tops;
+  let ring = 14;
+  const need = (f, d) => Math.max((BUILDING.w + BUILDING.gap) / (ring * d), kids.get(f.folder).reduce((s, c) => s + need(c, d + 1), 0));
+  const needs = (fs, d) => fs.reduce((s, f) => s + need(f, d), 0);
+  while (needs(first, 1) > 0.94 * 2 * Math.PI) ring += 0.5;
+  const buildings = [], height = (f) => round6(BUILDING.shell + BUILDING.floor * f.floors.length);
+  const stand = (f, d, angle) => buildings.push({ folder: f.folder, parent: f.parent, x: round6(ring * d * Math.sin(angle)), z: round6(ring * d * Math.cos(angle)), angle, depth: d, floors: f.floors, h: height(f) });
+  const share = (fs, d, from, span) => {
+    const each = fs.map((f) => need(f, d)), total = each.reduce((s, n) => s + n, 0);
+    let a = from;
+    fs.forEach((f, i) => { const s = (span * each[i]) / total; stand(f, d, a + s / 2); share(kids.get(f.folder), d + 1, a, s); a += s; });
+  };
+  if (centre) buildings.push({ folder: "", parent: null, x: 0, z: 0, angle: 0, depth: 0, floors: centre.floors, h: height(centre) });
+  share(first, 1, 0, 2 * Math.PI);
+  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity, top = 0;
+  for (const b of buildings) {
+    for (const [x, z] of buildingCorners(b)) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+    top = Math.max(top, b.h);
+  }
+  const bounds = buildings.length ? { x0, x1, z0, z1, top } : { x0: -1, x1: 1, z0: -1, z1: 1, top: 1 };
+  return { ring, buildings, lines: all.filter((f) => f.parent !== null).map((f) => [f.folder, f.parent]), bounds };
 }
 
 /** What a drawn floor shows on its top face: its city's flat layout, scaled to fit 13 × 9 units round the floor's centre: each
@@ -2632,9 +2754,11 @@ function streetSide(dir) {
 /** Where Walk to <part> puts the eye (docs/cyberspace-mode-spec.md, Scene 3, Arriving): 12 units from the part's base across
  *  the flow, 1.7 above the ground there, stepped further out a unit at a time while it is inside a tower's footprint grown by
  *  0.6; looking at the part's centre line, min(0.55 × its height, 6.5) above its base. A beacon's height is its top's, a
- *  plate's its thickness; with no part (`key` null), the centre of the bounds, as high as the city. */
-function streetPose(world, key = null) {
-  const t = world.towers.find((x) => x.key === key), b = world.beacons.find((x) => x.key === key), p = world.plates.find((x) => x.key === key);
+ *  plate's its thickness; with no part (`key` null), the centre of the bounds, as high as the city. Among cities standing side
+ *  by side (districtWorld's) `view` says which city's part it is. */
+function streetPose(world, key = null, view = undefined) {
+  const is = (x) => x.key === key && (view === undefined || x.view === view);
+  const t = world.towers.find(is), b = world.beacons.find(is), p = world.plates.find(is);
   const B = world.bounds;
   const part = t ? { x: t.x, z: t.z, base: t.base, h: t.h }
     : b ? { x: b.x, z: b.z, base: 0, h: b.y + 1.3 }
@@ -2677,7 +2801,8 @@ function streetWhere(world, x, z) {
   for (const p of world.plates) if (x >= p.x0 && x <= p.x1 && z >= p.z0 && z <= p.z1 && p.base + PH > top) { over = p; top = p.base + PH; }
   let near = null, best = Infinity;
   for (const q of [...world.towers, ...world.beacons]) { const d = Math.hypot(q.x - x, q.z - z); if (d < best) { best = d; near = q; } }
-  return { over: over?.name ?? null, near: near ? (cityPlateOf(world, near.key)?.name ?? near.name) : null };
+  // Among cities standing side by side each part knows its plate's name (districtWorld).
+  return { over: over?.name ?? null, near: near ? ((near.plateName !== undefined ? near.plateName : cityPlateOf(world, near.key)?.name) ?? near.name) : null };
 }
 /* space-world:end */
 
@@ -2706,9 +2831,11 @@ const webgl = (() => {
 })();
 
 /** What Cyberspace shows: the place the address names, and the part selected and the one under the pointer, by key (in the
- *  tower, the file of the floor whose inspector is open, and the floor under the pointer). `shut`: the reader slid the tower's
- *  floor back, and `at` is the address they did it at. */
-const space = { on: false, scene: null, folder: null, focus: null, selected: null, hovered: null, shut: false, at: null };
+ *  tower, the file of the floor whose inspector is open, and the floor under the pointer; in the skyline, the folder under the
+ *  pointer). `shut`: the reader slid the tower's floor back, and `at` is the address they did it at. `layers`: the views
+ *  standing in the city beside the one in the address, by cityView's key (the file's path, with #<entity id> for one of a
+ *  file's use cases or journeys); not in the address, so they last while the folder's city stands. */
+const space = { on: false, scene: null, folder: null, focus: null, selected: null, hovered: null, shut: false, at: null, layers: new Set() };
 /** Why Cyberspace couldn't start, for route() to say as it shows Flat instead; and the status line's text around Cyberspace's own. */
 let spaceFailed = null, spaceSaid = "", loaderSaid = "";
 
@@ -3087,9 +3214,28 @@ function buildCity(world, colours) {
     },
     /** Puts the towers' instances in order, furthest from the eye first, since three.js doesn't sort the instances of one mesh. */
     sort(eye) {
-      const far = world.towers.map((t) => V(t.x, t.base + t.h / 2, t.z).distanceToSquared(eye));
+      const far = world.towers.map((t) => V(t.x + self.dx, t.base + t.h / 2, t.z).distanceToSquared(eye));
       slot = slot.slice().sort((a, b) => far[b] - far[a]);
       writeTowers();
+    },
+    /** How far along x the city stands from where it was built: beside the others standing (layerOffsets). */
+    dx: 0,
+    at(dx) {
+      self.dx = dx;
+      group.position.copy(V(dx, 0, 0));
+      group.updateMatrixWorld(true);
+      if (pickBeams) { pickBeams.position.copy(group.position); pickBeams.updateMatrixWorld(); }
+    },
+    /** Fades the city towards the dim state, `k` from 0 (as it stands) to 1 (dim: about 0.4 of every alpha), as a layer
+     *  being unticked does before it goes. */
+    dim(k) {
+      const f = 1 - 0.6 * k;
+      group.traverse((o) => {
+        const m = o.material;
+        if (!m) return;
+        if (m.uniforms?.fade) m.uniforms.fade.value = f;
+        else { m.userData.opacity ??= m.opacity; m.opacity = m.userData.opacity * f; }
+      });
     },
     dispose() {
       for (const name of Object.keys(lit)) swap(name, null);
@@ -3113,6 +3259,97 @@ function buildCity(world, colours) {
     swap("hover", made, hoverMaterial, 4);
   }
   self.paint(colours);
+  return self;
+}
+
+/** What stands in a city scene (Scene 2, What stands in the city): the view in the address (`lead`) and the layers beside it,
+ *  each buildCity's, in the order they were stood, each 12 units right of the last (layerOffsets). It stands on the stage as one
+ *  thing: picking, sorting, painting and weighing reach every city, and marking the selection reaches the city in the address.
+ *  `first`: { key, v, made }, the view in the address. */
+function buildDistrict(first, colours) {
+  const group = new three.Group(), cities = [];
+  let painted = colours, weight = 1, pointed = null;
+  const stand = (entry) => { const city = buildCity(entry.made.world, painted); if (weight !== 1) city.weigh(weight); group.add(city.group); return { ...entry, world: entry.made.world, city, gone: false }; };
+  const self = {
+    kind: "city", group, cities, lead: first.key,
+    /** A city standing here, by its view's key; not one fading out. */
+    of: (key) => cities.find((c) => c.key === key && !c.gone) ?? null,
+    get world() { return self.of(self.lead).world; },
+    /** The cities standing, with where each stands: for labels, the fit and the street. */
+    stands: () => cities.filter((c) => !c.gone).map(({ key, world, city }) => ({ key, world, dx: city.dx })),
+    stats() {
+      const live = cities.filter((c) => !c.gone);
+      if (live.length === 1) return live[0].city.stats();
+      const sum = (f) => live.reduce((s, c) => s + c.world[f].length, 0);
+      return `${live.length} cities · ${sum("plates")} plates · ${sum("towers")} towers · ${sum("beacons")} beacons · ${sum("beams")} beams`;
+    },
+    /** Puts every city in its place, 12 units right of the last. */
+    place() { const dx = layerOffsets(cities.map((c) => c.world.bounds)); cities.forEach((c, i) => c.city.at(dx[i])); },
+    /** Stands another view to the right of the last. */
+    add(entry) { cities.push(stand(entry)); self.place(); },
+    /** Stands a view in the place of another (the address's view changed to one not standing), which goes at once. */
+    swap(key, entry) {
+      const i = cities.findIndex((c) => c.key === key);
+      if (i < 0) { self.add(entry); return; }
+      const was = cities[i];
+      cities[i] = stand(entry);
+      group.remove(was.city.group);
+      was.city.dispose();
+      if (pointed === key) pointed = null;
+      self.place();
+    },
+    /** Takes a view away: it fades to the dim state over `ms` (at once with reduced motion), then goes, and the cities right
+     *  of it close up; `done` is called then. */
+    remove(key, ms, request, done) {
+      const c = self.of(key);
+      if (!c) return;
+      c.gone = true;
+      if (pointed === key) { c.city.mark({ hover: null, beam: null }); pointed = null; }
+      const end = () => {
+        const i = cities.indexOf(c);
+        if (i < 0) return;
+        cities.splice(i, 1);
+        group.remove(c.city.group);
+        c.city.dispose();
+        self.place();
+        request();
+        done?.();
+      };
+      if (!ms || reducedMotion.matches) { end(); return; }
+      const t0 = performance.now();
+      const step = (t) => {
+        if (!cities.includes(c)) return;
+        const k = Math.min(1, (t - t0) / ms);
+        c.city.dim(k);
+        request();
+        if (k < 1) requestAnimationFrame(step); else end();
+      };
+      requestAnimationFrame(step);
+    },
+    /** Marks the selection and what is under the pointer in the city in the address. */
+    mark(next) { self.of(self.lead)?.city.mark(next); },
+    /** Marks what is under the pointer, in whichever city it is (`view`), and clears it in the one it was in. */
+    point(view, hover, beam) {
+      if (pointed !== null && pointed !== view) self.of(pointed)?.city.mark({ hover: null, beam: null });
+      pointed = hover != null || beam != null ? view : null;
+      self.of(view)?.city.mark({ hover, beam });
+    },
+    weigh(k) { weight = k; for (const c of cities) c.city.weigh(k); },
+    sort(eye) { for (const c of cities) c.city.sort(eye); },
+    /** What a ray meets first, in any city standing: { key, beam, view }. */
+    pick(ray, beams = true) {
+      let best = null;
+      for (const c of cities) {
+        if (c.gone) continue;
+        const h = c.city.pick(ray, beams);
+        if (h && (!best || h.distance < best.distance)) best = { ...h, view: c.key };
+      }
+      return best;
+    },
+    paint(c) { painted = c; for (const x of cities) x.city.paint(c); },
+    dispose() { for (const c of cities) c.city.dispose(); cities.length = 0; },
+  };
+  self.add(first);
   return self;
 }
 
@@ -3509,6 +3746,8 @@ function spaceRig(stage) {
     mode: "orbit", target: [0, 0, 0], azimuth: -40, elevation: 33.6, distance: 60, fov: 54.1,
     bounds: null, fitDistance: 60, room: null, touched: false, moved: true, centre: null, tween: null, pressed: false,
     anchor: null, home: null, climbs: null, flight: null, top: 0, held: "orbit",
+    /** The angles the fit looks from: the city's, or the skyline's. */
+    angles: { azimuth: -40, elevation: 33.6 },
     /** Walking: the keys held, the ground under the eye as it eases to a plate's top, and the eye's height above it. */
     walk: { world: null, keys: new Set(), shift: false, alt: false, frame: 0, last: 0, ground: 0, lift: EYE.low, step: null },
     /** Puts the camera where the pose says, the projection centred on the free rectangle, or where the scene's anchor puts it
@@ -3572,11 +3811,12 @@ function spaceRig(stage) {
      *  and beacon's box, each start point) are all inside the free rectangle, 24 px from its edges, with the target moved across
      *  the view so that they stand in the middle of it. Labels stand above their towers and are pushed further up to clear each
      *  other: where some then run into the top of the room (`crowded` counts them), it fits again with 28 px more left above,
-     *  up to 30% of the room's height, and keeps the least room that leaves the fewest out. */
-    fit() {
+     *  up to 30% of the room's height, and keeps the least room that leaves the fewest out. A scene with an opening pose of
+     *  its own (`home`) opens there; `all` (F, Fit everything) frames everything in a scene that has points to frame. */
+    fit(all = false) {
       rig.room = spaceRoom();
       if (rig.mode === "walk") { rig.apply(); return; }
-      if (rig.home) { rig.centre = null; rig.touched = false; rig.home(); return; }
+      if (rig.home && !(all && rig.points?.length)) { rig.centre = null; rig.touched = false; rig.home(); return; }
       if (!rig.points?.length) { rig.set({ target: [0, 0, 0], azimuth: -40, elevation: 33.6, distance: 60 }); return; }
       const height = rig.room.free.y1 - rig.room.free.y0;
       let best = null;
@@ -3594,11 +3834,12 @@ function spaceRig(stage) {
     /** After a panel opened or closed (the inspector): the free rectangle is measured again, and the camera moves to it over
      *  300 ms, at once with reduced motion or when `now`. An untouched camera is fitted again; one the reader moved keeps its
      *  pose, the projection centred on the new rectangle, as on a resize. */
-    reroom(now = false) {
+    reroom(now = false, again = false) {
       // A scene that fixes the projection's centre has nothing to move to.
       if (rig.anchor) { rig.room = spaceRoom(); rig.apply(); return; }
       const was = rig.room ?? spaceRoom(), room = spaceRoom();
-      if (["x0", "y0", "x1", "y1"].every((k) => Math.abs(was.free[k] - room.free[k]) < 1) && was.W === room.W && was.H === room.H) { rig.room = room; return; }
+      // `again`: what stands changed (a layer ticked or unticked), so an untouched camera fits again in any case.
+      if (!again && ["x0", "y0", "x1", "y1"].every((k) => Math.abs(was.free[k] - room.free[k]) < 1) && was.W === room.W && was.H === room.H) { rig.room = room; return; }
       if (rig.tween) rig.apply();
       const from = { target: [...rig.target], distance: rig.distance, centre: rig.centre ?? middle(was.free) };
       rig.tween = rig.centre = null;
@@ -3709,15 +3950,19 @@ function spaceRig(stage) {
   };
   const walkFrom = () => { if (!rig.walk.frame) { rig.walk.last = performance.now(); rig.walk.frame = requestAnimationFrame(walking); } };
   const middle = (f) => [(f.x0 + f.x1) / 2, (f.y0 + f.y1) / 2];
-  /** Frames rig.points from the opening angles, `above` px more room left at the top of the free rectangle. */
+  /** Frames rig.points from the scene's opening angles, `above` px more room left at the top of the free rectangle, round the
+   *  projection's centre: the free rectangle's, or where the scene's anchor puts it. */
   function frame(above) {
     const { H, free } = rig.room, b = rig.bounds, centre = [(b.x0 + b.x1) / 2, b.top / 2, (b.z0 + b.z1) / 2];
-    Object.assign(rig, { target: centre, azimuth: -40, elevation: 33.6, distance: 1, touched: false });
+    Object.assign(rig, { target: centre, ...rig.angles, distance: 1, touched: false });
     rig.apply();
     const right = new T.Vector3(), up = new T.Vector3(), ahead = new T.Vector3();
     camera.matrixWorld.extractBasis(right, up, ahead);
     ahead.negate();
-    const F = H / 2 / Math.tan((rig.fov * rad) / 2), hx = Math.max(40, (free.x1 - free.x0) / 2 - 24), hy = Math.max(40, (free.y1 - free.y0) / 2 - 24);
+    const [cx, cy] = rig.anchor?.(rig.room) ?? middle(free);
+    // The field of view spans the canvas, or the window where the scene is framed in it (`top`).
+    const F = (H + rig.top) / 2 / Math.tan((rig.fov * rad) / 2), room = (v) => Math.max(40, v - 24);
+    const left = room(cx - free.x0), rightRoom = room(free.x1 - cx), below = room(free.y1 - cy), hy = room(cy - free.y0);
     const at = V(...centre), points = rig.points.map((p) => V(...p).sub(at));
     // At distance d, the shifts of the target along an axis of the view that keep every point between `low` px below (or left
     // of) the projection centre and `high` px above (or right of) it: an interval, empty when d is too short.
@@ -3727,11 +3972,11 @@ function spaceRig(stage) {
       return [lo, hi];
     };
     const top = Math.max(40 - hy, hy - above);
-    const fits = (d) => { const [a, c] = span(d, right, hx, hx), [e, g] = span(d, up, hy, top); return a <= c && e <= g && points.every((p) => d + p.dot(ahead) > 1); };
+    const fits = (d) => { const [a, c] = span(d, right, left, rightRoom), [e, g] = span(d, up, below, top); return a <= c && e <= g && points.every((p) => d + p.dot(ahead) > 1); };
     let near = 1, far = 2;
     while (!fits(far) && far < 1e5) { near = far; far *= 2; }
     for (let i = 0; i < 40; i++) { const mid = (near + far) / 2; if (fits(mid)) far = mid; else near = mid; }
-    const d = Math.max(8, far), [a, c] = span(d, right, hx, hx), [e, g] = span(d, up, hy, top);
+    const d = Math.max(8, far), [a, c] = span(d, right, left, rightRoom), [e, g] = span(d, up, below, top);
     const shift = right.multiplyScalar((a + c) / 2).add(up.multiplyScalar((e + g) / 2));
     rig.fitDistance = d;
     rig.set({ distance: d, target: [centre[0] + shift.x, centre[1] + shift.y, centre[2] - shift.z] });
@@ -3818,7 +4063,7 @@ function spaceRig(stage) {
     else if (k === "ArrowUp" || k === "ArrowDown") { const s = k === "ArrowUp" ? 1 : -1; if (panning) rig.slide(0, 2 * s); else rig.orbit(0, 5 * s); }
     else if (k === "+" || k === "=") rig.dolly(1 / 1.25);
     else if (k === "-" || k === "_") rig.dolly(1.25);
-    else if (k === "f" || k === "F") rig.fit();
+    else if (k === "f" || k === "F") rig.fit(true);
     else return;
     e.preventDefault();
   });
@@ -3830,13 +4075,17 @@ function spaceRig(stage) {
 const F_PILL = `500 13px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
 const F_PLATE = `600 13px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
 const F_BEAM = `500 12px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
+const F_SEG = `400 11.5px ui-monospace, "SF Mono", Menlo, Consolas, monospace`;
 /** The labels over a city: a pill per tower and beacon, cut at 150 px, and each plate's name with its number of parts. HTML,
- *  never textures, with their text set as text. Widths are measured once, when they are made, in the page's typefaces. `layer`
- *  is #space-labels, or an element off the page for a fit worked out before the city stands. */
-function spaceLabels(world, layer = $("space-labels")) {
-  const T = three, per = PER_ENTITY.has(world.kind);
+ *  never textures, with their text set as text. Widths are measured once, when they are made, in the page's typefaces. With
+ *  several cities standing (`stands`: [{ key, world, dx }], the view's key and where its city stands) each label belongs to
+ *  its city and its part, since two views can share a part's key; one world alone is a city where it was built. A tower may
+ *  carry `seg`, set after its name in monospace (a skyline's building, its folder's last segment). `layer` is #space-labels,
+ *  or an element off the page for a fit worked out before the city stands. */
+function spaceLabels(stands, layer = $("space-labels")) {
+  const T = three, list = Array.isArray(stands) ? stands : [{ key: null, world: stands, dx: 0 }];
   layer.textContent = "";
-  layer.className = `kind-${world.kind}`;
+  layer.className = "";
   const leaders = document.createElementNS("http://www.w3.org/2000/svg", "svg"), path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   leaders.append(path);
   layer.append(leaders);
@@ -3850,32 +4099,37 @@ function spaceLabels(world, layer = $("space-labels")) {
     layer.append(el);
     return { el, w: width, h: 22, shown: false };
   };
-  const pill = (key, name, at, lift, beacon) => {
-    const n = world.parts.get(key), text = clip(String(name), F_PILL, 150);
-    const icon = n?.nav ? BADGE : per && n?.glyph ? ic(n.glyph) : "";
-    // Selected, its text is set in the plate names' weight, so the pill is wider.
-    const width = (font) => Math.ceil(tw(text, font)) + 18 + (icon ? 19 : 0);
-    items.push({ ...make(beacon ? "sl beacon" : "sl", icon, text, width(F_PILL)), at: V(...at), lift, key, look: "norm", widths: [width(F_PILL), width(F_PLATE)] });
-  };
-  for (const t of world.towers) pill(t.key, t.name, [t.x, t.base + t.h, t.z], 10, false);
-  for (const b of world.beacons) pill(b.key, b.name, [b.x, b.y + 1.3 + 1.7, b.z], 0, true);
-  // A plate's parts: every tower and beacon standing on it or on a plate within it.
-  const held = new Map(world.plates.map((p) => [p.key, 0]));
-  for (const { key } of [...world.towers, ...world.beacons]) {
-    for (let up = world.parts.get(key)?.parent, n = 0; up && n < held.size; up = world.parts.get(up)?.parent) if (held.has(up)) { held.set(up, held.get(up) + 1); n++; }
-  }
-  for (const p of world.plates) {
-    const n = held.get(p.key), el = document.createElement("div");
-    el.dataset.key = p.key;
-    const name = document.createElement("span"), count = document.createElement("span");
-    name.textContent = p.name;
-    count.textContent = ` · ${n} part${n === 1 ? "" : "s"}`;
-    el.className = "spn";
-    el.hidden = true;
-    el.append(name, count);
-    layer.append(el);
-    const y = p.base + PH, w = tw(p.name.toUpperCase(), F_PLATE) + p.name.length * 1.3 + tw(count.textContent, F_PLATE) + count.textContent.length * 0.52;
-    plates.push({ el, w: Math.ceil(w), h: 14, shown: false, corners: [[p.x0, p.z0], [p.x1, p.z0], [p.x1, p.z1], [p.x0, p.z1]].map(([x, z]) => V(x, y, z)) });
+  for (const { key: view, world, dx } of list) {
+    const per = PER_ENTITY.has(world.kind), kind = `kind-${world.kind}`;
+    const pill = (key, name, at, lift, beacon, seg = null) => {
+      const n = world.parts.get(key), text = clip(String(name), F_PILL, 150);
+      const icon = n?.nav ? BADGE : per && n?.glyph ? ic(n.glyph) : "", more = seg ? Math.ceil(tw(seg, F_SEG)) + 5 : 0;
+      // Selected, its text is set in the plate names' weight, so the pill is wider.
+      const width = (font) => Math.ceil(tw(text, font)) + 18 + (icon ? 19 : 0) + more;
+      const it = { ...make(`sl ${kind}${beacon ? " beacon" : ""}`, icon, text, width(F_PILL)), at: V(at[0] + dx, at[1], at[2]), lift, key, view, look: "norm", widths: [width(F_PILL), width(F_PLATE)] };
+      if (seg) it.el.append(Object.assign(document.createElement("span"), { className: "seg", textContent: seg }));
+      items.push(it);
+    };
+    for (const t of world.towers) pill(t.key, t.name, [t.x, t.base + t.h, t.z], 10, false, t.seg);
+    for (const b of world.beacons) pill(b.key, b.name, [b.x, b.y + 1.3 + 1.7, b.z], 0, true);
+    // A plate's parts: every tower and beacon standing on it or on a plate within it.
+    const held = new Map(world.plates.map((p) => [p.key, 0]));
+    for (const { key } of [...world.towers, ...world.beacons]) {
+      for (let up = world.parts.get(key)?.parent, n = 0; up && n < held.size; up = world.parts.get(up)?.parent) if (held.has(up)) { held.set(up, held.get(up) + 1); n++; }
+    }
+    for (const p of world.plates) {
+      const n = held.get(p.key), el = document.createElement("div");
+      el.dataset.key = p.key;
+      const name = document.createElement("span"), count = document.createElement("span");
+      name.textContent = p.name;
+      count.textContent = ` · ${n} part${n === 1 ? "" : "s"}`;
+      el.className = `spn ${kind}`;
+      el.hidden = true;
+      el.append(name, count);
+      layer.append(el);
+      const y = p.base + PH, w = tw(p.name.toUpperCase(), F_PLATE) + p.name.length * 1.3 + tw(count.textContent, F_PLATE) + count.textContent.length * 0.52;
+      plates.push({ el, view, key: p.key, w: Math.ceil(w), h: 14, shown: false, corners: [[p.x0, p.z0], [p.x1, p.z0], [p.x1, p.z1], [p.x0, p.z1]].map(([x, z]) => V(x + dx, y, z)) });
+    }
   }
   // The selection: the selected tower's corners, which no other label may cover, and the lit beams' labels.
   let selBox = null, beamItems = [];
@@ -3931,6 +4185,7 @@ function spaceLabels(world, layer = $("space-labels")) {
       }
       const placed = [];
       for (const it of items) {
+        if (it.off) { hide(it); continue; }
         // The selection's label and its neighbours' stay whatever the distance.
         const s = screen(it.at), kept = it.look !== "norm";
         if (!s || (s.d > cut && !kept) || s.x < -it.w || s.x > W + it.w || s.y < 0 || s.y > H + 40) { hide(it); continue; }
@@ -3969,33 +4224,36 @@ function spaceLabels(world, layer = $("space-labels")) {
       path.setAttribute("d", d);
       return { topped };
     },
-    /** Marks the selection (cityNeighbours's: key, near, beams; null for none): the selected label and its neighbours' in
-     *  their styles, and in a state machine or a deployment a label at the crest of each lit beam that has one. `box`: the
-     *  selected tower's eight corners. They are placed on the next frame. */
+    /** Marks the selection (cityNeighbours's: key, near, beams, and `view`, the city it is in; null for none): the selected
+     *  label and its neighbours' in their styles, and in a state machine or a deployment a label at the crest of each lit beam
+     *  that has one. `box`: the selected tower's eight corners. They are placed on the next frame. */
     select(hood, box = null) {
-      const near = new Set(hood?.near);
+      const near = new Set(hood?.near), view = hood?.view ?? null, mine = (x) => !!hood && (x.view ?? null) === view;
       for (const it of items) {
-        it.look = it.key === hood?.key ? "sel" : near.has(it.key) ? "near" : "norm";
+        it.look = mine(it) && it.key === hood.key ? "sel" : mine(it) && near.has(it.key) ? "near" : "norm";
         it.el.classList.toggle("sel", it.look === "sel");
         it.el.classList.toggle("near", it.look === "near");
         it.w = it.widths[it.look === "sel" ? 1 : 0];
       }
-      for (const p of plates) p.el.classList.toggle("sel", p.el.dataset.key === hood?.key);
+      for (const p of plates) p.el.classList.toggle("sel", mine(p) && p.key === hood.key);
       selBox = box;
       for (const b of beamItems) b.el.remove();
       beamItems = [];
-      if (!hood || (world.kind !== "state" && world.kind !== "deployment")) return;
+      const at = hood && list.find((s) => (s.key ?? null) === view);
+      if (!at || (at.world.kind !== "state" && at.world.kind !== "deployment")) return;
       const lit = new Set(hood.beams);
-      for (const b of world.beams) {
+      for (const b of at.world.beams) {
         if (!lit.has(b.key) || !b.label) continue;
-        const el = document.createElement("div");
-        el.className = "sbl";
+        const el = document.createElement("div"), [x, y, z] = b.points[16];
+        el.className = `sbl kind-${at.world.kind}`;
         el.hidden = true;
         el.textContent = b.label;
         layer.append(el);
-        beamItems.push({ el, w: Math.ceil(tw(b.label, F_BEAM)) + 18, h: 20, shown: false, at: V(...b.points[16]) });
+        beamItems.push({ el, w: Math.ceil(tw(b.label, F_BEAM)) + 18, h: 20, shown: false, at: V(x + at.dx, y, z) });
       }
     },
+    /** Labels only the parts whose keys are in `keys` (the skyline's), or every part for null. */
+    only(keys) { for (const it of items) it.off = !!keys && !keys.has(it.key); },
     clear() { layer.textContent = ""; },
   };
 }
@@ -4026,7 +4284,14 @@ function cityLegend(world) {
   return items.filter(Boolean).map(([icon, text]) => `<span${icon === "beacon" ? ` class="amber"` : ""}>${LEGEND_ICONS[icon]}${esc(text)}</span>`).join("")
     + (nav ? `<span>${BADGE}Has views of its own</span>` : "");
 }
-/** The panels over a city: the camera controls (made once) and the legend. With no city, or in the street, neither. */
+/** The skyline's legend: a building, the colours of its floors, and the line to the folder it is in. */
+function skylineLegend() {
+  const swatches = ["component", "state", "capability", "knowledge"].map((k) => `<i class="kind-${k}"></i>`).join("");
+  return `<span>${ic("building")}Building · a folder, as tall as its views</span><span><b class="sws">${swatches}</b>Floor · the colour of its kind</span>`
+    + `<span><svg viewBox="0 0 26 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 18 24 7" stroke-dasharray="3 3"/></svg>Line · to the folder it is in</span>`;
+}
+/** The panels over a city or the skyline: the camera controls (made once) and the legend. With neither, or in the street,
+ *  none. In the skyline (a world with buildings) Walk is turned off. */
 function spaceHud(world) {
   const hud = $("space-hud");
   if (!$("space-controls")) {
@@ -4043,15 +4308,88 @@ function spaceHud(world) {
       if (!rig || !c) return;
       if (c === "orbit" || c === "pan") rig.setMode(c);
       else if (c === "walk") walkTo(space.selected);
-      else if (c === "fit") rig.fit();
+      else if (c === "fit") rig.fit(true);
       else rig.dolly(c === "in" ? 1 / 1.25 : 1.25);
     });
   }
-  const legend = $("space-legend");
+  const legend = $("space-legend"), sky = !!world?.buildings, walk = $("space-controls").querySelector('[data-cam="walk"]');
   // In the street the map, the breadcrumb and the key hints take their place.
   $("space-controls").hidden = legend.hidden = !world || !!street;
   legend.className = `hud kind-${world?.kind ?? "component"}`;
-  legend.innerHTML = world ? cityLegend(world) : "";
+  legend.innerHTML = world ? (sky ? skylineLegend() : cityLegend(world)) : "";
+  walk.disabled = sky;
+  walk.title = sky ? "Walk: in a city" : "Walk: go down to the street, by the part selected";
+  layersHud();
+}
+
+/** The Layers panel over a city (Scene 2, Panels): the folder's views by kind. A drawn kind with one city is a row with a tick
+ *  box; one with several is a heading with a chevron and a count, open for the kind being flown, over a row per city: a tick
+ *  box for a view in a file of its own, and radio buttons for the use cases or journeys of a file, which change the address.
+ *  The view in the address is ticked and stays so; ticking another stands it beside the last. Written and knowledge views
+ *  are listed with their counts, disabled. Counts are countOf's. Shown in a city, not in the street or another scene; `next`
+ *  ({ key, v }): the city about to stand alone, for a flight that lands in it to fit the room the panel leaves. */
+function layersHud(next = null) {
+  let el = $("space-layers");
+  if (!el) {
+    $("space-hud").insertAdjacentHTML("afterbegin", `<section class="hud" id="space-layers" aria-label="Layers" hidden></section>`);
+    el = $("space-layers");
+    el.addEventListener("click", (e) => {
+      const head = e.target.closest("button[data-kind]");
+      if (!head) return;
+      const k = head.dataset.kind;
+      if (layersOpen.kinds.has(k)) layersOpen.kinds.delete(k); else layersOpen.kinds.add(k);
+      layersHud();
+    });
+    el.addEventListener("change", (e) => {
+      const box = e.target.closest("input[data-view]");
+      if (!box) return;
+      if (box.type === "radio") { const v = layerViews().find((x) => x.key === box.dataset.view); if (v) location.hash = cityHash(space.folder, viewOf(v), null, "city"); return; }
+      // The view in the address is ticked and stays so.
+      if (box.dataset.lead !== undefined) { box.checked = true; return; }
+      if (box.checked) layerOn(box.dataset.view); else layerOff(box.dataset.view);
+    });
+  }
+  const shown = !!(space.on && !street && space.scene === "city" && (next || (standing && stage?.city)));
+  el.hidden = !shown;
+  if (!shown) return;
+  const at = next ?? standing, docs = byFolder.get(space.folder) ?? [], views = layerViews(), lead = at.key;
+  const live = new Set(next ? [next.key] : stage.city.stands().map((s) => s.key));
+  if (layersOpen.lead !== lead) { layersOpen.lead = lead; layersOpen.kinds.add(at.v.d.kind); }
+  const count = (k) => docs.filter((d) => tabOf(d) === k).reduce((s, d) => s + countOf(d), 0);
+  const swatch = `<span class="sw"></span>`, num = (n) => `<span class="n">${n}</span>`;
+  const tick = (v, nested) => {
+    const on = live.has(v.key), title = nested ? esc(v.title) : esc(KIND_NAME[v.d.kind].replace(/ diagram$/, ""));
+    return `<label class="${nested ? "lr" : "lk"}${on ? " on" : ""}"${v.key === lead ? ` title="The view in the address"` : ""}><input type="checkbox" data-view="${esc(v.key)}"${on ? " checked" : ""}${v.key === lead ? ` data-lead` : ""}>`
+      + (nested ? `<span>${title}</span>` : `${swatch}<span class="t">${title}</span>${num(count(v.d.kind))}`) + `</label>`;
+  };
+  let rows = "";
+  for (const kind of Object.keys(MODELS).sort((a, b) => KIND_ORDER[a] - KIND_ORDER[b])) {
+    const of = views.filter((v) => v.d.kind === kind);
+    if (!of.length) continue;
+    if (of.length === 1) { rows += `<div class="kind-${kind}">${tick(of[0], false)}</div>`; continue; }
+    const open = layersOpen.kinds.has(kind), name = KIND_NAME[kind].replace(/ diagram$/, "");
+    rows += `<div class="kind-${kind}"><button type="button" class="lk${of.some((v) => live.has(v.key)) ? " on" : ""}" data-kind="${kind}" aria-expanded="${open}">${ic("drill")}${swatch}<span class="t">${esc(name)}</span>${num(count(kind))}</button>`;
+    if (open) for (const v of of) rows += v.radio
+      ? `<label class="lr${v.key === lead ? " on" : ""}"><input type="radio" name="layer-${esc(v.d._path)}" data-view="${esc(v.key)}"${v.key === lead ? " checked" : ""}><span>${esc(v.title)}</span></label>`
+      : tick(v, true);
+    rows += `</div>`;
+  }
+  const off = [...Object.keys(KIND_ORDER).filter((k) => !MODELS[k]), "knowledge"].filter((k) => docs.some((d) => tabOf(d) === k));
+  for (const k of off) rows += `<div class="kind-${k}"><label class="lk off"><input type="checkbox" disabled>${swatch}<span class="t">${esc(k === "knowledge" ? "Knowledge" : KIND_NAME[k])}</span>${num(count(k))}</label></div>`;
+  const path = space.folder || ".";
+  el.innerHTML = `<div class="caps">Layers</div><div class="lf">Folder <code>${esc(path)}</code> · ${plural(docs.length, "view")}</div><div class="lrows">${rows}</div>`
+    + (off.length ? `<p class="lh">Written views and knowledge stand as floors in the folder tower</p>` : "");
+}
+/** Which kinds' headings are open in the Layers panel; the kind being flown opens when the view in the address changes. */
+const layersOpen = { kinds: new Set(), lead: null };
+/** The folder's drawn views as the Layers panel lists them, each as cityView keys it: a file's own, or one of a file's use
+ *  cases or journeys (`radio`: the file has several, so one stands at a time). */
+function layerViews() {
+  return (byFolder.get(space.folder) ?? []).filter((d) => MODELS[d.kind]).flatMap((d) => {
+    if (!PER_ENTITY.has(d.kind)) return [{ key: d._path, d, e: null, doc: d, title: d.title ?? d._path.split("/").pop() }];
+    const es = d.entities ?? [];
+    return es.map((e) => ({ key: `${d._path}#${e.id}`, d, e, doc: { ...d, entities: [e] }, title: e.name ?? e.id, radio: es.length > 1 }));
+  });
 }
 
 /** The ?spacestats readout: frame time, draw calls, and what the world holds. */
@@ -4063,8 +4401,8 @@ function spaceStage(T, canvas) {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setClearAlpha(0);
   const scene = new T.Scene(), camera = new T.PerspectiveCamera(54.1, 1, 0.6, 600);
-  // What stands (buildCity's or buildTower's), and a tower fading out behind the city that took its place.
-  let grid = null, shown = null, fading = null, frame = 0, lost = false, last = 0, took = 0, every = 0;
+  // What stands (buildDistrict's, buildTower's or buildSkyline's), and what fades in or out round a change of scene.
+  let grid = null, shown = null, fading = new Map(), frame = 0, lost = false, last = 0, took = 0, every = 0;
   const showing = () => !lost && !$("space").hidden && !document.hidden;
   const draw = (now) => {
     frame = 0;
@@ -4105,29 +4443,32 @@ function spaceStage(T, canvas) {
     get shown() { return shown; },
     get city() { return shown?.kind === "city" ? shown : null; },
     get tower() { return shown?.kind === "tower" ? shown : null; },
+    get skyline() { return shown?.kind === "skyline" ? shown : null; },
     /** Lays the ground, again after a stay in Flat. */
     fill(colours) {
       if (!grid) { grid = groundGrid(T, colours); scene.add(grid.mesh); }
       resize();
       request();
     },
-    /** Stands a city (buildCity's) or a tower (buildTower's) in place of what stands; null takes it away. `keep`: what stood is
-     *  not let go of, but handed back, for it to fade (fade). */
+    /** Stands a city scene (buildDistrict's), a tower (buildTower's) or the skyline (buildSkyline's) in place of what stands;
+     *  null takes it away. `keep`: what stood is not let go of, but handed back, for it to fade (fade). */
     show(next, keep = false) {
       const was = shown;
-      if (was && !keep) { scene.remove(was.group); was.dispose(); }
+      if (was && !keep) { fading.delete(was); scene.remove(was.group); was.dispose(); }
       shown = next;
       if (shown) scene.add(shown.group);
       request();
       return keep ? was : null;
     },
-    /** Fades a tower in (to 1) or out (to 0) over `ms`, at once with reduced motion; faded out, it is let go of. */
+    /** Fades a tower or the skyline in (to 1) or out (to 0) over `ms`, at once with reduced motion; faded out, it is let go
+     *  of. Two can fade at once: the tower out as the skyline comes in. */
     fade(thing, from, to, ms) {
-      if (fading && fading.thing !== thing) fading.end();
+      fading.delete(thing);
       if (!thing.group.parent) scene.add(thing.group);
-      const t0 = performance.now(), run = (fading = { thing });
+      const t0 = performance.now(), run = { thing };
+      fading.set(thing, run);
       run.end = () => {
-        if (fading === run) fading = null;
+        if (fading.get(thing) === run) fading.delete(thing);
         thing.fade(to);
         if (to === 0) { scene.remove(thing.group); thing.dispose(); }
         request();
@@ -4135,7 +4476,7 @@ function spaceStage(T, canvas) {
       if (!ms || reducedMotion.matches) { run.end(); return; }
       thing.fade(from);
       const step = (t) => {
-        if (fading !== run) return;
+        if (fading.get(thing) !== run) return;
         const k = Math.min(1, (t - t0) / ms);
         if (k >= 1) { run.end(); return; }
         thing.fade(from + (to - from) * k);
@@ -4151,11 +4492,11 @@ function spaceStage(T, canvas) {
       u.fadeFrom.value = from; u.fadeTo.value = to;
       request();
     },
-    retheme(colours) { grid?.paint(colours); shown?.paint(colours); fading?.thing.paint(colours); request(); },
+    retheme(colours) { grid?.paint(colours); shown?.paint(colours); for (const r of fading.values()) if (r.thing !== shown) r.thing.paint(colours); request(); },
     /** Lets go of every geometry and material; the renderer stays for a return. */
     empty() {
       cancelAnimationFrame(frame); frame = 0;
-      fading?.end();
+      for (const r of [...fading.values()]) r.end();
       self.show(null);
       if (grid) { scene.remove(grid.mesh); grid.dispose(); grid = null; }
     },
@@ -4179,13 +4520,15 @@ function stageOn() {
   if (!stage) {
     try { stage = spaceStage(three, $("space-gl")); } catch { return false; }
     rig = spaceRig(stage);
-    stage.onResize = () => { if (street?.on) streetMap(standing.made.world); rig.resized(); clearTimeout(reshape); reshape = setTimeout(spaceTurn, 250); };
+    stage.onResize = () => { if (street?.on) streetMap(street.world); rig.resized(); clearTimeout(reshape); reshape = setTimeout(spaceTurn, 250); };
     // Labels are placed on a frame where the camera moved or the selection changed, never for the pointer alone.
     stage.onFrame = () => {
       if (!rig.moved) return;
       rig.moved = false;
-      // In the street the hover card goes first: the labels it covers are hidden.
+      // In the street the hover card goes first: the labels it covers are hidden. In the skyline it lies over them, so that
+      // the label of the building it is about stays.
       const cover = street ? streetFrame() : null;
+      if (stage.skyline) skylineFrame();
       if (labels && rig.bounds) labels.place(stage.camera, rig.room, rig.cut(), cover);
     };
     pointer = spacePointer(stage, rig);
@@ -4197,7 +4540,7 @@ function closeStage() {
   clearTimeout(stageIdle);
   streetOff();
   try { stage?.close(); } catch { /* a lost context has nothing left to let go */ }
-  stage = null; rig = null; pointer = null; standing = towered = trip = null;
+  stage = null; rig = null; pointer = null; standing = towered = skied = trip = null;
   labels?.clear(); labels = null;
 }
 function stageLost() {
@@ -4234,7 +4577,7 @@ let standing = null, reshape = 0;
 let towered = null;
 /** A flight from one scene to another, under way: finish() lands it at once. */
 let trip = null;
-document.fonts.addEventListener("loadingdone", () => { cityWorlds.clear(); towerWorlds.clear(); standing = towered = null; if (space.on && stage) spaceScene(); });
+document.fonts.addEventListener("loadingdone", () => { cityWorlds.clear(); towerWorlds.clear(); standing = towered = skied = null; if (space.on && stage) spaceScene(); });
 
 /** The drawn view a city address stands: the view it names (one use case or journey of a file by #<entity id>, else its first),
  *  the view of that kind holding the part it names, or the folder's first drawn view. Null for a folder with none. */
@@ -4263,22 +4606,28 @@ function cityFor(v, dir = null) {
   return made;
 }
 const plural = (n, one) => `${n} ${one}${n === 1 ? "" : "s"}`;
-/** Stands the scene the address asks for: the folder tower, a city, or a city's street. Between the tower and a city of its
- *  folder it flies, and between a city and its street. */
+/** Stands the scene the address asks for: the skyline, the folder tower, a city, or a city's street. Between the skyline and a
+ *  tower it flies, between the tower and a city of its folder, and between a city and its street. */
 function spaceScene() {
   if (!stage || !rig) return;
   trip?.finish();
   if (space.scene === "tower") { towerScene(); return; }
+  if (space.scene === "skyline") { skylineScene(); return; }
   let v = cityView(space.folder, space.focus);
-  // A part selected in a city stays in it, though another view of its kind may hold a part of that name too.
-  if (standing && standing.v.d._folder === space.folder && focusedPart(standing.made.world, space.focus)) v = standing.v;
+  // A part selected in a city stays in it, though another view of its kind may hold a part of that name too; so does one in a
+  // city standing beside it.
+  const here = !!(standing && stage.city && standing.v.d._folder === space.folder);
+  if (here) {
+    const holds = [standing, ...stage.city.cities.filter((c) => !c.gone && c.key !== standing.key)].find((c) => focusedPart(c.made.world, space.focus));
+    if (holds) v = holds.v;
+  }
   if (!v) {
     standCity(null);
     sceneSay(`${space.folder ? space.folder : "The root folder"} has no drawn views, so it has no city. Its views are written; read them in Flat.`);
     return;
   }
   let made;
-  try { made = standing?.key === v.key ? standing.made : cityFor(v); } catch (e) {
+  try { made = standing?.key === v.key ? standing.made : (here && stage.city.of(v.key)?.made) || cityFor(v); } catch (e) {
     standCity(null);
     brokenView(v.d, String(e.message ?? e));
     sceneSay(`This view couldn't be built (${e.message ?? e}). Read it in Flat.`);
@@ -4287,7 +4636,10 @@ function spaceScene() {
   const fresh = standing?.key !== v.key || standing.made !== made;
   // From the tower into a city it flies; into a street the city stands at once, and the eye is put there.
   if (fresh && space.scene === "city" && stage.tower && towered?.folder === space.folder) { flyDown(v, made); return; }
-  if (fresh) standCity({ key: v.key, made, v });
+  // In the folder's city the layers stay standing round the view the address now names.
+  if (fresh && here) districtTo({ key: v.key, made, v });
+  else if (fresh) standCity({ key: v.key, made, v });
+  ({ v, made } = standing);
   spaceFocus(fresh);
   if (space.scene === "street") { enterStreet(v, made, fresh); return; }
   if (street) riseToCity(made);
@@ -4298,26 +4650,29 @@ function citySay(v, made) {
   sceneSay(`Read ${plural(n, "view")} in ${plural(byFolder.size, "folder")}. Flying the ${what}: drag to orbit, scroll to fly, click a tower to read it.`,
     made.why ? SPACE_SAYS.grid[made.why] : "", "Esc goes up a level");
 }
-/** Builds a city's meshes, labels and legend and fits the camera to it; null stands the bare ground. `pose`: where the camera
- *  goes instead of the fit (a flight from the tower landing). `keep`: what stood is handed back, not let go of, to fade. */
+/** The angles a city is seen and fitted from. */
+const CITY_ANGLES = { azimuth: -40, elevation: 33.6 };
+/** Builds a city's meshes, labels and legend and fits the camera to it; null stands the bare ground. It stands alone: the
+ *  layers of the city before it go. `pose`: where the camera goes instead of the fit (a flight from the tower landing).
+ *  `keep`: what stood is handed back, not let go of, to fade. */
 function standCity(next, { pose = null, keep = false } = {}) {
   streetOff();
   standing = next;
+  space.layers.clear();
+  layersOpen.kinds.clear();
+  layersOpen.lead = null;
   // A new city starts with nothing selected or under the pointer; the address's part is selected in it again (spaceFocus).
   Object.assign(space, { selected: null, hovered: null });
   $("inspector").hidden = true;
   hideTip();
   labels?.clear(); labels = null;
-  const world = next?.made.world ?? null;
-  const was = stage.show(world ? buildCity(world, theme) : null, keep);
-  towered = null;
+  const was = stage.show(next ? buildDistrict(next, theme) : null, keep);
+  towered = skied = null;
   towerHud(false);
-  spaceHud(world);
-  if (world) labels = spaceLabels(world);
-  Object.assign(rig, { anchor: null, home: null, climbs: null, fov: 54.1, top: 0, centre: null });
-  rig.bounds = world?.bounds ?? null;
-  rig.points = world ? standingPoints(world) : null;
-  rig.crowded = labels ? () => labels?.place(stage.camera, rig.room, rig.cut()).topped ?? 0 : null;
+  skylineHud(false);
+  Object.assign(rig, { anchor: null, home: null, climbs: null, fov: 54.1, top: 0, centre: null, angles: CITY_ANGLES });
+  if (next) districtStood();
+  else { spaceHud(null); Object.assign(rig, { bounds: null, points: null, crowded: null }); }
   if (pose) {
     const { centre, fitDistance, touched, ...at } = pose;
     rig.room = spaceRoom();
@@ -4325,6 +4680,86 @@ function standCity(next, { pose = null, keep = false } = {}) {
     rig.set({ ...at, centre: touched ? centre : null, touched });
   } else rig.fit();
   return was;
+}
+/** After what stands in the city changed (a city stood, a layer ticked or unticked, the view in the address changed): labels
+ *  for every city standing, what the camera frames and keeps to, the selection's labels, and the panels. */
+function districtStood() {
+  const stands = stage.city.stands(), { points, bounds } = districtFrame(stands);
+  labels?.clear();
+  labels = spaceLabels(stands);
+  Object.assign(rig, { bounds, points, crowded: () => labels?.place(stage.camera, rig.room, rig.cut()).topped ?? 0 });
+  selectLabels(space.selected);
+  spaceHud(standing.made.world);
+  rig.moved = true;
+  stage.request();
+}
+/** What the camera frames and keeps to with every city standing: the corners of what stands (standingPoints, moved to where
+ *  each city stands) and the bounds round them all. */
+function districtFrame(stands) {
+  const points = [];
+  for (const { world, dx } of stands) for (const [x, y, z] of standingPoints(world)) points.push([x + dx, y, z]);
+  return { points, bounds: districtWorld(stands).bounds };
+}
+/** The address names another view of the folder whose city stands (a radio button, Back or Forward, a link): one standing as
+ *  a layer becomes the address's where it stands, and the view that was there stays as a layer, as when a part of it is
+ *  selected; one not standing takes the place of the view that was there, which goes. The other layers stay. */
+function districtTo(next) {
+  const district = stage.city, was = standing.key, there = district.of(next.key);
+  streetOff();
+  district.mark({ sel: null, near: [], lit: [] });
+  Object.assign(space, { selected: null, hovered: null });
+  $("inspector").hidden = true;
+  hideTip();
+  const moved = !(there && next.key !== was);
+  if (moved) district.swap(was, next);
+  else { space.layers.delete(next.key); space.layers.add(was); next = { key: there.key, made: there.made, v: there.v }; }
+  district.lead = next.key;
+  standing = next;
+  districtStood();
+  // A city taking another's place moves the ones beside it: an untouched camera fits again.
+  if (moved) rig.reroom(true, true);
+}
+/** Ticks a view in the Layers panel: its city stands to the right of the last, and a camera the reader hasn't moved fits
+ *  again to everything standing, over 300 ms. */
+function layerOn(key) {
+  const district = stage?.city, v = layerViews().find((x) => x.key === key);
+  if (!district || !v || district.of(key)) return;
+  let made;
+  try { made = cityFor(v); } catch (e) {
+    layersHud();
+    sceneSay("", `${v.title} couldn't be built (${e.message ?? e}). Read it in Flat.`, "Esc goes up a level");
+    return;
+  }
+  district.add({ key, v, made });
+  space.layers.add(key);
+  districtStood();
+  rig.reroom(false, true);
+}
+/** Unticks a view: its labels go at once, its city fades to the dim state over 200 ms (at once with reduced motion) and goes,
+ *  the cities right of it close up, and a camera the reader hasn't moved fits again to what stands. */
+function layerOff(key) {
+  const district = stage?.city;
+  if (!district?.of(key) || key === standing?.key) return;
+  space.layers.delete(key);
+  let gone = false;
+  district.remove(key, 200, () => stage.request(), () => { gone = true; if (stage?.city === district && standing) { districtStood(); rig.reroom(false, true); } });
+  if (!gone) districtStood();
+}
+/** A part of a city standing beside the one in the address was selected: that city's view becomes the address's where it
+ *  stands, and the view that was there stays standing as a layer. Nothing moves; the beams that light are that city's. */
+function leadTo(view) {
+  const district = stage.city, c = district.of(view);
+  if (!c || view === standing.key) return;
+  district.mark({ sel: null, near: [], lit: [] });
+  labels?.select(null);
+  space.layers.delete(view);
+  space.layers.add(standing.key);
+  district.lead = view;
+  standing = { key: c.key, made: c.made, v: c.v };
+  space.selected = null;
+  if (street) { street.v = c.v; street.world = districtWorld(district.stands(), view); rig.walk.world = street.world; street.said = {}; streetMap(street.world); }
+  spaceHud(c.world);
+  if (!street) citySay(c.v, c.made);
 }
 /** The corners of what stands, which the camera is fitted to: each plate's, tower's and beacon's box (a beacon's from the
  *  ground its tether reaches), each start point, and the beams' arcs. The bounds' own corners are often bare ground nearest the eye. */
@@ -4342,12 +4777,13 @@ function standingPoints(world) {
 function spaceTurn() {
   const w = standing?.made.world;
   // The street keeps its city as it stands; the turn waits for the reader's return to the city.
-  if (!space.on || street || !w || !dagre || !(w.kind === "state" || w.kind === "deployment")) return;
+  if (!space.on || street || !w || !dagre || !stage?.city || !(w.kind === "state" || w.kind === "deployment")) return;
   const v = cityView(space.folder, space.focus);
   if (!v || v.key !== standing.key) return;
   let dir;
   try { dir = sheetOf(v.doc, space.folder, flatRoom(), Math.max(460, innerHeight * 0.76)).dir; } catch { return; }
-  if (dir !== w.dir) { standCity({ key: v.key, made: cityFor(v, dir), v }); spaceFocus(true); }
+  // It takes its own place among the layers.
+  if (dir !== w.dir) { districtTo({ key: v.key, made: cityFor(v, dir), v }); spaceFocus(true); }
 }
 
 // ── The folder tower (Scene 1) ──
@@ -4389,7 +4825,8 @@ function towerAsk(world, folder, focus) {
 }
 
 /** Stands the folder tower the address asks for: the first time, or for another folder, at once; with another drawn view
- *  asked for, sliding it out; from a city of the folder, flying up out of it. Then the floor's inspector, or the part, it names. */
+ *  asked for, sliding it out; from a city of the folder, flying up out of it; from the skyline, flying down into its building.
+ *  Then the floor's inspector, or the part, it names. */
 function towerScene() {
   const folder = space.folder, world = towerWorld(folder), ask = towerAsk(world, folder, space.focus);
   const same = !!(stage.tower && towered?.folder === folder && towered.world === world);
@@ -4401,6 +4838,7 @@ function towerScene() {
   if (v) try { next.made = fromCity && v === standing.v ? standing.made : cityFor(v); } catch (e) { next.why = String(e.message ?? e); }
   if (same) { Object.assign(towered, next); towered.tower.pull(next.i, next.made?.world ?? null); drawerCard(); }
   else if (fromCity && next.made && v === standing.v) flyUp(next);
+  else if (stage.skyline && skied?.world.buildings.some((b) => b.folder === folder)) flyIntoTower(next);
   else standTower(next);
   if (ask.inspect !== undefined) towerInspect(ask.inspect, { record: ask.record, quiet: true });
   else if (space.selected != null) towerUnselect({ quiet: true });
@@ -4411,25 +4849,28 @@ function towerScene() {
   sceneSay(`${folder || "The root folder"} is a tower of ${plural(world.floors.length, "floor")}, one per view. Pull a floor out to walk through it.`,
     next.made?.why ? SPACE_SAYS.grid[next.made.why] : "", "Scroll to climb · click a floor to pull it out");
 }
-/** Builds a tower's meshes, labels and cards, with its drawn view out at once, and puts the camera in its opening pose. */
-function standTower(next) {
+/** Builds a tower's meshes, labels and cards, with its drawn view out at once, and puts the camera in its opening pose. `keep`:
+ *  what stood is handed back, not let go of, to fade. */
+function standTower(next, { keep = false } = {}) {
   streetOff();
-  standing = null;
+  standing = skied = null;
+  space.layers.clear();
   Object.assign(space, { selected: null, hovered: -1 });
   $("inspector").hidden = true;
   hideTip();
   labels?.clear(); labels = null;
   const tower = buildTower(next.world, theme, () => stage.request());
   towered = { ...next, tower };
-  stage.show(tower);
+  const was = stage.show(tower, keep);
   tower.pull(next.i, next.made?.world ?? null, true);
   tower.moved = () => { rig.moved = true; };
+  skylineHud(false);
   spaceHud(null);
   towerHud(true);
   labels = towerLabels(next.world, tower);
   const open = poseFrom(TOWER_EYE, TOWER_AT), top = next.world.top;
   Object.assign(rig, {
-    anchor: towerAnchor, fov: TOWER_FOV, top: spaceRoom().top, points: null, crowded: null, centre: null, fitDistance: open.distance,
+    angles: CITY_ANGLES, anchor: towerAnchor, fov: TOWER_FOV, top: spaceRoom().top, points: null, crowded: null, centre: null, fitDistance: open.distance,
     bounds: { x0: -FLOOR.w / 2, x1: PULL[0] + FLOOR.w / 2, z0: PULL[2] - FLOOR.d / 2, z1: FLOOR.d / 2, top },
     // The wheel climbs the stack: the target from the bottom floor to the top one, wherever the opening pose has it.
     climbs: [Math.min(0, TOWER_AT[1]), Math.max(top, TOWER_AT[1] + next.world.climb)],
@@ -4444,6 +4885,7 @@ function standTower(next) {
     },
   });
   rig.fit();
+  return was;
 }
 /** From a city up to its folder's tower (docs/cyberspace-mode-spec.md, Camera and input, scene change 1, reversed): in one frame
  *  the city gives way to the tower, with that city pulled out on its floor and the eye where it sees the small city as it saw
@@ -4468,6 +4910,7 @@ function flyDown(v, made) {
   labels?.clear(); labels = null;
   towerHud(false);
   spaceHud(made.world);
+  layersHud({ key: v.key, v });
   const pose = cityPose(made.world), { top, k, bounds: b } = tower.seat(i), cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
   const small = (p) => ({ ...p, target: [top[0] + k * (p.target[0] - cx), top[1] + k * p.target[1], top[2] + k * (p.target[2] - cz)], distance: p.distance * k });
   const large = (p) => ({ ...p, target: [cx + (p.target[0] - top[0]) / k, (p.target[1] - top[1]) / k, cz + (p.target[2] - top[2]) / k], distance: p.distance / k });
@@ -4511,40 +4954,58 @@ function folderNames(folder) {
 }
 /** The tower's cards (Scene 1): the folder's, and under it the pulled-out floor's. `on` false takes them away. */
 function towerHud(on) {
-  let box = $("space-cards");
-  if (!box) {
+  const box = spaceCards();
+  box.hidden = !on;
+  if (!on || !towered) return;
+  folderCard(towered.folder);
+  drawerCard();
+}
+/** The cards on the right of the tower and the skyline, made once: the folder's and the pulled-out floor's. */
+function spaceCards() {
+  if (!$("space-cards")) {
     $("space-hud").insertAdjacentHTML("beforeend", `<div id="space-cards" hidden><section class="hud" id="space-folder" aria-label="Folder"></section><section class="hud" id="space-drawer" aria-label="Pulled-out floor"></section></div>`);
-    box = $("space-cards");
     $("space-drawer").addEventListener("click", (e) => {
       const act = e.target.closest("[data-act]")?.dataset.act;
       if (act === "back") towerSlideBack(); else if (act === "enter") towerEnter();
     });
   }
-  box.hidden = !on;
-  if (!on || !towered) return;
-  const folder = towered.folder, { docs, title, path } = folderNames(folder), self = docs.find((d) => d.kind === "folder")?.entities?.[0];
+  return $("space-cards");
+}
+/** How many of a folder's files its tower stands in each group: drawn, written and knowledge. */
+function folderCounts(folder) {
+  const n = { drawn: 0, written: 0, knowledge: 0 };
+  for (const x of floorOrder(byFolder.get(folder) ?? [], { drawn: Object.keys(MODELS), order: KIND_ORDER, knowledge: KNOWLEDGE })) n[x.g]++;
+  return n;
+}
+/** The folder's card (Scene 1, Folder card): its name, path and purpose, its drawn, written and knowledge files, the folders
+ *  inside it (at most two rows, the rest folded into a last chip, `and N more`, which opens the skyline), and See the skyline
+ *  where the repository has several folders. The skyline's (`sky`) has, in place of See the skyline, what the repository
+ *  holds and Enter <the folder's title>. */
+function folderCard(folder, sky = false) {
+  const el = $("space-folder"), { docs, title, path } = folderNames(folder), self = docs.find((d) => d.kind === "folder")?.entities?.[0];
   // The folder's purpose, as Flat chooses it (showFolder).
-  const purpose = self?.purpose ?? self?.summary, kids = childrenOf(folder);
-  const count = (g) => towered.world.groups.find((x) => x.name === g)?.count ?? 0;
-  $("space-folder").innerHTML = `<div class="caps">Folder</div><div class="sct">${esc(title)}</div><div class="scp">${esc(path)} · ${plural(docs.length, "file")}</div>`
+  const purpose = self?.purpose ?? self?.summary, kids = childrenOf(folder), count = folderCounts(folder), skyline = spaceHash({ folder, scene: "skyline" });
+  const views = [...byFolder.values()].reduce((s, d) => s + d.length, 0);
+  el.innerHTML = `<div class="caps">Folder</div><div class="sct">${esc(title)}</div><div class="scp">${esc(path)} · ${plural(docs.length, "file")}</div>`
     + (purpose ? `<p class="scd">${esc(purpose)}</p>` : "")
-    + `<div class="sctiles">${TOWER_GROUPS.map((g) => `<div><b>${count(g)}</b><span>${g}</span></div>`).join("")}</div>`
+    + `<div class="sctiles">${TOWER_GROUPS.map((g) => `<div><b>${count[g]}</b><span>${g}</span></div>`).join("")}</div>`
     + `<div class="caps sci">Inside</div>`
-    + (kids.length ? `<div class="scc">${kids.map((k) => `<a class="chip" href="${esc(spaceHash({ folder: k }))}">${ic("folder")}${esc(rel(k, folder))}</a>`).join("")}</div>` : `<p class="scn">No folders inside it.</p>`);
-  // At most two rows of folders; the rest fold into a last chip.
-  const wrap = $("space-folder").querySelector(".scc"), chips = wrap ? [...wrap.children] : [];
+    + (kids.length ? `<div class="scc">${kids.map((k) => `<a class="chip" href="${esc(spaceHash({ folder: k }))}">${ic("folder")}${esc(rel(k, folder))}</a>`).join("")}</div>` : `<p class="scn">No folders inside it.</p>`)
+    + (sky ? `<p class="scr">The repository: ${plural(byFolder.size, "folder")}, ${plural(views, "view")}. Each building is a folder, one floor per view, in the colour of its kind.</p>`
+      + `<div class="scb"><a class="ibtn primary" href="${esc(spaceHash({ folder }))}">Enter ${esc(title)}</a></div>`
+      : byFolder.size > 1 ? `<div class="scb"><a class="ibtn" href="${esc(skyline)}">${ic("building")}See the skyline</a></div>` : "");
+  // At most two rows of folders; the rest fold into a last chip, which opens the skyline.
+  const wrap = el.querySelector(".scc"), chips = wrap ? [...wrap.children] : [];
   const rows = [...new Set(chips.map((c) => c.offsetTop))].sort((a, b) => a - b);
   if (rows.length > 2) {
     let cut = chips.findIndex((c) => c.offsetTop > rows[1]);
     for (const c of chips.slice(cut)) c.remove();
-    // Step 6 of the plan links this to the skyline.
-    const more = Object.assign(document.createElement("span"), { className: "chip more" });
+    const more = Object.assign(document.createElement("a"), { className: "chip more", href: skyline });
     wrap.append(more);
     const say = () => { more.textContent = `and ${chips.length - cut} more`; };
     say();
     while (cut > 0 && more.offsetTop > rows[1]) { chips[--cut].remove(); say(); }
   }
-  drawerCard();
 }
 /** The pulled-out floor's card: its kind, title and what its city holds, with Enter the city and Slide back. */
 function drawerCard() {
@@ -4634,6 +5095,350 @@ function towerSlideBack() {
   stage.request();
 }
 
+// ── The skyline ──
+/** The skyline's camera: from the front left, 24° up, 6.25 rings from the address folder's building, aimed 2 units above its
+ *  ground; the projection's centre 40 px under the free rectangle's. As in the tower and the street, the field of view spans
+ *  the window, as artboard 7 draws it, not the canvas alone. */
+const SKY_ANGLES = { azimuth: -40, elevation: 24 }, SKY_FOV = 54.1;
+const skylineAnchor = ({ free }) => [(free.x0 + free.x1) / 2, (free.y0 + free.y1) / 2 + 40];
+const skylinePose = (world, folder) => {
+  const b = world.buildings.find((x) => x.folder === folder) ?? world.buildings[0];
+  return { target: [b.x, 2, b.z], ...SKY_ANGLES, distance: 6.25 * world.ring, fov: SKY_FOV, top: rig.room?.top ?? 0 };
+};
+/** How large a folder's tower stands in its building while the camera flies between them: as wide as the building. */
+const SKY_SCALE = BUILDING.w / FLOOR.w;
+/** A building's glass: a floor plate's top and sides; a shell's, as it stands, as the address folder's, under the pointer. */
+const SKY_GLASS = { plate: [[0.18, 0.18, 0.18]], shell: [[0.05, 0.05, 0.05], [0.16, 0.16, 0.16], [0.12, 0.12, 0.12]] };
+/** The skyline standing: its world and meshes (buildSkyline's), the building under the pointer or focused with Tab (`by`:
+ *  "pointer" or "key"), and the hover card's size. */
+let skied = null;
+/** The repository's skyline, built once: its folders as byFolder holds them, each with its files in its tower's order. */
+let skylineMemo = null;
+function skylineWorld() {
+  const kinds = { drawn: Object.keys(MODELS), order: KIND_ORDER, knowledge: KNOWLEDGE };
+  return (skylineMemo ??= skylineWorldFrom(folders().map((f) => ({ folder: f, floors: floorOrder(byFolder.get(f) ?? [], kinds).map((x) => x.d.kind) }))));
+}
+/** The repository's name, as the breadcrumb gives it. */
+const repoName = () => repo.repo ?? repo.project.split("/").pop();
+/** A building's name: its folder's title, the repository's for a root with no folder record. */
+const skylineTitle = (folder) => { const { title } = folderNames(folder); return folder === "" && title === "/" ? repoName() : title; };
+
+/** The skyline's meshes (Meshes and materials, Skyline buildings): every floor plate one instanced mesh, every shell another, and
+ *  their edges and the dashed ground lines one set of lines, coloured per vertex; and the address folder's rings, r 4.3 filled
+ *  and stroked in --hot and r 5.2 dashed. Six draw calls with the ground, however many folders. Dashes are 4 px long and the
+ *  gaps 5 px (the rings' 6) seen from the opening distance, as artboard 7 draws them. */
+function buildSkyline(world, colours) {
+  const T = three, group = new T.Group(), owned = [], B = world.buildings, n = B.length;
+  const keep = (x) => (owned.push(x), x);
+  const put = (obj, order, into = group) => { obj.renderOrder = order; obj.frustumCulled = false; into.add(obj); return obj; };
+  const m4 = new T.Matrix4(), q = new T.Quaternion(), Y = new T.Vector3(0, 1, 0), tint = new T.Color();
+  const turn = (b) => q.setFromAxisAngle(Y, Math.PI - b.angle);
+  const dash = 0.0284 * world.ring, gap = 0.0355 * world.ring;
+  let painted = colours, fade = 1;
+  const colourOf = (c, role) => (role === "hot" ? c.hot : c.kinds[role] ?? c.kinds.knowledge);
+  const glassBoxes = (count, rows, order) => {
+    const geometry = keep(new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0));
+    geometry.setAttribute("aState", new T.InstancedBufferAttribute(new Float32Array(count), 1));
+    geometry.setAttribute("aSolid", new T.InstancedBufferAttribute(new Float32Array(count), 1));
+    const mesh = put(new T.InstancedMesh(geometry, keep(glass(T, rows)), count), order);
+    for (let i = 0; i < count; i++) mesh.setColorAt(i, tint);
+    return mesh;
+  };
+  // A plate per file, their tops 0.5 apart from 0.5 up, in the building's shell.
+  const floors = B.flatMap((b) => b.floors.map((kind, i) => ({ b, kind, y: BUILDING.floor * (i + 1) - BUILDING.plate })));
+  const plates = glassBoxes(floors.length, SKY_GLASS.plate, 1), shells = glassBoxes(n, SKY_GLASS.shell, 2);
+  let slot = B.map((_, i) => i), pslot = floors.map((_, i) => i);
+  const index = new Map(B.map((b, i) => [b.folder, i])), state = B.map(() => 0);
+  const writeShells = () => {
+    const st = shells.geometry.attributes.aState;
+    slot.forEach((bi, i) => { const b = B[bi]; shells.setMatrixAt(i, m4.compose(V(b.x, 0, b.z), turn(b), new T.Vector3(BUILDING.w, b.h, BUILDING.d))); st.array[i] = state[bi]; });
+    shells.instanceMatrix.needsUpdate = st.needsUpdate = true;
+  };
+  const writePlates = () => {
+    pslot.forEach((fi, i) => { const f = floors[fi]; plates.setMatrixAt(i, m4.compose(V(f.b.x, f.y, f.b.z), turn(f.b), new T.Vector3(BUILDING.w, BUILDING.plate, BUILDING.d))); plates.setColorAt(i, tint.setStyle(colourOf(painted, f.kind))); });
+    plates.instanceMatrix.needsUpdate = true;
+    plates.instanceColor.needsUpdate = true;
+  };
+
+  // Lines, coloured per vertex (RGBA): each shell's edges, each plate's top, and the ground lines, each run with its role and alpha.
+  const pos = [], runs = [];
+  const seg = (a, b) => pos.push(a.x, a.y, a.z, b.x, b.y, b.z);
+  const run = (role, alpha, draw) => { const start = pos.length / 3; draw(); const r = { start, count: pos.length / 3 - start, role, alpha }; runs.push(r); return r; };
+  const rect = (c, y) => { for (let i = 0; i < 4; i++) seg(V(c[i][0], y, c[i][1]), V(c[(i + 1) % 4][0], y, c[(i + 1) % 4][1])); };
+  const dashes = (x0, z0, x1, z1, y) => {
+    const len = Math.hypot(x1 - x0, z1 - z0), ux = (x1 - x0) / (len || 1), uz = (z1 - z0) / (len || 1);
+    for (let s = 0; s < len; s += dash + gap) { const e = Math.min(len, s + dash); seg(V(x0 + ux * s, y, z0 + uz * s), V(x0 + ux * e, y, z0 + uz * e)); }
+  };
+  const edgeRuns = B.map((b) => {
+    const c = buildingCorners(b);
+    return run("component", 0.25, () => { rect(c, 0); rect(c, b.h); for (const [x, z] of c) seg(V(x, 0, z), V(x, b.h, z)); });
+  });
+  for (const f of floors) run(f.kind, 0.8, () => rect(buildingCorners(f.b), f.y + BUILDING.plate));
+  const at = new Map(B.map((b) => [b.folder, b]));
+  run("component", 0.55, () => { for (const [f, p] of world.lines) { const a = at.get(f), b = at.get(p); if (a && b) dashes(a.x, a.z, b.x, b.z, 0.02); } });
+  const lineGeometry = keep(new T.BufferGeometry());
+  lineGeometry.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
+  lineGeometry.setAttribute("color", new T.Float32BufferAttribute(new Float32Array((pos.length / 3) * 4), 4));
+  const lineMaterial = keep(new T.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
+  put(new T.LineSegments(lineGeometry, lineMaterial), 3);
+  const refill = (r, role = r.role, alpha = r.alpha) => {
+    const attr = lineGeometry.attributes.color;
+    tint.setStyle(colourOf(painted, role));
+    for (let v = r.start; v < r.start + r.count; v++) attr.setXYZW(v, tint.r, tint.g, tint.b, alpha);
+    attr.needsUpdate = true;
+  };
+
+  // The address folder's rings, as a selected tower's: r 4.3 filled --hot 8% and stroked 80%, r 5.2 dashed in the kind colour 50%.
+  const rings = new T.Group(), ringPos = [], ringCol = [];
+  // An arc of radius r from angle a to angle b, as one segment.
+  const arc = (r, a, b) => ringPos.push(...V(r * Math.sin(a), 0, r * Math.cos(a)).toArray(), ...V(r * Math.sin(b), 0, r * Math.cos(b)).toArray());
+  for (let i = 0; i < 96; i++) arc(4.3, (2 * Math.PI * i) / 96, (2 * Math.PI * (i + 1)) / 96);
+  const innerCount = ringPos.length / 3, outer = 2 * Math.PI * 5.2, ringDash = 0.0284 * world.ring, ringGap = 0.0426 * world.ring;
+  for (let s = 0; s < outer; s += ringDash + ringGap) arc(5.2, s / 5.2, Math.min(outer, s + ringDash) / 5.2);
+  const ringGeometry = keep(new T.BufferGeometry());
+  ringGeometry.setAttribute("position", new T.Float32BufferAttribute(ringPos, 3));
+  ringGeometry.setAttribute("color", new T.Float32BufferAttribute(new Float32Array((ringPos.length / 3) * 4), 4));
+  const ringLines = keep(new T.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
+  const ringFill = keep(new T.MeshBasicMaterial({ transparent: true, opacity: 0.08, depthWrite: false }));
+  put(new T.Mesh(keep(new T.CircleGeometry(4.3, 64).rotateX(-Math.PI / 2)), ringFill), 1, rings);
+  put(new T.LineSegments(ringGeometry, ringLines), 3, rings);
+  rings.visible = false;
+  group.add(rings);
+  const paintRings = () => {
+    const attr = ringGeometry.attributes.color, hot = new T.Color().setStyle(painted.hot), kind = new T.Color().setStyle(painted.kinds.component);
+    for (let v = 0; v < attr.count; v++) { const c = v < innerCount ? hot : kind; attr.setXYZW(v, c.r, c.g, c.b, v < innerCount ? 0.8 : 0.5); }
+    attr.needsUpdate = true;
+    ringFill.color.setStyle(painted.hot);
+  };
+
+  let marks = { sel: null, hover: null };
+  /** Draws a building as it now looks: the address folder's shell at 0.16 and its edges --hot 90%; under the pointer, 0.12 and --hot. */
+  const look = (folder) => {
+    const i = index.get(folder);
+    if (i === undefined) return;
+    const l = folder === marks.sel ? 1 : folder === marks.hover ? 2 : 0;
+    state[i] = l;
+    refill(edgeRuns[i], l ? "hot" : "component", l === 1 ? 0.9 : l === 2 ? 1 : 0.25);
+  };
+  const self = {
+    kind: "skyline", group, world,
+    stats: () => `${plural(n, "building")} · ${plural(floors.length, "floor")}`,
+    /** Marks the address folder's building (`sel`), lit and ringed, and the one under the pointer (`hover`). */
+    mark(next) {
+      const was = marks;
+      marks = { ...was, ...next };
+      for (const f of new Set([was.sel, was.hover, marks.sel, marks.hover])) if (f != null) look(f);
+      writeShells();
+      const b = at.get(marks.sel);
+      rings.visible = !!b;
+      if (b) rings.position.copy(V(b.x, 0.02, b.z));
+    },
+    /** The building a ray meets first: { folder, distance }, or null. */
+    pick(ray) {
+      const h = ray.intersectObject(shells, false)[0];
+      return h ? { folder: B[slot[h.instanceId]].folder, distance: h.distance } : null;
+    },
+    /** Puts the buildings' and plates' instances in order, furthest from the eye first. */
+    sort(eye) {
+      const far = B.map((b) => V(b.x, b.h / 2, b.z).distanceToSquared(eye));
+      slot = slot.slice().sort((a, b) => far[b] - far[a]);
+      const pfar = floors.map((f) => V(f.b.x, f.y, f.b.z).distanceToSquared(eye));
+      pslot = pslot.slice().sort((a, b) => pfar[b] - pfar[a]);
+      writeShells();
+      writePlates();
+    },
+    /** Scales every alpha, for the skyline to fade in or out round a tower. */
+    fade(f) {
+      fade = f;
+      plates.material.uniforms.fade.value = shells.material.uniforms.fade.value = f;
+      lineMaterial.opacity = ringLines.opacity = f;
+      ringFill.opacity = 0.08 * f;
+    },
+    paint(c) {
+      painted = c;
+      for (let i = 0; i < n; i++) shells.setColorAt(i, tint.setStyle(c.kinds.component));
+      shells.instanceColor.needsUpdate = true;
+      writePlates();
+      for (const r of runs) refill(r);
+      for (const f of index.keys()) look(f);
+      paintRings();
+      self.fade(fade);
+    },
+    dispose() { for (const x of owned) x.dispose(); plates.dispose(); shells.dispose(); },
+  };
+  writeShells();
+  self.paint(colours);
+  return self;
+}
+
+/** Stands the skyline the address asks for: from a tower, rising out of it; at once otherwise. Opened again for another
+ *  folder, the camera flies to that folder's building. */
+function skylineScene() {
+  const world = skylineWorld(), folder = space.folder;
+  if (stage.skyline && skied?.world === world) {
+    skylineAim(folder);
+    const to = { ...skylinePose(world, folder), centre: skylineAnchor(rig.room) };
+    trip = rig.flyTo(to, flightMs(rig.pose(), to), { done: () => { trip = null; rig.touched = false; }, stopped: () => { trip = null; } });
+  } else if (stage.tower && towered) riseToSkyline(world);
+  else standSkyline(world);
+  sceneSay(`${repoName()} has ${plural(byFolder.size, "folder")} with views: a building for each, a floor for each view. Click a building to fly into its tower.`,
+    "", "Drag to orbit · click a building to enter it");
+}
+/** Builds the skyline's meshes, labels and cards, and puts the camera in its opening pose, aimed at the address folder's
+ *  building. `keep`: what stood is handed back, not let go of, to fade. */
+function standSkyline(world, { keep = false } = {}) {
+  streetOff();
+  standing = towered = null;
+  space.layers.clear();
+  Object.assign(space, { selected: null, hovered: null });
+  $("inspector").hidden = true;
+  hideTip();
+  labels?.clear(); labels = null;
+  const sky = buildSkyline(world, theme);
+  skied = { world, sky, hovered: null, by: null, card: null };
+  const was = stage.show(sky, keep);
+  towerHud(false);
+  spaceHud(world);
+  skylineHud(true);
+  labels = skylineLabels(world);
+  // F and Fit everything frame every building: its footprint's corners on the ground and at its top.
+  const points = world.buildings.flatMap((b) => buildingCorners(b).flatMap(([x, z]) => [[x, 0, z], [x, b.h, z]]));
+  Object.assign(rig, {
+    angles: SKY_ANGLES, anchor: skylineAnchor, fov: SKY_FOV, top: spaceRoom().top, climbs: null, centre: null, bounds: world.bounds, points, crowded: null,
+    fitDistance: 6.25 * world.ring, home: () => rig.set({ ...skylinePose(world, space.folder), touched: false }),
+  });
+  rig.fit();
+  stage.fadeGrid(5 * world.ring, 18.75 * world.ring);
+  skylineAim(space.folder);
+  return was;
+}
+/** The skyline's address folder: its building lit and ringed, the labels round it, and its card. */
+function skylineAim(folder) {
+  skied.sky.mark({ sel: folder });
+  skylineLabelled();
+  folderCard(folder, true);
+  rig.moved = true;
+  stage.request();
+}
+/** From a folder's tower up to the skyline (Camera and input, scene change 4): in one frame the tower stands in its building,
+ *  as wide as it, the eye where it sees the small tower as it saw the large one; then the eye flies up and back to the
+ *  skyline's pose (600 ms) as the tower fades out and the skyline in. At once with reduced motion. */
+function riseToSkyline(world) {
+  const from = rig.pose(), b = world.buildings.find((x) => x.folder === towered.folder);
+  const tower = standSkyline(world, { keep: true }), home = rig.pose(), k = SKY_SCALE;
+  if (!tower) return;
+  if (!b) { stage.fade(tower, 1, 0, 0); return; }
+  tower.group.scale.setScalar(k);
+  tower.group.position.copy(V(b.x, 0, b.z));
+  rig.set({ ...from, target: [b.x + k * from.target[0], k * from.target[1], b.z + k * from.target[2]], distance: from.distance * k });
+  stage.fade(tower, 1, 0, 600);
+  stage.fade(skied.sky, 0, 1, 600);
+  trip = rig.flyTo(home, 600, { done: () => { trip = null; rig.touched = false; }, stopped: () => { trip = null; } });
+}
+/** From the skyline down into a folder's tower (scene change 4, reversed): the tower stands in its building, as wide as it,
+ *  and the eye flies to where it sees the small tower as the tower's opening pose sees the large one (600 ms) as the skyline
+ *  fades out and the tower in; then, in one frame, the tower takes its own size and the eye its pose. Input on the way lands
+ *  it where the eye is. At once with reduced motion. */
+function flyIntoTower(next) {
+  const from = rig.pose(), b = skied.world.buildings.find((x) => x.folder === next.folder);
+  const sky = standTower(next, { keep: true }), home = rig.pose(), tower = towered.tower, k = SKY_SCALE;
+  // The floors' labels stand by the tower at its own size: they come when it lands.
+  labels?.clear(); labels = null;
+  const small = (p) => ({ ...p, target: [b.x + k * p.target[0], k * p.target[1], b.z + k * p.target[2]], distance: p.distance * k });
+  const large = (p) => ({ ...p, target: [(p.target[0] - b.x) / k, p.target[1] / k, (p.target[2] - b.z) / k], distance: p.distance / k });
+  tower.group.scale.setScalar(k);
+  tower.group.position.copy(V(b.x, 0, b.z));
+  rig.set(from);
+  if (sky) stage.fade(sky, 1, 0, 600);
+  stage.fade(tower, 0, 1, 600);
+  const land = (there) => {
+    trip = null;
+    if (!space.on || stage.tower !== tower) return;
+    const { centre, ...pose } = there ? home : large(rig.pose());
+    tower.group.scale.setScalar(1);
+    tower.group.position.set(0, 0, 0);
+    stage.fade(tower, 1, 1, 0);
+    rig.set({ ...pose, centre: there ? null : centre, touched: !there });
+    labels = towerLabels(towered.world, tower);
+    labels.mark(space.hovered ?? -1, towered.world.floors.findIndex((f) => f.file === space.selected));
+    rig.moved = true;
+    stage.request();
+  };
+  trip = rig.flyTo(small(home), 600, { done: () => land(true), stopped: () => land(false) });
+}
+/** Flies into a folder's tower: a click on its building, Enter on it, or Enter <its title>. */
+function skylineEnter(folder) { if (byFolder.has(folder)) location.hash = spaceHash({ folder }); }
+
+/** The skyline's cards: the address folder's card, as the tower's but with what the repository holds and Enter <its title>.
+ *  `on` false takes away what is the skyline's alone: the hover card, and the ground's long fade. */
+function skylineHud(on) {
+  if (!on) { hoverCard().hidden = true; stage?.fadeGrid(40, 140); return; }
+  spaceCards().hidden = false;
+  $("space-drawer").hidden = true;
+  // Before the camera is fitted, so that the room it leaves is the one the card will take.
+  folderCard(space.folder, true);
+}
+/** The skyline's labels: a pill per building, its folder's title and then its last segment and a slash in monospace, shown
+ *  at any distance for the address folder, its ancestors, the folders up to two levels below it and the one under the pointer. */
+function skylineLabels(world) {
+  const towers = world.buildings.map((b) => ({ key: b.folder, name: skylineTitle(b.folder), seg: b.folder ? b.folder.split("/").pop() + "/" : null, x: b.x, z: b.z, base: 0, h: b.h }));
+  const inner = spaceLabels({ kind: "component", towers, beacons: [], plates: [], beams: [], parts: new Map() });
+  return { ...inner, place: (camera, room, cut, cover) => inner.place(camera, room, Infinity, cover) };
+}
+/** Which buildings are labelled, and how: the address folder's selected, the one under the pointer as a neighbour. */
+function skylineLabelled() {
+  if (!skied || !labels?.only) return;
+  const { world, hovered } = skied, f = space.folder, keys = new Set([f]), parent = new Map(world.buildings.map((b) => [b.folder, b.parent]));
+  for (let p = parent.get(f); p != null; p = parent.get(p)) keys.add(p);
+  const kids = (x) => world.buildings.filter((b) => b.parent === x).map((b) => b.folder);
+  for (const c of kids(f)) { keys.add(c); for (const g of kids(c)) keys.add(g); }
+  if (hovered != null) keys.add(hovered);
+  labels.only(keys);
+  labels.select({ key: f, near: hovered != null && hovered !== f ? [hovered] : [] });
+}
+/** The building under the pointer, or focused with Tab (`by`): its shell lights, its label shows, and the hover card opens
+ *  by it: the folder's title, path and number of files, its purpose, and what it holds. Null closes it. */
+function skylineHover(folder, by = "pointer") {
+  if (!skied) return;
+  skied.by = folder == null ? null : by;
+  if (skied.hovered === folder) return;
+  skied.hovered = space.hovered = folder;
+  skied.sky.mark({ hover: folder });
+  skylineLabelled();
+  const card = hoverCard();
+  if (folder == null) { card.hidden = true; rig.moved = true; stage.request(); return; }
+  const { docs, path } = folderNames(folder), self = docs.find((d) => d.kind === "folder")?.entities?.[0], purpose = self?.purpose ?? self?.summary;
+  const count = folderCounts(folder), inside = skied.world.buildings.filter((b) => b.folder !== folder && b.folder.startsWith(folder ? folder + "/" : "")).length;
+  card.className = "kind-component folder";
+  card.innerHTML = `<div class="shh"><span>${ic("folder")}</span><b></b></div><div class="shp"></div>${purpose ? "<p></p>" : ""}<div class="scm"></div>`;
+  card.querySelector("b").textContent = skylineTitle(folder);
+  card.querySelector(".shp").textContent = `${path} · ${plural(docs.length, "file")}`;
+  if (purpose) card.querySelector("p").textContent = purpose;
+  card.querySelector(".scm").textContent = `${count.drawn} drawn · ${count.written} written · ${count.knowledge} knowledge · ${plural(inside, "folder")} inside · click to fly in`;
+  card.hidden = false;
+  card.style.transform = "translate(-9999px, 0)";
+  skied.card = { w: card.offsetWidth, h: card.offsetHeight };
+  rig.moved = true;
+  stage.request();
+}
+/** Each frame the camera moved, in the skyline: the hover card placed by its building's top, as the street's is, clear of the
+ *  folder card and the bottom bars. */
+function skylineFrame() {
+  if (!skied || skied.hovered == null || hoverCard().hidden) return null;
+  const b = skied.world.buildings.find((x) => x.folder === skied.hovered);
+  return b ? placeCard(buildingCorners(b).map(([x, z]) => V(x, b.h, z)), skied.card, ["space-controls", "space-legend"], $("space-folder"), rig.room) : null;
+}
+/** Tab and Shift+Tab: the next or previous building in folder order, from the one focused or the address folder's. Past the
+ *  last (or the first) there is none, and the key is left to the page. Returns whether it moved. */
+function skylineStep(dir) {
+  if (!skied) return false;
+  const order = folders(), i = order.indexOf(skied.hovered ?? space.folder) + dir;
+  if (i < 0 || i >= order.length) { skylineHover(null); return false; }
+  skylineHover(order[i], "key");
+  $("space-live").textContent = `${skylineTitle(order[i])}, ${folderNames(order[i]).path}. Enter flies into its tower.`;
+  return true;
+}
+
 // ── The street (Scene 3) ──
 /** The street's field of view, and the projection's centre: (700, 520) of the 1440 × 900 window the design draws, scaled to
  *  this one. As in the tower, the canvas is the window's part under the bar (`top` px), so the centre is that much higher on it. */
@@ -4656,7 +5461,7 @@ const streetFrom = (eye, target) => ({ ...poseFrom(eye, target), fov: STREET_FOV
 function walkTo(key) {
   if (!standing) return;
   if (!street?.on) { location.hash = cityHash(space.folder, standingView(), key ?? null, "street"); return; }
-  const { eye, target } = streetPose(standing.made.world, key ?? null);
+  const { eye, target } = streetPose(street.world, key ?? null, key != null ? standing.key : undefined);
   streetFly(eye, target);
 }
 /** From the city down to the street (Camera and input, scene change 2): the eye flies from the orbit pose to the street's,
@@ -4665,9 +5470,11 @@ function walkTo(key) {
 function enterStreet(v, made, now) {
   if (street?.v === v && street.on) { street.said.status = null; streetSay(); return; }
   rig.room = spaceRoom();
-  const was = history.state?.walk, at = was ? was : streetPose(made.world, space.selected), to = streetFrom(at.eye, at.target);
-  street = { v, on: false, orbit: now ? null : { pose: rig.pose(), touched: rig.touched }, hovered: null, said: {}, saving: 0 };
-  const land = () => { trip = null; if (street?.v === v && space.on) streetOn(made.world); };
+  // Every city standing is walked among: the address's and the layers beside it, as one world.
+  const world = districtWorld(stage.city.stands(), standing.key), sel = space.selected;
+  const was = history.state?.walk, at = was ? was : streetPose(world, sel, sel != null ? standing.key : undefined), to = streetFrom(at.eye, at.target);
+  street = { v, world, on: false, orbit: now ? null : { pose: rig.pose(), touched: rig.touched }, hovered: null, said: {}, saving: 0 };
+  const land = () => { trip = null; if (street?.v === v && space.on) streetOn(street.world); };
   if (now) { rig.set(to); land(); }
   else trip = rig.flyTo(to, flightMs(rig.pose(), to), { done: land, stopped: land });
 }
@@ -4680,7 +5487,7 @@ function streetOn(world) {
   $("inspector").hidden = true;
   document.body.classList.add("street");
   streetHud(world);
-  spaceHud(world);
+  spaceHud(standing.made.world);
   rig.room = spaceRoom();
   rig.top = rig.room.top;
   rig.walkOn(world);
@@ -4717,13 +5524,13 @@ function riseToCity(made) {
 }
 /** Flies the eye, walking, to a place in the street, looking at `target`. */
 function streetFly(eye, target) {
-  const world = standing.made.world, to = streetFrom(eye, target);
+  const world = street.world, to = streetFrom(eye, target);
   const land = () => { trip = null; if (street?.on && rig.walk.world === world) { rig.walkOn(world); keepWalk(); } };
   trip = rig.flyTo(to, flightMs(rig.pose(), to), { done: land, stopped: land });
 }
 /** A click on the map: the eye flies there, as high above the ground as it walks, out of any tower, facing the way it faces. */
 function streetGo(x, z) {
-  const world = standing.made.world, e = rig.eye(), lift = rig.walk.lift;
+  const world = street.world, e = rig.eye(), lift = rig.walk.lift;
   const [nx, nz] = walkStep(world, [x, z], [0, 0], groundAt(world, x, z) + lift), to = [nx, groundAt(world, nx, nz) + lift, nz];
   streetFly(to, rig.target.map((v, i) => v + to[i] - e[i]));
   stage.canvas.focus({ preventScroll: true });
@@ -4747,14 +5554,14 @@ function streetHud(world) {
     $("space-hud").insertAdjacentHTML("beforeend", `<nav class="hud" id="space-crumbs" aria-label="Where you are" hidden></nav>`
       + `<div class="hud" id="space-keys" hidden>${keys(["W", "A", "S", "D"], "walk")}${keys(["Drag"], "look")}${keys(["Space"], "rise")}${keys(["Click"], "read a part")}${keys(["Esc"], "orbit")}</div>`
       + `<section class="hud" id="space-map" hidden><div class="smh"><span class="caps">Map</span><span>you are here</span></div><svg role="img" aria-label="Map of the city with your position"></svg></section>`
-      + `<div id="space-card" hidden></div><div id="space-cross" hidden><svg aria-hidden="true" viewBox="-15 -15 30 30"><path d="M0-15v7M0 8v7M-15 0h7M8 0h7"/></svg></div>`);
+      + `<div id="space-cross" hidden><svg aria-hidden="true" viewBox="-15 -15 30 30"><path d="M0-15v7M0 8v7M-15 0h7M8 0h7"/></svg></div>`);
     $("space-map").querySelector("svg").addEventListener("click", (e) => {
       const r = e.currentTarget.getBoundingClientRect(), at = street?.map?.back(e.clientX - r.left, e.clientY - r.top);
       if (at && street.on) streetGo(...at);
     });
   }
   for (const id of ["space-vignette", "space-crumbs", "space-keys", "space-map", "space-cross"]) $(id).hidden = !world;
-  $("space-card").hidden = true;
+  hoverCard().hidden = true;
   if (world) { $("space-crumbs").textContent = ""; streetMap(world); }
 }
 /** The map: the world's bounds in plan, the top of the sheet up, as Flat draws it: plates as rounded rectangles, towers as
@@ -4767,17 +5574,23 @@ function streetMap(world) {
   el.className = `hud kind-${world.kind}`;
   svg.setAttribute("width", inner); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${inner} ${H}`);
   svg.innerHTML = world.plates.slice().sort((a, b) => a.depth - b.depth).map((p) => `<rect class="mp" x="${X(p.x0)}" y="${Y(p.z1)}" width="${+((p.x1 - p.x0) * s).toFixed(1)}" height="${+((p.z1 - p.z0) * s).toFixed(1)}" rx="2"/>`).join("")
-    + world.towers.map((t) => `<rect class="mt" data-key="${esc(t.key)}" x="${X(t.x) - 2.5}" y="${Y(t.z) - 2.5}" width="5" height="5"/>`).join("")
+    + world.towers.map((t) => `<rect class="mt" data-key="${esc(t.key)}" data-view="${esc(t.view ?? "")}" x="${X(t.x) - 2.5}" y="${Y(t.z) - 2.5}" width="5" height="5"/>`).join("")
     + world.beacons.map((b) => `<path class="mb" d="M${X(b.x)} ${Y(b.z) - 3.5}l3.5 3.5-3.5 3.5-3.5-3.5z"/>`).join("")
     + `<path class="mc"/><circle class="me" r="4.5"/>`;
   street.map = { X, Y, W: inner, H, back: (px, py) => [B.x0 + (px - ox) / s, B.z1 - (py - 8) / s], sel: undefined, eye: "" };
   document.body.style.setProperty("--map-h", `${el.offsetHeight}px`);
 }
-/** The hover card's part, from the pointer: a tower or a beacon, or null. Its labels are placed again round it. */
-function streetHover(key) {
-  if (!street?.on || street.hovered === key) return;
-  street.hovered = key;
-  const card = $("space-card"), world = standing.made.world, n = key && world.parts.get(key);
+/** The hover card, over every panel but the inspector: the street's, by a part, and the skyline's, by a building. Made once. */
+function hoverCard() {
+  if (!$("space-card")) $("space-hud").insertAdjacentHTML("beforeend", `<div id="space-card" hidden></div>`);
+  return $("space-card");
+}
+/** The hover card's part, from the pointer: a tower or a beacon, or null, in the city of `view`. Its labels are placed again
+ *  round it. */
+function streetHover(key, view = standing?.key) {
+  if (!street?.on || (street.hovered === key && street.view === view)) return;
+  Object.assign(street, { hovered: key, view });
+  const card = hoverCard(), world = stage.city?.of(view)?.world, n = key != null && world?.parts.get(key);
   if (!n) { card.hidden = true; rig.moved = true; stage.request(); return; }
   const beacon = world.beacons.some((b) => b.key === key), name = world.towers.concat(world.beacons).find((x) => x.key === key).name;
   // The tip is the models' HTML, already escaped: read as text in a template, which runs and loads nothing, without its title and hint.
@@ -4798,8 +5611,8 @@ function streetHover(key) {
 /** Each frame the eye moved, in the street: the hover card placed by its part, the map's eye and selection, the breadcrumb and
  *  the status line; and the history entry kept up to date. Returns the hover card's box, for the labels to keep clear of. */
 function streetFrame() {
-  const world = standing?.made.world;
-  if (!street?.on || !world) return null;
+  const world = street?.world;
+  if (!street?.on || !world || !standing) return null;
   const e = rig.eye(), room = rig.room, sel = space.selected;
   // The map: the eye, the way it faces, and the selected tower.
   const m = street.map, a = rig.azimuth * rad, ray = (k) => [m.X(e[0] - 36 * Math.sin(a + k * 24 * rad)), m.Y(e[2] + 36 * Math.cos(a + k * 24 * rad))];
@@ -4814,14 +5627,15 @@ function streetFrame() {
   }
   if (m.sel !== sel) {
     for (const r of $("space-map").querySelectorAll(".mt.sel")) r.classList.remove("sel");
-    if (sel != null) $("space-map").querySelector(`.mt[data-key="${CSS.escape(sel)}"]`)?.classList.add("sel");
+    if (sel != null) $("space-map").querySelector(`.mt[data-key="${CSS.escape(sel)}"][data-view="${CSS.escape(standing.key)}"]`)?.classList.add("sel");
     m.sel = sel;
   }
   // The breadcrumb: the folder's tower, the city, the plate, and the part selected, else the one under the crosshair.
-  const ahead = sel ?? pointer?.hit(...streetAnchor(room), false)?.key ?? null, where = streetWhere(world, e[0], e[2]);
-  const part = ahead != null ? world.towers.concat(world.beacons, world.plates).find((x) => x.key === ahead) : null;
-  const plate = part ? cityPlateOf(world, part.key)?.name ?? null : where.over;
-  const view = KIND_NAME[world.kind] + (standing.v.e ? ` · ${standing.v.e.name ?? standing.v.e.id}` : "");
+  const crossed = sel == null ? pointer?.hit(...streetAnchor(room), false) : null, where = streetWhere(world, e[0], e[2]);
+  const ahead = sel != null ? { key: sel, view: standing.key } : crossed ? { key: crossed.key, view: crossed.view } : null;
+  const part = ahead ? world.towers.concat(world.beacons, world.plates).find((x) => x.key === ahead.key && x.view === ahead.view) : null;
+  const plate = part ? (part.plateName !== undefined ? part.plateName : world.plates.find((p) => p.key === part.key && p.view === part.view)?.name ?? null) : where.over;
+  const view = KIND_NAME[standing.made.world.kind] + (standing.v.e ? ` · ${standing.v.e.name ?? standing.v.e.id}` : "");
   const crumbs = [space.folder, view, plate, part?.name ?? null].join("\u0000");
   if (crumbs !== street.said.crumbs) {
     street.said.crumbs = crumbs;
@@ -4840,29 +5654,37 @@ function streetFrame() {
   keepWalk();
   return streetCard(world, room);
 }
-/** Places the hover card 18 px right of its tower's top right corner and 24 px above it, or 18 px left of its top left corner
- *  where it would pass the canvas's 20 px margin, or 20 px short of the inspector while that is open: a card is never under
- *  it, and one that would still reach it moves left until it doesn't. Where the breadcrumb, the map or the key hints are in
- *  its way it slides up or down, whichever is nearer, to clear them by 8 px. Returns its box, or null. */
-function streetCard(world, { W, H }) {
-  const card = $("space-card"), key = street.hovered;
+/** Places the street's hover card by its tower's top, or a beacon's equator at its top's height (placeCard). */
+function streetCard(world, room) {
+  const card = hoverCard(), key = street.hovered;
   if (key == null || card.hidden) return null;
-  const t = world.towers.find((x) => x.key === key), b = !t && world.beacons.find((x) => x.key === key);
+  const is = (x) => x.key === key && x.view === street.view, t = world.towers.find(is), b = !t && world.beacons.find(is);
+  if (!t && !b) return null;
   const [x, y, z, s] = t ? [t.x, t.base + t.h, t.z, t.side / 2] : [b.x, b.y + 1.3, b.z, 1.25];
-  const pts = [[-s, -s], [s, -s], [s, s], [-s, s]].map(([dx, dz]) => {
-    const p = V(x + dx, y, z + dz), view = p.clone().applyMatrix4(stage.camera.matrixWorldInverse);
+  const top = [[-s, -s], [s, -s], [s, s], [-s, s]].map(([dx, dz]) => V(x + dx, y, z + dz));
+  return placeCard(top, street.card, ["space-crumbs", "space-map", "space-keys"], $("inspector").hidden ? null : $("inspector"), room);
+}
+/** Places the hover card 18 px right of the top right corner of what it is about (`top`: the corners of its top, in three's
+ *  frame) and 24 px above it, or 18 px left of its top left corner where it would pass the canvas's 20 px margin, or 20 px
+ *  short of `block` (the inspector in the street, the folder card in the skyline): a card is never under it, and one that
+ *  would still reach it moves left until it doesn't. Where a panel of `ids` is in its way it slides up or down, whichever is
+ *  nearer, to clear it by 8 px. Returns its box, or null. */
+function placeCard(top, { w, h }, ids, block, { W, H }) {
+  const card = hoverCard();
+  const pts = top.map((c) => {
+    const p = c.clone(), view = p.clone().applyMatrix4(stage.camera.matrixWorldInverse);
     if (view.z > -stage.camera.near) return null;
     p.project(stage.camera);
     return [((p.x + 1) / 2) * W, ((1 - p.y) / 2) * H];
   });
   if (pts.some((p) => !p)) { card.style.transform = "translate(-9999px, 0)"; return null; }
-  const right = pts.reduce((m, p) => (p[0] > m[0] ? p : m)), left = pts.reduce((m, p) => (p[0] < m[0] ? p : m)), { w, h } = street.card;
-  const box = $("space").getBoundingClientRect(), ins = $("inspector").hidden ? null : $("inspector").getBoundingClientRect();
+  const right = pts.reduce((m, p) => (p[0] > m[0] ? p : m)), left = pts.reduce((m, p) => (p[0] < m[0] ? p : m));
+  const box = $("space").getBoundingClientRect(), ins = block?.getBoundingClientRect();
   const edge = ins?.width ? Math.min(W - 20, ins.left - box.left - 20) : W - 20;
   let cx = right[0] + 18, cy = right[1] - 24;
   if (cx + w > edge) { cx = left[0] - 18 - w; cy = left[1] - 24; }
   cx = Math.min(cx, edge - w);
-  const panels = ["space-crumbs", "space-map", "space-keys"].map((id) => $(id).getBoundingClientRect()).filter((r) => r.width).map((r) => ({ x0: r.left - box.left, y0: r.top - box.top, x1: r.right - box.left, y1: r.bottom - box.top }));
+  const panels = ids.map((id) => $(id)?.getBoundingClientRect()).filter((r) => r?.width).map((r) => ({ x0: r.left - box.left, y0: r.top - box.top, x1: r.right - box.left, y1: r.bottom - box.top }));
   for (let pass = 0; pass < 3; pass++) {
     for (const p of panels) {
       if (cx + w <= p.x0 - 8 || cx >= p.x1 + 8 || cy + h <= p.y0 - 8 || cy >= p.y1 + 8) continue;
@@ -4875,10 +5697,10 @@ function streetCard(world, { W, H }) {
 }
 /** The street's status line: where the eye walks (through a plate, or on open ground near one), then the part selected. */
 function streetSay(where = null) {
-  const world = standing?.made.world;
-  if (!street?.on || !world) return;
+  const world = street?.world;
+  if (!street?.on || !world || !standing) return;
   const e = rig.eye(), at = where ?? streetWhere(world, e[0], e[2]);
-  const sel = space.selected != null ? world.towers.concat(world.beacons, world.plates).find((x) => x.key === space.selected) : null;
+  const sel = space.selected != null ? world.towers.concat(world.beacons, world.plates).find((x) => x.key === space.selected && x.view === standing.key) : null;
   const sentence = (at.over ? `Walking through ${at.over}, eye level at the plate.` : `Walking on open ground${at.near ? ` near ${at.near}` : ""}.`)
     + (sel ? ` ${sel.name} is selected; its beams are lit.` : "");
   if (sentence === street.said.status) return;
@@ -4905,14 +5727,15 @@ function spaceFocus(now = false) {
 
 /** Selects a part of the city standing (a tower, a plate or a beacon): it lights, its neighbours brighten, the beams between
  *  them light, rings stand round a tower's base, the inspector opens with what Flat shows for it, and the address names it
- *  (the history entry is replaced). `quiet`: the address already does. */
-function spaceSelect(key, { quiet = false, now = false } = {}) {
+ *  (the history entry is replaced). `quiet`: the address already does. A part of a city standing beside the one in the address
+ *  (`view`) makes that city's view the address's first (leadTo). */
+function spaceSelect(key, { quiet = false, now = false, view = null } = {}) {
+  if (view != null && view !== standing?.key) { const w = stage?.city?.of(view)?.world, m = w?.parts.get(key); if (!m?.info || !cityNeighbours(w, key)) return; leadTo(view); }
   const city = stage?.city, world = city?.world, n = world?.parts.get(key), hood = world && cityNeighbours(world, key);
   if (!hood || !n?.info) return;
   space.selected = key;
   city.mark({ sel: key, near: hood.near, lit: hood.beams });
-  const t = world.towers.find((x) => x.key === key), s = t && t.side / 2;
-  labels?.select(hood, t ? [t.base, t.base + t.h].flatMap((y) => [[-s, -s], [s, -s], [s, s], [-s, s]].map(([dx, dz]) => V(t.x + dx, y, t.z + dz))) : null);
+  selectLabels(key);
   const plate = spaceInspect(n, hood);
   space.focus = `${world.kind}:${key}`;
   if (!quiet) history.replaceState(history.state, "", cityHash(space.folder, standingView(), key, space.scene));
@@ -4920,6 +5743,13 @@ function spaceSelect(key, { quiet = false, now = false } = {}) {
   rig.moved = true;
   rig.reroom(now);
   stage.request();
+}
+/** The labels of the selection in the city in the address: its part's in the selected style, its neighbours', and the box of
+ *  a selected tower, which no other label covers; none for null. */
+function selectLabels(key) {
+  const c = stage?.city?.of(standing?.key), world = c?.world, hood = key != null && world ? cityNeighbours(world, key) : null;
+  const t = hood && world.towers.find((x) => x.key === key), s = t && t.side / 2, dx = c?.city.dx ?? 0;
+  labels?.select(hood && { ...hood, view: standing.key }, t ? [t.base, t.base + t.h].flatMap((y) => [[-s, -s], [s, -s], [s, s], [-s, s]].map(([ax, az]) => V(t.x + dx + ax, y, t.z + az))) : null);
 }
 /** Clears the Cyberspace selection, which closeInspector() does in either mode: the city goes back to how it stood and the
  *  address to the view's own (the history entry is replaced). `quiet`: the address already says so. In Flat there is only
@@ -4992,17 +5822,19 @@ function itsFolder(folder) {
   return el;
 }
 
-/** Hover and click in a city, the street and the tower. What is under the pointer is found at most once a frame. In a city a
- *  tower or beacon gets state hover and a beam thickens, each showing its tooltip as Flat places it (in the street a tower or
- *  beacon shows the hover card instead), and the cursor says it can be selected; a click selects it, and a click on empty
- *  ground clears the selection. In the street Enter selects what is under the crosshair. In the tower a floor under the
- *  pointer lights its edges and its label; a click is towerClick's, and a double-click on the pulled-out floor, or Enter, goes
- *  into its city. Nothing here moves the camera. Returns `hit`, what is at a point of the canvas (`beams` false: parts alone). */
+/** Hover and click in a city, the street, the tower and the skyline. What is under the pointer is found at most once a frame.
+ *  In a city a tower or beacon gets state hover and a beam thickens, each showing its tooltip as Flat places it (in the street
+ *  a tower or beacon shows the hover card instead), and the cursor says it can be selected; a click selects it (in whichever
+ *  city stands it), and a click on empty ground clears the selection. In the street Enter selects what is under the
+ *  crosshair. In the tower a floor under the pointer lights its edges and its label; a click is towerClick's, and a
+ *  double-click on the pulled-out floor, or Enter, goes into its city. In the skyline a building under the pointer lights and
+ *  shows the hover card; a click or Enter flies into its tower, and Tab and Shift+Tab go from building to building. Nothing
+ *  here moves the camera. Returns `hit`, what is at a point of the canvas (`beams` false: parts alone). */
 function spacePointer(stage, rig) {
   const ray = new three.Raycaster(), ndc = new three.Vector2(), canvas = stage.canvas;
-  let at = null, queued = 0, city = null, beam = null;
+  let at = null, queued = 0, city = null, beam = null, view = null;
   const hit = (x, y, beams = true) => {
-    const shown = stage.city ?? stage.tower;
+    const shown = stage.city ?? stage.tower ?? stage.skyline;
     if (!shown || !rig.room) return null;
     ray.setFromCamera(ndc.set((x / rig.room.W) * 2 - 1, 1 - (y / rig.room.H) * 2), stage.camera);
     return shown.pick(ray, beams);
@@ -5021,17 +5853,26 @@ function spacePointer(stage, rig) {
   const hover = () => {
     queued = 0;
     if (stage.tower) { city = null; floorHover(); return; }
-    if (stage.city !== city) { city = stage.city; beam = null; }
-    const h = at && !rig.pressed ? hit(...at.xy) : null, world = city?.world;
-    const part = h && !h.beam && (world.towers.some((t) => t.key === h.key) || world.beacons.some((b) => b.key === h.key)) ? h.key : null;
-    const walking = !!street?.on, tip = part && !walking ? world.parts.get(part).tip : h?.beam ? world.beams.find((b) => b.key === h.key).tip : null;
+    if (stage.skyline) {
+      city = null;
+      const h = at && !rig.pressed && !rig.flight ? hit(...at.xy) : null;
+      hideTip();
+      canvas.classList.toggle("pick", !!h);
+      // A building focused with Tab stays lit until the pointer finds another.
+      if (h || skied?.by === "pointer") skylineHover(h?.folder ?? null, "pointer");
+      return;
+    }
+    if (stage.city !== city) { city = stage.city; beam = null; view = null; }
+    const h = at && !rig.pressed ? hit(...at.xy) : null, world = h ? city?.of(h.view)?.world : null;
+    const part = h && !h.beam && world && (world.towers.some((t) => t.key === h.key) || world.beacons.some((b) => b.key === h.key)) ? h.key : null;
+    const walking = !!street?.on, tip = part && !walking ? world.parts.get(part).tip : h?.beam && world ? world.beams.find((b) => b.key === h.key).tip : null;
     if (tip) showTip(tip, at.cx, at.cy); else hideTip();
-    if (walking) streetHover(part);
+    if (walking) streetHover(part, h?.view);
     canvas.classList.toggle("pick", !!h);
-    const next = h?.beam ? h.key : null;
-    if (city && (part !== space.hovered || next !== beam)) {
-      space.hovered = part; beam = next;
-      city.mark({ hover: part, beam });
+    const next = h?.beam ? h.key : null, there = h?.view ?? null;
+    if (city && (part !== space.hovered || next !== beam || there !== view)) {
+      space.hovered = part; beam = next; view = there;
+      city.point(there, part, beam);
       stage.request();
     }
   };
@@ -5045,14 +5886,19 @@ function spacePointer(stage, rig) {
   rig.onClick = (x, y) => {
     const h = hit(x, y);
     if (stage.tower) towerClick(h);
-    else if (h && !h.beam) spaceSelect(h.key);
+    else if (stage.skyline) { if (h) skylineEnter(h.folder); }
+    else if (h && !h.beam) spaceSelect(h.key, { view: h.view });
     else if (!h && space.selected != null) closeInspector();
   };
   canvas.addEventListener("dblclick", (e) => { if (stage.tower && hit(...local(e))?.floor === stage.tower.pulled) towerEnter(); });
   canvas.addEventListener("keydown", (e) => {
-    if (e.key !== "Enter" || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    // The skyline's own Tab: the next or previous building, in folder order; past the last one the focus leaves the canvas.
+    if (e.key === "Tab" && stage.skyline) { if (skylineStep(e.shiftKey ? -1 : 1)) e.preventDefault(); return; }
+    if (e.key !== "Enter") return;
     if (stage.tower) { e.preventDefault(); towerEnter(); }
-    else if (street?.on) { e.preventDefault(); const h = hit(...streetAnchor(rig.room), false); if (h) spaceSelect(h.key); }
+    else if (stage.skyline) { e.preventDefault(); skylineEnter(skied?.hovered ?? space.folder); }
+    else if (street?.on) { e.preventDefault(); const h = hit(...streetAnchor(rig.room), false); if (h) spaceSelect(h.key, { view: h.view }); }
   });
   return { hit };
 }
@@ -5069,7 +5915,8 @@ function showSpace(folder, focus, scene) {
   if (!webgl || spaceFailed) { spaceSay(spaceFailed ?? SPACE_SAYS.webgl); spaceFailed = null; return false; }
   // The models decide a part's drill-down from current, so it is the folder shown here too.
   current = byFolder.has(folder) ? folder : folders().slice().sort((a, b) => depth(a) - depth(b) || a.localeCompare(b))[0];
-  Object.assign(space, { folder: current, focus, scene });
+  // A repository with one folder has no skyline: its address opens the tower.
+  Object.assign(space, { folder: current, focus, scene: spaceSceneFor(scene, byFolder.size) });
   // A floor slid back stays in until the reader goes somewhere.
   if (location.hash !== space.at) space.shut = false;
   space.at = location.hash;
@@ -5103,8 +5950,11 @@ function leaveSpace(asked) {
     if (rig) rig.flight = null;
     trip = null;
     streetOff();
-    standing = towered = null;
+    standing = towered = skied = null;
+    space.layers.clear();
     towerHud(false);
+    layersHud();
+    hoverCard().hidden = true;
     Object.assign(space, { selected: null, hovered: null });
     $("space-gl").classList.remove("pick");
     $("space-live").textContent = "";
@@ -5127,11 +5977,8 @@ function flatPlace() {
   const first = MODELS[shownKind] ? (byFolder.get(current) ?? []).find((d) => d.kind === shownKind) : null;
   return { folder: current ?? "", kind: pinned?.d.kind ?? null, part: pinned?.pinned ?? null, view: first?._path.split("/").pop() ?? null };
 }
-/** Where the reader is in Cyberspace: the part or view the address names. */
-function spacePlace() {
-  const [kind, ...name] = (space.focus ?? "").split(":");
-  return kind === "view" ? { folder: space.folder, view: name.join(":") } : { folder: space.folder, kind: kind || null, part: name.join(":") || null };
-}
+/** Where the reader is in Cyberspace: the part or view the address names; in the skyline, the folder. */
+const spacePlace = () => spacePlaceOf(space);
 /** A press only changes the address; route() does the rest. */
 $("modes").addEventListener("click", (e) => {
   const b = e.target.closest("button[data-mode]");
@@ -5143,13 +5990,14 @@ $("modes").addEventListener("click", (e) => {
 
 // Cyberspace's own Esc (the document's listener above steps aside while it shows), so that one press does one thing: it clears
 // the selection; with none, the street rises to its city and a city goes up to its folder's tower (each a new history entry),
-// and the tower slides its pulled-out floor back. With none out it does nothing yet: rising to the skyline comes with step 6
-// of the plan.
+// and the tower slides its pulled-out floor back; with none out, the tower rises to the skyline where the repository has one
+// (a new history entry). The skyline is the top: there it does nothing.
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape" || !space.on) return;
   if (space.selected != null || !$("inspector").hidden) { e.preventDefault(); closeInspector(); }
   else if (space.scene === "street" && standing && stage?.city) { e.preventDefault(); location.hash = cityHash(space.folder, viewOf(standing.v), null, "city"); }
   else if (space.scene === "tower" && towered?.v && stage?.tower) { e.preventDefault(); towerSlideBack(); }
+  else if (space.scene === "tower" && towered && stage?.tower && byFolder.size > 1) { e.preventDefault(); location.hash = spaceHash({ folder: towered.folder, scene: "skyline" }); }
   else if (space.scene === "city" && standing && stage?.city) { e.preventDefault(); location.hash = cityHash(space.folder, viewOf(standing.v), null, "tower"); }
 });
 
