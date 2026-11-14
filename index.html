@@ -2928,13 +2928,18 @@ function buildCity(world, colours) {
     geometry.setIndex(idx);
     return { geometry, runs };
   };
+  // `weight` scales every beam's radius and its end dot's: 1 in the city, STREET_WEIGHT in the street (weigh, below).
+  let weight = 1;
   const all = world.beams.map((_, i) => i), quiet = tubes(all, 0.035);
-  const beamRuns = quiet?.runs ?? [], ends = [];
+  let beamRuns = quiet?.runs ?? [];
+  const ends = [];
   for (const b of world.beams) if (b.from !== b.to) ends.push({ at: V(...b.points[32]), role: roleOf(b) });
   const tubeMaterial = () => new T.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false });
-  const beams = quiet ? put(new T.Mesh(keep(quiet.geometry), keep(tubeMaterial())), 4) : null;
+  const beams = quiet ? put(new T.Mesh(quiet.geometry, keep(tubeMaterial())), 4) : null;
   const dots = ends.length ? put(new T.InstancedMesh(keep(new T.SphereGeometry(0.12, 10, 8)), keep(new T.MeshBasicMaterial({ transparent: true, opacity: 0.9, depthWrite: false })), ends.length), 4) : null;
-  ends.forEach((e, i) => { dots.setMatrixAt(i, m4.compose(e.at, q, one)); dots.setColorAt(i, new T.Color()); });
+  const placeDots = () => { const s = new T.Vector3(weight, weight, weight); ends.forEach((e, i) => dots.setMatrixAt(i, m4.compose(e.at, q, s))); if (dots) dots.instanceMatrix.needsUpdate = true; };
+  ends.forEach((_, i) => dots.setColorAt(i, new T.Color()));
+  placeDots();
   // What the pointer finds a beam by: a tube 0.6 thick round each, never drawn.
   const pickTube = tubes(all, 0.3, { along: 16, radial: 4, dashes: false });
   const pickBeams = pickTube ? new T.Mesh(keep(pickTube.geometry), keep(new T.MeshBasicMaterial())) : null;
@@ -3049,18 +3054,30 @@ function buildCity(world, colours) {
           refill(beams.geometry.attributes.color, beamRuns[i]);
         }
       }
-      if (litChanged) {
-        const list = [...marks.lit].map((k) => beamIndex.get(k)).filter((i) => i !== undefined);
-        swap("core", tubes(list, 0.06), coreMaterial, 4);
-        const glow = tubes(list, 0.25, { dashes: false });
-        glow?.runs.forEach((r) => { r.alpha = 0.35; refill(glow.geometry.attributes.color, r); });
-        swap("glow", glow, glowMaterial, 5);
-      }
-      // A beam under the pointer thickens to the lit core's radius; a lit one already has it.
-      const i = beamIndex.get(marks.beam), made = i !== undefined && !marks.lit.has(marks.beam) ? tubes([i], 0.06) : null;
-      made?.runs.forEach((r) => refill(made.geometry.attributes.color, r));
-      swap("hover", made, hoverMaterial, 4);
+      if (litChanged) light();
+      hoverBeam();
       self.ring();
+    },
+    /** Draws every beam `k` times as thick as the city does, and its end dot `k` times as large: the street's weight, where
+     *  the eye is a few units from them, or the city's (1). Only the drawn tubes are made again; the pointer finds a beam by
+     *  the same fat tube as in the city. */
+    weigh(k) {
+      if (k === weight) return;
+      weight = k;
+      if (beams) {
+        const made = tubes(all, 0.035 * weight);
+        beams.geometry.dispose();
+        beams.geometry = made.geometry;
+        beamRuns = made.runs;
+        for (const r of beamRuns) {
+          const key = world.beams[r.beam].key;
+          r.alpha = marks.lit.has(key) || key === marks.beam ? 0 : 0.42;
+          refill(made.geometry.attributes.color, r);
+        }
+      }
+      if (dots) placeDots();
+      light();
+      hoverBeam();
     },
     /** Stands the selection rings round the selected tower's base; a plate or a beacon has none. */
     ring() {
@@ -3076,10 +3093,25 @@ function buildCity(world, colours) {
     },
     dispose() {
       for (const name of Object.keys(lit)) swap(name, null);
+      beams?.geometry.dispose();
       for (const x of owned) x.dispose();
       for (const m of [plates, towers, beacons, dots, ...discs]) m?.dispose();
     },
   };
+  /** The lit beams: a core in --hot and a glow round it in the kind colour, as thick as the weight makes them. */
+  function light() {
+    const list = [...marks.lit].map((k) => beamIndex.get(k)).filter((i) => i !== undefined);
+    swap("core", tubes(list, 0.06 * weight), coreMaterial, 4);
+    const glow = tubes(list, 0.25 * weight, { dashes: false });
+    glow?.runs.forEach((r) => { r.alpha = 0.35; refill(glow.geometry.attributes.color, r); });
+    swap("glow", glow, glowMaterial, 5);
+  }
+  /** A beam under the pointer thickens to the lit core's radius; a lit one already has it. */
+  function hoverBeam() {
+    const i = beamIndex.get(marks.beam), made = i !== undefined && !marks.lit.has(marks.beam) ? tubes([i], 0.06 * weight) : null;
+    made?.runs.forEach((r) => refill(made.geometry.attributes.color, r));
+    swap("hover", made, hoverMaterial, 4);
+  }
   self.paint(colours);
   return self;
 }
@@ -4043,11 +4075,14 @@ function spaceStage(T, canvas) {
     if (!SPACE_STATS) return;
     // The readout waits for the GPU, so the time it gives is the whole frame's.
     renderer.getContext().finish();
-    took = took ? took * 0.9 + (performance.now() - t0) * 0.1 : performance.now() - t0;
+    // `frame` is a running average, so one slow frame (the first, which compiles the shaders) weighs on it for a while;
+    // `last` is the latest frame's own.
+    const one = performance.now() - t0;
+    took = took ? took * 0.9 + one * 0.1 : one;
     if (now - last < 100) every = every ? every * 0.9 + (now - last) * 0.1 : now - last;
     last = now;
     const el = $("space-stats") ?? $("space").appendChild(Object.assign(document.createElement("div"), { id: "space-stats" }));
-    el.textContent = `frame ${took.toFixed(1)} ms${every ? ` · every ${every.toFixed(1)} ms` : ""}\n${renderer.info.render.calls} draw calls\n`
+    el.textContent = `frame ${took.toFixed(1)} ms · last ${one.toFixed(1)} ms${every ? ` · every ${every.toFixed(1)} ms` : ""}\n${renderer.info.render.calls} draw calls\n`
       + (shown?.stats() ?? "nothing standing");
   };
   const request = () => { if (!frame && showing()) frame = requestAnimationFrame(draw); };
@@ -4603,6 +4638,9 @@ function towerSlideBack() {
 /** The street's field of view, and the projection's centre: (700, 520) of the 1440 × 900 window the design draws, scaled to
  *  this one. As in the tower, the canvas is the window's part under the bar (`top` px), so the centre is that much higher on it. */
 const STREET_FOV = 61.2;
+/** How thick beams are drawn in the street, of their city radii: the eye stands a few units from them, and artboard 3 draws a
+ *  lit beam leaving Loader's top, 14 units away, with a 1.8 px core and a 7 px glow. */
+const STREET_WEIGHT = 0.28;
 const streetAnchor = ({ W, H, top }) => [W / 2 - (20 * W) / 1440, (H + top) / 2 + (70 * (H + top)) / 900 - top];
 /** The street standing: the view walked through; the orbit pose the reader left the city at, to rise back to (null: the fit);
  *  `on` once the eye has landed; the part under the pointer, whose hover card shows; and what the status line, breadcrumb
@@ -4633,8 +4671,8 @@ function enterStreet(v, made, now) {
   if (now) { rig.set(to); land(); }
   else trip = rig.flyTo(to, flightMs(rig.pose(), to), { done: land, stopped: land });
 }
-/** The eye has landed in the street: walking, the street's projection, ground and HUD. The inspector closes, as artboard 3
- *  has it, but what was selected stays lit: a click on a part opens it again. */
+/** The eye has landed in the street: walking, the street's projection, ground, beams at the street's weight, and HUD. The
+ *  inspector closes, as artboard 3 has it, but what was selected stays lit: a click on a part opens it again. */
 function streetOn(world) {
   street.on = true;
   Object.assign(rig, { anchor: streetAnchor, home: null, climbs: null, fov: STREET_FOV, centre: null });
@@ -4647,6 +4685,7 @@ function streetOn(world) {
   rig.top = rig.room.top;
   rig.walkOn(world);
   stage.fadeGrid(60, 200);
+  stage.city?.weigh(STREET_WEIGHT);
   stage.canvas.focus({ preventScroll: true });
   rig.moved = true;
   stage.request();
@@ -4661,11 +4700,13 @@ function streetOff() {
   if (rig) { if (rig.mode === "walk") rig.setMode(rig.held); rig.walk.world = null; }
   stage?.fadeGrid(40, 140);
 }
-/** From the street up to the city (scene change 3): the eye flies back to the orbit pose the reader left, or to the fit. A
- *  camera the reader hadn't moved is fitted to the room as it now is, as it would have been had they stayed. */
+/** From the street up to the city (scene change 3): the beams take the city's weight again, and the eye flies back to the
+ *  orbit pose the reader left, or to the fit. A camera the reader hadn't moved is fitted to the room as it now is, as it
+ *  would have been had they stayed. */
 function riseToCity(made) {
   const orbit = street.orbit?.touched ? street.orbit : null, from = rig.pose();
   streetOff();
+  stage.city?.weigh(1);
   spaceHud(made.world);
   Object.assign(rig, { anchor: null, home: null, fov: 54.1, top: 0, centre: null });
   rig.room = spaceRoom();
@@ -4800,8 +4841,9 @@ function streetFrame() {
   return streetCard(world, room);
 }
 /** Places the hover card 18 px right of its tower's top right corner and 24 px above it, or 18 px left of its top left corner
- *  where it would pass the canvas's 20 px margin; where the breadcrumb, the map or the key hints are in its way it slides up
- *  or down, whichever is nearer, to clear them by 8 px. Returns its box, or null. */
+ *  where it would pass the canvas's 20 px margin, or 20 px short of the inspector while that is open: a card is never under
+ *  it, and one that would still reach it moves left until it doesn't. Where the breadcrumb, the map or the key hints are in
+ *  its way it slides up or down, whichever is nearer, to clear them by 8 px. Returns its box, or null. */
 function streetCard(world, { W, H }) {
   const card = $("space-card"), key = street.hovered;
   if (key == null || card.hidden) return null;
@@ -4815,9 +4857,12 @@ function streetCard(world, { W, H }) {
   });
   if (pts.some((p) => !p)) { card.style.transform = "translate(-9999px, 0)"; return null; }
   const right = pts.reduce((m, p) => (p[0] > m[0] ? p : m)), left = pts.reduce((m, p) => (p[0] < m[0] ? p : m)), { w, h } = street.card;
+  const box = $("space").getBoundingClientRect(), ins = $("inspector").hidden ? null : $("inspector").getBoundingClientRect();
+  const edge = ins?.width ? Math.min(W - 20, ins.left - box.left - 20) : W - 20;
   let cx = right[0] + 18, cy = right[1] - 24;
-  if (cx + w > W - 20) { cx = left[0] - 18 - w; cy = left[1] - 24; }
-  const box = $("space").getBoundingClientRect(), panels = ["space-crumbs", "space-map", "space-keys"].map((id) => $(id).getBoundingClientRect()).filter((r) => r.width).map((r) => ({ x0: r.left - box.left, y0: r.top - box.top, x1: r.right - box.left, y1: r.bottom - box.top }));
+  if (cx + w > edge) { cx = left[0] - 18 - w; cy = left[1] - 24; }
+  cx = Math.min(cx, edge - w);
+  const panels = ["space-crumbs", "space-map", "space-keys"].map((id) => $(id).getBoundingClientRect()).filter((r) => r.width).map((r) => ({ x0: r.left - box.left, y0: r.top - box.top, x1: r.right - box.left, y1: r.bottom - box.top }));
   for (let pass = 0; pass < 3; pass++) {
     for (const p of panels) {
       if (cx + w <= p.x0 - 8 || cx >= p.x1 + 8 || cy + h <= p.y0 - 8 || cy >= p.y1 + 8) continue;
