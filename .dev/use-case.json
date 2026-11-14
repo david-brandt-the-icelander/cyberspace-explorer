@@ -984,6 +984,266 @@
           ]
         }
       ]
+    },
+    {
+      "id": "walk-to-part",
+      "name": "Walk to a part and read it",
+      "description": "A reader in Cyberspace goes down from a city to eye level by one of its parts, walks among the parts round it, and reads them.",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "walkTo"
+        },
+        {
+          "path": "index.html",
+          "symbol": "enterStreet"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceRig"
+        },
+        {
+          "path": "index.html",
+          "symbol": "streetFrame"
+        }
+      ],
+      "actor": "Reader",
+      "actorDocument": "Actors/reader.md",
+      "goal": "See a part from where it stands, with what it depends on in front of them, and read it and its neighbours.",
+      "preconditions": [
+        "A city of a drawn view stands in Cyberspace (#<folder>|view:<file>|~space:city, or a part's focus with it)."
+      ],
+      "postconditions": [
+        "The part the reader chose is selected and its inspector open; the address names it in the street, and Esc takes them back up to the city."
+      ],
+      "flow": [
+        {
+          "id": "select",
+          "actor": "Reader",
+          "action": "Selects a part of the city.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "spaceSelect"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "offer",
+          "actor": "Browser",
+          "action": "Lights its beams and opens the inspector, with Walk to <name> at its foot.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "spaceInspect"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "walk",
+          "actor": "Reader",
+          "action": "Presses Walk to <name>.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "walkTo"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "arrive",
+          "actor": "Browser",
+          "action": "Flies the eye down to 1.7 units above the ground, 12 units from the part across the layout's flow, looking up at it, and puts the breadcrumb, the key hints, the map and a crosshair where the legend and camera controls were.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "enterStreet"
+            },
+            {
+              "path": "index.html",
+              "symbol": "streetPose"
+            },
+            {
+              "path": "index.html",
+              "symbol": "streetOn"
+            },
+            {
+              "path": "index.html",
+              "symbol": "streetHud"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "move",
+          "actor": "Reader",
+          "action": "Walks with W A S D, looks by dragging, rises with Space, or clicks the map.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "spaceRig"
+            },
+            {
+              "path": "index.html",
+              "symbol": "streetGo"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "keep",
+          "actor": "Browser",
+          "action": "Moves the eye at the same pace whatever the frame rate, sliding along towers and stepping onto plates, and keeps the map, the breadcrumb and the status line saying where it is.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "walkStep"
+            },
+            {
+              "path": "index.html",
+              "symbol": "groundAt"
+            },
+            {
+              "path": "index.html",
+              "symbol": "streetFrame"
+            },
+            {
+              "path": "index.html",
+              "symbol": "streetSay"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "hover",
+          "actor": "Reader",
+          "action": "Points at a part nearby.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "spacePointer"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "card",
+          "actor": "Browser",
+          "action": "Shows the hover card beside its top: its name, what it does and how many beams it has.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "streetHover"
+            },
+            {
+              "path": "index.html",
+              "symbol": "streetCard"
+            }
+          ],
+          "participantKind": "system"
+        },
+        {
+          "id": "read",
+          "actor": "Reader",
+          "action": "Clicks a part, or presses Enter on the one under the crosshair.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "spacePointer"
+            }
+          ],
+          "participantKind": "actor",
+          "actorDocument": "Actors/reader.md"
+        },
+        {
+          "id": "inspect",
+          "actor": "Browser",
+          "action": "Selects it and opens the inspector with what Flat says about it.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "spaceSelect"
+            },
+            {
+              "path": "index.html",
+              "symbol": "spaceInspect"
+            }
+          ],
+          "participantKind": "system"
+        }
+      ],
+      "alternatives": [
+        {
+          "atStep": "walk",
+          "condition": "Nothing is selected, and the reader presses Walk in the camera controls.",
+          "outcome": "The eye goes down by the middle of the city.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "walkTo"
+            },
+            {
+              "path": "index.html",
+              "symbol": "streetPose"
+            }
+          ]
+        },
+        {
+          "atStep": "walk",
+          "condition": "The reader opens a street address directly.",
+          "outcome": "The city stands and the eye is put there at once.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "spaceScene"
+            },
+            {
+              "path": "index.html",
+              "symbol": "enterStreet"
+            }
+          ]
+        },
+        {
+          "atStep": "arrive",
+          "condition": "The place 12 units out is inside a tower.",
+          "outcome": "The eye stands a unit further out at a time until it is clear.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "streetPose"
+            }
+          ]
+        },
+        {
+          "atStep": "arrive",
+          "condition": "The reader prefers reduced motion.",
+          "outcome": "The eye is put there at once; walking still moves, because the reader drives it.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "spaceRig"
+            }
+          ]
+        },
+        {
+          "atStep": "move",
+          "condition": "The reader presses Esc.",
+          "outcome": "The selection clears; pressed again, the eye rises back to the city's orbit, and once more to the folder's tower.",
+          "sources": [
+            {
+              "path": "index.html",
+              "symbol": "riseToCity"
+            }
+          ]
+        }
+      ]
     }
   ],
   "relatedViews": [

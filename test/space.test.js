@@ -425,3 +425,142 @@ test("sliding a floor out, entering its city and going up again write addresses 
   assert.deepEqual(parse("#|entity:backlog.json#cyberspace-mode|~space"), { mode: "space", folder: "", focus: "entity:backlog.json#cyberspace-mode", scene: "tower" });
   assert.equal(spaceHash(parse("#|entity:backlog.json#cyberspace-mode|~space")), "#|entity%3Abacklog.json%23cyberspace-mode|~space");
 });
+
+// ── The street ────────────────────────────────────────────────────────────
+
+const { streetPose, walkStep, groundAt, streetWhere, EYE } = vm.runInContext("({ streetPose, walkStep, groundAt, streetWhere, EYE })", context);
+const sin20 = Math.sin((20 * Math.PI) / 180), cos20 = Math.cos((20 * Math.PI) / 180);
+const close = (a, b, eps = 1e-9) => a.length === b.length && a.every((v, i) => Math.abs(v - b[i]) < eps);
+/** A hand-written city world: towers { key, x, z, side, base, h }, plates and beacons as cityWorldFrom makes them. */
+const street = ({ dir = "LR", towers = [], plates = [], beacons = [], bounds = null }) => {
+  const parts = new Map([...towers, ...plates, ...beacons].map((p) => [p.key, { key: p.key, parent: p.parent ?? null, info: {} }]));
+  const boxes = [
+    ...towers.map((t) => [t.x - t.side / 2, t.x + t.side / 2, t.z - t.side / 2, t.z + t.side / 2, t.base + t.h]),
+    ...plates.map((p) => [p.x0, p.x1, p.z0, p.z1, p.base + 0.5]),
+    ...beacons.map((b) => [b.x - 1.25, b.x + 1.25, b.z - 1.25, b.z + 1.25, b.y + 1.3]),
+  ];
+  const B = bounds ?? { x0: Math.min(...boxes.map((a) => a[0])), x1: Math.max(...boxes.map((a) => a[1])), z0: Math.min(...boxes.map((a) => a[2])), z1: Math.max(...boxes.map((a) => a[3])), top: Math.max(...boxes.map((a) => a[4])) };
+  return {
+    kind: "component", dir, markers: [], beams: [], parts, bounds: B,
+    towers: towers.map((t) => ({ name: t.key, plate: t.parent ?? null, ...t })), plates: plates.map((p) => ({ name: p.key, depth: 0, ...p })), beacons: beacons.map((b) => ({ name: b.key, ...b })),
+  };
+};
+const pose = (w, key) => { const p = streetPose(w, key); return { eye: [...p.eye], target: [...p.target] }; };
+
+test("walking to a part of a left-to-right city, the eye stands 12 units across the flow, turned 20° upstream, looking up at it", () => {
+  const w = street({ towers: [{ key: "a", x: 3, z: 5, side: 2.2, base: 0, h: 6.1 }, { key: "far", x: 40, z: 40, side: 2.2, base: 0, h: 2.2 }] });
+  const p = pose(w, "a");
+  assert.ok(close(p.eye, [3 - 12 * sin20, 1.7, 5 - 12 * cos20]), String(p.eye));
+  // The centre line at min(0.55 × h, 6.5) above its base.
+  assert.ok(close(p.target, [3, 0.55 * 6.1, 5]), String(p.target));
+  // A tall tower is looked at 6.5 above its base, and one on a plate from its base.
+  const tall = street({ towers: [{ key: "t", x: 0, z: 0, side: 2.2, base: 0.5, h: 13.9 }] });
+  assert.ok(close(pose(tall, "t").target, [0, 7, 0]));
+  // The flow runs left to right in front of the reader: the eye looks along +z, turned a little downstream.
+  const look = p.target.map((v, i) => v - p.eye[i]);
+  assert.ok(look[2] > 0 && look[0] > 0 && look[0] < look[2]);
+});
+
+test("walking to a part of a top-to-bottom city, the eye stands across that flow", () => {
+  const w = street({ dir: "TB", towers: [{ key: "a", x: -2, z: 1, side: 2.2, base: 0, h: 3.5 }] });
+  const p = pose(w, "a");
+  assert.ok(close(p.eye, [-2 - 12 * cos20, 1.7, 1 + 12 * sin20]), String(p.eye));
+  // The flow runs down the sheet, towards -z, which is to the reader's right: they look along +x.
+  const look = p.target.map((v, i) => v - p.eye[i]);
+  assert.ok(look[0] > 0 && look[2] < 0 && -look[2] < look[0]);
+});
+
+test("an eye that would stand in a tower's footprint grown by 0.6 steps a unit at a time further out, and stands on the plate it is over", () => {
+  const at = (k) => [3 - k * sin20, 5 - k * cos20];
+  const [bx, bz] = at(12);
+  const w = street({ towers: [{ key: "a", x: 3, z: 5, side: 2.2, base: 0, h: 6.1 }, { key: "b", x: bx, z: bz, side: 2, base: 0, h: 3 }] });
+  // 13 units out the eye is 0.94 from b's centre along z, inside 1 + 0.6; 14 units out, 1.88, clear of it.
+  assert.ok(close(pose(w, "a").eye, [at(14)[0], 1.7, at(14)[1]]), String(pose(w, "a").eye));
+  const plated = street({ towers: [{ key: "a", x: 3, z: 5, side: 2.2, base: 0, h: 6.1 }], plates: [{ key: "p", x0: bx - 2, x1: bx + 2, z0: bz - 2, z1: bz + 2, base: 0.5 }] });
+  assert.ok(Math.abs(pose(plated, "a").eye[1] - (1 + 1.7)) < 1e-9);
+});
+
+test("with nothing selected the eye walks to the centre of the bounds; a beacon is looked at by its height, a plate by its thickness", () => {
+  const w = street({ towers: [{ key: "a", x: -10, z: -6, side: 2, base: 0, h: 4 }, { key: "b", x: 10, z: 6, side: 2, base: 0, h: 12 }], beacons: [{ key: "x", x: 20, y: 6.5, z: 0 }], plates: [{ key: "p", x0: -12, x1: -8, z0: -8, z1: -4, base: 0 }] });
+  const B = w.bounds, c = [(B.x0 + B.x1) / 2, (B.z0 + B.z1) / 2];
+  assert.ok(close(pose(w, null).target, [c[0], Math.min(0.55 * B.top, 6.5), c[1]]));
+  assert.ok(close(pose(w, null).eye, [c[0] - 12 * sin20, 1.7, c[1] - 12 * cos20]));
+  assert.ok(close(pose(w, "x").target, [20, Math.min(0.55 * 7.8, 6.5), 0]));
+  assert.ok(close(pose(w, "p").target, [-10, 0.275, -6]));
+});
+
+test("this repository's Loader, as artboard 3 stands it: the eye at (−14.1, 1.7, −31.2), looking at (−10.0, 6.0, −20.0)", () => {
+  // The component city of 2026-11-13, as far as the arrival needs it: Loader (6 beams, height 10.0) on Repository reading,
+  // where the spec's worked example puts it to a hundredth, the two adapters beside it and the GitHub and GitLab beacons.
+  const w = street({
+    towers: [
+      { key: "loader", x: -10.0, z: -19.96, side: 2.2, base: 0.5, h: 10.0, parent: "reading" },
+      { key: "github", x: -4.3, z: -18.9, side: 2.2, base: 0.5, h: 6.1, parent: "reading" },
+      { key: "gitlab", x: -4.3, z: -22.1, side: 2.2, base: 0.5, h: 4.8, parent: "reading" },
+      { key: "router", x: -20.3, z: -5.2, side: 2.2, base: 0, h: 4.8 },
+    ],
+    plates: [{ key: "reading", x0: -12.4, x1: -1.6, z0: -24.3, z1: -13.9, base: 0 }],
+    beacons: [{ key: "gh", x: 1.2, y: 6.5, z: -18.9 }, { key: "gl", x: 1.2, y: 8, z: -22.1 }],
+  });
+  const p = pose(w, "loader"), one = (v) => Math.round(v * 10) / 10 || 0;
+  assert.deepEqual(p.eye.map(one), [-14.1, 1.7, -31.2]);
+  assert.deepEqual(p.target.map(one), [-10.0, 6.0, -20.0]);
+  // The eye arrives on open ground beside Repository reading, as the status line says.
+  assert.deepEqual({ ...streetWhere(w, p.eye[0], p.eye[2]) }, { over: null, near: "reading" });
+});
+
+test("walking into a tower slides along it; over its top, or through a beacon or a plate, the eye walks on", () => {
+  const w = street({ towers: [{ key: "t", x: 0, z: 0, side: 2, base: 0, h: 5 }], beacons: [{ key: "b", x: 0, y: 6.5, z: 6 }], plates: [{ key: "p", x0: -8, x1: -4, z0: -2, z1: 2, base: 0 }] });
+  // Straight at its face: it stops with the eye's circle (r 0.4) against it.
+  assert.ok(close([...walkStep(w, [-3, 0.2], [3, 0], 1.7)], [-1.4, 0.2]));
+  // At a slant: it keeps all of the step along the face, and none into it.
+  assert.ok(close([...walkStep(w, [-2, -0.5], [3, 1], 1.7)], [-1.4, 0.5]));
+  // Round a corner it goes on (the corner, round to the eye's circle, turns it a little), never inside the footprint grown
+  // by the eye's radius.
+  const [x, z] = walkStep(w, [-3, -0.5], [5, 5], 1.7);
+  assert.ok(Math.abs(z - 4.5) < 0.1 && x > -1.4 && x < 2, `${x}, ${z}`);
+  assert.ok(Math.max(Math.abs(x) - 1, 0) ** 2 + Math.max(Math.abs(z) - 1, 0) ** 2 >= EYE.r ** 2 - 1e-9);
+  // Above the tower's top it isn't in the way; beacons and plates never are.
+  assert.ok(close([...walkStep(w, [-3, 0.2], [6, 0], 5.5)], [3, 0.2]));
+  assert.ok(close([...walkStep(w, [-3, 6], [6, 0], 1.7)], [3, 6]));
+  assert.ok(close([...walkStep(w, [-10, 0], [8, 0], 1.7)], [-2, 0]));
+  // A fast step doesn't pass through a thin tower.
+  const thin = street({ towers: [{ key: "t", x: 0, z: 0, side: 0.3, base: 0, h: 5 }] });
+  assert.ok(walkStep(thin, [-2, 0], [4, 0], 1.7)[0] <= -0.55 + 1e-9);
+});
+
+test("plates are steps: the ground under the eye is the top of the highest plate there", () => {
+  const w = street({ towers: [{ key: "t", x: 20, z: 20, side: 2, base: 0, h: 3 }], plates: [{ key: "outer", x0: -10, x1: 10, z0: -10, z1: 10, base: 0 }, { key: "inner", x0: -4, x1: 4, z0: -4, z1: 4, base: 0.5, depth: 1 }] });
+  assert.equal(groundAt(w, -20, 0), 0);
+  assert.equal(groundAt(w, -8, 0), 0.5);
+  assert.equal(groundAt(w, 0, 0), 1);
+  // Walking onto it isn't stopped: the plate's edge is a step, not a wall.
+  assert.ok(close([...walkStep(w, [-15, 0], [15, 0], 1.7)], [0, 0]));
+  assert.deepEqual({ ...streetWhere(w, 0, 0) }, { over: "inner", near: "t" });
+  assert.deepEqual({ ...streetWhere(w, -15, 0) }, { over: null, near: "t" });
+});
+
+test("walking stops at the world's bounds grown by 30 units", () => {
+  const w = street({ towers: [{ key: "t", x: 0, z: 0, side: 2, base: 0, h: 3 }], bounds: { x0: -10, x1: 10, z0: -5, z1: 5, top: 3 } });
+  assert.ok(close([...walkStep(w, [0, 3], [100, 0], 1.7)], [40, 3]));
+  assert.ok(close([...walkStep(w, [0, 3], [-100, -100], 1.7)], [-40, -35]));
+  assert.ok(close([...walkStep(w, [39, 34], [5, 5], 1.7)], [40, 35]));
+});
+
+test("street addresses read back the same, with a part and without", () => {
+  const rows = [
+    ["", { kind: "component", file: "component-diagram.json" }, "loader", "#|component%3Aloader|~space:street", "component:loader"],
+    ["", { kind: "component", file: "component-diagram.json" }, null, "#|view%3Acomponent-diagram.json|~space:street", "view:component-diagram.json"],
+    ["worker/my part", { kind: "deployment", file: "deployment-diagram.json" }, "edge", "#worker/my%20part|deployment%3Aedge|~space:street", "deployment:edge"],
+    ["", { kind: "use-case", file: "use-case.json", entity: "switch-modes" }, null, "#|view%3Ause-case.json%23switch-modes|~space:street", "view:use-case.json#switch-modes"],
+  ];
+  for (const [folder, view, key, hash, focus] of rows) {
+    assert.equal(cityHash(folder, view, key, "street"), hash);
+    const want = { mode: "space", folder, focus, scene: "street" };
+    assert.deepEqual(parse(hash), want);
+    assert.deepEqual(parse(decodeURIComponent(hash)), want);
+    assert.equal(spaceHash(want), hash);
+    // Esc rises to the same place in the city.
+    assert.deepEqual(parse(cityHash(folder, view, key, "city")), { ...want, scene: "city" });
+  }
+});

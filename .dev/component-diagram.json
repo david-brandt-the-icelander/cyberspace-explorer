@@ -123,6 +123,46 @@
     {
       "path": "index.html",
       "symbol": "flyUp"
+    },
+    {
+      "path": "index.html",
+      "symbol": "streetPose"
+    },
+    {
+      "path": "index.html",
+      "symbol": "walkStep"
+    },
+    {
+      "path": "index.html",
+      "symbol": "groundAt"
+    },
+    {
+      "path": "index.html",
+      "symbol": "enterStreet"
+    },
+    {
+      "path": "index.html",
+      "symbol": "riseToCity"
+    },
+    {
+      "path": "index.html",
+      "symbol": "streetHud"
+    },
+    {
+      "path": "index.html",
+      "symbol": "streetMap"
+    },
+    {
+      "path": "index.html",
+      "symbol": "streetFrame"
+    },
+    {
+      "path": "index.html",
+      "symbol": "streetCard"
+    },
+    {
+      "path": "index.html",
+      "symbol": "streetHover"
     }
   ],
   "components": [
@@ -291,7 +331,7 @@
     {
       "id": "camera-rig",
       "name": "Camera rig",
-      "responsibility": "The camera in orbit and pan modes: fits the city into the room the panels leave, with the projection centred on it, and turns, pans and flies with a drag, the wheel, a pinch, the arrow keys, + and −, and F, within limits. In the tower it takes the design's opening pose, framed in the whole window and climbed for a stack taller than 24 floors, and the wheel climbs; it flies between the tower and a city, on an arc, at once with reduced motion.",
+      "responsibility": "The camera in orbit, pan and walk modes: fits the city into the room the panels leave, with the projection centred on it, and turns, pans and flies with a drag, the wheel, a pinch, the arrow keys, + and −, and F, within limits. In the tower it takes the design's opening pose, framed in the whole window and climbed for a stack taller than 24 floors, and the wheel climbs; it flies between the tower and a city, and between a city and its street, on an arc, at once with reduced motion. In the street it walks: it puts the eye 12 units from a part across the layout's flow, looking up at it, then moves it with W A S D, the arrows, Space and Z at a pace that doesn't depend on the frame rate, turns it with Alt and a drag, slides it along towers, steps it onto plates and keeps it within the city's bounds grown by 30.",
       "folder": "."
     },
     {
@@ -303,7 +343,7 @@
     {
       "id": "hud",
       "name": "HUD",
-      "responsibility": "The panels over the scene: over a city, the camera controls (orbit, pan, zoom in and out, fit everything) and the legend, worded for the kind of view; over the tower, the folder's card (its name, path, purpose, counts of drawn, written and knowledge files, and the folders inside it) and the pulled-out floor's (its view, what its city holds, Enter the city and Slide back).",
+      "responsibility": "The panels over the scene: over a city, the camera controls (orbit, pan, walk, zoom in and out, fit everything) and the legend, worded for the kind of view; over the tower, the folder's card (its name, path, purpose, counts of drawn, written and knowledge files, and the folders inside it) and the pulled-out floor's (its view, what its city holds, Enter the city and Slide back); in the street, in place of the city's, the breadcrumb (folder, view, plate and the part selected or ahead), the key hints, the map (plates, towers, beacons and the eye with its view cone; a click flies the eye there), the hover card by the part under the pointer, a crosshair and a vignette.",
       "folder": "."
     },
     {

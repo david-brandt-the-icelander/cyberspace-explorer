@@ -176,6 +176,15 @@
       ]
     },
     {
+      "id": "street",
+      "title": "Street",
+      "summary": "A city in Cyberspace seen from eye height, 1.7 units above the ground: the reader walks among its towers with the keys, looks round by dragging, and reads a part where it stands. It adds nothing to the city but another camera and its own panels: the breadcrumb, the key hints, the map and the hover card.",
+      "aliases": [
+        "Walking",
+        "~space:street"
+      ]
+    },
+    {
       "id": "token-scope",
       "title": "Scope",
       "summary": "What a token is for: every repository on a host, everything under an owner or group, or one repository."

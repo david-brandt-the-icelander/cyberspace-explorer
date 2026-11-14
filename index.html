@@ -472,6 +472,43 @@
   #space-cards .sct2 { margin-top: 4px; font: 700 24px/28px var(--cond); color: var(--hot); }
   #space-cards .sch { margin-top: 2px; font-size: 13px; color: var(--ink2); }
   #space-cards .scb { margin-top: 12px; display: flex; gap: 8px; }
+  /* The street: a vignette over the canvas, the crosshair, the breadcrumb, the key hints, the map and the hover card. */
+  #space-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse farthest-side, transparent 60%, color-mix(in srgb, var(--ink) 12%, transparent)); }
+  @media (prefers-color-scheme: dark) { #space-vignette { background: radial-gradient(ellipse farthest-side, transparent 60%, rgb(0 0 0 / .55)); } }
+  #space-cross { position: absolute; left: 0; top: 0; width: 30px; height: 30px; pointer-events: none; }
+  #space-cross svg { display: block; width: 30px; height: 30px; fill: none; stroke: var(--hot); stroke-opacity: .7; stroke-width: 1.5; }
+  #space-crumbs { left: 20px; top: 44px; height: 36px; padding: 0 14px; display: flex; align-items: center; gap: 8px; border-radius: 8px; white-space: nowrap; font: 500 14px/1 var(--semi); color: var(--ink2); }
+  #space-crumbs a { color: var(--ink2); text-decoration: none; }
+  #space-crumbs a:hover { color: var(--hot); }
+  #space-crumbs i { font-style: normal; color: var(--ink3); }
+  #space-crumbs b { font-weight: 600; color: var(--hot); }
+  #space-keys { left: 20px; bottom: 20px; height: 52px; padding: 0 16px; display: flex; align-items: center; gap: 18px; white-space: nowrap; font: 400 13px/1 var(--sans); color: var(--ink2); }
+  #space-keys > span { display: flex; align-items: center; gap: 5px; }
+  #space-keys kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 6px; box-sizing: border-box; border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 4px; font: 400 12px/1 var(--mono); color: var(--ink); }
+  #space-map { right: 20px; bottom: 20px; width: 260px; padding: 14px; box-sizing: border-box; }
+  #space-map .smh { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--ink3); }
+  #space-map .caps { font: 600 12px/1.2 var(--semi); letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+  #space-map svg { display: block; margin-top: 6px; overflow: hidden; cursor: crosshair; }
+  #space-map .mp { fill: var(--k); fill-opacity: .12; stroke: var(--k); stroke-opacity: .5; }
+  #space-map .mt { fill: var(--k); fill-opacity: .7; }
+  #space-map .mt.sel { fill: var(--hot); fill-opacity: 1; }
+  #space-map .mb { fill: var(--k-deployment); }
+  #space-map .mc { fill: var(--hot); fill-opacity: .1; stroke: var(--hot); stroke-opacity: .45; }
+  #space-map .me { fill: var(--hot); stroke: var(--paper); stroke-width: 2; }
+  @media (max-height: 899.98px) { #space-map { width: 180px; } }
+  #space-card { position: absolute; z-index: 3; left: 0; top: 0; width: 280px; box-sizing: border-box; padding: 12px 14px; border: 1px solid var(--k); border-radius: 8px; background: color-mix(in srgb, var(--sheet) 94%, transparent); box-shadow: 0 12px 32px rgb(0 0 0 / .12); pointer-events: none; will-change: transform; }
+  @media (prefers-color-scheme: dark) { #space-card { box-shadow: 0 12px 32px rgb(0 0 0 / .45); } }
+  #space-card.amber { border-color: var(--k-deployment); }
+  #space-card .shh { display: flex; align-items: center; gap: 8px; }
+  #space-card .shh span { display: flex; color: var(--k); }
+  #space-card.amber .shh span { color: var(--k-deployment); }
+  #space-card .shh .ic { width: 16px; height: 16px; }
+  #space-card b { font: 700 20px/24px var(--cond); color: var(--hot); }
+  #space-card p { margin: 6px 0 0; font: 400 13.5px/20px var(--sans); color: var(--ink); }
+  #space-card .scm { margin-top: 8px; font-size: 12.5px; color: var(--ink3); }
+  #inspector .ibtn.primary svg.ic use { color: var(--paper); }
+  /* In the street the inspector ends 10 px above the map. */
+  body.street #inspector { max-height: calc(100vh - 128px - var(--map-h, 250px)); }
   #space-stats { position: absolute; z-index: 3; top: 48px; right: 20px; padding: 6px 10px; border: 1px solid var(--rule); border-radius: 6px; background: color-mix(in srgb, var(--sheet) 90%, transparent); font: 400 12px/1.45 var(--mono); color: var(--ink2); white-space: pre; pointer-events: none; }
   .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 </style>
@@ -673,6 +710,7 @@ const ICONS = {
   pan: `<circle cx="12" cy="12" r="2.4" ${F}/><path d="M12 3v18M3 12h18M12 3l-2.5 2.5M12 3l2.5 2.5M12 21l-2.5-2.5M12 21l2.5-2.5M3 12l2.5-2.5M3 12l2.5 2.5M21 12l-2.5-2.5M21 12l-2.5 2.5"/>`,
   beacon: `<path d="M12 2.5 17 9.5 12 16.5 7 9.5z" ${F}/><path d="M12 2.5 17 9.5 12 16.5 7 9.5zM7 9.5h10"/><circle cx="12" cy="19.2" r=".8" ${S}/><circle cx="12" cy="22" r=".8" ${S}/>`,
   tower: `<path d="M8 21V6l4-2 4 2v15z" ${F}/><path d="M8 21V6l4-2 4 2v15z"/><path d="M8 11h8M8 16h8"/>`,
+  walk: `<circle cx="13.5" cy="4.5" r="2.2" ${F}/><circle cx="13.5" cy="4.5" r="2.2"/><path d="M12.8 8.4 11 14.2l-2.6 3.3L6.8 21M11 14.2l3 2.6.9 4.2M12.5 9.6 9.2 11.6l-1 3.1M12.6 9.8l2.3 2.8 3.1.8"/>`,
 };
 
 /** Which glyph a component gets, guessed from its name. Order matters: the first match wins. */
@@ -2575,6 +2613,72 @@ function floorPlan(world) {
 
 /** How small a city stands on its pulled-out floor: at most 0.36, and small enough that it keeps to the 16 × 12 floor. */
 const floorScale = (b) => Math.min(0.36, 15 / Math.max(b.x1 - b.x0, 1e-6), 11 / Math.max(b.z1 - b.z0, 1e-6));
+
+/** The eye in the street: a circle of radius 0.4 on the ground, 1.7 to 30 units above the ground under it, and kept within
+ *  the world's bounds grown by 30. */
+const EYE = { r: 0.4, low: 1.7, high: 30, reach: 30 };
+/** How high the ground stands under a point: the top of the highest plate there, else 0. */
+function groundAt(world, x, z) {
+  let y = 0;
+  for (const p of world.plates) if (x >= p.x0 && x <= p.x1 && z >= p.z0 && z <= p.z1) y = Math.max(y, p.base + PH);
+  return y;
+}
+/** Which way the eye stands from a part it walks to: across the layout's flow, so that the flow runs left to right in front
+ *  of the reader as it does in Flat, turned 20° upstream. [x, z] in the spec's frame. */
+function streetSide(dir) {
+  const a = (20 * Math.PI) / 180;
+  return dir === "TB" ? [-Math.cos(a), Math.sin(a)] : [-Math.sin(a), -Math.cos(a)];
+}
+/** Where Walk to <part> puts the eye (docs/cyberspace-mode-spec.md, Scene 3, Arriving): 12 units from the part's base across
+ *  the flow, 1.7 above the ground there, stepped further out a unit at a time while it is inside a tower's footprint grown by
+ *  0.6; looking at the part's centre line, min(0.55 × its height, 6.5) above its base. A beacon's height is its top's, a
+ *  plate's its thickness; with no part (`key` null), the centre of the bounds, as high as the city. */
+function streetPose(world, key = null) {
+  const t = world.towers.find((x) => x.key === key), b = world.beacons.find((x) => x.key === key), p = world.plates.find((x) => x.key === key);
+  const B = world.bounds;
+  const part = t ? { x: t.x, z: t.z, base: t.base, h: t.h }
+    : b ? { x: b.x, z: b.z, base: 0, h: b.y + 1.3 }
+    : p ? { x: (p.x0 + p.x1) / 2, z: (p.z0 + p.z1) / 2, base: p.base, h: PH }
+    : { x: (B.x0 + B.x1) / 2, z: (B.z0 + B.z1) / 2, base: 0, h: B.top };
+  const [dx, dz] = streetSide(world.dir);
+  const inside = (x, z) => world.towers.some((o) => Math.abs(x - o.x) < o.side / 2 + 0.6 && Math.abs(z - o.z) < o.side / 2 + 0.6);
+  let k = 12;
+  while (inside(part.x + k * dx, part.z + k * dz) && k < 1000) k++;
+  const x = part.x + k * dx, z = part.z + k * dz;
+  return { eye: [x, groundAt(world, x, z) + EYE.low, z], target: [part.x, part.base + Math.min(0.55 * part.h, 6.5), part.z] };
+}
+/** One step of walking (Scene 3, Walking): from [x, z] by [dx, dz], the eye `y` high. A tower whose top is above the eye is
+ *  solid, and the eye's circle slides along its footprint; plates, beams and beacons are not. The step is cut into pieces no
+ *  longer than 0.2, so that a fast one doesn't pass through a thin tower, and it ends at the bounds grown by 30. */
+function walkStep(world, [x, z], [dx, dz], y) {
+  const r = EYE.r, B = world.bounds, n = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.2));
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const solid = world.towers.filter((t) => y < t.base + t.h);
+  for (let i = 0; i < n; i++) {
+    x += dx / n; z += dz / n;
+    for (let pass = 0; pass < 3; pass++) {
+      for (const t of solid) {
+        const s = t.side / 2, cx = clamp(x, t.x - s, t.x + s), cz = clamp(z, t.z - s, t.z + s), ex = x - cx, ez = z - cz, d = Math.hypot(ex, ez);
+        if (d >= r) continue;
+        if (d > 1e-9) { x = cx + (ex / d) * r; z = cz + (ez / d) * r; continue; }
+        // The centre inside the footprint: out by the nearest side.
+        const out = [[t.x - s - r - x, 0], [t.x + s + r - x, 0], [0, t.z - s - r - z], [0, t.z + s + r - z]].sort((a, b) => Math.abs(a[0] + a[1]) - Math.abs(b[0] + b[1]))[0];
+        x += out[0]; z += out[1];
+      }
+    }
+    x = clamp(x, B.x0 - EYE.reach, B.x1 + EYE.reach); z = clamp(z, B.z0 - EYE.reach, B.z1 + EYE.reach);
+  }
+  return [x, z];
+}
+/** Where the eye walks, for the status line: the plate it is over (the highest under it), or null on open ground; and the
+ *  plate of the part nearest it, or that part where it stands on none. */
+function streetWhere(world, x, z) {
+  let over = null, top = 0;
+  for (const p of world.plates) if (x >= p.x0 && x <= p.x1 && z >= p.z0 && z <= p.z1 && p.base + PH > top) { over = p; top = p.base + PH; }
+  let near = null, best = Infinity;
+  for (const q of [...world.towers, ...world.beacons]) { const d = Math.hypot(q.x - x, q.z - z); if (d < best) { best = d; near = q; } }
+  return { over: over?.name ?? null, near: near ? (cityPlateOf(world, near.key)?.name ?? near.name) : null };
+}
 /* space-world:end */
 
 const THREE_URL = "https://cdn.jsdelivr.net/npm/three@0.187.0/+esm";
@@ -2909,15 +3013,16 @@ function buildCity(world, colours) {
       glowMaterial.blending = c.dark ? T.AdditiveBlending : T.NormalBlending;
       glowMaterial.needsUpdate = true;
     },
-    /** What a ray from the eye meets first: { key, beam }, beam true for a beam, or null. A start point is never met. */
-    pick(ray) {
+    /** What a ray from the eye meets first: { key, beam }, beam true for a beam, or null. A start point is never met. `beams`
+     *  false looks for parts alone, which is quicker (the street's crosshair, every frame the eye moves). */
+    pick(ray, beams = true) {
       let best = null;
       const meet = (hit, key, beam) => { if (hit && (!best || hit.distance < best.distance)) best = { key, beam, distance: hit.distance }; };
       let h;
       if (towers && (h = ray.intersectObject(towers, false)[0])) meet(h, world.towers[slot[h.instanceId]].key, false);
       if (plates && (h = ray.intersectObject(plates, false)[0])) meet(h, world.plates[h.instanceId].key, false);
       if (beacons && (h = ray.intersectObject(beacons, false)[0])) meet(h, world.beacons[h.instanceId].key, false);
-      if (pickBeams && (h = ray.intersectObject(pickBeams, false)[0])) {
+      if (beams && pickBeams && (h = ray.intersectObject(pickBeams, false)[0])) {
         const runs = pickTube.runs;
         let lo = 0, hi = runs.length - 1;
         while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (runs[mid].tri0 <= h.faceIndex) lo = mid; else hi = mid - 1; }
@@ -3360,17 +3465,20 @@ const poseFrom = (eye, target) => {
 };
 const ease = { inOut: (k) => (k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2), out: (k) => 1 - (1 - k) ** 3 };
 
-/** The camera, in orbit and pan modes (walk comes with the street): where it looks, from which way and how far, fitted to the
- *  free rectangle with the projection centred on it. Drag, wheel, pinch and the keys move it. A scene may fix the projection's
- *  centre (`anchor`) and give its own opening pose (`home`), and the tower makes the wheel climb (`climbs`, the target's
- *  heights). `flyTo` flies between poses. */
+/** The camera, in orbit, pan and walk modes: where it looks, from which way and how far, fitted to the free rectangle with
+ *  the projection centred on it. Drag, wheel, pinch and the keys move it. A scene may fix the projection's centre (`anchor`)
+ *  and give its own opening pose (`home`), and the tower makes the wheel climb (`climbs`, the target's heights). `flyTo` flies
+ *  between poses. Walking keeps the same pose, the eye where eyeOf puts it: the keys move the eye and its target together over
+ *  the ground of the world walked on (`walk.world`), and a drag turns the target about the eye. */
 function spaceRig(stage) {
   const T = three, { camera, canvas } = stage;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const rig = {
     mode: "orbit", target: [0, 0, 0], azimuth: -40, elevation: 33.6, distance: 60, fov: 54.1,
     bounds: null, fitDistance: 60, room: null, touched: false, moved: true, centre: null, tween: null, pressed: false,
-    anchor: null, home: null, climbs: null, flight: null, top: 0,
+    anchor: null, home: null, climbs: null, flight: null, top: 0, held: "orbit",
+    /** Walking: the keys held, the ground under the eye as it eases to a plate's top, and the eye's height above it. */
+    walk: { world: null, keys: new Set(), shift: false, alt: false, frame: 0, last: 0, ground: 0, lift: EYE.low, step: null },
     /** Puts the camera where the pose says, the projection centred on the free rectangle, or where the scene's anchor puts it
      *  (or, while it moves to a new one, on `centre`), in #space's pixels. The frame the field of view spans is the canvas, or
      *  reaches `top` px above it: the tower is framed in the whole window, as the design draws it. */
@@ -3435,6 +3543,7 @@ function spaceRig(stage) {
      *  up to 30% of the room's height, and keeps the least room that leaves the fewest out. */
     fit() {
       rig.room = spaceRoom();
+      if (rig.mode === "walk") { rig.apply(); return; }
       if (rig.home) { rig.centre = null; rig.touched = false; rig.home(); return; }
       if (!rig.points?.length) { rig.set({ target: [0, 0, 0], azimuth: -40, elevation: 33.6, distance: 60 }); return; }
       const height = rig.room.free.y1 - rig.room.free.y0;
@@ -3449,7 +3558,7 @@ function spaceRig(stage) {
       if (best.left) frame(best.above);
     },
     /** After a resize: the room is measured again, and an untouched camera fitted again. */
-    resized() { rig.tween = rig.centre = null; if (rig.touched || !(rig.home || rig.points?.length)) { rig.room = spaceRoom(); rig.apply(); } else rig.fit(); },
+    resized() { rig.tween = rig.centre = null; if (rig.mode === "walk" || rig.touched || !(rig.home || rig.points?.length)) { rig.room = spaceRoom(); rig.apply(); } else rig.fit(); },
     /** After a panel opened or closed (the inspector): the free rectangle is measured again, and the camera moves to it over
      *  300 ms, at once with reduced motion or when `now`. An untouched camera is fitted again; one the reader moved keeps its
      *  pose, the projection centred on the new rectangle, as on a resize. */
@@ -3475,10 +3584,12 @@ function spaceRig(stage) {
       };
       step(t0);
     },
-    /** How far labels show: 90 units, or the far side of the city as fitted when that is further. */
-    cut() { const b = rig.bounds; return b ? Math.max(90, rig.fitDistance + Math.hypot(b.x1 - b.x0, b.z1 - b.z0) / 2) : 90; },
-    /** Keeps the pose inside the limits: elevation 8° to 85°, distance 8 to three times the fit, the target near the city. */
+    /** How far labels show: 45 units in the street; else 90, or the far side of the city as fitted when that is further. */
+    cut() { const b = rig.bounds; return rig.mode === "walk" ? 45 : b ? Math.max(90, rig.fitDistance + Math.hypot(b.x1 - b.x0, b.z1 - b.z0) / 2) : 90; },
+    /** Keeps the pose inside the limits: elevation 8° to 85°, distance 8 to three times the fit, the target near the city.
+     *  Walking, only the pitch: ±60°. */
     limit() {
+      if (rig.mode === "walk") { rig.elevation = clamp(rig.elevation, -60, 60); return; }
       rig.elevation = clamp(rig.elevation, 8, 85);
       rig.distance = clamp(rig.distance, 8, Math.max(8, 3 * rig.fitDistance));
       const b = rig.bounds, [lo, hi] = rig.climbs ?? [-20, (b?.top ?? 0) + 20];
@@ -3506,8 +3617,65 @@ function spaceRig(stage) {
         if (p) rig.target = rig.target.map((v, i) => p[i] + (v - p[i]) * f);
       });
     },
-    setMode(mode) { rig.mode = mode; for (const b of document.querySelectorAll("#space-controls [data-cam=orbit], #space-controls [data-cam=pan]")) b.setAttribute("aria-pressed", String(b.dataset.cam === mode)); },
+    /** Orbit or pan, which the city's controls press, or walk; leaving walk goes back to the one held before. */
+    setMode(mode) {
+      if (mode !== "walk") rig.held = mode;
+      if (mode !== "walk" || rig.mode !== "walk") { rig.walk.keys.clear(); rig.walk.step = null; }
+      rig.mode = mode;
+      for (const b of document.querySelectorAll("#space-controls [aria-pressed]")) b.setAttribute("aria-pressed", String(b.dataset.cam === mode));
+    },
+    /** Where the eye is, in the spec's frame. */
+    eye: () => eyeOf(rig),
+    /** Turns the eye where it stands: the target goes round it. */
+    look(da, de) {
+      rig.move(() => {
+        const e = eyeOf(rig);
+        rig.azimuth += da;
+        rig.elevation = clamp(rig.elevation + de, -60, 60);
+        const o = eyeOf({ ...rig, target: [0, 0, 0] });
+        rig.target = e.map((v, i) => v - o[i]);
+      });
+    },
+    /** Starts walking on a world from where the eye is, as high above the ground under it as it is, within 1.7 to 30. */
+    walkOn(world) {
+      const e = eyeOf(rig), w = rig.walk;
+      rig.setMode("walk");
+      w.world = world;
+      w.ground = groundAt(world, e[0], e[2]);
+      w.lift = clamp(e[1] - w.ground, EYE.low, EYE.high);
+      rig.limit();
+      rig.put(e[0], w.ground + w.lift, e[2]);
+    },
+    /** Moves the eye to (x, y, z), and its target with it. */
+    put(x, y, z) { const e = eyeOf(rig); rig.target = [rig.target[0] + x - e[0], rig.target[1] + y - e[1], rig.target[2] + z - e[2]]; rig.apply(); },
   };
+  /** A frame of walking, with the real time since the last, so that the pace doesn't depend on the frame rate: W A S D or the
+   *  arrows walk at 6 units a second (14 with Shift), Alt with ← → turns, Space and Z rise and sink at 4, and the ground under
+   *  the eye eases to a plate's top over 150 ms. It runs while a key is held or the ground is easing. */
+  const WALK_KEYS = new Set(["KeyW", "KeyA", "KeyS", "KeyD", "KeyZ", "Space", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
+  const walking = (now) => {
+    const w = rig.walk, has = (c) => (w.keys.has(c) ? 1 : 0), arrows = w.alt ? 0 : 1;
+    w.frame = 0;
+    if (rig.mode !== "walk" || !w.world) return;
+    const dt = Math.min(0.1, Math.max(0, (now - w.last) / 1000));
+    w.last = now;
+    const ahead = has("KeyW") - has("KeyS") + arrows * (has("ArrowUp") - has("ArrowDown"));
+    const side = has("KeyD") - has("KeyA") + arrows * (has("ArrowRight") - has("ArrowLeft"));
+    const turn = (1 - arrows) * (has("ArrowRight") - has("ArrowLeft")), rise = has("Space") - has("KeyZ");
+    // Walking during a flight stops it where it is.
+    if (ahead || side || turn || rise) rig.flight?.stop();
+    if (turn) rig.look(-90 * turn * dt, 0);
+    const e = eyeOf(rig), a = rig.azimuth * rad, v = ((w.shift ? 14 : 6) * dt) / (Math.hypot(ahead, side) || 1);
+    const [x, z] = walkStep(w.world, [e[0], e[2]], [(-ahead * Math.sin(a) + side * Math.cos(a)) * v, (ahead * Math.cos(a) + side * Math.sin(a)) * v], e[1]);
+    w.lift = clamp(w.lift + rise * 4 * dt, EYE.low, EYE.high);
+    // A plate is a step: the ground under the eye eases to its top.
+    const want = groundAt(w.world, x, z);
+    if (want !== (w.step ? w.step.to : w.ground)) w.step = { from: w.ground, to: want, t0: now };
+    if (w.step) { const k = Math.min(1, (now - w.step.t0) / 150); w.ground = w.step.from + (w.step.to - w.step.from) * ease.out(k); if (k >= 1) w.step = null; }
+    if (Math.hypot(x - e[0], z - e[2], w.ground + w.lift - e[1]) > 1e-9) { rig.touched = true; rig.put(x, w.ground + w.lift, z); rig.onWalk?.(); }
+    if (w.keys.size || w.step) w.frame = requestAnimationFrame(walking);
+  };
+  const walkFrom = () => { if (!rig.walk.frame) { rig.walk.last = performance.now(); rig.walk.frame = requestAnimationFrame(walking); } };
   const middle = (f) => [(f.x0 + f.x1) / 2, (f.y0 + f.y1) / 2];
   /** Frames rig.points from the opening angles, `above` px more room left at the top of the free rectangle. */
   function frame(above) {
@@ -3561,6 +3729,7 @@ function spaceRig(stage) {
     if (!pointers.has(e.pointerId)) return;
     const was = pointers.get(e.pointerId), now = local(e);
     pointers.set(e.pointerId, now);
+    if (pointers.size === 2 && rig.mode === "walk") return;
     if (pointers.size === 2) {
       // Two fingers: the gap between them flies, and their middle pans (orbits in pan mode).
       const [p, o] = [...pointers.entries()].map(([id, v]) => (id === e.pointerId ? [was, v] : [v, v]));
@@ -3576,7 +3745,9 @@ function spaceRig(stage) {
     drag.moved = true;
     const [lx, ly] = drag.last;
     drag.last = now;
-    if ((rig.mode === "pan") !== (drag.button === 2 || drag.shift)) pan(lx, ly, ...now);
+    // Walking, a drag looks, 0.25° a pixel: the scene follows the pointer.
+    if (rig.mode === "walk") rig.look((now[0] - lx) * 0.25, -(now[1] - ly) * 0.25);
+    else if ((rig.mode === "pan") !== (drag.button === 2 || drag.shift)) pan(lx, ly, ...now);
     else rig.orbit(-(now[0] - lx) * 0.3, (now[1] - ly) * 0.3);
   });
   const up = (e) => {
@@ -3592,6 +3763,7 @@ function spaceRig(stage) {
   canvas.addEventListener("contextmenu", (e) => e.preventDefault());
   canvas.addEventListener("wheel", (e) => {
     e.preventDefault();
+    if (rig.mode === "walk") return;
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? rig.room.H : 1;
     if (e.deltaX && !e.ctrlKey) rig.orbit(-e.deltaX * unit * 0.2, 0);
     // In the tower the wheel climbs, 1.05 units (a floor) a notch; with ⌘ or Ctrl, or a pinch, it flies in and out.
@@ -3599,6 +3771,15 @@ function spaceRig(stage) {
     else if (e.deltaY) rig.dolly(1.0015 ** (e.deltaY * unit), ...local(e));
   }, { passive: false });
   canvas.addEventListener("keydown", (e) => {
+    if (rig.mode === "walk") {
+      const w = rig.walk;
+      w.shift = e.shiftKey; w.alt = e.altKey;
+      if (e.metaKey || e.ctrlKey || !WALK_KEYS.has(e.code)) return;
+      e.preventDefault();
+      w.keys.add(e.code);
+      walkFrom();
+      return;
+    }
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const panning = rig.mode === "pan", k = e.key;
     if (k === "ArrowLeft" || k === "ArrowRight") { const s = k === "ArrowLeft" ? -1 : 1; if (panning) rig.slide(2 * s, 0); else rig.orbit(5 * s, 0); }
@@ -3609,6 +3790,8 @@ function spaceRig(stage) {
     else return;
     e.preventDefault();
   });
+  canvas.addEventListener("keyup", (e) => { const w = rig.walk; w.shift = e.shiftKey; w.alt = e.altKey; w.keys.delete(e.code); });
+  canvas.addEventListener("blur", () => rig.walk.keys.clear());
   return rig;
 }
 
@@ -3674,8 +3857,9 @@ function spaceLabels(world, layer = $("space-labels")) {
   return {
     /** Places the labels for the camera as it now stands: nearest first, each pushed up until it is clear of those placed, and
      *  moved sideways off a panel. `cut`: beyond it labels are hidden, fading out over the last 10 units. Returns `topped`, the
-     *  number of part labels left out because they ran up past the top of the free rectangle, which the fit makes room for. */
-    place(camera, { W, H, panels, free }, cut) {
+     *  number of part labels left out because they ran up past the top of the free rectangle, which the fit makes room for.
+     *  `cover`: the street's hover card, which hides the labels it would cover. */
+    place(camera, { W, H, panels, free }, cut, cover = null) {
       const grid = new Map(), cell = 64;
       let topped = 0;
       const cells = (r, f) => { for (let i = Math.floor(r.x0 / cell); i <= Math.floor(r.x1 / cell); i++) for (let j = Math.floor(r.y0 / cell); j <= Math.floor(r.y1 / cell); j++) f(i + "," + j); };
@@ -3690,7 +3874,7 @@ function spaceLabels(world, layer = $("space-labels")) {
       const fade = (d) => Math.max(0, Math.min(1, (cut - d) / 10));
       // Off a panel, sideways by at most half its width; one still under a panel once placed is hidden.
       const over = (r, p) => r.x1 > p.x0 && r.x0 < p.x1 && r.y1 > p.y0 && r.y0 < p.y1;
-      const under = (r) => panels.some((p) => over(r, p));
+      const under = (r) => panels.some((p) => over(r, p)) || (cover && over(r, cover));
       const aside = (r, w) => {
         for (const p of panels) {
           if (!over(r, p)) continue;
@@ -3810,13 +3994,14 @@ function cityLegend(world) {
   return items.filter(Boolean).map(([icon, text]) => `<span${icon === "beacon" ? ` class="amber"` : ""}>${LEGEND_ICONS[icon]}${esc(text)}</span>`).join("")
     + (nav ? `<span>${BADGE}Has views of its own</span>` : "");
 }
-/** The panels over a city: the camera controls (made once) and the legend. With no city, neither. */
+/** The panels over a city: the camera controls (made once) and the legend. With no city, or in the street, neither. */
 function spaceHud(world) {
   const hud = $("space-hud");
   if (!$("space-controls")) {
     hud.insertAdjacentHTML("beforeend", `<div class="hud" id="space-controls" role="toolbar" aria-label="Camera">`
       + `<button type="button" data-cam="orbit" aria-label="Orbit" aria-pressed="true" title="Orbit: drag to turn round the city">${ic("orbit")}</button>`
-      + `<button type="button" data-cam="pan" aria-label="Pan" aria-pressed="false" title="Pan: drag to move across the ground">${ic("pan")}</button><span class="div"></span>`
+      + `<button type="button" data-cam="pan" aria-label="Pan" aria-pressed="false" title="Pan: drag to move across the ground">${ic("pan")}</button>`
+      + `<button type="button" data-cam="walk" aria-label="Walk" aria-pressed="false" title="Walk: go down to the street, by the part selected">${ic("walk")}</button><span class="div"></span>`
       + `<button type="button" data-cam="in" aria-label="Zoom in" title="Zoom in">${ic("plus")}</button>`
       + `<button type="button" data-cam="out" aria-label="Zoom out" title="Zoom out">${ic("minus")}</button>`
       + `<button type="button" data-cam="fit" aria-label="Fit everything" title="Fit everything">${ic("fit")}</button></div>`
@@ -3825,12 +4010,14 @@ function spaceHud(world) {
       const c = e.target.closest("button")?.dataset.cam;
       if (!rig || !c) return;
       if (c === "orbit" || c === "pan") rig.setMode(c);
+      else if (c === "walk") walkTo(space.selected);
       else if (c === "fit") rig.fit();
       else rig.dolly(c === "in" ? 1 / 1.25 : 1.25);
     });
   }
   const legend = $("space-legend");
-  $("space-controls").hidden = legend.hidden = !world;
+  // In the street the map, the breadcrumb and the key hints take their place.
+  $("space-controls").hidden = legend.hidden = !world || !!street;
   legend.className = `hud kind-${world?.kind ?? "component"}`;
   legend.innerHTML = world ? cityLegend(world) : "";
 }
@@ -3922,6 +4109,13 @@ function spaceStage(T, canvas) {
       };
       requestAnimationFrame(step);
     },
+    /** Where the ground grid fades out, from and to so many units from the eye: 40 to 140, and 60 to 200 in the street. */
+    fadeGrid(from, to) {
+      if (!grid) return;
+      const u = grid.mesh.material.uniforms;
+      u.fadeFrom.value = from; u.fadeTo.value = to;
+      request();
+    },
     retheme(colours) { grid?.paint(colours); shown?.paint(colours); fading?.thing.paint(colours); request(); },
     /** Lets go of every geometry and material; the renderer stays for a return. */
     empty() {
@@ -3943,29 +4137,32 @@ function spaceStage(T, canvas) {
   return self;
 }
 
-let stage = null, stageIdle = 0, rig = null, labels = null;
+let stage = null, stageIdle = 0, rig = null, labels = null, pointer = null;
 /** Starts the stage and its camera, or wakes the ones kept since the reader left. False when no WebGL context can be had. */
 function stageOn() {
   clearTimeout(stageIdle);
   if (!stage) {
     try { stage = spaceStage(three, $("space-gl")); } catch { return false; }
     rig = spaceRig(stage);
-    stage.onResize = () => { rig.resized(); clearTimeout(reshape); reshape = setTimeout(spaceTurn, 250); };
+    stage.onResize = () => { if (street?.on) streetMap(standing.made.world); rig.resized(); clearTimeout(reshape); reshape = setTimeout(spaceTurn, 250); };
     // Labels are placed on a frame where the camera moved or the selection changed, never for the pointer alone.
     stage.onFrame = () => {
       if (!rig.moved) return;
       rig.moved = false;
-      if (labels && rig.bounds) labels.place(stage.camera, rig.room, rig.cut());
+      // In the street the hover card goes first: the labels it covers are hidden.
+      const cover = street ? streetFrame() : null;
+      if (labels && rig.bounds) labels.place(stage.camera, rig.room, rig.cut(), cover);
     };
-    spacePointer(stage, rig);
+    pointer = spacePointer(stage, rig);
   }
   stage.fill((theme ??= spaceTheme()));
   return true;
 }
 function closeStage() {
   clearTimeout(stageIdle);
+  streetOff();
   try { stage?.close(); } catch { /* a lost context has nothing left to let go */ }
-  stage = null; rig = null; standing = towered = trip = null;
+  stage = null; rig = null; pointer = null; standing = towered = trip = null;
   labels?.clear(); labels = null;
 }
 function stageLost() {
@@ -4031,8 +4228,8 @@ function cityFor(v, dir = null) {
   return made;
 }
 const plural = (n, one) => `${n} ${one}${n === 1 ? "" : "s"}`;
-/** Stands the scene the address asks for: the folder tower, or a city (until the street is built, step 5 of the plan, the
- *  street is the city). Between the tower and a city of its folder it flies. */
+/** Stands the scene the address asks for: the folder tower, a city, or a city's street. Between the tower and a city of its
+ *  folder it flies, and between a city and its street. */
 function spaceScene() {
   if (!stage || !rig) return;
   trip?.finish();
@@ -4053,9 +4250,12 @@ function spaceScene() {
     return;
   }
   const fresh = standing?.key !== v.key || standing.made !== made;
-  if (fresh && stage.tower && towered?.folder === space.folder) { flyDown(v, made); return; }
+  // From the tower into a city it flies; into a street the city stands at once, and the eye is put there.
+  if (fresh && space.scene === "city" && stage.tower && towered?.folder === space.folder) { flyDown(v, made); return; }
   if (fresh) standCity({ key: v.key, made, v });
   spaceFocus(fresh);
+  if (space.scene === "street") { enterStreet(v, made, fresh); return; }
+  if (street) riseToCity(made);
   citySay(v, made);
 }
 function citySay(v, made) {
@@ -4066,6 +4266,7 @@ function citySay(v, made) {
 /** Builds a city's meshes, labels and legend and fits the camera to it; null stands the bare ground. `pose`: where the camera
  *  goes instead of the fit (a flight from the tower landing). `keep`: what stood is handed back, not let go of, to fade. */
 function standCity(next, { pose = null, keep = false } = {}) {
+  streetOff();
   standing = next;
   // A new city starts with nothing selected or under the pointer; the address's part is selected in it again (spaceFocus).
   Object.assign(space, { selected: null, hovered: null });
@@ -4105,7 +4306,8 @@ function standingPoints(world) {
 /** After the window changed size: a state machine or a deployment stands again if sheetOf would now turn it the other way. */
 function spaceTurn() {
   const w = standing?.made.world;
-  if (!space.on || !w || !dagre || !(w.kind === "state" || w.kind === "deployment")) return;
+  // The street keeps its city as it stands; the turn waits for the reader's return to the city.
+  if (!space.on || street || !w || !dagre || !(w.kind === "state" || w.kind === "deployment")) return;
   const v = cityView(space.folder, space.focus);
   if (!v || v.key !== standing.key) return;
   let dir;
@@ -4176,6 +4378,7 @@ function towerScene() {
 }
 /** Builds a tower's meshes, labels and cards, with its drawn view out at once, and puts the camera in its opening pose. */
 function standTower(next) {
+  streetOff();
   standing = null;
   Object.assign(space, { selected: null, hovered: -1 });
   $("inspector").hidden = true;
@@ -4396,6 +4599,248 @@ function towerSlideBack() {
   stage.request();
 }
 
+// ── The street (Scene 3) ──
+/** The street's field of view, and the projection's centre: (700, 520) of the 1440 × 900 window the design draws, scaled to
+ *  this one. As in the tower, the canvas is the window's part under the bar (`top` px), so the centre is that much higher on it. */
+const STREET_FOV = 61.2;
+const streetAnchor = ({ W, H, top }) => [W / 2 - (20 * W) / 1440, (H + top) / 2 + (70 * (H + top)) / 900 - top];
+/** The street standing: the view walked through; the orbit pose the reader left the city at, to rise back to (null: the fit);
+ *  `on` once the eye has landed; the part under the pointer, whose hover card shows; and what the status line, breadcrumb
+ *  and map last said, so that they are written again only when it changes. */
+let street = null;
+/** How long a flight takes: 400 ms and 12 more a unit the eye travels, from 500 to 1200. */
+const flightMs = (from, to) => { const a = eyeOf(from), b = eyeOf(to); return Math.max(500, Math.min(1200, 400 + 12 * Math.hypot(...a.map((v, i) => v - b[i])))); };
+/** The pose of an eye looking at a target, as the street frames it. */
+const streetFrom = (eye, target) => ({ ...poseFrom(eye, target), fov: STREET_FOV, top: rig.room.top, centre: streetAnchor(rig.room) });
+
+/** Walk to <part>, or with none to the middle of the city: from the city, a new history entry for the street, which flies
+ *  down; in the street the eye flies there. */
+function walkTo(key) {
+  if (!standing) return;
+  if (!street?.on) { location.hash = cityHash(space.folder, standingView(), key ?? null, "street"); return; }
+  const { eye, target } = streetPose(standing.made.world, key ?? null);
+  streetFly(eye, target);
+}
+/** From the city down to the street (Camera and input, scene change 2): the eye flies from the orbit pose to the street's,
+ *  and the HUD changes when it lands. Opened directly (`now`: the city was just stood), the eye is put there at once. Where
+ *  the reader walked before in this history entry, the eye goes back there; else it arrives by the part selected. */
+function enterStreet(v, made, now) {
+  if (street?.v === v && street.on) { street.said.status = null; streetSay(); return; }
+  rig.room = spaceRoom();
+  const was = history.state?.walk, at = was ? was : streetPose(made.world, space.selected), to = streetFrom(at.eye, at.target);
+  street = { v, on: false, orbit: now ? null : { pose: rig.pose(), touched: rig.touched }, hovered: null, said: {}, saving: 0 };
+  const land = () => { trip = null; if (street?.v === v && space.on) streetOn(made.world); };
+  if (now) { rig.set(to); land(); }
+  else trip = rig.flyTo(to, flightMs(rig.pose(), to), { done: land, stopped: land });
+}
+/** The eye has landed in the street: walking, the street's projection, ground and HUD. The inspector closes, as artboard 3
+ *  has it, but what was selected stays lit: a click on a part opens it again. */
+function streetOn(world) {
+  street.on = true;
+  Object.assign(rig, { anchor: streetAnchor, home: null, climbs: null, fov: STREET_FOV, centre: null });
+  hideTip();
+  $("inspector").hidden = true;
+  document.body.classList.add("street");
+  streetHud(world);
+  spaceHud(world);
+  rig.room = spaceRoom();
+  rig.top = rig.room.top;
+  rig.walkOn(world);
+  stage.fadeGrid(60, 200);
+  stage.canvas.focus({ preventScroll: true });
+  rig.moved = true;
+  stage.request();
+}
+/** Leaves the street, for the city, the tower or Flat: the camera goes back to the mode it had, and the city's HUD returns. */
+function streetOff() {
+  if (!street) return;
+  clearTimeout(street.saving);
+  street = null;
+  document.body.classList.remove("street");
+  streetHud(null);
+  if (rig) { if (rig.mode === "walk") rig.setMode(rig.held); rig.walk.world = null; }
+  stage?.fadeGrid(40, 140);
+}
+/** From the street up to the city (scene change 3): the eye flies back to the orbit pose the reader left, or to the fit. A
+ *  camera the reader hadn't moved is fitted to the room as it now is, as it would have been had they stayed. */
+function riseToCity(made) {
+  const orbit = street.orbit?.touched ? street.orbit : null, from = rig.pose();
+  streetOff();
+  spaceHud(made.world);
+  Object.assign(rig, { anchor: null, home: null, fov: 54.1, top: 0, centre: null });
+  rig.room = spaceRoom();
+  let to, touched = false;
+  if (orbit) { to = { ...orbit.pose, centre: rig.pose().centre }; touched = true; } else { rig.fit(); to = rig.pose(); }
+  rig.set(from);
+  trip = rig.flyTo(to, flightMs(from, to), { done: () => { trip = null; rig.touched = touched; }, stopped: () => { trip = null; } });
+}
+/** Flies the eye, walking, to a place in the street, looking at `target`. */
+function streetFly(eye, target) {
+  const world = standing.made.world, to = streetFrom(eye, target);
+  const land = () => { trip = null; if (street?.on && rig.walk.world === world) { rig.walkOn(world); keepWalk(); } };
+  trip = rig.flyTo(to, flightMs(rig.pose(), to), { done: land, stopped: land });
+}
+/** A click on the map: the eye flies there, as high above the ground as it walks, out of any tower, facing the way it faces. */
+function streetGo(x, z) {
+  const world = standing.made.world, e = rig.eye(), lift = rig.walk.lift;
+  const [nx, nz] = walkStep(world, [x, z], [0, 0], groundAt(world, x, z) + lift), to = [nx, groundAt(world, nx, nz) + lift, nz];
+  streetFly(to, rig.target.map((v, i) => v + to[i] - e[i]));
+  stage.canvas.focus({ preventScroll: true });
+}
+/** Walking replaces the history entry, at most four times a second: its state keeps where the eye is, for Back and Forward. */
+function keepWalk() {
+  if (!street || street.saving) return;
+  street.saving = setTimeout(() => {
+    if (!street) return;
+    street.saving = 0;
+    if (street.on && parseSpaceHash(location.hash).scene === "street") history.replaceState({ ...history.state, walk: { eye: rig.eye(), target: [...rig.target] } }, "", location.hash);
+  }, 250);
+}
+
+/** The street's panels: the breadcrumb, the key hints, the map, the hover card, the crosshair and the vignette, made once and
+ *  shown for a world; null takes them away. */
+function streetHud(world) {
+  if (!$("space-crumbs")) {
+    $("space-gl").insertAdjacentHTML("afterend", `<div id="space-vignette" hidden></div>`);
+    const keys = (caps, word) => `<span>${caps.map((c) => `<kbd>${c}</kbd>`).join("")}${word}</span>`;
+    $("space-hud").insertAdjacentHTML("beforeend", `<nav class="hud" id="space-crumbs" aria-label="Where you are" hidden></nav>`
+      + `<div class="hud" id="space-keys" hidden>${keys(["W", "A", "S", "D"], "walk")}${keys(["Drag"], "look")}${keys(["Space"], "rise")}${keys(["Click"], "read a part")}${keys(["Esc"], "orbit")}</div>`
+      + `<section class="hud" id="space-map" hidden><div class="smh"><span class="caps">Map</span><span>you are here</span></div><svg role="img" aria-label="Map of the city with your position"></svg></section>`
+      + `<div id="space-card" hidden></div><div id="space-cross" hidden><svg aria-hidden="true" viewBox="-15 -15 30 30"><path d="M0-15v7M0 8v7M-15 0h7M8 0h7"/></svg></div>`);
+    $("space-map").querySelector("svg").addEventListener("click", (e) => {
+      const r = e.currentTarget.getBoundingClientRect(), at = street?.map?.back(e.clientX - r.left, e.clientY - r.top);
+      if (at && street.on) streetGo(...at);
+    });
+  }
+  for (const id of ["space-vignette", "space-crumbs", "space-keys", "space-map", "space-cross"]) $(id).hidden = !world;
+  $("space-card").hidden = true;
+  if (world) { $("space-crumbs").textContent = ""; streetMap(world); }
+}
+/** The map: the world's bounds in plan, the top of the sheet up, as Flat draws it: plates as rounded rectangles, towers as
+ *  5 px squares, beacons as amber diamonds, and the eye, a dot with its view cone of ±24° reaching 36 units. 232 px wide, or
+ *  152 below 900 px tall, and at most 180 px of plan high. */
+function streetMap(world) {
+  const el = $("space-map"), svg = el.querySelector("svg"), B = world.bounds, inner = innerHeight < 900 ? 152 : 232, tall = (180 * inner) / 232;
+  const w = Math.max(B.x1 - B.x0, 1e-6), d = Math.max(B.z1 - B.z0, 1e-6), s = Math.min((inner - 16) / w, tall / d), H = Math.ceil(d * s + 16), ox = (inner - w * s) / 2;
+  const X = (x) => +(ox + (x - B.x0) * s).toFixed(1), Y = (z) => +(8 + (B.z1 - z) * s).toFixed(1);
+  el.className = `hud kind-${world.kind}`;
+  svg.setAttribute("width", inner); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${inner} ${H}`);
+  svg.innerHTML = world.plates.slice().sort((a, b) => a.depth - b.depth).map((p) => `<rect class="mp" x="${X(p.x0)}" y="${Y(p.z1)}" width="${+((p.x1 - p.x0) * s).toFixed(1)}" height="${+((p.z1 - p.z0) * s).toFixed(1)}" rx="2"/>`).join("")
+    + world.towers.map((t) => `<rect class="mt" data-key="${esc(t.key)}" x="${X(t.x) - 2.5}" y="${Y(t.z) - 2.5}" width="5" height="5"/>`).join("")
+    + world.beacons.map((b) => `<path class="mb" d="M${X(b.x)} ${Y(b.z) - 3.5}l3.5 3.5-3.5 3.5-3.5-3.5z"/>`).join("")
+    + `<path class="mc"/><circle class="me" r="4.5"/>`;
+  street.map = { X, Y, W: inner, H, back: (px, py) => [B.x0 + (px - ox) / s, B.z1 - (py - 8) / s], sel: undefined, eye: "" };
+  document.body.style.setProperty("--map-h", `${el.offsetHeight}px`);
+}
+/** The hover card's part, from the pointer: a tower or a beacon, or null. Its labels are placed again round it. */
+function streetHover(key) {
+  if (!street?.on || street.hovered === key) return;
+  street.hovered = key;
+  const card = $("space-card"), world = standing.made.world, n = key && world.parts.get(key);
+  if (!n) { card.hidden = true; rig.moved = true; stage.request(); return; }
+  const beacon = world.beacons.some((b) => b.key === key), name = world.towers.concat(world.beacons).find((x) => x.key === key).name;
+  // The tip is the models' HTML, already escaped: read as text in a template, which runs and loads nothing, without its title and hint.
+  const tpl = document.createElement("template");
+  tpl.innerHTML = n.tip ?? "";
+  for (const x of tpl.content.querySelectorAll("b, .hint")) x.remove();
+  card.className = `kind-${world.kind}${beacon ? " amber" : ""}`;
+  card.innerHTML = `<div class="shh"><span>${ic(ICONS[n.glyph] ? n.glyph : "kind-" + world.kind)}</span><b></b></div><p></p><div class="scm"></div>`;
+  card.querySelector("b").textContent = name;
+  card.querySelector("p").textContent = tpl.content.textContent.trim();
+  card.querySelector(".scm").textContent = `${plural(cityNeighbours(world, key)?.beams.length ?? 0, "beam")} · click to read it`;
+  card.hidden = false;
+  card.style.transform = "translate(-9999px, 0)";
+  street.card = { w: card.offsetWidth, h: card.offsetHeight };
+  rig.moved = true;
+  stage.request();
+}
+/** Each frame the eye moved, in the street: the hover card placed by its part, the map's eye and selection, the breadcrumb and
+ *  the status line; and the history entry kept up to date. Returns the hover card's box, for the labels to keep clear of. */
+function streetFrame() {
+  const world = standing?.made.world;
+  if (!street?.on || !world) return null;
+  const e = rig.eye(), room = rig.room, sel = space.selected;
+  // The map: the eye, the way it faces, and the selected tower.
+  const m = street.map, a = rig.azimuth * rad, ray = (k) => [m.X(e[0] - 36 * Math.sin(a + k * 24 * rad)), m.Y(e[2] + 36 * Math.cos(a + k * 24 * rad))];
+  const ex = Math.max(5, Math.min(m.W - 5, m.X(e[0]))), ey = Math.max(5, Math.min(m.H - 5, m.Y(e[2]))), cone = `M${m.X(e[0])} ${m.Y(e[2])}L${ray(-1).join(" ")}L${ray(1).join(" ")}z`;
+  if (cone !== m.eye) {
+    // The dot stays on the map's edge while the eye walks beyond the bounds.
+    const svg = $("space-map").querySelector("svg"), dot = svg.querySelector(".me");
+    m.eye = cone;
+    svg.querySelector(".mc").setAttribute("d", cone);
+    dot.setAttribute("cx", ex);
+    dot.setAttribute("cy", ey);
+  }
+  if (m.sel !== sel) {
+    for (const r of $("space-map").querySelectorAll(".mt.sel")) r.classList.remove("sel");
+    if (sel != null) $("space-map").querySelector(`.mt[data-key="${CSS.escape(sel)}"]`)?.classList.add("sel");
+    m.sel = sel;
+  }
+  // The breadcrumb: the folder's tower, the city, the plate, and the part selected, else the one under the crosshair.
+  const ahead = sel ?? pointer?.hit(...streetAnchor(room), false)?.key ?? null, where = streetWhere(world, e[0], e[2]);
+  const part = ahead != null ? world.towers.concat(world.beacons, world.plates).find((x) => x.key === ahead) : null;
+  const plate = part ? cityPlateOf(world, part.key)?.name ?? null : where.over;
+  const view = KIND_NAME[world.kind] + (standing.v.e ? ` · ${standing.v.e.name ?? standing.v.e.id}` : "");
+  const crumbs = [space.folder, view, plate, part?.name ?? null].join("\u0000");
+  if (crumbs !== street.said.crumbs) {
+    street.said.crumbs = crumbs;
+    const nav = $("space-crumbs"), link = (href, text) => Object.assign(document.createElement("a"), { href, textContent: text });
+    // The root's tower is named after the repository, any other folder's after its folder record.
+    const items = [link(spaceHash({ folder: space.folder }), space.folder ? folderNames(space.folder).title : repo.repo ?? repo.project.split("/").pop()),
+      link(cityHash(space.folder, standingView(), null, "city"), view)];
+    if (plate) items.push(Object.assign(document.createElement("span"), { textContent: plate }));
+    if (part) items.push(Object.assign(document.createElement("b"), { textContent: part.name }));
+    nav.replaceChildren(...items.flatMap((x, i) => (i ? [Object.assign(document.createElement("i"), { textContent: "›" }), x] : [x])));
+  }
+  streetSay(where);
+  // The crosshair, at the projection's centre.
+  const [cx, cy] = streetAnchor(room);
+  $("space-cross").style.transform = `translate(${cx - 15}px,${cy - 15}px)`;
+  keepWalk();
+  return streetCard(world, room);
+}
+/** Places the hover card 18 px right of its tower's top right corner and 24 px above it, or 18 px left of its top left corner
+ *  where it would pass the canvas's 20 px margin; where the breadcrumb, the map or the key hints are in its way it slides up
+ *  or down, whichever is nearer, to clear them by 8 px. Returns its box, or null. */
+function streetCard(world, { W, H }) {
+  const card = $("space-card"), key = street.hovered;
+  if (key == null || card.hidden) return null;
+  const t = world.towers.find((x) => x.key === key), b = !t && world.beacons.find((x) => x.key === key);
+  const [x, y, z, s] = t ? [t.x, t.base + t.h, t.z, t.side / 2] : [b.x, b.y + 1.3, b.z, 1.25];
+  const pts = [[-s, -s], [s, -s], [s, s], [-s, s]].map(([dx, dz]) => {
+    const p = V(x + dx, y, z + dz), view = p.clone().applyMatrix4(stage.camera.matrixWorldInverse);
+    if (view.z > -stage.camera.near) return null;
+    p.project(stage.camera);
+    return [((p.x + 1) / 2) * W, ((1 - p.y) / 2) * H];
+  });
+  if (pts.some((p) => !p)) { card.style.transform = "translate(-9999px, 0)"; return null; }
+  const right = pts.reduce((m, p) => (p[0] > m[0] ? p : m)), left = pts.reduce((m, p) => (p[0] < m[0] ? p : m)), { w, h } = street.card;
+  let cx = right[0] + 18, cy = right[1] - 24;
+  if (cx + w > W - 20) { cx = left[0] - 18 - w; cy = left[1] - 24; }
+  const box = $("space").getBoundingClientRect(), panels = ["space-crumbs", "space-map", "space-keys"].map((id) => $(id).getBoundingClientRect()).filter((r) => r.width).map((r) => ({ x0: r.left - box.left, y0: r.top - box.top, x1: r.right - box.left, y1: r.bottom - box.top }));
+  for (let pass = 0; pass < 3; pass++) {
+    for (const p of panels) {
+      if (cx + w <= p.x0 - 8 || cx >= p.x1 + 8 || cy + h <= p.y0 - 8 || cy >= p.y1 + 8) continue;
+      const up = p.y0 - 8 - h, down = p.y1 + 8;
+      cy = Math.abs(up - cy) <= Math.abs(down - cy) ? up : down;
+    }
+  }
+  card.style.transform = `translate(${cx.toFixed(1)}px,${cy.toFixed(1)}px)`;
+  return { x0: cx, y0: cy, x1: cx + w, y1: cy + h };
+}
+/** The street's status line: where the eye walks (through a plate, or on open ground near one), then the part selected. */
+function streetSay(where = null) {
+  const world = standing?.made.world;
+  if (!street?.on || !world) return;
+  const e = rig.eye(), at = where ?? streetWhere(world, e[0], e[2]);
+  const sel = space.selected != null ? world.towers.concat(world.beacons, world.plates).find((x) => x.key === space.selected) : null;
+  const sentence = (at.over ? `Walking through ${at.over}, eye level at the plate.` : `Walking on open ground${at.near ? ` near ${at.near}` : ""}.`)
+    + (sel ? ` ${sel.name} is selected; its beams are lit.` : "");
+  if (sentence === street.said.status) return;
+  street.said.status = sentence;
+  sceneSay(sentence, standing.made.why ? SPACE_SAYS.grid[standing.made.why] : "", "Esc rises back to orbit");
+}
+
 /** The part a focus names in a city: <kind>:<key or title>, of the city's kind, that can be selected. Null for a view's focus. */
 function focusedPart(world, focus) {
   const [kind, ...rest] = (focus ?? "").split(":"), name = rest.join(":");
@@ -4454,7 +4899,7 @@ function spaceUnselect({ quiet = false } = {}) {
 }
 
 /** Opens the inspector on a part of the city, with the body Flat shows for it; under its title where it stands, its beams and
- *  its height, and at its foot Open flat. A part that opens a folder shows that folder in place of Flat's link out of the page,
+ *  its height, and at its foot Walk to <name> and Open flat. A part that opens a folder shows that folder in place of Flat's link out of the page,
  *  and every other link within the page stays in Cyberspace. Returns the plate it stands on, or null. */
 function spaceInspect(n, hood) {
   const world = stage.city.world, ins = showInfo(n.info, (k) => spaceSelect(k));
@@ -4474,8 +4919,11 @@ function spaceInspect(n, hood) {
     const block = itsFolder(parseSpaceHash(n.nav).folder), open = ins.querySelector(".ibody a.open"), first = ins.querySelector(".ibody > p");
     if (open) open.replaceWith(block); else if (first) first.after(block); else ins.querySelector(".ibody").prepend(block);
   }
-  // Walk to <name> waits for the street (step 5 of the plan).
-  ins.insertAdjacentHTML("beforeend", `<div class="ifoot"><a class="ibtn" href="${esc(flatHash(space.folder, `${world.kind}:${n.key}`))}">Open flat</a></div>`);
+  // Walk to <name> goes down to the street by it (in the street, the eye flies there); Open flat leaves Cyberspace.
+  const name = world.towers.concat(world.beacons, world.plates).find((x) => x.key === n.key).name;
+  ins.insertAdjacentHTML("beforeend", `<div class="ifoot"><a class="ibtn primary" data-walk href="${esc(cityHash(space.folder, standingView(), n.key, "street"))}">${ic("walk")}Walk to ${esc(name)}</a>`
+    + `<a class="ibtn" href="${esc(flatHash(space.folder, `${world.kind}:${n.key}`))}">Open flat</a></div>`);
+  ins.querySelector("[data-walk]").addEventListener("click", (e) => { if (street?.on) { e.preventDefault(); walkTo(n.key); } });
   return plate;
 }
 /** The folder a part opens, as a block for the inspector: a miniature of its tower, one band per view in its kind's colour
@@ -4499,19 +4947,20 @@ function itsFolder(folder) {
   return el;
 }
 
-/** Hover and click in a city and in the tower. What is under the pointer is found at most once a frame. In a city a tower or
- *  beacon gets state hover and a beam thickens, each showing its tooltip as Flat places it, and the cursor says it can be
- *  selected; a click selects it, and a click on empty ground clears the selection. In the tower a floor under the pointer
- *  lights its edges and its label; a click is towerClick's, and a double-click on the pulled-out floor, or Enter, goes into
- *  its city. Nothing here moves the camera. */
+/** Hover and click in a city, the street and the tower. What is under the pointer is found at most once a frame. In a city a
+ *  tower or beacon gets state hover and a beam thickens, each showing its tooltip as Flat places it (in the street a tower or
+ *  beacon shows the hover card instead), and the cursor says it can be selected; a click selects it, and a click on empty
+ *  ground clears the selection. In the street Enter selects what is under the crosshair. In the tower a floor under the
+ *  pointer lights its edges and its label; a click is towerClick's, and a double-click on the pulled-out floor, or Enter, goes
+ *  into its city. Nothing here moves the camera. Returns `hit`, what is at a point of the canvas (`beams` false: parts alone). */
 function spacePointer(stage, rig) {
   const ray = new three.Raycaster(), ndc = new three.Vector2(), canvas = stage.canvas;
   let at = null, queued = 0, city = null, beam = null;
-  const hit = (x, y) => {
+  const hit = (x, y, beams = true) => {
     const shown = stage.city ?? stage.tower;
     if (!shown || !rig.room) return null;
     ray.setFromCamera(ndc.set((x / rig.room.W) * 2 - 1, 1 - (y / rig.room.H) * 2), stage.camera);
-    return shown.pick(ray);
+    return shown.pick(ray, beams);
   };
   const local = (e) => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
   const floorHover = () => {
@@ -4530,8 +4979,9 @@ function spacePointer(stage, rig) {
     if (stage.city !== city) { city = stage.city; beam = null; }
     const h = at && !rig.pressed ? hit(...at.xy) : null, world = city?.world;
     const part = h && !h.beam && (world.towers.some((t) => t.key === h.key) || world.beacons.some((b) => b.key === h.key)) ? h.key : null;
-    const tip = part ? world.parts.get(part).tip : h?.beam ? world.beams.find((b) => b.key === h.key).tip : null;
+    const walking = !!street?.on, tip = part && !walking ? world.parts.get(part).tip : h?.beam ? world.beams.find((b) => b.key === h.key).tip : null;
     if (tip) showTip(tip, at.cx, at.cy); else hideTip();
+    if (walking) streetHover(part);
     canvas.classList.toggle("pick", !!h);
     const next = h?.beam ? h.key : null;
     if (city && (part !== space.hovered || next !== beam)) {
@@ -4554,7 +5004,12 @@ function spacePointer(stage, rig) {
     else if (!h && space.selected != null) closeInspector();
   };
   canvas.addEventListener("dblclick", (e) => { if (stage.tower && hit(...local(e))?.floor === stage.tower.pulled) towerEnter(); });
-  canvas.addEventListener("keydown", (e) => { if (e.key === "Enter" && stage.tower && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); towerEnter(); } });
+  canvas.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (stage.tower) { e.preventDefault(); towerEnter(); }
+    else if (street?.on) { e.preventDefault(); const h = hit(...streetAnchor(rig.room), false); if (h) spaceSelect(h.key); }
+  });
+  return { hit };
 }
 
 /** The switch shows which mode is on. It is offered only with WebGL, and not before the launch. */
@@ -4602,6 +5057,7 @@ function leaveSpace(asked) {
     // A flight under way stops where it is: there is nothing left for it to land in.
     if (rig) rig.flight = null;
     trip = null;
+    streetOff();
     standing = towered = null;
     towerHud(false);
     Object.assign(space, { selected: null, hovered: null });
@@ -4641,11 +5097,13 @@ $("modes").addEventListener("click", (e) => {
 });
 
 // Cyberspace's own Esc (the document's listener above steps aside while it shows), so that one press does one thing: it clears
-// the selection; with none, a city goes up to its folder's tower (a new history entry), and the tower slides its pulled-out
-// floor back. With none out it does nothing yet: rising to the skyline comes with step 6 of the plan.
+// the selection; with none, the street rises to its city and a city goes up to its folder's tower (each a new history entry),
+// and the tower slides its pulled-out floor back. With none out it does nothing yet: rising to the skyline comes with step 6
+// of the plan.
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape" || !space.on) return;
   if (space.selected != null || !$("inspector").hidden) { e.preventDefault(); closeInspector(); }
+  else if (space.scene === "street" && standing && stage?.city) { e.preventDefault(); location.hash = cityHash(space.folder, viewOf(standing.v), null, "city"); }
   else if (space.scene === "tower" && towered?.v && stage?.tower) { e.preventDefault(); towerSlideBack(); }
   else if (space.scene === "city" && standing && stage?.city) { e.preventDefault(); location.hash = cityHash(space.folder, viewOf(standing.v), null, "tower"); }
 });
