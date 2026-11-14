@@ -1,0 +1,704 @@
+{
+ "about": "The root folder's 24 .dev files at commit 239ab8e (2026-11-13): each file's kind, path and titles, from git show 239ab8e:.dev/<file>. towerWorldFrom's test reads it, so that files added later don't move its numbers.",
+ "commit": "239ab8e",
+ "files": [
+  {
+   "kind": "backlog",
+   "path": ".dev/backlog.json",
+   "title": "Work wanted on the browser",
+   "entities": [
+    {
+     "id": "design-pass",
+     "title": "Design pass"
+    },
+    {
+     "id": "cyberspace-mode",
+     "title": "Cyberspace: the repository in 3D"
+    },
+    {
+     "id": "landing-form-after-bad-address",
+     "title": "The landing page forgets a new address after a bad one"
+    },
+    {
+     "id": "sign-in-comment",
+     "title": "The comment over the sign-in code describes only the pasted token"
+    }
+   ]
+  },
+  {
+   "kind": "capability",
+   "path": ".dev/capability.json",
+   "title": "What the browser can do",
+   "entities": [
+    {
+     "id": "read-repository",
+     "name": "Read a repository's .dev files from a browser"
+    },
+    {
+     "id": "show-repository",
+     "name": "Show views and knowledge"
+    },
+    {
+     "id": "keep-tokens",
+     "name": "Keep the reader's tokens"
+    }
+   ]
+  },
+  {
+   "kind": "component",
+   "path": ".dev/component-diagram.json",
+   "title": "Cyberspace explorer"
+  },
+  {
+   "kind": "contracts",
+   "path": ".dev/contracts.json",
+   "title": "What links and browsers rely on",
+   "entities": [
+    {
+     "id": "page-address",
+     "title": "The page's address"
+    },
+    {
+     "id": "token-storage",
+     "title": "Where tokens are kept"
+    }
+   ]
+  },
+  {
+   "kind": "decisions",
+   "path": ".dev/decisions.json",
+   "title": "How the browser is built and looks",
+   "entities": [
+    {
+     "id": "one-file",
+     "title": "One HTML file, no build"
+    },
+    {
+     "id": "own-drawing",
+     "title": "The page draws its own diagrams"
+    },
+    {
+     "id": "survey-sheet",
+     "title": "A survey sheet: cool paper and slate ink"
+    },
+    {
+     "id": "colour-per-kind",
+     "title": "One colour per kind"
+    },
+    {
+     "id": "barlow",
+     "title": "Barlow in three widths"
+    },
+    {
+     "id": "own-icons",
+     "title": "Icons drawn for the page"
+    },
+    {
+     "id": "tabs-by-kind",
+     "title": "A folder shows one kind at a time"
+    },
+    {
+     "id": "tables-always",
+     "title": "Every view is also tables"
+    },
+    {
+     "id": "one-motion",
+     "title": "One moment of motion"
+    },
+    {
+     "id": "address-is-state",
+     "title": "The address is the state"
+    },
+    {
+     "id": "tokens-in-browser",
+     "title": "Tokens stay in the reader's browser, by scope"
+    },
+    {
+     "id": "one-tree",
+     "title": "A repository may keep all its views in .cyberspace-explorer"
+    }
+   ]
+  },
+  {
+   "kind": "delivery",
+   "path": ".dev/delivery.json",
+   "title": "Where the browser is published",
+   "entities": [
+    {
+     "id": "production",
+     "title": "cyberspace-explorer.com"
+    }
+   ]
+  },
+  {
+   "kind": "deployment",
+   "path": ".dev/deployment-diagram.json",
+   "title": "Where the browser runs"
+  },
+  {
+   "kind": "state",
+   "path": ".dev/drawing.state-diagram.json",
+   "title": "A drawing under the pointer"
+  },
+  {
+   "kind": "feature",
+   "path": ".dev/feature.json",
+   "title": "What the browser offers",
+   "entities": [
+    {
+     "id": "open-by-address",
+     "name": "Open any repository by its address"
+    },
+    {
+     "id": "tokens",
+     "name": "Access tokens that stay with the reader"
+    },
+    {
+     "id": "github-sign-in",
+     "name": "Sign in with GitHub, and pick from your repositories"
+    },
+    {
+     "id": "folder-tree",
+     "name": "A tree of the folders that have views"
+    },
+    {
+     "id": "folder-head",
+     "name": "A folder's head"
+    },
+    {
+     "id": "kind-tabs",
+     "name": "One kind of view at a time"
+    },
+    {
+     "id": "drawings",
+     "name": "Drawn diagrams"
+    },
+    {
+     "id": "behavior-drawings",
+     "name": "Use cases and journeys drawn as flows"
+    },
+    {
+     "id": "pan-zoom",
+     "name": "Pan and zoom"
+    },
+    {
+     "id": "inspect",
+     "name": "Hover, select and inspect parts"
+    },
+    {
+     "id": "drill-down",
+     "name": "Walk into a folder through a drawing"
+    },
+    {
+     "id": "written-views",
+     "name": "Capabilities, features and operations written out"
+    },
+    {
+     "id": "related-views",
+     "name": "Related views"
+    },
+    {
+     "id": "knowledge-cards",
+     "name": "Knowledge files as cards"
+    },
+    {
+     "id": "waiting",
+     "name": "Waiting"
+    },
+    {
+     "id": "deep-links",
+     "name": "Addresses for everything"
+    },
+    {
+     "id": "status-line",
+     "name": "One line for what is happening"
+    },
+    {
+     "id": "light-dark",
+     "name": "Light and dark, wide and narrow"
+    }
+   ]
+  },
+  {
+   "kind": "folder",
+   "path": ".dev/folder.json",
+   "title": "The cyberspace explorer",
+   "entities": [
+    {
+     "id": "cyberspace-explorer",
+     "title": "Cyberspace explorer"
+    }
+   ]
+  },
+  {
+   "kind": "glossary",
+   "path": ".dev/glossary.json",
+   "title": "Words the browser uses",
+   "entities": [
+    {
+     "id": "dev-folder",
+     "title": ".dev folder"
+    },
+    {
+     "id": "view",
+     "title": "View"
+    },
+    {
+     "id": "diagram",
+     "title": "Diagram"
+    },
+    {
+     "id": "behavior-view",
+     "title": "Behavior view"
+    },
+    {
+     "id": "knowledge-file",
+     "title": "Knowledge file"
+    },
+    {
+     "id": "kind",
+     "title": "Kind"
+    },
+    {
+     "id": "record",
+     "title": "Record"
+    },
+    {
+     "id": "part",
+     "title": "Part"
+    },
+    {
+     "id": "plate",
+     "title": "Plate"
+    },
+    {
+     "id": "cluster",
+     "title": "Cluster"
+    },
+    {
+     "id": "badge-drill",
+     "title": "Badge"
+    },
+    {
+     "id": "pip",
+     "title": "Pip"
+    },
+    {
+     "id": "tab",
+     "title": "Tab"
+    },
+    {
+     "id": "inspector",
+     "title": "Inspector"
+    },
+    {
+     "id": "drill",
+     "title": "Drill"
+    },
+    {
+     "id": "related-view",
+     "title": "Related view"
+    },
+    {
+     "id": "waiting",
+     "title": "Waiting"
+    },
+    {
+     "id": "token-scope",
+     "title": "Scope"
+    },
+    {
+     "id": "evidence",
+     "title": "Evidence"
+    },
+    {
+     "id": "status-line",
+     "title": "Status line"
+    },
+    {
+     "id": "ref",
+     "title": "Ref"
+    },
+    {
+     "id": "worker",
+     "title": "Worker"
+    },
+    {
+     "id": "sign-in",
+     "title": "Sign-in"
+    }
+   ]
+  },
+  {
+   "kind": "limitations",
+   "path": ".dev/limitations.json",
+   "title": "What readers run into",
+   "entities": [
+    {
+     "id": "hosts",
+     "title": "GitHub and GitLab only"
+    },
+    {
+     "id": "rate-limit",
+     "title": "60 GitHub requests an hour without a token"
+    },
+    {
+     "id": "large-repositories",
+     "title": "Very large repositories are listed in part"
+    },
+    {
+     "id": "filter-names",
+     "title": "The filter matches names only"
+    },
+    {
+     "id": "crowded-tree",
+     "title": "Long names crowd the tree"
+    },
+    {
+     "id": "one-kind",
+     "title": "One kind of view at a time"
+    },
+    {
+     "id": "inspector-covers",
+     "title": "The inspector covers the drawing"
+    },
+    {
+     "id": "wide-screens-unused",
+     "title": "Large monitors are not put to use"
+    },
+    {
+     "id": "selection-not-linked",
+     "title": "A selection is not in the address"
+    },
+    {
+     "id": "one-status-line",
+     "title": "One line for every problem"
+    },
+    {
+     "id": "markdown-subset",
+     "title": "Only simple Markdown"
+    },
+    {
+     "id": "colours-outside-tokens",
+     "title": "Some colours are outside the tokens"
+    },
+    {
+     "id": "system-theme-only",
+     "title": "No light or dark switch"
+    },
+    {
+     "id": "english",
+     "title": "English only"
+    },
+    {
+     "id": "no-edit",
+     "title": "Read only"
+    },
+    {
+     "id": "my-repositories-cap",
+     "title": "At most 1,000 of my repositories"
+    }
+   ]
+  },
+  {
+   "kind": "operation",
+   "path": ".dev/operation.json",
+   "title": "How the browser is reached",
+   "entities": [
+    {
+     "id": "open-repository",
+     "name": "Open a repository"
+    },
+    {
+     "id": "open-folder",
+     "name": "Open a folder"
+    },
+    {
+     "id": "open-part",
+     "name": "Open a part"
+    },
+    {
+     "id": "open-view",
+     "name": "Open a view"
+    },
+    {
+     "id": "open-record",
+     "name": "Open a record"
+    },
+    {
+     "id": "open-waiting",
+     "name": "Open Waiting"
+    },
+    {
+     "id": "save-token",
+     "name": "Save a token"
+    },
+    {
+     "id": "forget-token",
+     "name": "Forget a token"
+    },
+    {
+     "id": "sign-in",
+     "name": "Sign in with GitHub"
+    },
+    {
+     "id": "sign-out",
+     "name": "Sign out"
+    },
+    {
+     "id": "pick-repository",
+     "name": "Pick one of my repositories"
+    }
+   ]
+  },
+  {
+   "kind": "state",
+   "path": ".dev/page.state-diagram.json",
+   "title": "From opening the page to reading a folder"
+  },
+  {
+   "kind": "quality-requirements",
+   "path": ".dev/quality-requirements.json",
+   "title": "How well the browser must work",
+   "entities": [
+    {
+     "id": "safe-content",
+     "title": "Repository content can't run"
+    },
+    {
+     "id": "keyboard",
+     "title": "Usable from the keyboard"
+    },
+    {
+     "id": "reduced-motion",
+     "title": "Respects reduced motion"
+    },
+    {
+     "id": "light-dark",
+     "title": "Light and dark"
+    },
+    {
+     "id": "screen-sizes",
+     "title": "From a 15-inch laptop to a 34-inch monitor"
+    },
+    {
+     "id": "requests",
+     "title": "Few requests"
+    },
+    {
+     "id": "fallbacks",
+     "title": "Degrades rather than fails"
+    }
+   ]
+  },
+  {
+   "kind": "references",
+   "path": ".dev/references.json",
+   "title": "What the browser builds on",
+   "entities": [
+    {
+     "id": "dagre",
+     "title": "dagre"
+    },
+    {
+     "id": "barlow",
+     "title": "Barlow on Fontsource"
+    },
+    {
+     "id": "github-trees",
+     "title": "GitHub REST API: get a tree"
+    },
+    {
+     "id": "github-contents",
+     "title": "GitHub REST API: repository contents"
+    },
+    {
+     "id": "github-limits",
+     "title": "GitHub REST API rate limits"
+    },
+    {
+     "id": "gitlab-tree",
+     "title": "GitLab API: repository tree"
+    },
+    {
+     "id": "gitlab-files",
+     "title": "GitLab API: repository files"
+    },
+    {
+     "id": "aria-tabs",
+     "title": "WAI-ARIA Authoring Practices: tabs"
+    },
+    {
+     "id": "workers-custom-domains",
+     "title": "Cloudflare Workers: custom domains"
+    }
+   ]
+  },
+  {
+   "kind": "requirements",
+   "path": ".dev/requirements.json",
+   "title": "What the browser must do",
+   "entities": [
+    {
+     "id": "public-needs-nothing",
+     "title": "A public repository needs nothing"
+    },
+    {
+     "id": "token-to-its-host",
+     "title": "A token goes to its host alone"
+    },
+    {
+     "id": "every-kind",
+     "title": "Every kind is shown"
+    },
+    {
+     "id": "nothing-hidden",
+     "title": "Nothing recorded is hidden"
+    },
+    {
+     "id": "addressable",
+     "title": "Everything has an address"
+    },
+    {
+     "id": "works-without-drawing",
+     "title": "Works without the drawing library"
+    },
+    {
+     "id": "static",
+     "title": "One static file"
+    },
+    {
+     "id": "says-what-waits",
+     "title": "Says what is waiting"
+    }
+   ]
+  },
+  {
+   "kind": "runbooks",
+   "path": ".dev/runbooks.json",
+   "title": "Working on the browser",
+   "entities": [
+    {
+     "id": "run-locally",
+     "title": "Run the browser locally"
+    },
+    {
+     "id": "check-description",
+     "title": "Check this description"
+    },
+    {
+     "id": "publish",
+     "title": "Publish a new version"
+    }
+   ]
+  },
+  {
+   "kind": "stakeholders",
+   "path": ".dev/stakeholders.json",
+   "title": "Who cares about the browser",
+   "entities": [
+    {
+     "id": "readers",
+     "title": "Readers"
+    },
+    {
+     "id": "owner",
+     "title": "The owner"
+    },
+    {
+     "id": "agents",
+     "title": "Agents that write .dev files"
+    },
+    {
+     "id": "designer",
+     "title": "The designer"
+    }
+   ]
+  },
+  {
+   "kind": "state",
+   "path": ".dev/token-panel.state-diagram.json",
+   "title": "The token panel"
+  },
+  {
+   "kind": "use-case",
+   "path": ".dev/use-case.json",
+   "title": "What a reader does with the browser",
+   "entities": [
+    {
+     "id": "browse-repository",
+     "name": "Open a repository and find a folder"
+    },
+    {
+     "id": "add-token",
+     "name": "Add a token for a private repository"
+    },
+    {
+     "id": "sign-in-with-github",
+     "name": "Sign in with GitHub and open my repository"
+    },
+    {
+     "id": "inspect-part",
+     "name": "Find out about a part of a drawing"
+    },
+    {
+     "id": "follow-knowledge",
+     "name": "Read a folder's knowledge and follow a link"
+    },
+    {
+     "id": "see-waiting",
+     "name": "See what is waiting"
+    }
+   ]
+  },
+  {
+   "kind": "user-journey",
+   "path": ".dev/user-journey.json",
+   "title": "A reader's journeys",
+   "entities": [
+    {
+     "id": "first-look",
+     "name": "First look at a repository"
+    },
+    {
+     "id": "private-repository",
+     "name": "Reading a private repository"
+    },
+    {
+     "id": "signed-in-on-github",
+     "name": "Reading private GitHub repositories, signed in"
+    },
+    {
+     "id": "review-agent-work",
+     "name": "Reviewing what agents have written"
+    }
+   ]
+  },
+  {
+   "kind": "verification",
+   "path": ".dev/verification.json",
+   "title": "How the browser is checked",
+   "entities": [
+    {
+     "id": "manual-pass",
+     "title": "A pass through a real repository"
+    },
+    {
+     "id": "own-description",
+     "title": "This description stays valid"
+    }
+   ]
+  },
+  {
+   "kind": "vision",
+   "path": ".dev/vision.json",
+   "title": "Why the browser exists",
+   "entities": [
+    {
+     "id": "vision",
+     "title": "People can read what agents keep about a system"
+    }
+   ]
+  }
+ ]
+}

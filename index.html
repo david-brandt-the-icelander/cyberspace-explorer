@@ -425,10 +425,10 @@
   body.space #inspector h4 { font: 600 11.5px/1.2 var(--semi); letter-spacing: .08em; text-transform: uppercase; margin: 14px 0 4px; }
   body.space #inspector li .d { font-size: 13px; }
   body.space #inspector .ifoot { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 18px 18px; }
-  #inspector .ibtn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 6px; color: var(--ink); text-decoration: none; font: 600 14px/1 var(--semi); white-space: nowrap; }
-  #inspector .ibtn:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); }
-  #inspector .ibtn.primary { background: var(--k); border-color: var(--k); color: var(--paper); }
-  #inspector .ibtn.primary:hover { background: color-mix(in srgb, var(--k) 85%, var(--hot)); }
+  #inspector .ibtn, #space-cards .ibtn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 6px; background: none; color: var(--ink); text-decoration: none; font: 600 14px/1 var(--semi); white-space: nowrap; cursor: pointer; }
+  #inspector .ibtn:hover, #space-cards .ibtn:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); }
+  #inspector .ibtn.primary, #space-cards .ibtn.primary { background: var(--k); border-color: var(--k); color: var(--paper); }
+  #inspector .ibtn.primary:hover, #space-cards .ibtn.primary:hover { background: color-mix(in srgb, var(--k) 85%, var(--hot)); }
   #inspector .ibtn.primary svg { width: 15px; height: 15px; color: var(--paper); }
   #inspector .ibtn.primary svg use { color: var(--k); }
   /* The folder a part opens: a miniature of its tower, one band per view in its kind's colour. */
@@ -439,6 +439,39 @@
   #inspector .ifolder .ift { margin-top: 2px; font: 700 22px/26px var(--cond); color: var(--hot); }
   #inspector .ifolder .ifp { font: 400 12px/1.4 var(--mono); color: var(--ink3); }
   #inspector .ifolder p { margin: 10px 0; font-size: 13px; line-height: 19px; color: var(--ink2); }
+  /* The folder tower: floor labels and group brackets left of the stack, the folder's and the pulled-out floor's cards. */
+  .sfl { position: absolute; left: 0; top: 0; height: 20px; display: flex; align-items: center; gap: 8px; white-space: nowrap; font: 400 13px/1 var(--sans); color: var(--ink); will-change: transform; }
+  .sfl .w { font: 600 11.5px/1 var(--semi); letter-spacing: .08em; text-transform: uppercase; color: var(--k); }
+  .sfl span + span { max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
+  .sfl.hot span + span { color: var(--hot); }
+  .sfl.out, .sfl.out .w { color: var(--ink3); }
+  .sfl.out span + span { font-style: italic; }
+  .sbr { position: absolute; left: 22px; top: 0; width: 2px; background: var(--rule); }
+  .sbn { position: absolute; left: 28px; top: 0; writing-mode: vertical-rl; transform: translateY(-50%) rotate(180deg); font: 600 11.5px/1 var(--semi); letter-spacing: .1em; text-transform: uppercase; color: var(--ink2); white-space: nowrap; }
+  #space-cards { position: absolute; right: 20px; top: 44px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  #space-cards[hidden] { display: none; }
+  #space-cards > .hud { position: static; box-sizing: border-box; }
+  #space-folder { width: 340px; padding: 18px; }
+  #space-drawer { width: 300px; }
+  #space-cards .caps { font: 600 12px/1.2 var(--semi); letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+  #space-cards .sct { margin-top: 4px; font: 700 30px/34px var(--cond); color: var(--hot); overflow-wrap: anywhere; }
+  #space-cards .scp { font: 400 12px/1.4 var(--mono); color: var(--ink3); }
+  #space-cards .scd { margin: 12px 0 0; font: 400 14px/21px var(--sans); color: var(--ink); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; overflow: hidden; }
+  #space-cards .sctiles { margin-top: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  #space-cards .sctiles > div { padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; }
+  #space-cards .sctiles b { display: block; font: 700 24px/28px var(--cond); color: var(--hot); }
+  #space-cards .sctiles span { font-size: 12.5px; color: var(--ink2); }
+  #space-cards .sci { margin-top: 14px; font-size: 11.5px; color: var(--ink3); }
+  #space-cards .scc { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
+  #space-cards .chip { gap: 5px; height: 26px; padding: 0 8px; border-radius: 13px; background: none; color: var(--ink); font: 400 13px/1 var(--sans); }
+  #space-cards .chip > .ic { width: 14px; height: 14px; color: var(--k-knowledge); }
+  #space-cards .chip.more { color: var(--ink2); }
+  #space-cards .scn { margin: 6px 0 0; font-size: 13px; line-height: 19px; color: var(--ink3); }
+  #space-cards .sck { display: flex; align-items: center; gap: 8px; font: 600 12px/1.2 var(--semi); letter-spacing: .08em; text-transform: uppercase; color: var(--k); }
+  #space-cards .sw { width: 10px; height: 10px; border-radius: 2px; background: var(--k); }
+  #space-cards .sct2 { margin-top: 4px; font: 700 24px/28px var(--cond); color: var(--hot); }
+  #space-cards .sch { margin-top: 2px; font-size: 13px; color: var(--ink2); }
+  #space-cards .scb { margin-top: 12px; display: flex; gap: 8px; }
   #space-stats { position: absolute; z-index: 3; top: 48px; right: 20px; padding: 6px 10px; border: 1px solid var(--rule); border-radius: 6px; background: color-mix(in srgb, var(--sheet) 90%, transparent); font: 400 12px/1.45 var(--mono); color: var(--ink2); white-space: pre; pointer-events: none; }
   .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 </style>
@@ -2450,6 +2483,8 @@ function cityWorldFrom(model, L, kind, dir) {
   for (const b of world.beacons) grow(b.x - 1.25, b.x + 1.25, b.z - 1.25, b.z + 1.25, b.y + 1.3);
   for (const m of world.markers) grow(m.x - 0.5, m.x + 0.5, m.z - 0.5, m.z + 0.5, m.base);
   world.bounds = x0 < x1 ? { x0, x1, z0, z1, top } : { x0: -1, x1: 1, z0: -1, z1: 1, top: 1 };
+  // The boxes the city stands on, for its floor in the folder tower.
+  world.sheet = sheet;
   return world;
 }
 
@@ -2477,6 +2512,69 @@ function cityPlateOf(world, key) {
 function cityHash(folder, { kind, file, entity = null }, key, scene = "city") {
   return spaceHash({ folder, focus: key != null ? `${kind}:${key}` : `view:${file}${entity ? "#" + entity : ""}`, scene });
 }
+
+/** A floor of the folder tower: 16 × 12 units and 0.14 thick, the floors 1.05 apart with 1.4 more between groups. */
+const FLOOR = { w: 16, d: 12, h: 0.14, step: 1.05, gap: 1.4 };
+/** Where the pulled-out floor stands, from its slot. */
+const PULL = [20, 0, -12];
+/** The top floor the tower's opening pose frames: 24 floors in three groups. A taller stack opens climbed by the difference. */
+const TOWER_TOP = 26.95;
+const TOWER_GROUPS = ["drawn", "written", "knowledge"];
+const round6 = (v) => Math.round(v * 1e6) / 1e6;
+
+/** A folder as a tower of floors, one per file (docs/cyberspace-mode-spec.md, Tower world): drawn views at the bottom, then
+ *  written ones, then knowledge, each group in the page's order of kinds. `kinds`: the drawn kinds, the page's KIND_ORDER and
+ *  KNOWLEDGE. A written floor shows a bar per card (at most 4) and a knowledge floor a line per record (at most 6), each as
+ *  long as its title; a drawn floor's plan comes from its city (floorPlan). `drawer` is the first drawn floor, -1 for none. */
+function towerWorldFrom(docs, { drawn, order, knowledge }) {
+  const groupOf = (d) => (drawn.includes(d.kind) ? "drawn" : d.kind in order ? "written" : d.kind in knowledge ? "knowledge" : null);
+  const rank = (d) => order[d.kind] ?? knowledge[d.kind]?.order ?? 999;
+  const listed = docs.map((d, i) => ({ d, i, g: groupOf(d) })).filter((x) => x.g)
+    .sort((a, b) => TOWER_GROUPS.indexOf(a.g) - TOWER_GROUPS.indexOf(b.g) || rank(a.d) - rank(b.d) || a.i - b.i);
+  const floors = [], groups = [];
+  for (const { d, g } of listed) {
+    if (groups[groups.length - 1]?.name !== g) groups.push({ name: g, count: 0, first: floors.length, last: floors.length });
+    const group = groups[groups.length - 1], path = d._path ?? d.path;
+    group.count++;
+    group.last = floors.length;
+    const records = (Array.isArray(d.entities) ? d.entities : []).filter((e) => e && typeof e === "object");
+    // A written view's cards are titled by their names, a knowledge file's records by their titles (cards(), recordCard()).
+    const titled = (e) => String((g === "written" ? e.name ?? e.title : e.title ?? e.name) ?? e.id ?? "").length;
+    floors.push({
+      index: floors.length, kind: d.kind, group: g, path, file: path.split("/").pop(),
+      title: d.title ?? knowledge[d.kind]?.name ?? d.kind, word: d.kind.replace(/-/g, " "),
+      y: round6(floors.length * FLOOR.step + (groups.length - 1) * FLOOR.gap),
+      bars: g === "written" ? records.slice(0, 4).map(titled) : [],
+      lines: g === "knowledge" ? records.slice(0, 6).map(titled) : [],
+    });
+  }
+  const top = floors.length ? floors[floors.length - 1].y : 0;
+  return { floors, groups, top, climb: Math.max(0, round6(top - TOWER_TOP)), drawer: floors.findIndex((f) => f.group === "drawn") };
+}
+
+/** What a drawn floor shows on its top face: its city's flat layout, scaled to fit 13 × 9 units round the floor's centre: each
+ *  part a tile, each plate an outline, and each beam a line from the centre of one part's box to the other's. */
+function floorPlan(world) {
+  const { box, w, h } = world.sheet, s = Math.min(13 / Math.max(w, 1), 9 / Math.max(h, 1));
+  const at = (b) => ({ x: (b.x - w / 2) * s, z: (h / 2 - b.y) * s });
+  const plates = new Set(world.plates.map((p) => p.key)), tiles = [], outlines = [], lines = [];
+  for (const key of new Set([...plates, ...world.parts.keys()])) {
+    const b = box.get(key);
+    if (!b) continue;
+    const { x, z } = at(b), hw = (b.w * s) / 2, hd = (b.h * s) / 2;
+    (plates.has(key) ? outlines : tiles).push({ x0: x - hw, x1: x + hw, z0: z - hd, z1: z + hd });
+  }
+  for (const b of world.beams) {
+    const p = box.get(b.from), q = box.get(b.to);
+    if (b.from === b.to || !p || !q) continue;
+    const A = at(p), B = at(q);
+    lines.push([A.x, A.z, B.x, B.z]);
+  }
+  return { tiles, outlines, lines };
+}
+
+/** How small a city stands on its pulled-out floor: at most 0.36, and small enough that it keeps to the 16 × 12 floor. */
+const floorScale = (b) => Math.min(0.36, 15 / Math.max(b.x1 - b.x0, 1e-6), 11 / Math.max(b.z1 - b.z0, 1e-6));
 /* space-world:end */
 
 const THREE_URL = "https://cdn.jsdelivr.net/npm/three@0.187.0/+esm";
@@ -2503,8 +2601,10 @@ const webgl = (() => {
   } catch { return false; }
 })();
 
-/** What Cyberspace shows: the place the address names, and the part selected and the one under the pointer, by key. */
-const space = { on: false, scene: null, folder: null, focus: null, selected: null, hovered: null };
+/** What Cyberspace shows: the place the address names, and the part selected and the one under the pointer, by key (in the
+ *  tower, the file of the floor whose inspector is open, and the floor under the pointer). `shut`: the reader slid the tower's
+ *  floor back, and `at` is the address they did it at. */
+const space = { on: false, scene: null, folder: null, focus: null, selected: null, hovered: null, shut: false, at: null };
 /** Why Cyberspace couldn't start, for route() to say as it shows Flat instead; and the status line's text around Cyberspace's own. */
 let spaceFailed = null, spaceSaid = "", loaderSaid = "";
 
@@ -2562,16 +2662,24 @@ const GLASS = {
   beacon: [[0.34, 0.16, 0.16]],
 };
 const STATES = { norm: 0, near: 1, dim: 2, sel: 3, hover: 4 };
-function glass(T, rows) {
+/** A floor slab's glass: top and underside 0.13, sides 2.2 times that; a knowledge floor's 0.10. */
+const FLOOR_GLASS = [[0.13, 0.286, 0.286], [0.10, 0.22, 0.22]];
+/** `under`: an underside takes the top's alpha, for floors the eye sees from below. The uniform `fade` scales every alpha, for
+ *  a scene fading out behind the next. */
+function glass(T, rows, under = false) {
   return new T.ShaderMaterial({
     transparent: true,
     depthWrite: false,
-    defines: { ROWS: rows.length },
-    uniforms: { alphas: { value: rows.map(([a, b, c]) => new T.Vector3(a, b, c)) } },
-    vertexShader: `uniform vec3 alphas[ROWS]; attribute float aState; attribute float aSolid; varying vec4 vColor;
+    defines: under ? { ROWS: rows.length, UNDER: 1 } : { ROWS: rows.length },
+    uniforms: { alphas: { value: rows.map(([a, b, c]) => new T.Vector3(a, b, c)) }, fade: { value: 1 } },
+    vertexShader: `uniform vec3 alphas[ROWS]; uniform float fade; attribute float aState; attribute float aSolid; varying vec4 vColor;
       void main() {
         vec3 a = alphas[int(aState + 0.5)];
-        vColor = vec4(instanceColor, normal.y > 0.5 ? max(a.x, aSolid) : normal.x < -0.5 || normal.z > 0.5 ? a.y : a.z);
+        float side = normal.x < -0.5 || normal.z > 0.5 ? a.y : a.z;
+        #ifdef UNDER
+        if (normal.y < -0.5) side = a.x;
+        #endif
+        vColor = vec4(instanceColor, (normal.y > 0.5 ? max(a.x, aSolid) : side) * fade);
         gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0);
       }`,
     fragmentShader: `varying vec4 vColor;
@@ -2772,7 +2880,9 @@ function buildCity(world, colours) {
     if (what === "tower") state[i] = STATES[l];
   };
   const self = {
-    group, world, towerRuns,
+    kind: "city", group, world, towerRuns,
+    /** What ?spacestats says the city holds. */
+    stats: () => `${world.plates.length} plates · ${world.towers.length} towers · ${world.beacons.length} beacons · ${world.beams.length} beams`,
     /** The tower an instance of the towers' mesh draws. */
     towerOf: (instance) => slot[instance],
     /** Colours from the theme, into uniforms and colour attributes: the geometry stays. */
@@ -2869,6 +2979,357 @@ function buildCity(world, colours) {
   return self;
 }
 
+/** The soft glow under a pulled-out floor: a rounded square fading out to its edges, made once on a 64 × 64 canvas and used as
+ *  an alpha map, so its colour is the material's. */
+let glowCanvas = null;
+function glowTexture(T) {
+  if (!glowCanvas) {
+    glowCanvas = Object.assign(document.createElement("canvas"), { width: 64, height: 64 });
+    const g = glowCanvas.getContext("2d"), img = g.createImageData(64, 64);
+    for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) {
+      const r = (Math.abs(x - 31.5) ** 4 + Math.abs(y - 31.5) ** 4) ** 0.25 / 32, a = Math.round(255 * Math.min(1, Math.max(0, (1 - r) / 0.3)) ** 1.6), i = (y * 64 + x) * 4;
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = a;
+      img.data[i + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+  }
+  return new T.CanvasTexture(glowCanvas);
+}
+
+/** A folder tower's meshes (docs/cyberspace-mode-spec.md, Scene 1): the floors in their slots as one instanced glass mesh, sorted
+ *  so that the nearer slab paints last; their edges, the four rails and what each shows on its top face (a drawn view's plan, a
+ *  written view's bars, a knowledge file's lines) as one set of lines and one of tiles. A floor out of the stack (pulled out, or
+ *  sliding) is a drawer of its own: its slab, edges and glow, the city standing on it scaled by k, and its dashed ghost slot and
+ *  drawer lines. `request` asks the stage for a frame while a drawer slides; `moved` is called on each step. */
+function buildTower(world, colours, request) {
+  const T = three, group = new T.Group(), owned = [], floors = world.floors, n = floors.length;
+  const keep = (x) => (owned.push(x), x);
+  const put = (obj, order, into = group) => { obj.renderOrder = order; obj.frustumCulled = false; into.add(obj); return obj; };
+  const { w, d, h } = FLOOR, hw = w / 2, hd = d / 2, m4 = new T.Matrix4(), q = new T.Quaternion(), tint = new T.Color();
+  const zero = new T.Matrix4().makeScale(0, 0, 0), slabSize = new T.Vector3(w, h, d);
+  const tone = (f) => (f.group === "knowledge" ? "knowledge" : f.kind);
+  const colourOf = (c, role) => (role === "hot" ? c.hot : c.kinds[role]);
+  let painted = colours;
+  const slabMaterial = keep(glass(T, FLOOR_GLASS, true));
+  const slabMesh = (count, into) => {
+    const geometry = keep(new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0));
+    geometry.setAttribute("aState", new T.InstancedBufferAttribute(new Float32Array(count), 1));
+    geometry.setAttribute("aSolid", new T.InstancedBufferAttribute(new Float32Array(count), 1));
+    const mesh = put(new T.InstancedMesh(geometry, slabMaterial, count), 1, into);
+    for (let i = 0; i < count; i++) mesh.setColorAt(i, tint);
+    return mesh;
+  };
+  const out = new Map();        // floor → its drawer, while it is out of the stack
+  let slot = floors.map((_, i) => i), marks = { hover: -1, sel: -1 };
+
+  // The stack: an instance per floor, in its slot, put in paint order on rest (sort).
+  const slabs = n ? slabMesh(n, group) : null;
+  const writeSlabs = () => {
+    if (!slabs) return;
+    const st = slabs.geometry.attributes.aState;
+    slot.forEach((f, i) => {
+      slabs.setMatrixAt(i, out.has(f) ? zero : m4.compose(V(0, floors[f].y, 0), q, slabSize));
+      slabs.setColorAt(i, tint.setStyle(colourOf(painted, tone(floors[f]))));
+      st.array[i] = floors[f].group === "knowledge" ? 1 : 0;
+    });
+    slabs.instanceMatrix.needsUpdate = slabs.instanceColor.needsUpdate = st.needsUpdate = true;
+  };
+
+  // Lines, coloured per vertex (RGBA), each run remembering its role (a kind, or hot) and its alpha: per floor its edges and its
+  // face's lines, and the rails.
+  const pos = [], runs = [];
+  const seg = (a, b) => pos.push(a.x, a.y, a.z, b.x, b.y, b.z);
+  const run = (role, alpha, draw) => { const start = pos.length / 3; draw(); const r = { start, count: pos.length / 3 - start, role, alpha, base: alpha }; runs.push(r); return r; };
+  const ring4 = (x0, x1, z0, z1, y) => { const c = [V(x0, y, z0), V(x1, y, z0), V(x1, y, z1), V(x0, y, z1)]; for (let i = 0; i < 4; i++) seg(c[i], c[(i + 1) % 4]); };
+  const slabEdges = (y, dx = 0, dz = 0) => { ring4(dx - hw, dx + hw, dz - hd, dz + hd, y); ring4(dx - hw, dx + hw, dz - hd, dz + hd, y + h); for (const [x, z] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]]) seg(V(dx + x, y, dz + z), V(dx + x, y + h, dz + z)); };
+  // Tiles: flat quads on a floor's top, one instanced mesh; per floor the run of its instances.
+  const tilePlaces = [], tileRuns = [];
+  const tile = (f, x0, x1, z0, z1) => tilePlaces.push({ f, m: new T.Matrix4().compose(V((x0 + x1) / 2, f.y + h + 0.01, (z0 + z1) / 2), q, new T.Vector3(Math.max(0.05, x1 - x0), 1, Math.max(0.05, z1 - z0))) });
+  const edgeRuns = floors.map((f) => {
+    const top = f.y + h + 0.01, start = tilePlaces.length;
+    const edges = run(tone(f), f.group === "knowledge" ? 0.7 : 0.85, () => slabEdges(f.y));
+    const face = [];
+    if (f.plan) {
+      face.push(run(tone(f), 0.35, () => { for (const [x0, z0, x1, z1] of f.plan.lines) seg(V(x0, top, z0), V(x1, top, z1)); }));
+      face.push(run(tone(f), 0.45, () => { for (const o of f.plan.outlines) ring4(o.x0, o.x1, o.z0, o.z1, top); }));
+      for (const t of f.plan.tiles) tile(f, t.x0, t.x1, t.z0, t.z1);
+    }
+    // A written view's cards as bars, a knowledge file's records as lines, from the back of the floor forwards.
+    f.bars.forEach((chars, i) => tile(f, -6.5, -6.5 + Math.min(13, 0.3 * chars), 2.6 - i * 1.7, 3.15 - i * 1.7));
+    if (f.lines.length) face.push(run(tone(f), 0.75, () => f.lines.forEach((chars, i) => seg(V(-6.5, top, 3.5 - i * 1.1), V(-6.5 + Math.min(13, 0.25 * chars), top, 3.5 - i * 1.1)))));
+    tileRuns.push({ start, count: tilePlaces.length - start });
+    return { edges, face };
+  });
+  const top = n ? floors[n - 1].y : 0;
+  run("component", 0.18, () => { for (const [x, z] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]]) seg(V(x, -0.2, z), V(x, top + 1.2, z)); });
+  const lineGeometry = keep(new T.BufferGeometry());
+  lineGeometry.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
+  lineGeometry.setAttribute("color", new T.Float32BufferAttribute(new Float32Array((pos.length / 3) * 4), 4));
+  const lineMaterial = keep(new T.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
+  put(new T.LineSegments(lineGeometry, lineMaterial), 3);
+  const refill = (r) => {
+    const attr = lineGeometry.attributes.color;
+    tint.setStyle(colourOf(painted, r.role));
+    for (let v = r.start; v < r.start + r.count; v++) attr.setXYZW(v, tint.r, tint.g, tint.b, r.alpha);
+    attr.needsUpdate = true;
+  };
+  const tileMaterial = keep(new T.MeshBasicMaterial({ transparent: true, opacity: 0.42, depthWrite: false, side: T.DoubleSide }));
+  const tiles = tilePlaces.length ? put(new T.InstancedMesh(keep(new T.PlaneGeometry(1, 1).rotateX(-Math.PI / 2)), tileMaterial, tilePlaces.length), 2) : null;
+  const writeTiles = (i) => {
+    if (!tiles) return;
+    const r = tileRuns[i];
+    for (let k = r.start; k < r.start + r.count; k++) { tiles.setMatrixAt(k, out.has(i) ? zero : tilePlaces[k].m); tiles.setColorAt(k, tint.setStyle(colourOf(painted, tone(floors[i])))); }
+    tiles.instanceMatrix.needsUpdate = true;
+    if (tiles.instanceColor) tiles.instanceColor.needsUpdate = true;
+  };
+  /** Draws a floor in the stack as it now is: hidden while it is out, its edges lit while under the pointer or selected. */
+  const look = (i) => {
+    const r = edgeRuns[i], gone = out.has(i), lit = i === marks.hover || i === marks.sel;
+    Object.assign(r.edges, { role: i === marks.sel ? "hot" : tone(floors[i]), alpha: gone ? 0 : lit ? 1 : r.edges.base });
+    refill(r.edges);
+    for (const x of r.face) { x.alpha = gone ? 0 : x.base; refill(x); }
+    writeTiles(i);
+    const dr = out.get(i);
+    if (dr) { dr.edges.material.color.setStyle(colourOf(painted, i === marks.sel ? "hot" : tone(floors[i]))); dr.edges.material.opacity = (lit ? 1 : r.edges.base) * fade; }
+  };
+
+  // The ghost slot and drawer lines of each floor out of the stack: dashed, rewritten as drawers slide.
+  const dashPos = new Float32Array(2 * 14 * 3), dashCol = new Float32Array(2 * 14 * 4);
+  const dashGeometry = keep(new T.BufferGeometry());
+  dashGeometry.setAttribute("position", new T.BufferAttribute(dashPos, 3));
+  dashGeometry.setAttribute("color", new T.BufferAttribute(dashCol, 4));
+  const dashMaterial = keep(new T.LineDashedMaterial({ vertexColors: true, transparent: true, depthWrite: false, dashSize: 0.12, gapSize: 0.2 }));
+  const dashes = put(new T.LineSegments(dashGeometry, dashMaterial), 3);
+  const writeDashes = () => {
+    let v = 0;
+    const put2 = (a, b, alpha, colour) => { for (const p of [a, b]) { dashPos.set([p.x, p.y, p.z], v * 3); dashCol.set([colour.r, colour.g, colour.b, alpha], v * 4); v++; } };
+    for (const [i, dr] of out) {
+      if (dr.t <= 0.001 || v >= 28) continue;
+      const f = floors[i], y = f.y + h, dx = PULL[0] * dr.t, dz = PULL[2] * dr.t, c = new T.Color().setStyle(colourOf(painted, tone(f)));
+      const corners = [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]];
+      corners.forEach(([x, z], k) => { const [x1, z1] = corners[(k + 1) % 4]; put2(V(x, y, z), V(x1, y, z1), 0.5, c); });
+      // From the slot's front-left, front-right and back-right corners to the drawer's.
+      for (const [x, z] of corners.slice(0, 3)) put2(V(x, y, z), V(x + dx, y, z + dz), 0.45, c);
+    }
+    dashGeometry.setDrawRange(0, v);
+    dashGeometry.attributes.position.needsUpdate = dashGeometry.attributes.color.needsUpdate = true;
+    dashes.computeLineDistances();
+  };
+
+  // Drawers.
+  const glowMap = keep(glowTexture(T));
+  const drawer = (i) => {
+    const f = floors[i], g = new T.Group(), parts = [];
+    const slab = slabMesh(1, g);
+    slab.setMatrixAt(0, m4.compose(new T.Vector3(), q, slabSize));
+    slab.geometry.attributes.aState.array[0] = f.group === "knowledge" ? 1 : 0;
+    const eg = new T.BufferGeometry(), ep = [];
+    for (const [a, b] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]].map((p, k, all) => [p, all[(k + 1) % 4]])) for (const y of [0, h]) ep.push(...V(a[0], y, a[1]).toArray(), ...V(b[0], y, b[1]).toArray());
+    for (const [x, z] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]]) ep.push(...V(x, 0, z).toArray(), ...V(x, h, z).toArray());
+    eg.setAttribute("position", new T.Float32BufferAttribute(ep, 3));
+    const edges = put(new T.LineSegments(eg, new T.LineBasicMaterial({ transparent: true, depthWrite: false })), 3, g);
+    const glow = put(new T.Mesh(new T.PlaneGeometry(w + 3, d + 3).rotateX(-Math.PI / 2), new T.MeshBasicMaterial({ alphaMap: glowMap, transparent: true, opacity: 0.25, depthWrite: false })), 0, g);
+    glow.position.y = -0.05;
+    parts.push(eg, edges.material, glow.geometry, glow.material);
+    const dr = { g, slab, edges, glow, parts, city: null, holder: null, k: 1, t: 0, from: 0, to: 0, t0: 0 };
+    dr.place = () => g.position.copy(V(PULL[0] * dr.t, f.y, PULL[2] * dr.t));
+    dr.paint = () => {
+      slab.setColorAt(0, tint.setStyle(colourOf(painted, tone(f))));
+      slab.instanceColor.needsUpdate = true;
+      glow.material.color.setStyle(colourOf(painted, tone(f)));
+      dr.city?.paint(painted);
+    };
+    dr.drop = () => { if (!dr.city) return; dr.holder.removeFromParent(); dr.city.dispose(); dr.city = dr.holder = null; };
+    dr.dispose = () => { dr.drop(); g.removeFromParent(); slab.dispose(); slab.geometry.dispose(); for (const x of parts) x.dispose(); };
+    group.add(g);
+    dr.place();
+    dr.paint();
+    return dr;
+  };
+  let fade = 1, moving = 0;
+  const slide = (now) => {
+    moving = 0;
+    let busy = false;
+    for (const [i, dr] of [...out]) {
+      const k = dr.to === dr.from ? 1 : Math.min(1, (now - dr.t0) / 450);
+      dr.t = dr.from + (dr.to - dr.from) * ease.out(k);
+      dr.place();
+      if (k < 1) { busy = true; continue; }
+      if (dr.to === 0) { dr.dispose(); out.delete(i); writeSlabs(); look(i); }
+    }
+    writeDashes();
+    self.moved?.();
+    request();
+    if (busy) moving = requestAnimationFrame(slide);
+  };
+
+  const self = {
+    kind: "tower", group, world,
+    /** The floor pulled out, or -1. */
+    pulled: -1,
+    /** The city standing on the pulled-out floor (buildCity's), and how it is placed: scaled by k about the centre of its bounds. */
+    get city() { return out.get(self.pulled)?.city ?? null; },
+    stats: () => `${plural(n, "floor")} · ${out.size} out` + (self.city ? `\nits city: ${self.city.stats()}` : ""),
+    /** Slides the floor out (the one out slides back): 450 ms, eased out, at once with reduced motion or when `now`. `city`:
+     *  the world of the city standing on it, or null. */
+    pull(i, city, now = false) {
+      const was = self.pulled;
+      if (i === was && (!city || self.city?.world === city)) return;
+      self.pulled = i;
+      const t = performance.now(), go = (dr, to) => Object.assign(dr, { from: dr.t, to, t0: t });
+      if (was >= 0 && was !== i && out.has(was)) { out.get(was).drop(); go(out.get(was), 0); }
+      if (i >= 0) {
+        if (!out.has(i)) { out.set(i, drawer(i)); writeSlabs(); look(i); }
+        const dr = out.get(i);
+        if (dr.city?.world !== city) {
+          dr.drop();
+          if (city) {
+            const b = city.bounds, built = buildCity(city, painted), holder = new T.Group();
+            dr.k = floorScale(b);
+            built.group.position.copy(V(-(b.x0 + b.x1) / 2, 0, -(b.z0 + b.z1) / 2));
+            holder.add(built.group);
+            holder.scale.setScalar(dr.k);
+            holder.position.y = h;
+            dr.g.add(holder);
+            Object.assign(dr, { city: built, holder });
+          }
+        }
+        go(dr, 1);
+      }
+      cancelAnimationFrame(moving);
+      if (now || reducedMotion.matches) for (const dr of out.values()) dr.t0 = -Infinity;
+      slide(performance.now());
+    },
+    /** Where a floor's city stands when the floor is all the way out: the centre of the floor's top, and the scale. */
+    seat(i) { const f = floors[i]; return { top: [PULL[0], f.y + h, PULL[2]], k: out.get(i)?.k ?? 1, bounds: out.get(i)?.city?.world.bounds ?? null }; },
+    /** The front-left corner of a floor's slot, half way up its edge: where its label stands. */
+    corner(i) { return V(-hw, floors[i].y + h / 2, -hd); },
+    /** Marks the floor under the pointer and the one whose inspector is open: their edges at full strength, the selected one's in --hot. */
+    mark(next) {
+      const was = marks;
+      marks = { ...was, ...next };
+      for (const i of new Set([was.hover, was.sel, marks.hover, marks.sel])) if (i >= 0) look(i);
+    },
+    /** What a ray from the eye meets first: a floor in the stack, or a drawer with what stands on it. */
+    pick(ray) {
+      let best = null;
+      const h0 = slabs && ray.intersectObject(slabs, false)[0];
+      if (h0) best = { floor: slot[h0.instanceId], distance: h0.distance };
+      const box = new T.Box3(), at = new T.Vector3();
+      for (const [i, dr] of out) {
+        const f = floors[i], c = V(PULL[0] * dr.t, f.y, PULL[2] * dr.t), tall = dr.city ? dr.city.world.bounds.top * dr.k + 0.3 : 0;
+        box.min.set(c.x - hw, c.y, c.z - hd);
+        box.max.set(c.x + hw, c.y + h + tall, c.z + hd);
+        if (group.parent) box.applyMatrix4(group.matrixWorld);
+        if (ray.ray.intersectBox(box, at)) { const dist = at.distanceTo(ray.ray.origin); if (!best || dist < best.distance) best = { floor: i, distance: dist }; }
+      }
+      return best;
+    },
+    /** Puts the stack in paint order for an eye: the slabs furthest above or below it first, so the nearer slab paints last. */
+    sort(eye) {
+      slot = slot.slice().sort((a, b) => Math.abs(floors[b].y + h / 2 - eye.y) - Math.abs(floors[a].y + h / 2 - eye.y));
+      writeSlabs();
+      const city = self.city;
+      if (city) { city.group.updateMatrixWorld(true); city.sort(city.group.worldToLocal(eye.clone())); }
+    },
+    /** Lets the city on the pulled-out floor go: the full-size city takes its place. */
+    dropCity() { out.get(self.pulled)?.drop(); },
+    /** Scales every alpha but the city's, for the tower to fade in or out round it. */
+    fade(f) {
+      fade = f;
+      slabMaterial.uniforms.fade.value = f;
+      lineMaterial.opacity = dashMaterial.opacity = f;
+      tileMaterial.opacity = 0.42 * f;
+      for (const [i, dr] of out) { dr.glow.material.opacity = 0.25 * f; look(i); }
+    },
+    paint(c) {
+      painted = c;
+      writeSlabs();
+      for (const r of runs) refill(r);
+      for (let i = 0; i < n; i++) look(i);
+      for (const dr of out.values()) dr.paint();
+      writeDashes();
+    },
+    dispose() {
+      cancelAnimationFrame(moving);
+      for (const dr of out.values()) dr.dispose();
+      out.clear();
+      for (const x of owned) x.dispose();
+      slabs?.dispose();
+      tiles?.dispose();
+    },
+  };
+  self.paint(colours);
+  return self;
+}
+
+/** The labels by a tower: each floor's kind and title, right-aligned 14 px left of its slot's front-left corner (the slot of the
+ *  pulled-out floor says so), and a bracket per group down the left edge. HTML with its text set as text. */
+function towerLabels(world, tower) {
+  const layer = $("space-labels");
+  layer.textContent = "";
+  layer.className = "tower";
+  const v = new three.Vector3(), view = new three.Vector3();
+  const items = world.floors.map((f) => {
+    const el = document.createElement("div"), word = document.createElement("span"), title = document.createElement("span");
+    el.className = `sfl kind-${f.group === "knowledge" ? "knowledge" : f.kind}`;
+    word.className = "w";
+    word.textContent = f.word;
+    title.textContent = f.title;
+    el.append(word, title);
+    el.hidden = true;
+    layer.append(el);
+    return { el, title, shown: false, out: false };
+  });
+  const brackets = world.groups.map((g) => {
+    const line = document.createElement("div"), name = document.createElement("div");
+    line.className = "sbr";
+    name.className = "sbn";
+    name.textContent = `${g.name} · ${g.count}`;
+    layer.append(line, name);
+    return { g, line, name };
+  });
+  let marked = [-1, -1];
+  return {
+    place(camera, { W, H }) {
+      const at = items.map((it, i) => {
+        view.copy(tower.corner(i)).applyMatrix4(camera.matrixWorldInverse);
+        if (view.z > -camera.near) return null;
+        v.copy(tower.corner(i)).project(camera);
+        return { x: ((v.x + 1) / 2) * W, y: ((1 - v.y) / 2) * H };
+      });
+      items.forEach((it, i) => {
+        const s = at[i], out = i === tower.pulled;
+        if (out !== it.out) { it.out = out; it.el.classList.toggle("out", out); it.title.textContent = out ? "pulled out" : world.floors[i].title; }
+        if (!s || s.x < 0 || s.x > W + 400 || s.y < -10 || s.y > H + 10) { if (it.shown) { it.el.hidden = true; it.shown = false; } return; }
+        it.el.style.transform = `translate(${(s.x - 14).toFixed(1)}px,${(s.y - 10).toFixed(1)}px) translateX(-100%)`;
+        if (!it.shown) { it.el.hidden = false; it.shown = true; }
+      });
+      for (const b of brackets) {
+        const ys = at.slice(b.g.first, b.g.last + 1).filter(Boolean).map((s) => s.y);
+        const y0 = Math.max(0, Math.min(...ys) - 10), y1 = Math.min(H, Math.max(...ys) + 10), off = !ys.length || y1 <= y0;
+        b.line.hidden = b.name.hidden = off;
+        if (off) continue;
+        // The name is centred on its bracket, and runs past the ends of a short one.
+        b.line.style.top = `${y0.toFixed(1)}px`;
+        b.line.style.height = `${(y1 - y0).toFixed(1)}px`;
+        b.name.style.top = `${((y0 + y1) / 2).toFixed(1)}px`;
+      }
+      return { topped: 0 };
+    },
+    /** The bottom of a floor's label on the screen, for the opening pose to keep it in the window. */
+    bottom(camera, i, H) { v.copy(tower.corner(i)).project(camera); return ((1 - v.y) / 2) * H + 10; },
+    /** The floor under the pointer and the one whose inspector is open: their titles in --hot. */
+    mark(hover, sel) {
+      for (const i of marked) items[i]?.el.classList.remove("hot");
+      marked = [hover, sel];
+      for (const i of marked) items[i]?.el.classList.add("hot");
+    },
+    select() {},
+    clear() { layer.textContent = ""; layer.className = ""; },
+  };
+}
+
 /** The panels over the canvas, and the room they leave: the free rectangle the city is fitted into. In #space's pixels. */
 function spaceRoom() {
   const box = $("space").getBoundingClientRect(), panels = [];
@@ -2876,42 +3337,97 @@ function spaceRoom() {
     const r = el.getBoundingClientRect();
     if (r.width && r.height) panels.push({ x0: r.left - box.left, y0: r.top - box.top, x1: r.right - box.left, y1: r.bottom - box.top });
   }
-  // Each panel takes the side of the room it costs least to give up.
+  // Each panel takes the side of the room it costs least to give up. `top`: how far down the window the canvas starts.
   let f = { x0: 0, y0: 0, x1: box.width, y1: box.height };
   for (const p of panels) {
     if (p.x1 <= f.x0 || p.x0 >= f.x1 || p.y1 <= f.y0 || p.y0 >= f.y1) continue;
     const cut = [{ ...f, x0: p.x1 }, { ...f, x1: p.x0 }, { ...f, y0: p.y1 }, { ...f, y1: p.y0 }];
     f = cut.reduce((a, b) => ((b.x1 - b.x0) * (b.y1 - b.y0) > (a.x1 - a.x0) * (a.y1 - a.y0) ? b : a));
   }
-  return { W: box.width, H: box.height, free: f, panels };
+  return { W: box.width, H: box.height, top: box.top, free: f, panels };
 }
 
+const rad = Math.PI / 180;
+/** Where the eye of an orbit pose is, in the spec's frame. */
+const eyeOf = ({ target: [x, y, z], azimuth, elevation, distance: d }) => {
+  const a = azimuth * rad, e = elevation * rad;
+  return [x + d * Math.cos(e) * Math.sin(a), y + d * Math.sin(e), z - d * Math.cos(e) * Math.cos(a)];
+};
+/** The orbit pose of an eye looking at a target. */
+const poseFrom = (eye, target) => {
+  const v = eye.map((c, i) => c - target[i]), d = Math.hypot(...v);
+  return { target: [...target], azimuth: Math.atan2(v[0], -v[2]) / rad, elevation: Math.asin(v[1] / d) / rad, distance: d };
+};
+const ease = { inOut: (k) => (k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2), out: (k) => 1 - (1 - k) ** 3 };
+
 /** The camera, in orbit and pan modes (walk comes with the street): where it looks, from which way and how far, fitted to the
- *  free rectangle with the projection centred on it. Drag, wheel, pinch and the keys move it. */
+ *  free rectangle with the projection centred on it. Drag, wheel, pinch and the keys move it. A scene may fix the projection's
+ *  centre (`anchor`) and give its own opening pose (`home`), and the tower makes the wheel climb (`climbs`, the target's
+ *  heights). `flyTo` flies between poses. */
 function spaceRig(stage) {
-  const T = three, { camera, canvas } = stage, rad = Math.PI / 180;
+  const T = three, { camera, canvas } = stage;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const rig = {
     mode: "orbit", target: [0, 0, 0], azimuth: -40, elevation: 33.6, distance: 60, fov: 54.1,
     bounds: null, fitDistance: 60, room: null, touched: false, moved: true, centre: null, tween: null, pressed: false,
-    /** Puts the camera where the pose says, the projection centred on the free rectangle (or, while it moves to a new one,
-     *  on `centre`). */
+    anchor: null, home: null, climbs: null, flight: null, top: 0,
+    /** Puts the camera where the pose says, the projection centred on the free rectangle, or where the scene's anchor puts it
+     *  (or, while it moves to a new one, on `centre`), in #space's pixels. The frame the field of view spans is the canvas, or
+     *  reaches `top` px above it: the tower is framed in the whole window, as the design draws it. */
     apply() {
       rig.room ??= spaceRoom();
       const { W, H, free } = rig.room, [x, y, z] = rig.target, a = rig.azimuth * rad, e = rig.elevation * rad, d = rig.distance;
-      const [cx, cy] = rig.centre ?? middle(free);
+      const [cx, cy] = rig.centre ?? rig.anchor?.(rig.room) ?? middle(free), full = H + rig.top;
       camera.fov = rig.fov;
-      camera.aspect = W / H;
+      camera.aspect = W / full;
       camera.position.copy(V(x + d * Math.cos(e) * Math.sin(a), y + d * Math.sin(e), z - d * Math.cos(e) * Math.cos(a)));
       camera.lookAt(V(x, y, z));
-      camera.setViewOffset(W, H, W / 2 - cx, H / 2 - cy, W, H);
+      // three.js moves the window right by the offset, so the projection's centre lands at W/2 - offset.
+      camera.setViewOffset(W, full, W / 2 - cx, full / 2 - cy, W, H);
       camera.updateMatrixWorld();
       rig.moved = true;
       stage.request();
       clearTimeout(rig.rest);
-      rig.rest = setTimeout(() => { stage.city?.sort(camera.position); stage.request(); }, 150);
+      rig.rest = setTimeout(() => { stage.shown?.sort(camera.position); stage.request(); }, 150);
     },
     set(pose) { Object.assign(rig, pose); rig.apply(); },
+    /** The pose as it stands, with the projection's centre in #space's pixels. */
+    pose() {
+      rig.room ??= spaceRoom();
+      return { target: [...rig.target], azimuth: rig.azimuth, elevation: rig.elevation, distance: rig.distance, fov: rig.fov, top: rig.top, centre: rig.centre ?? rig.anchor?.(rig.room) ?? middle(rig.room.free) };
+    },
+    /** Flies to a pose (`to.centre`: the projection's centre where it lands) in `ms`, eased in and out, the eye lifted on an arc
+     *  that peaks 0.15 of the way it travels above the straight path. At once with reduced motion. Input on the way stops it
+     *  where it is (`stopped` is called); `done` is called when it lands. Returns the flight: finish() lands it at once. */
+    flyTo(to, ms, { done = null, stopped = null } = {}) {
+      rig.flight = rig.tween = null;
+      const from = rig.pose(), end = { ...from, ...to }, e0 = eyeOf(from), e1 = eyeOf(end), travel = Math.hypot(...e1.map((v, i) => v - e0[i]));
+      const flight = {};
+      const land = () => {
+        rig.flight = null;
+        const { centre, ...pose } = end;
+        rig.centre = null;
+        rig.set(pose);
+        done?.();
+      };
+      flight.finish = () => { if (rig.flight === flight) land(); };
+      flight.stop = () => { if (rig.flight !== flight) return; rig.flight = null; rig.touched = true; stopped?.(); };
+      if (!ms || reducedMotion.matches) { land(); return flight; }
+      rig.flight = flight;
+      const t0 = performance.now();
+      const step = (t) => {
+        if (rig.flight !== flight) return;
+        const k = Math.min(1, (t - t0) / ms);
+        if (k >= 1) { land(); return; }
+        const s = ease.inOut(k), mix = (a, b) => a + (b - a) * s, eye = e0.map((v, i) => mix(v, e1[i]));
+        eye[1] += 0.15 * travel * Math.sin(Math.PI * s);
+        Object.assign(rig, poseFrom(eye, from.target.map((v, i) => mix(v, end.target[i]))), { fov: mix(from.fov, end.fov), top: mix(from.top, end.top), centre: [mix(from.centre[0], end.centre[0]), mix(from.centre[1], end.centre[1])] });
+        rig.apply();
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+      return flight;
+    },
     /** The opening pose: the least distance at which the corners of everything that stands (`points`: each plate's, tower's
      *  and beacon's box, each start point) are all inside the free rectangle, 24 px from its edges, with the target moved across
      *  the view so that they stand in the middle of it. Labels stand above their towers and are pushed further up to clear each
@@ -2919,6 +3435,7 @@ function spaceRig(stage) {
      *  up to 30% of the room's height, and keeps the least room that leaves the fewest out. */
     fit() {
       rig.room = spaceRoom();
+      if (rig.home) { rig.centre = null; rig.touched = false; rig.home(); return; }
       if (!rig.points?.length) { rig.set({ target: [0, 0, 0], azimuth: -40, elevation: 33.6, distance: 60 }); return; }
       const height = rig.room.free.y1 - rig.room.free.y0;
       let best = null;
@@ -2932,11 +3449,13 @@ function spaceRig(stage) {
       if (best.left) frame(best.above);
     },
     /** After a resize: the room is measured again, and an untouched camera fitted again. */
-    resized() { rig.tween = rig.centre = null; if (rig.touched || !rig.points?.length) { rig.room = spaceRoom(); rig.apply(); } else rig.fit(); },
+    resized() { rig.tween = rig.centre = null; if (rig.touched || !(rig.home || rig.points?.length)) { rig.room = spaceRoom(); rig.apply(); } else rig.fit(); },
     /** After a panel opened or closed (the inspector): the free rectangle is measured again, and the camera moves to it over
      *  300 ms, at once with reduced motion or when `now`. An untouched camera is fitted again; one the reader moved keeps its
      *  pose, the projection centred on the new rectangle, as on a resize. */
     reroom(now = false) {
+      // A scene that fixes the projection's centre has nothing to move to.
+      if (rig.anchor) { rig.room = spaceRoom(); rig.apply(); return; }
       const was = rig.room ?? spaceRoom(), room = spaceRoom();
       if (["x0", "y0", "x1", "y1"].every((k) => Math.abs(was.free[k] - room.free[k]) < 1) && was.W === room.W && was.H === room.H) { rig.room = room; return; }
       if (rig.tween) rig.apply();
@@ -2962,15 +3481,18 @@ function spaceRig(stage) {
     limit() {
       rig.elevation = clamp(rig.elevation, 8, 85);
       rig.distance = clamp(rig.distance, 8, Math.max(8, 3 * rig.fitDistance));
-      const b = rig.bounds;
-      if (b) rig.target = [clamp(rig.target[0], b.x0 - 20, b.x1 + 20), clamp(rig.target[1], -20, b.top + 20), clamp(rig.target[2], b.z0 - 20, b.z1 + 20)];
+      const b = rig.bounds, [lo, hi] = rig.climbs ?? [-20, (b?.top ?? 0) + 20];
+      if (b) rig.target = [clamp(rig.target[0], b.x0 - 20, b.x1 + 20), clamp(rig.target[1], lo, hi), clamp(rig.target[2], b.z0 - 20, b.z1 + 20)];
     },
     move(change) {
-      // Input during a move to a new free rectangle stops it where it is, centred on the new one.
+      // Input during a move to a new free rectangle stops it where it is, centred on the new one; during a flight, where it is.
       if (rig.tween) { rig.tween = rig.centre = null; }
+      rig.flight?.stop();
       change(); rig.touched = true; rig.limit(); rig.apply();
     },
     orbit(da, de) { rig.move(() => { rig.azimuth += da; rig.elevation += de; }); },
+    /** Raises the eye and its target together (lowers them for a negative step), within the scene's `climbs`. */
+    climb(dy) { rig.move(() => { rig.target = [rig.target[0], rig.target[1] + dy, rig.target[2]]; }); },
     /** Moves the target across the ground by a step in spec units, right and ahead as the camera faces. */
     slide(right, ahead) {
       const a = rig.azimuth * rad;
@@ -3072,7 +3594,9 @@ function spaceRig(stage) {
     e.preventDefault();
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? rig.room.H : 1;
     if (e.deltaX && !e.ctrlKey) rig.orbit(-e.deltaX * unit * 0.2, 0);
-    if (e.deltaY) rig.dolly(1.0015 ** (e.deltaY * unit), ...local(e));
+    // In the tower the wheel climbs, 1.05 units (a floor) a notch; with ⌘ or Ctrl, or a pinch, it flies in and out.
+    if (e.deltaY && rig.climbs && !e.ctrlKey && !e.metaKey) rig.climb((-1.05 * e.deltaY * unit) / 100);
+    else if (e.deltaY) rig.dolly(1.0015 ** (e.deltaY * unit), ...local(e));
   }, { passive: false });
   canvas.addEventListener("keydown", (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -3092,9 +3616,10 @@ const F_PILL = `500 13px "Barlow Semi Condensed", "Avenir Next Condensed", "Aria
 const F_PLATE = `600 13px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
 const F_BEAM = `500 12px "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif`;
 /** The labels over a city: a pill per tower and beacon, cut at 150 px, and each plate's name with its number of parts. HTML,
- *  never textures, with their text set as text. Widths are measured once, when they are made, in the page's typefaces. */
-function spaceLabels(world) {
-  const T = three, layer = $("space-labels"), per = PER_ENTITY.has(world.kind);
+ *  never textures, with their text set as text. Widths are measured once, when they are made, in the page's typefaces. `layer`
+ *  is #space-labels, or an element off the page for a fit worked out before the city stands. */
+function spaceLabels(world, layer = $("space-labels")) {
+  const T = three, per = PER_ENTITY.has(world.kind);
   layer.textContent = "";
   layer.className = `kind-${world.kind}`;
   const leaders = document.createElementNS("http://www.w3.org/2000/svg", "svg"), path = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -3285,7 +3810,7 @@ function cityLegend(world) {
   return items.filter(Boolean).map(([icon, text]) => `<span${icon === "beacon" ? ` class="amber"` : ""}>${LEGEND_ICONS[icon]}${esc(text)}</span>`).join("")
     + (nav ? `<span>${BADGE}Has views of its own</span>` : "");
 }
-/** The panels over a city: the camera controls (made once) and the legend. With no city, only the controls. */
+/** The panels over a city: the camera controls (made once) and the legend. With no city, neither. */
 function spaceHud(world) {
   const hud = $("space-hud");
   if (!$("space-controls")) {
@@ -3305,7 +3830,7 @@ function spaceHud(world) {
     });
   }
   const legend = $("space-legend");
-  legend.hidden = !world;
+  $("space-controls").hidden = legend.hidden = !world;
   legend.className = `hud kind-${world?.kind ?? "component"}`;
   legend.innerHTML = world ? cityLegend(world) : "";
 }
@@ -3319,7 +3844,8 @@ function spaceStage(T, canvas) {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setClearAlpha(0);
   const scene = new T.Scene(), camera = new T.PerspectiveCamera(54.1, 1, 0.6, 600);
-  let grid = null, city = null, frame = 0, lost = false, last = 0, took = 0, every = 0;
+  // What stands (buildCity's or buildTower's), and a tower fading out behind the city that took its place.
+  let grid = null, shown = null, fading = null, frame = 0, lost = false, last = 0, took = 0, every = 0;
   const showing = () => !lost && !$("space").hidden && !document.hidden;
   const draw = (now) => {
     frame = 0;
@@ -3333,9 +3859,9 @@ function spaceStage(T, canvas) {
     took = took ? took * 0.9 + (performance.now() - t0) * 0.1 : performance.now() - t0;
     if (now - last < 100) every = every ? every * 0.9 + (now - last) * 0.1 : now - last;
     last = now;
-    const w = city?.world, el = $("space-stats") ?? $("space").appendChild(Object.assign(document.createElement("div"), { id: "space-stats" }));
+    const el = $("space-stats") ?? $("space").appendChild(Object.assign(document.createElement("div"), { id: "space-stats" }));
     el.textContent = `frame ${took.toFixed(1)} ms${every ? ` · every ${every.toFixed(1)} ms` : ""}\n${renderer.info.render.calls} draw calls\n`
-      + (w ? `${w.plates.length} plates · ${w.towers.length} towers · ${w.beacons.length} beacons · ${w.beams.length} beams` : "no city");
+      + (shown?.stats() ?? "nothing standing");
   };
   const request = () => { if (!frame && showing()) frame = requestAnimationFrame(draw); };
   const resize = () => {
@@ -3354,24 +3880,53 @@ function spaceStage(T, canvas) {
   const self = {
     camera, canvas, request,
     get lost() { return lost; },
-    get city() { return city; },
+    get shown() { return shown; },
+    get city() { return shown?.kind === "city" ? shown : null; },
+    get tower() { return shown?.kind === "tower" ? shown : null; },
     /** Lays the ground, again after a stay in Flat. */
     fill(colours) {
       if (!grid) { grid = groundGrid(T, colours); scene.add(grid.mesh); }
       resize();
       request();
     },
-    /** Stands a city (buildCity's) on the ground in place of the one there; null takes it away. */
-    show(next) {
-      if (city) { scene.remove(city.group); city.dispose(); }
-      city = next;
-      if (city) scene.add(city.group);
+    /** Stands a city (buildCity's) or a tower (buildTower's) in place of what stands; null takes it away. `keep`: what stood is
+     *  not let go of, but handed back, for it to fade (fade). */
+    show(next, keep = false) {
+      const was = shown;
+      if (was && !keep) { scene.remove(was.group); was.dispose(); }
+      shown = next;
+      if (shown) scene.add(shown.group);
       request();
+      return keep ? was : null;
     },
-    retheme(colours) { grid?.paint(colours); city?.paint(colours); request(); },
+    /** Fades a tower in (to 1) or out (to 0) over `ms`, at once with reduced motion; faded out, it is let go of. */
+    fade(thing, from, to, ms) {
+      if (fading && fading.thing !== thing) fading.end();
+      if (!thing.group.parent) scene.add(thing.group);
+      const t0 = performance.now(), run = (fading = { thing });
+      run.end = () => {
+        if (fading === run) fading = null;
+        thing.fade(to);
+        if (to === 0) { scene.remove(thing.group); thing.dispose(); }
+        request();
+      };
+      if (!ms || reducedMotion.matches) { run.end(); return; }
+      thing.fade(from);
+      const step = (t) => {
+        if (fading !== run) return;
+        const k = Math.min(1, (t - t0) / ms);
+        if (k >= 1) { run.end(); return; }
+        thing.fade(from + (to - from) * k);
+        request();
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    },
+    retheme(colours) { grid?.paint(colours); shown?.paint(colours); fading?.thing.paint(colours); request(); },
     /** Lets go of every geometry and material; the renderer stays for a return. */
     empty() {
       cancelAnimationFrame(frame); frame = 0;
+      fading?.end();
       self.show(null);
       if (grid) { scene.remove(grid.mesh); grid.dispose(); grid = null; }
     },
@@ -3410,7 +3965,7 @@ function stageOn() {
 function closeStage() {
   clearTimeout(stageIdle);
   try { stage?.close(); } catch { /* a lost context has nothing left to let go */ }
-  stage = null; rig = null; standing = null;
+  stage = null; rig = null; standing = towered = trip = null;
   labels?.clear(); labels = null;
 }
 function stageLost() {
@@ -3438,9 +3993,16 @@ function sceneSay(sentence, note = "", hint = "") {
 /** Worlds already built, by view (its file, and the entity for a use case or journey): the direction the last was built for,
  *  and the world for each direction. Dropped when a late typeface changes the text widths. */
 const cityWorlds = new Map();
+/** Folder towers already built, by folder; dropped with the cities, whose plans their drawn floors show. */
+const towerWorlds = new Map();
 /** The city standing: its view's key, and what cityFor made of it. */
 let standing = null, reshape = 0;
-document.fonts.addEventListener("loadingdone", () => { cityWorlds.clear(); standing = null; if (space.on && stage) spaceScene(); });
+/** The tower standing: its folder, its world, its meshes (buildTower's), and the drawn view on its pulled-out floor (`v`,
+ *  cityView's, and `i` its floor; null and -1 for none) with what cityFor made of it (`made`) or why it couldn't (`why`). */
+let towered = null;
+/** A flight from one scene to another, under way: finish() lands it at once. */
+let trip = null;
+document.fonts.addEventListener("loadingdone", () => { cityWorlds.clear(); towerWorlds.clear(); standing = towered = null; if (space.on && stage) spaceScene(); });
 
 /** The drawn view a city address stands: the view it names (one use case or journey of a file by #<entity id>, else its first),
  *  the view of that kind holding the part it names, or the folder's first drawn view. Null for a folder with none. */
@@ -3469,11 +4031,12 @@ function cityFor(v, dir = null) {
   return made;
 }
 const plural = (n, one) => `${n} ${one}${n === 1 ? "" : "s"}`;
-/** Stands the scene the address asks for. Until the folder tower and the street are built (steps 4 and 5 of the plan), the
- *  tower is the bare ground and the street is the city. */
+/** Stands the scene the address asks for: the folder tower, or a city (until the street is built, step 5 of the plan, the
+ *  street is the city). Between the tower and a city of its folder it flies. */
 function spaceScene() {
   if (!stage || !rig) return;
-  if (space.scene === "tower") { standCity(null); spaceSay(""); return; }
+  trip?.finish();
+  if (space.scene === "tower") { towerScene(); return; }
   let v = cityView(space.folder, space.focus);
   // A part selected in a city stays in it, though another view of its kind may hold a part of that name too.
   if (standing && standing.v.d._folder === space.folder && focusedPart(standing.made.world, space.focus)) v = standing.v;
@@ -3485,19 +4048,24 @@ function spaceScene() {
   let made;
   try { made = standing?.key === v.key ? standing.made : cityFor(v); } catch (e) {
     standCity(null);
+    brokenView(v.d, String(e.message ?? e));
     sceneSay(`This view couldn't be built (${e.message ?? e}). Read it in Flat.`);
     return;
   }
   const fresh = standing?.key !== v.key || standing.made !== made;
+  if (fresh && stage.tower && towered?.folder === space.folder) { flyDown(v, made); return; }
   if (fresh) standCity({ key: v.key, made, v });
   spaceFocus(fresh);
-  const n = [...byFolder.values()].reduce((s, docs) => s + docs.length, 0), what = KIND_NAME[v.d.kind].toLowerCase() + (v.e ? ` ${v.e.name ?? v.e.id}` : "");
-  // No hint yet: Esc does nothing in the city until the folder tower (step 4) gives it a level to go up to; step 4 adds "Esc goes up a level".
-  sceneSay(`Read ${plural(n, "view")} in ${plural(byFolder.size, "folder")}. Flying the ${what}: drag to orbit, scroll to fly, click a tower to read it.`,
-    made.why ? SPACE_SAYS.grid[made.why] : "");
+  citySay(v, made);
 }
-/** Builds a city's meshes, labels and legend and fits the camera to it; null stands the bare ground. */
-function standCity(next) {
+function citySay(v, made) {
+  const n = [...byFolder.values()].reduce((s, docs) => s + docs.length, 0), what = KIND_NAME[v.d.kind].toLowerCase() + (v.e ? ` ${v.e.name ?? v.e.id}` : "");
+  sceneSay(`Read ${plural(n, "view")} in ${plural(byFolder.size, "folder")}. Flying the ${what}: drag to orbit, scroll to fly, click a tower to read it.`,
+    made.why ? SPACE_SAYS.grid[made.why] : "", "Esc goes up a level");
+}
+/** Builds a city's meshes, labels and legend and fits the camera to it; null stands the bare ground. `pose`: where the camera
+ *  goes instead of the fit (a flight from the tower landing). `keep`: what stood is handed back, not let go of, to fade. */
+function standCity(next, { pose = null, keep = false } = {}) {
   standing = next;
   // A new city starts with nothing selected or under the pointer; the address's part is selected in it again (spaceFocus).
   Object.assign(space, { selected: null, hovered: null });
@@ -3505,13 +4073,22 @@ function standCity(next) {
   hideTip();
   labels?.clear(); labels = null;
   const world = next?.made.world ?? null;
-  stage.show(world ? buildCity(world, theme) : null);
+  const was = stage.show(world ? buildCity(world, theme) : null, keep);
+  towered = null;
+  towerHud(false);
   spaceHud(world);
   if (world) labels = spaceLabels(world);
+  Object.assign(rig, { anchor: null, home: null, climbs: null, fov: 54.1, top: 0, centre: null });
   rig.bounds = world?.bounds ?? null;
   rig.points = world ? standingPoints(world) : null;
   rig.crowded = labels ? () => labels?.place(stage.camera, rig.room, rig.cut()).topped ?? 0 : null;
-  rig.fit();
+  if (pose) {
+    const { centre, fitDistance, touched, ...at } = pose;
+    rig.room = spaceRoom();
+    rig.fitDistance = fitDistance;
+    rig.set({ ...at, centre: touched ? centre : null, touched });
+  } else rig.fit();
+  return was;
 }
 /** The corners of what stands, which the camera is fitted to: each plate's, tower's and beacon's box (a beacon's from the
  *  ground its tether reaches), each start point, and the beams' arcs. The bounds' own corners are often bare ground nearest the eye. */
@@ -3534,6 +4111,289 @@ function spaceTurn() {
   let dir;
   try { dir = sheetOf(v.doc, space.folder, flatRoom(), Math.max(460, innerHeight * 0.76)).dir; } catch { return; }
   if (dir !== w.dir) { standCity({ key: v.key, made: cityFor(v, dir), v }); spaceFocus(true); }
+}
+
+// ── The folder tower (Scene 1) ──
+/** The tower's opening pose: the eye and what it looks at, framing 24 floors, and its field of view. */
+const TOWER_EYE = [-14, 24, -44], TOWER_AT = [8, 11, 2], TOWER_FOV = 49.3;
+/** The projection's centre in the tower: (700, 440) of the 1440 × 900 window the design draws, scaled to this one. The canvas
+ *  is the window's part under the bar (`top` px), so the centre is that much higher on it. */
+const towerAnchor = ({ W, H, top }) => [W / 2 - (20 * W) / 1440, (H + top) / 2 - (10 * (H + top)) / 900 - top];
+
+/** A folder's tower, built once: towerWorldFrom over its files, each drawn floor with its view (cityView's: a file's first use
+ *  case or journey) and the plan of its city, or why that couldn't be built. */
+function towerWorld(folder) {
+  if (towerWorlds.has(folder)) return towerWorlds.get(folder);
+  const world = towerWorldFrom(byFolder.get(folder) ?? [], { drawn: Object.keys(MODELS), order: KIND_ORDER, knowledge: KNOWLEDGE });
+  for (const f of world.floors) {
+    if (f.group !== "drawn") continue;
+    f.view = cityView(folder, `view:${f.file}`);
+    try { f.plan = floorPlan(cityFor(f.view).world); } catch (e) { f.error = String(e.message ?? e); }
+  }
+  towerWorlds.set(folder, world);
+  return world;
+}
+/** A drawn view's focus: its file, and #<entity id> for a use case or journey other than its file's first. */
+const viewFocus = (v) => `view:${v.d._path.split("/").pop()}${v.e && v.e !== v.d.entities?.[0] ? "#" + v.e.id : ""}`;
+/** A view as cityHash takes it. */
+const viewOf = (v) => ({ kind: v.d.kind, file: v.d._path.split("/").pop(), entity: v.e && v.e !== v.d.entities?.[0] ? v.e.id : null });
+
+/** What a tower address asks for: `v`, the drawn view to pull out (undefined when the address names none); `inspect`, the floor
+ *  whose inspector opens, with `record`, the record it names; `part`, a part to light in the pulled-out city. */
+function towerAsk(world, folder, focus) {
+  const [kind, ...rest] = (focus ?? "").split(":"), name = rest.join(":"), at = name.indexOf("#");
+  const file = at < 0 ? name : name.slice(0, at), f = world.floors.find((x) => x.file === file);
+  if ((kind === "view" || kind === "entity") && f) {
+    if (f.group === "drawn") return { v: cityView(folder, kind === "view" ? focus : `view:${file}`) };
+    return { inspect: f.index, record: kind === "entity" && at >= 0 ? name.slice(at + 1) : null };
+  }
+  if (MODELS[kind] && name) return { v: cityView(folder, focus), part: true };
+  return {};
+}
+
+/** Stands the folder tower the address asks for: the first time, or for another folder, at once; with another drawn view
+ *  asked for, sliding it out; from a city of the folder, flying up out of it. Then the floor's inspector, or the part, it names. */
+function towerScene() {
+  const folder = space.folder, world = towerWorld(folder), ask = towerAsk(world, folder, space.focus);
+  const same = !!(stage.tower && towered?.folder === folder && towered.world === world);
+  const fromCity = !!(stage.city && standing && standing.v.d._folder === folder);
+  // With no drawn view named, the one out stays out; else the first comes out, unless the reader slid it back.
+  let v = ask.v !== undefined ? ask.v : same ? towered.v : fromCity ? standing.v : space.shut ? null : cityView(folder, null);
+  if (fromCity && v?.key === standing.v.key) v = standing.v;
+  const next = { folder, world, v, i: v ? world.floors.findIndex((f) => f.path === v.d._path) : -1, made: null, why: null };
+  if (v) try { next.made = fromCity && v === standing.v ? standing.made : cityFor(v); } catch (e) { next.why = String(e.message ?? e); }
+  if (same) { Object.assign(towered, next); towered.tower.pull(next.i, next.made?.world ?? null); drawerCard(); }
+  else if (fromCity && next.made && v === standing.v) flyUp(next);
+  else standTower(next);
+  if (ask.inspect !== undefined) towerInspect(ask.inspect, { record: ask.record, quiet: true });
+  else if (space.selected != null) towerUnselect({ quiet: true });
+  // A part named in the address is lit in the city on the drawer.
+  const city = towered.tower.city, key = ask.part && city ? focusedPart(city.world, space.focus) : null, hood = key && cityNeighbours(city.world, key);
+  city?.mark(hood ? { sel: key, near: hood.near, lit: hood.beams } : { sel: null, near: [], lit: [] });
+  stage.request();
+  sceneSay(`${folder || "The root folder"} is a tower of ${plural(world.floors.length, "floor")}, one per view. Pull a floor out to walk through it.`,
+    next.made?.why ? SPACE_SAYS.grid[next.made.why] : "", "Scroll to climb · click a floor to pull it out");
+}
+/** Builds a tower's meshes, labels and cards, with its drawn view out at once, and puts the camera in its opening pose. */
+function standTower(next) {
+  standing = null;
+  Object.assign(space, { selected: null, hovered: -1 });
+  $("inspector").hidden = true;
+  hideTip();
+  labels?.clear(); labels = null;
+  const tower = buildTower(next.world, theme, () => stage.request());
+  towered = { ...next, tower };
+  stage.show(tower);
+  tower.pull(next.i, next.made?.world ?? null, true);
+  tower.moved = () => { rig.moved = true; };
+  spaceHud(null);
+  towerHud(true);
+  labels = towerLabels(next.world, tower);
+  const open = poseFrom(TOWER_EYE, TOWER_AT), top = next.world.top;
+  Object.assign(rig, {
+    anchor: towerAnchor, fov: TOWER_FOV, top: spaceRoom().top, points: null, crowded: null, centre: null, fitDistance: open.distance,
+    bounds: { x0: -FLOOR.w / 2, x1: PULL[0] + FLOOR.w / 2, z0: PULL[2] - FLOOR.d / 2, z1: FLOOR.d / 2, top },
+    // The wheel climbs the stack: the target from the bottom floor to the top one, wherever the opening pose has it.
+    climbs: [Math.min(0, TOWER_AT[1]), Math.max(top, TOWER_AT[1] + next.world.climb)],
+    /** The opening pose, climbed by as much as the stack is taller than 24 floors, but no further than leaves the bottom
+     *  floor's label 24 px above the window's bottom edge. */
+    home() {
+      const at = (c) => rig.set({ ...open, target: [TOWER_AT[0], TOWER_AT[1] + c, TOWER_AT[2]], fov: TOWER_FOV, top: rig.room.top, touched: false });
+      const low = (c) => { at(c); const p = tower.corner(0).project(stage.camera); return ((1 - p.y) / 2) * rig.room.H + 10 > rig.room.H - 24; };
+      let c = next.world.climb;
+      if (c > 0 && low(c)) { let lo = 0; for (let k = 0; k < 24; k++) { const mid = (lo + c) / 2; if (low(mid)) c = mid; else lo = mid; } c = lo; }
+      at(c);
+    },
+  });
+  rig.fit();
+}
+/** From a city up to its folder's tower (docs/cyberspace-mode-spec.md, Camera and input, scene change 1, reversed): in one frame
+ *  the city gives way to the tower, with that city pulled out on its floor and the eye where it sees the small city as it saw
+ *  the large one; the tower fades in over 200 ms, and the eye flies to the tower's opening pose in 600 ms. */
+function flyUp(next) {
+  const from = rig.pose();
+  standTower(next);
+  const home = rig.pose(), { top, k, bounds: b } = towered.tower.seat(next.i), cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
+  rig.set({ ...from, target: [top[0] + k * (from.target[0] - cx), top[1] + k * from.target[1], top[2] + k * (from.target[2] - cz)], distance: from.distance * k });
+  stage.fade(towered.tower, 0, 1, 200);
+  trip = rig.flyTo(home, 600, { done: () => { trip = null; rig.touched = false; }, stopped: () => { trip = null; } });
+}
+/** From the tower down into the city on its pulled-out floor (Camera and input, scene change 1): the eye flies to the floor
+ *  until it fills the free rectangle (600 ms), then, in one frame, the full-size city takes its place, seen as the small one
+ *  was, and the tower fades out behind it (200 ms). Input on the way lands it where the eye is. */
+function flyDown(v, made) {
+  const tower = towered.tower, i = towered.world.floors.findIndex((f) => f.path === v.d._path);
+  if (tower.pulled !== i || tower.city?.world !== made.world) { tower.pull(i, made.world, true); Object.assign(towered, { v, i, made, why: null }); }
+  // The city's panels go up first, so that its fit is the one for the room it will have.
+  space.selected = null;
+  $("inspector").hidden = true;
+  labels?.clear(); labels = null;
+  towerHud(false);
+  spaceHud(made.world);
+  const pose = cityPose(made.world), { top, k, bounds: b } = tower.seat(i), cx = (b.x0 + b.x1) / 2, cz = (b.z0 + b.z1) / 2;
+  const small = (p) => ({ ...p, target: [top[0] + k * (p.target[0] - cx), top[1] + k * p.target[1], top[2] + k * (p.target[2] - cz)], distance: p.distance * k });
+  const large = (p) => ({ ...p, target: [cx + (p.target[0] - top[0]) / k, (p.target[1] - top[1]) / k, cz + (p.target[2] - top[2]) / k], distance: p.distance / k });
+  const land = (there) => {
+    trip = null;
+    if (!space.on || stage.tower !== tower) return;
+    const was = standCity({ key: v.key, made, v }, { pose: there ? { ...pose, touched: false } : { ...large(rig.pose()), fitDistance: pose.fitDistance, touched: true }, keep: true });
+    // The tower stays behind the city, as large as the city is to the small one, while it fades.
+    if (was) {
+      was.dropCity();
+      was.group.scale.setScalar(1 / k);
+      was.group.position.copy(V(cx, 0, cz).sub(V(...top).multiplyScalar(1 / k)));
+      stage.fade(was, 1, 0, 200);
+    }
+    spaceFocus(true);
+    citySay(v, made);
+  };
+  trip = rig.flyTo(small(pose), 600, { done: () => land(true), stopped: () => land(false) });
+}
+/** The pose a city is fitted with, worked out while the tower still stands: the rig is fitted to it with labels made off the
+ *  page, and put back. */
+function cityPose(world) {
+  const kept = { anchor: rig.anchor, home: rig.home, climbs: rig.climbs, bounds: rig.bounds, points: rig.points, crowded: rig.crowded, fitDistance: rig.fitDistance, touched: rig.touched, centre: rig.centre };
+  const was = rig.pose(), dry = spaceLabels(world, document.createElement("div"));
+  Object.assign(rig, { anchor: null, home: null, climbs: null, centre: null, fov: 54.1, top: 0, bounds: world.bounds, points: standingPoints(world), crowded: () => dry.place(stage.camera, rig.room, rig.cut()).topped });
+  rig.fit();
+  const pose = { ...rig.pose(), fitDistance: rig.fitDistance };
+  Object.assign(rig, was, kept);
+  rig.apply();
+  return pose;
+}
+
+/** The folder's name as its folder record titles it, else its last segment, else /; and where its views are kept. */
+function folderNames(folder) {
+  const docs = byFolder.get(folder) ?? [];
+  return {
+    docs,
+    title: (docs.find((d) => d.kind === "folder")?.entities?.[0]?.title ?? folder.split("/").pop()) || "/",
+    path: docs.some((d) => inTree(d._path)) ? `${TREE}/${folder}` : `./${folder ? folder + "/" : ""}.dev`,
+  };
+}
+/** The tower's cards (Scene 1): the folder's, and under it the pulled-out floor's. `on` false takes them away. */
+function towerHud(on) {
+  let box = $("space-cards");
+  if (!box) {
+    $("space-hud").insertAdjacentHTML("beforeend", `<div id="space-cards" hidden><section class="hud" id="space-folder" aria-label="Folder"></section><section class="hud" id="space-drawer" aria-label="Pulled-out floor"></section></div>`);
+    box = $("space-cards");
+    $("space-drawer").addEventListener("click", (e) => {
+      const act = e.target.closest("[data-act]")?.dataset.act;
+      if (act === "back") towerSlideBack(); else if (act === "enter") towerEnter();
+    });
+  }
+  box.hidden = !on;
+  if (!on || !towered) return;
+  const folder = towered.folder, { docs, title, path } = folderNames(folder), self = docs.find((d) => d.kind === "folder")?.entities?.[0];
+  // The folder's purpose, as Flat chooses it (showFolder).
+  const purpose = self?.purpose ?? self?.summary, kids = childrenOf(folder);
+  const count = (g) => towered.world.groups.find((x) => x.name === g)?.count ?? 0;
+  $("space-folder").innerHTML = `<div class="caps">Folder</div><div class="sct">${esc(title)}</div><div class="scp">${esc(path)} · ${plural(docs.length, "file")}</div>`
+    + (purpose ? `<p class="scd">${esc(purpose)}</p>` : "")
+    + `<div class="sctiles">${TOWER_GROUPS.map((g) => `<div><b>${count(g)}</b><span>${g}</span></div>`).join("")}</div>`
+    + `<div class="caps sci">Inside</div>`
+    + (kids.length ? `<div class="scc">${kids.map((k) => `<a class="chip" href="${esc(spaceHash({ folder: k }))}">${ic("folder")}${esc(rel(k, folder))}</a>`).join("")}</div>` : `<p class="scn">No folders inside it.</p>`);
+  // At most two rows of folders; the rest fold into a last chip.
+  const wrap = $("space-folder").querySelector(".scc"), chips = wrap ? [...wrap.children] : [];
+  const rows = [...new Set(chips.map((c) => c.offsetTop))].sort((a, b) => a - b);
+  if (rows.length > 2) {
+    let cut = chips.findIndex((c) => c.offsetTop > rows[1]);
+    for (const c of chips.slice(cut)) c.remove();
+    // Step 6 of the plan links this to the skyline.
+    const more = Object.assign(document.createElement("span"), { className: "chip more" });
+    wrap.append(more);
+    const say = () => { more.textContent = `and ${chips.length - cut} more`; };
+    say();
+    while (cut > 0 && more.offsetTop > rows[1]) { chips[--cut].remove(); say(); }
+  }
+  drawerCard();
+}
+/** The pulled-out floor's card: its kind, title and what its city holds, with Enter the city and Slide back. */
+function drawerCard() {
+  const el = $("space-drawer");
+  if (!el || !towered) return;
+  const { world, v, made, why, folder } = towered;
+  if (world.drawer < 0) { el.hidden = false; el.className = "hud"; el.innerHTML = `<p class="scn">Nothing here is drawn. Its views are written; read them in Flat.</p>`; return; }
+  el.hidden = !v;
+  if (!v) return;
+  const w = made?.world, title = v.e ? v.e.name ?? v.e.id : v.d.title;
+  const holds = w ? [plural(w.towers.length, "part"), w.beacons.length ? plural(w.beacons.length, "beacon") : "", plural(w.beams.length, "beam")].filter(Boolean).join(" · ") : `This view couldn't be built${why ? ` (${why})` : ""}.`;
+  el.className = `hud kind-${v.d.kind}`;
+  el.innerHTML = `<div class="sck"><span class="sw"></span>${esc(KIND_NAME[v.d.kind])}</div><div class="sct2">${esc(title)}</div><div class="sch">${esc(holds)}</div>`
+    + `<div class="scb">${w ? `<a class="ibtn primary" href="${esc(cityHash(folder, viewOf(v), null, "city"))}">Enter the city</a>` : `<button type="button" class="ibtn primary" data-act="enter">Enter the city</button>`}<button type="button" class="ibtn" data-act="back">Slide back</button></div>`;
+}
+
+/** Opens the inspector on a floor: its title, kind and description (and the record an entity: address names), with Read it in
+ *  Flat. A drawn floor whose view couldn't be built says why. `quiet`: the address already names it. */
+function towerInspect(i, { record = null, quiet = false } = {}) {
+  const f = towered.world.floors[i], d = byPath.get(f.path), knows = f.group === "knowledge";
+  const records = (Array.isArray(d.entities) ? d.entities : []).filter((e) => e && typeof e === "object"), rec = record ? records.find((e) => e.id === record) : null;
+  const why = f.group === "drawn" ? (i === towered.i ? towered.why : f.error) : null, focus = rec ? `entity:${f.file}#${rec.id}` : `view:${f.file}`;
+  const ins = showInfo({ kind: knows ? "knowledge" : f.kind, title: f.title, sub: knows ? KNOWLEDGE[f.kind].name : KIND_NAME[f.kind],
+    body: (why ? `<p>This view couldn't be built (${esc(why)}). Flat shows all of it in tables.</p>` : "") + (d.description ? `<p>${esc(d.description)}</p>` : "")
+      + (rec ? `<h4>${esc(rec.title ?? rec.name ?? rec.id)}</h4>${rec.summary ?? rec.description ? `<p>${esc(rec.summary ?? rec.description)}</p>` : ""}` : "") }, () => {});
+  if (f.group !== "drawn") ins.querySelector(".isub").insertAdjacentHTML("afterend", `<div class="iline">${esc(plural(records.length, knows ? "record" : "card"))} · ${esc(f.file)}</div>`);
+  ins.insertAdjacentHTML("beforeend", `<div class="ifoot"><a class="ibtn primary" href="${esc(flatHash(towered.folder, focus))}">Read it in Flat</a></div>`);
+  space.selected = f.file;
+  towered.tower.mark({ sel: i });
+  labels?.mark?.(space.hovered ?? -1, i);
+  $("space-cards").hidden = true;
+  if (!quiet && f.group !== "drawn") { space.focus = focus; history.replaceState(history.state, "", spaceHash({ folder: towered.folder, focus })); }
+  $("space-live").textContent = `${f.title} selected.`;
+  rig.reroom();
+  stage.request();
+}
+/** Closes a floor's inspector (closeInspector does, in either mode): the cards come back, and the address is the tower's again. */
+function towerUnselect({ quiet = false } = {}) {
+  space.selected = null;
+  $("inspector").hidden = true;
+  if (!towered) return;
+  towered.tower.mark({ sel: -1 });
+  labels?.mark?.(space.hovered ?? -1, -1);
+  towerHud(true);
+  if (!quiet) {
+    space.focus = towered.v ? viewFocus(towered.v) : null;
+    history.replaceState(history.state, "", spaceHash({ folder: towered.folder, focus: space.focus }));
+  }
+  $("space-live").textContent = "Nothing selected.";
+  rig.reroom();
+  stage.request();
+}
+/** A view the models can't build, entered: the inspector says why and offers it in Flat. */
+function brokenView(d, why) {
+  const file = d._path.split("/").pop(), ins = showInfo({ kind: d.kind, title: d.title, sub: KIND_NAME[d.kind], body: `<p>This view couldn't be built (${esc(why)}). Flat shows all of it in tables.</p>` }, () => {});
+  ins.insertAdjacentHTML("beforeend", `<div class="ifoot"><a class="ibtn primary" href="${esc(flatHash(space.folder, `view:${file}`))}">Read it in Flat</a></div>`);
+}
+
+/** A click in the tower: a drawn floor slides out (a new history entry), a written or knowledge floor opens its inspector, and
+ *  empty ground closes it. The pulled-out floor is entered with a double-click. */
+function towerClick(hit) {
+  if (!towered) return;
+  if (!hit) { if (space.selected != null) closeInspector(); return; }
+  const f = towered.world.floors[hit.floor];
+  if (f.group !== "drawn") { towerInspect(f.index); return; }
+  if (f.index === towered.tower.pulled) return;
+  location.hash = spaceHash({ folder: towered.folder, focus: viewFocus(f.view) });
+}
+/** Into the city on the pulled-out floor: Enter the city, a double-click on the floor, or Enter. A view that couldn't be built
+ *  opens the inspector with why. */
+function towerEnter() {
+  if (!towered?.v) return;
+  if (!towered.made) { towerInspect(towered.i, { quiet: true }); return; }
+  location.hash = cityHash(towered.folder, viewOf(towered.v), null, "city");
+}
+/** Slides the pulled-out floor back. The address is the folder's tower (the history entry is replaced), and until the reader
+ *  moves on the tower keeps every floor in. */
+function towerSlideBack() {
+  if (!towered?.v) return;
+  space.shut = true;
+  Object.assign(towered, { v: null, i: -1, made: null, why: null });
+  towered.tower.pull(-1, null);
+  drawerCard();
+  space.focus = null;
+  space.at = spaceHash({ folder: towered.folder });
+  history.replaceState(history.state, "", space.at);
+  stage.request();
 }
 
 /** The part a focus names in a city: <kind>:<key or title>, of the city's kind, that can be selected. Null for a view's focus. */
@@ -3576,6 +4436,7 @@ function spaceSelect(key, { quiet = false, now = false } = {}) {
  *  the selection to forget. */
 function spaceUnselect({ quiet = false } = {}) {
   if (space.selected == null) return;
+  if (space.on && stage?.tower) { towerUnselect({ quiet }); return; }
   space.selected = null;
   if (!space.on || !stage?.city) return;
   stage.city.mark({ sel: null, near: [], lit: [] });
@@ -3603,10 +4464,11 @@ function spaceInspect(n, hood) {
   // A plate has no height of its own worth giving: it is half a unit thick.
   line.textContent = [plate ? `in ${plate.name}` : "on the ground", plural(hood.beams.length, "beam"), t ? `height ${+t.h.toFixed(1)}` : b ? `height ${+b.y.toFixed(1)}` : ""].filter(Boolean).join(" · ");
   ins.querySelector(".isub").after(line);
-  // Until the folder tower (step 4 of the plan) a folder's own address shows bare ground, so a link within the page opens a city.
+  // A link to a part opens its city with the part selected; any other link within the page, that folder's tower: a drawn view
+  // pulled out, a written view or a record with its floor's inspector open.
   for (const a of ins.querySelectorAll('.ibody a[href^="#"]')) {
-    const at = parseSpaceHash(a.getAttribute("href"));
-    if (at.mode === "flat") a.setAttribute("href", spaceHash({ folder: at.folder, focus: at.focus, scene: "city" }));
+    const at = parseSpaceHash(a.getAttribute("href")), [kind, ...key] = (at.focus ?? "").split(":");
+    if (at.mode === "flat") a.setAttribute("href", spaceHash({ folder: at.folder, focus: at.focus, scene: MODELS[kind] && key.join(":") ? "city" : "tower" }));
   }
   if (n.nav) {
     const block = itsFolder(parseSpaceHash(n.nav).folder), open = ins.querySelector(".ibody a.open"), first = ins.querySelector(".ibody > p");
@@ -3620,40 +4482,51 @@ function spaceInspect(n, hood) {
  *  (drawn, then written, then knowledge, from the bottom), its title, path and number of files, what its tower holds, and
  *  Enter its folder. */
 function itsFolder(folder) {
-  const docs = byFolder.get(folder) ?? [], group = (d) => (MODELS[d.kind] ? 0 : d.kind in KIND_ORDER ? 1 : 2);
+  const { docs, title, path } = folderNames(folder), group = (d) => (MODELS[d.kind] ? 0 : d.kind in KIND_ORDER ? 1 : 2);
   const floors = docs.slice().sort((a, b) => group(a) - group(b)), counts = [0, 0, 0];
   for (const d of floors) counts[group(d)]++;
   const step = floors.length > 1 ? Math.min(4.1, 49.2 / (floors.length - 1)) : 0;
   const bands = floors.map((d, i) => `<path class="kind-${tabOf(d)}" d="M4 ${+(58 - i * step).toFixed(2)}l19 -5 19 5 -19 5z"/>`).join("");
-  const title = (docs.find((d) => d.kind === "folder")?.entities?.[0]?.title ?? folder.split("/").pop()) || "/";
-  const path = docs.some((d) => inTree(d._path)) ? `${TREE}/${folder}` : `./${folder ? folder + "/" : ""}.dev`;
   const held = [`${counts[0]} drawn`, `${counts[1]} written`, `${counts[2]} knowledge`].filter((_, i) => counts[i]);
   const drawnFirst = floors.find((d) => MODELS[d.kind]);
   const says = `A tower of its own: ${held.length > 1 ? held.slice(0, -1).join(", ") + " and " + held[held.length - 1] : held[0] ?? "no"} floor${floors.length === 1 ? "" : "s"}.`
     + (drawnFirst ? ` Its ${KIND_NAME[drawnFirst.kind].toLowerCase()} is pulled out.` : "");
   const el = document.createElement("div");
   el.className = "ifolder";
-  // Step 4 of the plan builds the folder tower and points this at #<folder>|~space; until then it opens the folder's city.
   el.innerHTML = `<div class="ifh"><svg width="46" height="64" viewBox="0 0 46 64" aria-hidden="true">${bands}</svg><div><div class="caps">Its folder</div>`
     + `<div class="ift">${esc(title)}</div><div class="ifp">${esc(path)} · ${plural(docs.length, "file")}</div></div></div>`
-    + `<p>${esc(says)}</p><a class="ibtn primary" href="${esc(spaceHash({ folder, scene: "city" }))}"><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8.5" fill="currentColor"/><use href="#i-drill" x="2.5" y="2.5" width="13" height="13"/></svg>Enter its folder</a>`;
+    + `<p>${esc(says)}</p><a class="ibtn primary" href="${esc(spaceHash({ folder }))}"><svg viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="8.5" fill="currentColor"/><use href="#i-drill" x="2.5" y="2.5" width="13" height="13"/></svg>Enter its folder</a>`;
   return el;
 }
 
-/** Hover and click in a city. What is under the pointer is found at most once a frame: a tower or beacon gets state hover
- *  and a beam thickens, each showing its tooltip as Flat places it, and the cursor says it can be selected. A click selects
- *  it, and a click on empty ground clears the selection. Neither moves the camera. */
+/** Hover and click in a city and in the tower. What is under the pointer is found at most once a frame. In a city a tower or
+ *  beacon gets state hover and a beam thickens, each showing its tooltip as Flat places it, and the cursor says it can be
+ *  selected; a click selects it, and a click on empty ground clears the selection. In the tower a floor under the pointer
+ *  lights its edges and its label; a click is towerClick's, and a double-click on the pulled-out floor, or Enter, goes into
+ *  its city. Nothing here moves the camera. */
 function spacePointer(stage, rig) {
   const ray = new three.Raycaster(), ndc = new three.Vector2(), canvas = stage.canvas;
   let at = null, queued = 0, city = null, beam = null;
   const hit = (x, y) => {
-    if (!stage.city || !rig.room) return null;
+    const shown = stage.city ?? stage.tower;
+    if (!shown || !rig.room) return null;
     ray.setFromCamera(ndc.set((x / rig.room.W) * 2 - 1, 1 - (y / rig.room.H) * 2), stage.camera);
-    return stage.city.pick(ray);
+    return shown.pick(ray);
   };
   const local = (e) => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const floorHover = () => {
+    const h = at && !rig.pressed && !rig.flight ? hit(...at.xy) : null, i = h ? h.floor : -1;
+    hideTip();
+    canvas.classList.toggle("pick", i >= 0);
+    if (i === space.hovered) return;
+    space.hovered = i;
+    stage.tower.mark({ hover: i });
+    labels?.mark?.(i, stage.tower.world.floors.findIndex((f) => f.file === space.selected));
+    stage.request();
+  };
   const hover = () => {
     queued = 0;
+    if (stage.tower) { city = null; floorHover(); return; }
     if (stage.city !== city) { city = stage.city; beam = null; }
     const h = at && !rig.pressed ? hit(...at.xy) : null, world = city?.world;
     const part = h && !h.beam && (world.towers.some((t) => t.key === h.key) || world.beacons.some((b) => b.key === h.key)) ? h.key : null;
@@ -3676,9 +4549,12 @@ function spacePointer(stage, rig) {
   canvas.addEventListener("pointerdown", hideTip);
   rig.onClick = (x, y) => {
     const h = hit(x, y);
-    if (h && !h.beam) spaceSelect(h.key);
+    if (stage.tower) towerClick(h);
+    else if (h && !h.beam) spaceSelect(h.key);
     else if (!h && space.selected != null) closeInspector();
   };
+  canvas.addEventListener("dblclick", (e) => { if (stage.tower && hit(...local(e))?.floor === stage.tower.pulled) towerEnter(); });
+  canvas.addEventListener("keydown", (e) => { if (e.key === "Enter" && stage.tower && !e.metaKey && !e.ctrlKey && !e.altKey) { e.preventDefault(); towerEnter(); } });
 }
 
 /** The switch shows which mode is on. It is offered only with WebGL, and not before the launch. */
@@ -3694,6 +4570,9 @@ function showSpace(folder, focus, scene) {
   // The models decide a part's drill-down from current, so it is the folder shown here too.
   current = byFolder.has(folder) ? folder : folders().slice().sort((a, b) => depth(a) - depth(b) || a.localeCompare(b))[0];
   Object.assign(space, { folder: current, focus, scene });
+  // A floor slid back stays in until the reader goes somewhere.
+  if (location.hash !== space.at) space.shut = false;
+  space.at = location.hash;
   if (!space.on) {
     space.on = true;
     closeInspector();
@@ -3720,7 +4599,11 @@ function leaveSpace(asked) {
     space.on = false;
     document.body.classList.remove("space");
     $("space").hidden = true;
-    standing = null;
+    // A flight under way stops where it is: there is nothing left for it to land in.
+    if (rig) rig.flight = null;
+    trip = null;
+    standing = towered = null;
+    towerHud(false);
     Object.assign(space, { selected: null, hovered: null });
     $("space-gl").classList.remove("pick");
     $("space-live").textContent = "";
@@ -3757,11 +4640,14 @@ $("modes").addEventListener("click", (e) => {
   if (hash === location.hash) route(); else location.hash = hash;
 });
 
-// Cyberspace's own Esc (the document's listener above steps aside while it shows), so that one press does one thing.
+// Cyberspace's own Esc (the document's listener above steps aside while it shows), so that one press does one thing: it clears
+// the selection; with none, a city goes up to its folder's tower (a new history entry), and the tower slides its pulled-out
+// floor back. With none out it does nothing yet: rising to the skyline comes with step 6 of the plan.
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape" || !space.on) return;
-  // It clears the selection; with none it does nothing yet: the folder tower (step 4 of the plan) gives it a level to go up to.
   if (space.selected != null || !$("inspector").hidden) { e.preventDefault(); closeInspector(); }
+  else if (space.scene === "tower" && towered?.v && stage?.tower) { e.preventDefault(); towerSlideBack(); }
+  else if (space.scene === "city" && standing && stage?.city) { e.preventDefault(); location.hash = cityHash(space.folder, viewOf(standing.v), null, "tower"); }
 });
 
 // ── Start: the address comes from ?url=; the form is only for choosing one ──

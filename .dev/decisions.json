@@ -243,7 +243,7 @@
           "entityId": "reduced-motion"
         }
       ],
-      "details": "The camera rig is built (plan cyberspace-mode, steps city and selection): the camera moves while the reader drags, scrolls, pinches or presses a key, and when the inspector they opened or closed changes the room left for the city, over 300 ms (at once with reduced motion); it stands still otherwise. Flights between scenes come with the folder tower and the street.",
+      "details": "Built (plan cyberspace-mode, steps city, selection and tower): the camera moves while the reader drags, scrolls, pinches or presses a key, and when the inspector they opened or closed changes the room left for the city, over 300 ms; a floor of the folder tower slides out and back over 450 ms when the reader pulls another out or slides it back; and the camera flies between the tower and a city (600 ms) when they enter a floor or go up with Esc, Back or Forward, the tower fading out or in over 200 ms. Each is at once with reduced motion, and input during a flight stops it where it is. Flights between the city and the street come with the street.",
       "evidenceStatus": "proposed"
     },
     {
@@ -391,7 +391,7 @@
           "entityId": "works-without-webgl"
         }
       ],
-      "details": "Built so far: the address, the switch (hidden until the launch), the fallbacks, and the city: a drawn view standing on the flat layout's ground plan, with its labels, legend and camera controls. A tower, plate or beacon can be selected: its beams light, the inspector opens on it with the text Flat shows, and the address names it. The folder tower, the street and the skyline come with the plan's later steps.",
+      "details": "Built so far: the address, the switch (hidden until the launch), the fallbacks; the folder tower, a folder's .dev files as floors with a drawn view pulled out and its city small on it; and the city: a drawn view standing on the flat layout's ground plan, with its labels, legend and camera controls. A tower, plate or beacon can be selected: its beams light, the inspector opens on it with the text Flat shows, and the address names it. The street and the skyline come with the plan's later steps.",
       "evidenceStatus": "proposed",
       "sources": [
         {
