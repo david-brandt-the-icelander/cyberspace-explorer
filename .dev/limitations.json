@@ -214,6 +214,35 @@
       ]
     },
     {
+      "id": "needs-webgl",
+      "title": "Cyberspace needs WebGL 2",
+      "summary": "Without WebGL 2, or without jsDelivr, Cyberspace doesn't open.",
+      "impact": "three.js needs WebGL 2. Where the browser has it turned off or doesn't offer it (some remote desktops, virtual machines and locked-down setups), or where jsDelivr is blocked, a Cyberspace address shows Flat and the status line says why.",
+      "workaround": "Read the repository in Flat, which has everything Cyberspace shows.",
+      "relationships": [
+        {
+          "relation": "relates-to",
+          "path": ".dev/requirements.json",
+          "entityId": "works-without-webgl"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "webgl"
+        },
+        {
+          "path": "index.html",
+          "symbol": "THREE_URL"
+        },
+        {
+          "path": "index.html",
+          "symbol": "showSpace"
+        }
+      ]
+    },
+    {
       "id": "english",
       "title": "English only",
       "summary": "Every word on the page is written into the script in English.",

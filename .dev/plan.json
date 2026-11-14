@@ -9,7 +9,7 @@
       "title": "Build Cyberspace, the repository in 3D",
       "summary": "Eight pull requests take the spec to cyberspace-explorer.com: plumbing, the city, selection, the folder tower, the street, layers and the skyline, finishing and launch, then the records.",
       "goal": "Cyberspace works as docs/cyberspace-mode-spec.md says, for every repository the flat page can open, and the spec's acceptance checklist passes.",
-      "status": "planned",
+      "status": "in-progress",
       "scope": [
         {
           "path": ".dev/backlog.json",
@@ -26,7 +26,7 @@
         {
           "id": "plumbing",
           "title": "Plumbing: the hidden switch, the ~space address, route() and showSpace, #space, loadThree() pinned to three.js 0.187.0, the WebGL check and every fallback, spaceTheme() and the new tokens, the sky, the ground grid and the stage",
-          "status": "todo"
+          "status": "done"
         },
         {
           "id": "city",

@@ -10,7 +10,7 @@
       "summary": "The page is a single file that runs in the reader's browser; the Worker serves it as it is.",
       "status": "accepted",
       "context": "The browser has to be easy to host, copy and trust with a private repository.",
-      "decision": "Markup, styles, script and icons are in index.html. It talks to the repository's host straight from the browser, and loads only dagre and the typefaces from jsDelivr. The Worker at cyberspace-explorer.com imports the file as text and serves it unchanged; it adds GitHub sign-in, and nothing the page needs to work.",
+      "decision": "Markup, styles, script and icons are in index.html. It talks to the repository's host straight from the browser, and loads only dagre, the typefaces and, on first entry to Cyberspace, three.js from jsDelivr. The Worker at cyberspace-explorer.com imports the file as text and serves it unchanged; it adds GitHub sign-in, and nothing the page needs to work.",
       "rationale": "There is nothing to build, any static host can serve it, and a reader who doesn't sign in gives no server their repository or token.",
       "evidenceStatus": "source-verified",
       "sources": [
@@ -21,6 +21,10 @@
         {
           "path": "index.html",
           "symbol": "DAGRE"
+        },
+        {
+          "path": "index.html",
+          "symbol": "THREE_URL"
         },
         {
           "path": "index.html",
@@ -202,7 +206,45 @@
           "path": "index.html",
           "symbol": "drill"
         }
+      ],
+      "relationships": [
+        {
+          "relation": "amended-by",
+          "path": ".dev/decisions.json",
+          "entityId": "cyberspace-motion"
+        }
       ]
+    },
+    {
+      "id": "cyberspace-motion",
+      "title": "In Cyberspace, motion takes the reader where they asked",
+      "summary": "Cyberspace's camera moves are motion beyond one-motion: they only take the reader where they asked to go, and reduced motion turns them all off.",
+      "status": "accepted",
+      "context": "Decision one-motion allows the page one animation, the drill. Cyberspace needs camera moves: flying to a part, sliding a floor out of the folder tower, rising from the street back to the city.",
+      "decision": "In Cyberspace, motion only moves the camera, or a floor, to where the reader asked to go: flights between poses, a floor sliding out and back, and the fades that go with a change of scene. Nothing moves on its own. With prefers-reduced-motion: reduce every flight, slide and fade is instant; walking still moves, because the reader drives it. This amends one-motion; Flat keeps its one moment of motion.",
+      "rationale": "A move the reader asked for shows where they went, as the drill does in Flat; motion nobody asked for would only distract.",
+      "decidedBy": "owner",
+      "decidedOn": "2026-11-13",
+      "origin": {
+        "kind": "request",
+        "by": "owner",
+        "date": "2026-11-13",
+        "reference": "docs/cyberspace-mode-spec.md"
+      },
+      "relationships": [
+        {
+          "relation": "amends",
+          "path": ".dev/decisions.json",
+          "entityId": "one-motion"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/quality-requirements.json",
+          "entityId": "reduced-motion"
+        }
+      ],
+      "details": "Cyberspace has no motion yet: its camera stands still until the camera rig is built (plan cyberspace-mode, step city).",
+      "evidenceStatus": "proposed"
     },
     {
       "id": "address-is-state",
@@ -310,6 +352,69 @@
         }
       ],
       "evidenceStatus": "documented"
+    },
+    {
+      "id": "cyberspace-mode",
+      "title": "Cyberspace: a second way in, in 3D",
+      "summary": "Beside Flat, the same .dev files can be read as a WebGL scene laid out on the flat drawing's ground plan, drawn with three.js core and the page's own controls and labels.",
+      "status": "accepted",
+      "context": "Flat shows a folder's views as drawings, cards and tables. The design canvas Cyberspace explorer in 3D (copied in docs/cyberspace-design/) shows the same views as a tower of floors, a city of glass towers and a street to walk.",
+      "decision": "Cyberspace is a second way into the same data, never the only one: everything it shows stays readable in Flat, which shows instead wherever Cyberspace can't run. Its ground plan is the flat layout: a part stands where dagre puts its plate on the flat sheet. It is drawn with three.js core only (no OrbitControls, CSS2DRenderer or any other addon, and no post-processing); the camera controls and the labels are the page's own. three.js is pinned to one version and imported from jsDelivr on first entry, as dagre is. An address whose last segment is ~space opens it.",
+      "rationale": "A reader who switches modes finds everything in the same place. Core three.js is the one new download, and controls and labels written for the page look like the page.",
+      "decidedBy": "owner",
+      "decidedOn": "2026-11-13",
+      "origin": {
+        "kind": "request",
+        "by": "owner",
+        "date": "2026-11-13",
+        "reference": "docs/cyberspace-mode-spec.md"
+      },
+      "relationships": [
+        {
+          "relation": "relates-to",
+          "path": ".dev/plan.json",
+          "entityId": "cyberspace-mode"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/decisions.json",
+          "entityId": "own-drawing"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/decisions.json",
+          "entityId": "tables-always"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/requirements.json",
+          "entityId": "works-without-webgl"
+        }
+      ],
+      "details": "Built so far: the address, the switch (hidden until the launch), the fallbacks, and a scene of sky and ground grid. The city, laid out on the flat layout, comes with the plan's next step.",
+      "evidenceStatus": "proposed",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "THREE_URL"
+        },
+        {
+          "path": "index.html",
+          "symbol": "loadThree"
+        },
+        {
+          "path": "index.html",
+          "symbol": "parseSpaceHash"
+        },
+        {
+          "path": "index.html",
+          "symbol": "showSpace"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceStage"
+        }
+      ]
     },
     {
       "id": "design-copies",

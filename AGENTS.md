@@ -3,7 +3,7 @@
 The cyberspace explorer: a page (`index.html`) that shows a repository's `.dev` folders, and the Cloudflare Worker (`worker/`) that serves it at cyberspace-explorer.com and signs readers in with GitHub. [README.md](README.md) says how it is used and how it works.
 
 - `index.html` is the whole page, with no build step. Keep it working when opened as a plain file, without the Worker.
-- `npm test` runs the Worker's tests (`test/app.test.js`); the workflow runs them on every pull request and before every deploy.
+- `npm test` runs the Worker's tests (`test/app.test.js`) and those of Cyberspace's pure functions in `index.html` (`test/space.test.js`); the workflow runs them on every pull request and before every deploy.
 - `crates/` is the Rust workspace for `cyberspace-generator` and the validators it is built on: run `cargo fmt --all && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace` after changing it. When `Meta/Agents/Skills/validate_diagrams.py` or `Meta/Agents/Knowledge/validate_knowledge.py` changes upstream, port the change to `crates/cyberspace-diagrams` or `crates/cyberspace-knowledge` and add a case to `crates/cyberspace-generator/tests/parity.rs`.
 - No secrets in the repository: the Worker's secrets are set on Cloudflare (`wrangler.jsonc` names them).
 

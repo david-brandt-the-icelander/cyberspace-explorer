@@ -1,16 +1,16 @@
 {
   "$schema": "../../Meta/Agents/Knowledge/schemas/folder.schema.json",
   "kind": "folder",
-  "title": "The Worker's tests",
+  "title": "The tests",
   "folder": "test",
   "entities": [
     {
       "id": "folder",
-      "title": "The Worker's tests",
-      "summary": "Node's test runner over worker/app.js, with GitHub faked.",
-      "purpose": "Checks the Worker's routes, sign-in and door to GitHub without a network or a Cloudflare account.",
+      "title": "The tests",
+      "summary": "Node's test runner over worker/app.js, with GitHub faked, and over the pure block of index.html that reads and writes Cyberspace's addresses.",
+      "purpose": "Checks the Worker's routes, sign-in and door to GitHub without a network or a Cloudflare account, and Cyberspace's addresses without a browser.",
       "boundaries": [
-        "Tests the Worker only; nothing here tests index.html.",
+        "Tests the Worker, and of index.html only the block between /* space-world:start */ and /* space-world:end */, run in node:vm; nothing here drives a browser.",
         "GitHub is a fake fetch; the secrets are test values."
       ],
       "relationships": [
@@ -18,12 +18,20 @@
           "relation": "verifies",
           "path": "worker/.dev/verification.json",
           "entityId": "worker-tests"
+        },
+        {
+          "relation": "verifies",
+          "path": ".dev/contracts.json",
+          "entityId": "page-address"
         }
       ],
       "evidenceStatus": "source-verified",
       "sources": [
         {
           "path": "test/app.test.js"
+        },
+        {
+          "path": "test/space.test.js"
         },
         {
           "path": "package.json"

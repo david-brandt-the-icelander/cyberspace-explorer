@@ -25,6 +25,7 @@
     --k-component: #2c6e8e; --k-deployment: #a26a14; --k-class: #527a31; --k-state: #8b4a8c;
     --k-use-case: #bb5430; --k-capability: #4f58b0; --k-feature: #b0456f; --k-operation: #5b6a72;
     --k-user-journey: #1f7f74; --k-knowledge: #7a5f36;
+    --space-sky-1: #ffffff; --space-sky-2: #f8fafa; --space-sky-3: #e3eaeb; --space-grid-major: #b9c6c9;
     --sans: "Barlow", "Avenir Next", system-ui, sans-serif;
     --semi: "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif;
     --cond: "Barlow Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif;
@@ -39,6 +40,7 @@
       --k-component: #6cb2d6; --k-deployment: #e0a54a; --k-class: #9bc472; --k-state: #cb8cd3;
       --k-use-case: #ee8f66; --k-capability: #97a0ea; --k-feature: #e58aae; --k-operation: #a7b6bd;
       --k-user-journey: #5cc4b6; --k-knowledge: #d2b585;
+      --space-sky-1: #1b3340; --space-sky-2: #122027; --space-sky-3: #0b1216; --space-grid-major: #2c4652;
     }
   }
   .kind-component { --k: var(--k-component); }
@@ -364,6 +366,21 @@
   #tip .hint { display: block; margin-top: 4px; opacity: .65; font: 500 13px/1.3 var(--semi); }
   .zoomer { position: fixed; z-index: 35; border: 2px solid var(--k); border-radius: 12px; background: color-mix(in srgb, var(--k) 8%, transparent); pointer-events: none; transition: all .32s cubic-bezier(.3, .7, .2, 1); }
   @media (prefers-reduced-motion: reduce) { .zoomer { display: none; } .node.pulse .plate { animation: none; } #status.loading::before { animation: none; } .dg .node, .dg .edge, .dg .elabel { transition: none; } }
+
+  /* ── Cyberspace ──────────────────────────────────────────────────────── */
+  .modes { display: flex; padding: 2px; border: 1px solid var(--rule); border-radius: 6px; }
+  .modes button { height: 28px; padding: 0 12px; border: 0; border-radius: 4px; background: none; font: 600 13px/1 var(--semi); color: var(--ink2); cursor: pointer; }
+  .modes button:hover { color: var(--ink); }
+  .modes button[aria-pressed="true"] { background: var(--rule); color: var(--hot); }
+  /* The scene fills the window under the bar; the status line floats over it. */
+  body.space { overflow: hidden; }
+  body.space #view, body.space #side { display: none; }
+  body.space #status { position: fixed; z-index: 2; top: 54px; left: 0; right: 0; background: color-mix(in srgb, var(--paper) 88%, transparent); border-bottom: 1px solid var(--grid); }
+  /* The sky is CSS: the canvas over it draws only the world, on a transparent clear colour. */
+  #space { position: fixed; z-index: 1; top: 54px; left: 0; right: 0; bottom: 0; overflow: hidden; background: radial-gradient(75% 75% at 50% 35%, var(--space-sky-1), var(--space-sky-2) 45%, var(--space-sky-3)); }
+  #space-gl { position: absolute; inset: 0; display: block; width: 100%; height: 100%; outline: none; }
+  #space-labels, #space-hud { position: absolute; inset: 0; pointer-events: none; }
+  .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 </style>
 </head>
 <body>
@@ -371,6 +388,7 @@
   <a class="brand" href="./"><svg class="ic"><use href="#i-mark"/></svg><span>Cyberspace explorer</span></a>
   <div class="repo" id="repo" hidden></div>
   <span class="spacer"></span>
+  <div class="modes" id="modes" role="group" aria-label="View mode" hidden><button type="button" data-mode="flat" aria-pressed="true">Flat</button><button type="button" data-mode="space" aria-pressed="false">Cyberspace</button></div>
   <button class="quiet" id="token" hidden></button>
   <a class="quiet" id="change" href="?" hidden>Choose <span>another repository</span></a>
 </header>
@@ -414,6 +432,13 @@
     <ul id="tree"></ul>
   </nav>
   <main id="view"></main>
+  <section id="space" hidden aria-label="Cyberspace">
+    <canvas id="space-gl" tabindex="0" aria-describedby="space-help"></canvas>
+    <div id="space-labels" aria-hidden="true"></div>
+    <div id="space-hud"></div>
+    <p id="space-help" class="sr">The repository's .dev views in 3D, standing on a ground grid. Everything here can be read in the flat view too.</p>
+    <ul id="space-parts" class="sr" aria-label="Parts in this scene"></ul>
+  </section>
 </div>
 <aside id="inspector" hidden aria-label="Selected part"></aside>
 <div id="tip" role="tooltip" hidden></div>
@@ -950,7 +975,12 @@ $("filter").addEventListener("input", () => {
 let current = null;
 function route() {
   if (!byFolder.size) return;
-  const [rawFolder, rawFocus] = location.hash.slice(1).split("|");
+  // A last segment ~space[:<scene>] asks for Cyberspace; where it can't run, the place before it is shown flat.
+  const at = parseSpaceHash(location.hash);
+  if (at.mode === "space" && showSpace(at.folder, at.focus, at.scene)) return;
+  // Flat is drawn again after a stay in Cyberspace, even for the folder it last showed.
+  if (leaveSpace(at.mode === "space")) current = null;
+  const [rawFolder, rawFocus] = location.hash.slice(1).split("|").slice(0, at.mode === "space" ? -1 : undefined);
   $("waiting").classList.toggle("current", rawFolder === WAITING);
   if (rawFolder === WAITING) {
     for (const a of $("tree").querySelectorAll("a")) a.classList.remove("current");
@@ -1774,7 +1804,7 @@ function closeInspector() {
   $("inspector").hidden = true;
   for (const e of drawn.flat()) if (e?.pinned) { e.svg.querySelector(".sel")?.classList.remove("sel"); e.pinned = null; rest(e); }
 }
-document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("inspector").hidden) closeInspector(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !document.body.classList.contains("space") && !$("inspector").hidden) closeInspector(); });
 
 /** Opens a part named in the address: "class:Controls" is the type Controls in this folder's class diagram. */
 function focusPart(focus) {
@@ -2182,6 +2212,280 @@ function showWaiting() {
       ${blockers.length ? `<div class="scroll waiting">${table(["Blocker", "Folder", "Who can unblock it", "Blocks", "Unblocked when"], blockers.map(([d, e]) => [rec(d, e), where(d), value(e.canUnblock), value(e.blocked), esc(e.unblockWhen)]))}</div>` : `<p class="ddesc">Nothing is blocked.</p>`}
     </div>`;
 }
+
+// ── Cyberspace ───────────────────────────────────────────────────────────
+// A second way into the same .dev files: the repository as a WebGL scene, drawn with three.js core
+// (docs/cyberspace-mode-spec.md). An address whose last segment is ~space opens it. It reads what load()
+// read, and writes #space and the status line.
+
+/* space-world:start */
+// Functions of their arguments only: test/space.test.js runs this block in Node.
+
+/** The scenes; an address that names none opens the tower. */
+const SPACE_SCENES = ["tower", "city", "street"];
+const decoded = (f, s) => { try { return f(s); } catch { return s; } };
+/** A place in Flat, encoded as folderHash encodes it. */
+const flatHash = (folder, focus) => "#" + encodeURI(folder) + (focus ? "|" + encodeURIComponent(focus) : "");
+/** A place in Cyberspace: the place in Flat, then the mode marker, ~space for the tower and ~space:<scene> for the rest. */
+const spaceHash = ({ folder = "", focus = null, scene = "tower" }) => flatHash(folder, focus) + "|~space" + (scene === "tower" ? "" : ":" + scene);
+
+/** Reads an address: #<folder>[|<focus>] is Flat, and a last segment starting with ~space makes it Cyberspace. No focus starts
+ *  with ~, so #|~space is the root's tower. Waiting has no 3D form: #~waiting|~space is the root's tower too. */
+function parseSpaceHash(hash) {
+  const segs = String(hash ?? "").replace(/^#/, "").split("|");
+  const mark = segs.length > 1 && segs[segs.length - 1].startsWith("~space") ? segs.pop() : null;
+  const folder = decoded(decodeURI, segs[0]), focus = segs[1] ? decoded(decodeURIComponent, segs[1]) : null;
+  if (mark === null) return { mode: "flat", folder, focus, scene: null };
+  const scene = mark.slice("~space:".length);
+  return { mode: "space", folder: folder === "~waiting" ? "" : folder, focus, scene: SPACE_SCENES.includes(scene) ? scene : "tower" };
+}
+
+/** Where the mode switch goes: the same place in the other mode. `at` is where the reader is: a folder or Waiting; the kind and
+ *  key of the part selected; else the file of the view being read (in Flat, the open tab's first file when it is drawn). */
+function switchHash(to, { folder = "", waiting = false, kind = null, part = null, view = null } = {}) {
+  const focus = kind && part ? `${kind}:${part}` : view ? `view:${view}` : null;
+  if (to === "flat") return flatHash(folder, focus);
+  if (waiting) return spaceHash({});
+  return spaceHash({ folder, focus, scene: kind && part ? "city" : "tower" });
+}
+/* space-world:end */
+
+const THREE_URL = "https://cdn.jsdelivr.net/npm/three@0.187.0/+esm";
+/** Whether the bar offers the switch. Until the launch only an address with ~space in it opens Cyberspace (decision cyberspace-launch). */
+const SPACE_SWITCH = false;
+const SPACE_SAYS = {
+  webgl: "Cyberspace needs WebGL, which this browser has turned off. Showing the flat view.",
+  three: "Cyberspace couldn't load its 3D library. Showing the flat view.",
+  loading: "Loading Cyberspace's 3D library…",
+  lost: "The 3D view stopped.",
+};
+/** WebGL 2, which three.js needs, asked for once at start-up on a canvas never put on the page. Its context is let go at once,
+ *  so a reader who stays in Flat holds none. */
+const webgl = (() => {
+  try {
+    const gl = document.createElement("canvas").getContext("webgl2");
+    gl?.getExtension("WEBGL_lose_context")?.loseContext();
+    return !!gl;
+  } catch { return false; }
+})();
+
+/** What Cyberspace shows: the place the address names. */
+const space = { on: false, scene: null, folder: null, focus: null };
+/** Why Cyberspace couldn't start, for route() to say as it shows Flat instead; and the status line's text around Cyberspace's own. */
+let spaceFailed = null, spaceSaid = "", loaderSaid = "";
+
+let three = null, threeLoad = null;
+/** Imports three.js once, on first entry, as a cross-origin module request, which sends no credentials. Resolves null when it
+ *  can't be had, and the next entry tries again. */
+function loadThree() {
+  threeLoad ??= import(THREE_URL).then((m) => (three = m), () => { threeLoad = null; return null; });
+  return threeLoad;
+}
+
+/** The page's tokens the scene draws with, as CSS colours: it has none of its own (decision survey-sheet). */
+const SPACE_TOKENS = { sky1: "--space-sky-1", sky2: "--space-sky-2", sky3: "--space-sky-3", grid: "--grid", gridMajor: "--space-grid-major", edge: "--edge", hot: "--hot", ink: "--ink", ink2: "--ink2", ink3: "--ink3", paper: "--paper", sheet: "--sheet", rule: "--rule" };
+function spaceTheme() {
+  const css = getComputedStyle(document.documentElement), read = (v) => css.getPropertyValue(v).trim();
+  return { ...Object.fromEntries(Object.entries(SPACE_TOKENS).map(([k, v]) => [k, read(v)])), kinds: Object.fromEntries([...Object.keys(KIND_ORDER), "knowledge"].map((k) => [k, read("--k-" + k)])) };
+}
+let theme = null;
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { theme = spaceTheme(); stage?.retheme(theme); });
+
+/** The spec's frame, left-handed (the default camera looks along +z, +x to its right), to three.js's. The one place it is converted. */
+const V = (x, y, z) => new three.Vector3(x, y, -z);
+/** A fixed view of the ground, framed as the city render frames it: from a little to the left, and above. */
+const SPACE_VIEW = { target: [0, 0, 0], azimuth: -4.4, elevation: 33.6, distance: 60, fov: 54.1 };
+function aim(camera, { target: [x, y, z], azimuth, elevation, distance, fov }) {
+  const a = (azimuth * Math.PI) / 180, e = (elevation * Math.PI) / 180;
+  camera.fov = fov;
+  camera.position.copy(V(x + distance * Math.cos(e) * Math.sin(a), y + distance * Math.sin(e), z - distance * Math.cos(e) * Math.cos(a)));
+  camera.lookAt(V(x, y, z));
+  camera.updateProjectionMatrix();
+}
+
+/** The ground: a line every 2 units and a stronger one every 10, anti-aliased with fwidth, fading out from 40 to 140 units from the eye. */
+function groundGrid(T, colours) {
+  const geometry = new T.PlaneGeometry(600, 600).rotateX(-Math.PI / 2);
+  const material = new T.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    uniforms: { minor: { value: new T.Color() }, major: { value: new T.Color() }, fadeFrom: { value: 40 }, fadeTo: { value: 140 } },
+    vertexShader: `varying vec3 vWorld;
+      void main() { vec4 w = modelMatrix * vec4(position, 1.0); vWorld = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
+    fragmentShader: `uniform vec3 minor, major; uniform float fadeFrom, fadeTo; varying vec3 vWorld;
+      float lines(float every) { vec2 c = vWorld.xz / every, g = abs(fract(c - 0.5) - 0.5) / fwidth(c); return 1.0 - min(min(g.x, g.y), 1.0); }
+      void main() {
+        float big = lines(10.0), a = max(lines(2.0), big) * clamp((fadeTo - distance(cameraPosition, vWorld)) / (fadeTo - fadeFrom), 0.0, 1.0);
+        if (a <= 0.0) discard;
+        gl_FragColor = vec4(mix(minor, major, big), a);
+        #include <colorspace_fragment>
+      }`,
+  });
+  const mesh = new T.Mesh(geometry, material);
+  mesh.renderOrder = 0;
+  const paint = (c) => { material.uniforms.minor.value.setStyle(c.grid); material.uniforms.major.value.setStyle(c.gridMajor); };
+  paint(colours);
+  return { mesh, paint, dispose() { geometry.dispose(); material.dispose(); } };
+}
+
+/** The renderer, the scene and the camera. It draws a frame only when something changed, and none while #space or the tab is hidden. */
+function spaceStage(T, canvas) {
+  const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setClearAlpha(0);
+  const scene = new T.Scene(), camera = new T.PerspectiveCamera(SPACE_VIEW.fov, 1, 0.6, 600);
+  let grid = null, frame = 0, lost = false;
+  const showing = () => !lost && !$("space").hidden && !document.hidden;
+  const draw = () => { frame = 0; if (showing()) renderer.render(scene, camera); };
+  const request = () => { if (!frame && showing()) frame = requestAnimationFrame(draw); };
+  const resize = () => {
+    const { width, height } = $("space").getBoundingClientRect();
+    if (!width || !height) return;
+    renderer.setSize(width, height, false);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    request();
+  };
+  const watch = new ResizeObserver(resize);
+  watch.observe($("space"));
+  document.addEventListener("visibilitychange", request);
+  // A canvas taken off the page was let go of on purpose (close below).
+  canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); lost = true; cancelAnimationFrame(frame); frame = 0; if (canvas.isConnected) stageLost(); });
+  canvas.addEventListener("webglcontextrestored", () => { if (canvas.isConnected) restoreStage(); });
+  const self = {
+    get lost() { return lost; },
+    /** Builds the scene, again after a stay in Flat. */
+    fill(colours) {
+      if (!grid) { grid = groundGrid(T, colours); scene.add(grid.mesh); }
+      aim(camera, SPACE_VIEW);
+      resize();
+      request();
+    },
+    retheme(colours) { grid?.paint(colours); request(); },
+    /** Lets go of every geometry and material; the renderer stays for a return. */
+    empty() {
+      cancelAnimationFrame(frame); frame = 0;
+      if (grid) { scene.remove(grid.mesh); grid.dispose(); grid = null; }
+    },
+    /** Lets go of the renderer and its context too, and puts a fresh canvas in its place for the next one. */
+    close() {
+      self.empty();
+      watch.disconnect();
+      document.removeEventListener("visibilitychange", request);
+      renderer.dispose();
+      if (!lost) renderer.forceContextLoss();
+      canvas.replaceWith(canvas.cloneNode(false));
+    },
+  };
+  return self;
+}
+
+let stage = null, stageIdle = 0;
+/** Starts the stage, or wakes the one kept since the reader left. False when no WebGL context can be had. */
+function stageOn() {
+  clearTimeout(stageIdle);
+  if (!stage) {
+    try { stage = spaceStage(three, $("space-gl")); } catch { return false; }
+  }
+  stage.fill((theme ??= spaceTheme()));
+  return true;
+}
+function closeStage() {
+  clearTimeout(stageIdle);
+  try { stage?.close(); } catch { /* a lost context has nothing left to let go */ }
+  stage = null;
+}
+function stageLost() {
+  if (space.on) spaceSay(SPACE_SAYS.lost, "error", { label: "Restore it", run: restoreStage }); else closeStage();
+}
+/** Builds the stage again, on a fresh canvas: when the browser gives the context back, or the reader asks. */
+function restoreStage() {
+  closeStage();
+  if (!space.on) return;
+  if (stageOn()) spaceSay(""); else { spaceFailed = SPACE_SAYS.webgl; route(); }
+}
+
+/** Says something in the status line after whatever the loader had to say; saying "" leaves the loader's words alone again. */
+function spaceSay(text, kind = "", offer = null) {
+  if (!spaceSaid) loaderSaid = $("status").textContent;
+  spaceSaid = text;
+  status([loaderSaid, text].filter(Boolean).join(" "), text ? kind : "", text ? offer : null);
+}
+
+/** The switch shows which mode is on. It is offered only with WebGL, and not before the launch. */
+function modeSwitch() {
+  const el = $("modes");
+  el.hidden = !(SPACE_SWITCH && webgl);
+  for (const b of el.querySelectorAll("button")) b.setAttribute("aria-pressed", String((b.dataset.mode === "space") === space.on));
+}
+
+/** Shows Cyberspace at the place the address names. Returns false, having said why, when it can't run here: route() shows Flat. */
+function showSpace(folder, focus, scene) {
+  if (!webgl || spaceFailed) { spaceSay(spaceFailed ?? SPACE_SAYS.webgl); spaceFailed = null; return false; }
+  // The models decide a part's drill-down from current, so it is the folder shown here too.
+  current = byFolder.has(folder) ? folder : folders().slice().sort((a, b) => depth(a) - depth(b) || a.localeCompare(b))[0];
+  Object.assign(space, { folder: current, focus, scene });
+  if (!space.on) {
+    space.on = true;
+    closeInspector();
+    hideTip();
+    document.body.classList.add("space");
+    $("space").hidden = false;
+    modeSwitch();
+  }
+  if (!three) spaceSay(SPACE_SAYS.loading, "loading");
+  loadThree().then((T) => {
+    if (!space.on) return;
+    if (T && stageOn()) { if (spaceSaid === SPACE_SAYS.loading) spaceSay(""); return; }
+    spaceFailed = T ? SPACE_SAYS.webgl : SPACE_SAYS.three;
+    route();
+  });
+  return true;
+}
+
+/** Hides Cyberspace, if it was showing, and lets go of what it drew; the context goes a minute later. `asked`: the address
+ *  still asks for Cyberspace, and the status line says why it isn't showing. Returns whether Cyberspace was showing. */
+function leaveSpace(asked) {
+  const was = space.on;
+  if (was) {
+    space.on = false;
+    document.body.classList.remove("space");
+    $("space").hidden = true;
+    // A stage whose context was lost is no use to a return: the next entry starts a new one.
+    if (stage?.lost) closeStage();
+    else if (stage) { stage.empty(); stageIdle = setTimeout(closeStage, 60_000); }
+  }
+  if (!asked && spaceSaid) spaceSay("");
+  modeSwitch();
+  return was;
+}
+
+/** Where the reader is in Flat, from what it shows: the open tab and the part pinned in it are not in the address. */
+function flatPlace() {
+  if (current === WAITING) return { waiting: true };
+  const pinned = drawn.flat().find((e) => e?.pinned);
+  const first = MODELS[shownKind] ? (byFolder.get(current) ?? []).find((d) => d.kind === shownKind) : null;
+  return { folder: current ?? "", kind: pinned?.d.kind ?? null, part: pinned?.pinned ?? null, view: first?._path.split("/").pop() ?? null };
+}
+/** Where the reader is in Cyberspace: the part or view the address names. */
+function spacePlace() {
+  const [kind, ...name] = (space.focus ?? "").split(":");
+  return kind === "view" ? { folder: space.folder, view: name.join(":") } : { folder: space.folder, kind: kind || null, part: name.join(":") || null };
+}
+/** A press only changes the address; route() does the rest. */
+$("modes").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-mode]");
+  if (!b || b.getAttribute("aria-pressed") === "true") return;
+  const hash = switchHash(b.dataset.mode, b.dataset.mode === "space" ? flatPlace() : spacePlace());
+  // The same address again, after Cyberspace couldn't start: try again.
+  if (hash === location.hash) route(); else location.hash = hash;
+});
+
+// Cyberspace's own Esc (the document's listener above steps aside while it shows), so that one press does one thing.
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape" || !space.on) return;
+  if (!$("inspector").hidden) closeInspector();
+});
 
 // ── Start: the address comes from ?url=; the form is only for choosing one ──
 

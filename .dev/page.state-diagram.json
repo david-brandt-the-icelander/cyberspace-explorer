@@ -14,6 +14,10 @@
     },
     {
       "path": "index.html",
+      "symbol": "showSpace"
+    },
+    {
+      "path": "index.html",
       "symbol": "status"
     },
     {
@@ -56,6 +60,10 @@
     {
       "id": "waiting",
       "description": "The Waiting view in place of a folder: open decisions and blockers across the repository. The Waiting link in the folder column is marked."
+    },
+    {
+      "id": "cyberspace",
+      "description": "Cyberspace in place of the folder column and the view: a sky and a ground grid under the bar, with the status line floating over them. On a first entry the status line reads 'Loading Cyberspace's 3D library…' with the ticking square; if the WebGL context is lost it reads 'The 3D view stopped.' with a Restore it button."
     }
   ],
   "transitions": [
@@ -121,6 +129,50 @@
       "to": "waiting",
       "trigger": "every file is read or skipped",
       "guard": "the address ends in #~waiting"
+    },
+    {
+      "from": "reading",
+      "to": "cyberspace",
+      "trigger": "every file is read or skipped",
+      "guard": "the address's last segment is ~space, and the browser has WebGL 2",
+      "action": "three.js is imported from jsDelivr, once"
+    },
+    {
+      "from": "folder",
+      "to": "cyberspace",
+      "trigger": "an address whose last segment is ~space",
+      "guard": "the browser has WebGL 2"
+    },
+    {
+      "from": "waiting",
+      "to": "cyberspace",
+      "trigger": "an address whose last segment is ~space",
+      "guard": "the browser has WebGL 2",
+      "action": "the root folder is shown: Waiting has no 3D form"
+    },
+    {
+      "from": "folder",
+      "to": "folder",
+      "trigger": "an address whose last segment is ~space",
+      "guard": "the browser has no WebGL 2",
+      "action": "the place before the marker is shown flat, and the status line says 'Cyberspace needs WebGL, which this browser has turned off. Showing the flat view.'"
+    },
+    {
+      "from": "cyberspace",
+      "to": "folder",
+      "trigger": "an address without ~space, or three.js can't load",
+      "action": "the folder is drawn again; when three.js couldn't load the status line says 'Cyberspace couldn't load its 3D library. Showing the flat view.' The scene is let go of at once, the WebGL context a minute later."
+    },
+    {
+      "from": "cyberspace",
+      "to": "waiting",
+      "trigger": "#~waiting"
+    },
+    {
+      "from": "cyberspace",
+      "to": "cyberspace",
+      "trigger": "Restore it, or the browser gives the context back",
+      "action": "the stage is built again on a fresh canvas"
     },
     {
       "from": "folder",
