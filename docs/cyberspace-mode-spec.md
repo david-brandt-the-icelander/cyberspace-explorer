@@ -401,23 +401,27 @@ The street scene is the city's own meshes seen from eye height, with walking con
 
 1. Direction `d` = across the layout's flow, so that the flow runs left to right in front of the reader as it does in Flat, turned 20° upstream: (−sin 20°, 0, −cos 20°) for a left-to-right layout (`world.dir`), (−cos 20°, 0, sin 20°) for a top-to-bottom one. The first rule came from the orbit camera's side, which hides a part's dependencies behind it whenever the reader looks down the flow, as the opening view now does.
 2. Eye = part base + 12 × `d`, at the ground height there + 1.7. If that point is inside any tower's footprint grown by 0.6, step 1 unit further along `d` until it is clear.
-3. Look at the part's centre line at `base + min(0.55 × h, 6.5)`.
-4. Vertical field of view 61.2°; projection centre at (700, 520) of 1440 × 900, so the horizon sits low and towers rise into the frame.
+3. Look at the part's centre line at `base + min(0.55 × h, 6.5)`. A beacon's `h` is its top's height (`y + 1.3`, from a base on the ground), a plate's is its thickness; **Walk** with nothing selected walks to the centre of the bounds, its `h` the bounds' `top`.
+4. Vertical field of view 61.2°; projection centre at (700, 520) of 1440 × 900, so the horizon sits low and towers rise into the frame. As in the tower, 1440 × 900 is the whole window, bar included, so frame the camera in the window: `camera.aspect = W / Hw` and `camera.setViewOffset(W, Hw, (720 − 700) × W/1440, (450 − 520) × Hw/900, W, H)`, with `W × H` the canvas and `Hw = H + top` the window. Artboard 3 draws the horizon at y = 792.7, which this framing gives (794 from the rounded pose below); framed in the canvas alone, with `H/900`, it would be about 14 px higher and the scene about 6% smaller.
 
-For this repository that puts the eye at (−14.1, 1.7, −31.2), looking at (−10.0, 6.0, −20.0): artboard 3's view, with Loader centred and both adapters and the GitHub and GitLab beacons to its right, wherever the orbit camera was.
+For this repository on 2026-11-13 that put the eye at (−14.1, 1.7, −31.2), looking at (−10.0, 6.0, −20.0): artboard 3's view, with Loader centred and both adapters and the GitHub and GitLab beacons to its right, wherever the orbit camera was. Cyberspace's own parts have joined the component diagram since (a fifth plate, five towers and the three.js beacon), and its layout is wider: on 2026-11-14 Loader stands at (−4.4, −21.2), 5.6 units right of and 1.2 nearer than on the artboard, so the eye arrives at (−8.5, 1.7, −32.4), looking at (−4.4, 6.0, −21.2). The view is artboard 3's still. The unit test keeps the artboard's numbers.
+
+Arriving, the inspector closes, as artboard 3 has it, and what was selected stays lit; a click on a part opens it again. In the street it ends 10 px above the map.
 
 **Walking.**
 
 | Input | Effect |
 | --- | --- |
-| W A S D or arrow keys | Walk at 6 units/s; with Shift, 14 units/s. Arrow keys turn instead of strafing when the canvas has focus and Alt is held. |
-| Drag | Look: 0.25° per px; pitch clamped to ±60°. |
+| W A S D or arrow keys | Walk at 6 units/s; with Shift, 14 units/s. Arrow keys turn instead of strafing when the canvas has focus and Alt is held, at 90°/s. W A S D and Z are read by the key's place on the keyboard (`KeyboardEvent.code`), as games do. |
+| Drag | Look: 0.25° per px, the scene following the pointer; pitch clamped to ±60°. |
 | Space / Z | Rise / sink at 4 units/s; eye height 1.7 to 30 above the ground under it. |
 | Click | Select what is under the pointer (as in the city). |
 | Enter | Select what is under the crosshair. |
 | Esc | Clear the selection; with none, rise back to the city orbit. |
 
-Towers are solid: the eye is a circle of radius 0.4 and slides along a footprint it walks into, below that tower's top. Plates are steps: the eye's ground height eases to the plate top under it over 150 ms. Beams and beacons are not solid. Walking ends at the world bounds grown by 30 units.
+Towers are solid: the eye is a circle of radius 0.4 and slides along a footprint it walks into, below that tower's top. Plates are steps: the eye's ground height eases to the plate top under it over 150 ms. Beams and beacons are not solid. Walking ends at the world bounds grown by 30 units. Each frame moves the eye by the real time since the last, cut into steps of at most 0.2 units so that a fast one can't pass through a thin tower (`walkStep`, in the `space-world` block).
+
+The address has no place for the eye, so walking replaces the history entry with the same address and the eye's place in the entry's state (`history.state.walk`), at most four times a second. Back or Forward to a street entry puts the eye where the reader walked in it, or, in an entry not walked in yet, where Walk to puts it.
 
 **Look.**
 
@@ -431,9 +435,9 @@ Towers are solid: the eye is a circle of radius 0.4 and slides along a footprint
 | Panel | Where | Content |
 | --- | --- | --- |
 | Breadcrumb | left 20, top 98, 36 tall | `<repository> › <kind name> › <plate> › <part>`; the first two are links to the tower and the city, the plate is plain text, the part (selected, else the one under the crosshair) is `--hot`, weight 600. A `<nav aria-label="Where you are">`. |
-| Hover card | 18 px right of the hovered tower's top right corner, 24 px above it; 280 wide. Where that would pass the canvas's 20 px margin it goes 18 px left of the tower's top left corner instead; where the breadcrumb, the map or the key hints are in its way it slides up or down, whichever is nearer, to clear them by 8 px. | Kind icon, the part name `700 20px` Condensed, its `n.tip` text, then `<degree> beams · click to read it` in `--ink3`. Labels it would cover are hidden. Border in the kind colour. |
+| Hover card | 18 px right of the hovered tower's top right corner (the corner of its top face furthest right on the screen), its top 24 px above that corner; 280 wide. A beacon's corners are its equator's, at its top's height. Where that would pass the canvas's 20 px margin it goes 18 px left of the tower's top left corner instead; where the breadcrumb, the map or the key hints are in its way it slides up or down, whichever is nearer, to clear them by 8 px. | Kind icon, the part name `700 20px` Condensed, its `n.tip` text, then `<degree> beams · click to read it` in `--ink3`. Labels it would cover are hidden. Border in the kind colour. |
 | Key hints | left 20, bottom 20, 52 tall | Key caps for W A S D *walk*, Drag *look*, Space *rise*, Click *read a part*, Esc *orbit*. |
-| Map | right 20, bottom 20, 260 wide | Plan view of the world bounds: plates as rounded rectangles (kind colour 12%, stroke 50%), towers as 5 px squares (selected in `--hot`), beacons as amber diamonds, the eye as a 4.5 px `--hot` dot ringed in `--paper`, and a view cone of ±24° reaching 36 units. Clicking the map flies the eye there. `role="img"`, `aria-label` *Map of the city with your position*. |
+| Map | right 20, bottom 20, 260 wide | Plan view of the world bounds: plates as rounded rectangles (kind colour 12%, stroke 50%), towers as 5 px squares (selected in `--hot`), beacons as amber diamonds, the eye as a 4.5 px `--hot` dot ringed in `--paper` (kept on the map's edge while the eye walks beyond the bounds), and a view cone of ±24° reaching 36 units. Clicking the map flies the eye there, as high above the ground as it walks, facing the way it faces, out of any tower. `role="img"`, `aria-label` *Map of the city with your position*. |
 
 The card gives the number of a part's beams, not their names: a list gets long for a busy part. Artboard 3 has the card left of its tower, artboard 6 right of it.
 
@@ -506,7 +510,7 @@ The scene changes:
 
 1. **Tower → city.** Fly to the pulled-out floor until it fills the free rectangle (600 ms). Then, in one frame, swap the scene for the full-size city and put the camera at the equivalent pose: the same view of the floor divided by the floor's scale, `k`, relative to the city's centre. The tower fades out over 200 ms behind it. Reverse it to go back up.
 2. **City → street.** Fly from the orbit pose to the street pose (section *Scene 3*), swapping the HUD when the flight lands.
-3. **Street → city.** Fly back to the orbit pose the reader left, or the fit pose if there was none.
+3. **Street → city.** Fly back to the orbit pose the reader left, or the fit pose if there was none. A camera the reader hadn't moved before going down is fitted again to the room as it now is, as it would have been had they stayed (the inspector they had open has closed on arriving).
 4. **Tower ↔ skyline.** Rising, fly up and back from the tower's pose for 600 ms while the tower fades out and the skyline in, and land on the skyline's pose aimed at that folder's building. Entering a building is the reverse.
 
 **Rendering on demand.** Request a frame only when something changed: input, a flight, a fade, a label being placed, a theme change, a resize. When nothing moves, no frames are drawn. Stop completely while `#space` is hidden or `document.hidden` is true. Resize with a `ResizeObserver` on `#space`, then refit: a camera the reader hasn't moved is fitted again; one they have moved keeps its pose, with the projection centred on the new free rectangle.

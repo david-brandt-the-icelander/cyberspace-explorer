@@ -24,7 +24,8 @@
         "A last segment ~space or ~space:<scene> asks for the same place in Cyberspace: #<folder>[|<part, view or record>]|~space[:<scene>], where <scene> is tower (the default), city or street. Segments are encoded as the other forms encode them. #~waiting|~space is the root folder's tower. Where Cyberspace can't run, the place before the marker is shown flat; a page that predates the marker reads the folder and part the same way.",
         "In Cyberspace, #<folder>|view:<file name>#<entity ID>|~space:city stands one use case or journey of a file that holds several; without #<entity ID>, the file's first. Shown flat, the place before the marker opens the folder.",
         "In Cyberspace, a part's focus (#<folder>|<kind>:<part ID or name>|~space:city) selects that part in its view's city; a use case's or journey's step is <entity ID>:<step ID>. Selecting a part, or clearing the selection, replaces the history entry with the part's address or with the view's own (#<folder>|view:<file name>[#<entity ID>]|~space:city), so Back and Forward retrace moves, not clicks.",
-        "In Cyberspace's folder tower (#<folder>|~space, the folder's first drawn view pulled out), #<folder>|view:<file name>[#<entity ID>]|~space pulls that drawn view out; #<folder>|view:<file name>|~space for a written view or a knowledge file, and #<folder>|entity:<file name>[#<record ID>]|~space, open that floor's inspector, with the record named. Pulling out another floor, entering its city and going up from a city with nothing selected each add a history entry; opening or closing a floor's inspector, and sliding a floor back, replace it."
+        "In Cyberspace's folder tower (#<folder>|~space, the folder's first drawn view pulled out), #<folder>|view:<file name>[#<entity ID>]|~space pulls that drawn view out; #<folder>|view:<file name>|~space for a written view or a knowledge file, and #<folder>|entity:<file name>[#<record ID>]|~space, open that floor's inspector, with the record named. Pulling out another floor, entering its city and going up from a city with nothing selected each add a history entry; opening or closing a floor's inspector, and sliding a floor back, replace it.",
+        "In Cyberspace's street, #<folder>|<kind>:<part ID or name>|~space:street stands that part's city with the eye walked to it and the part selected, and #<folder>|view:<file name>[#<entity ID>]|~space:street walks to the middle of the view's city. Going down from a city to its street and back up each add a history entry; walking, and selecting or clearing a part, replace it, at most four times a second while walking, the entry's state keeping where the eye is so that Back and Forward return to it. Shown flat, the place before the marker opens the part or the view."
       ],
       "compatibility": "A new form may be added. A form that shared links already use keeps its meaning.",
       "evidenceStatus": "source-verified",
@@ -76,6 +77,14 @@
         {
           "path": "index.html",
           "symbol": "towerAsk"
+        },
+        {
+          "path": "index.html",
+          "symbol": "enterStreet"
+        },
+        {
+          "path": "index.html",
+          "symbol": "keepWalk"
         }
       ]
     },

@@ -1,7 +1,7 @@
 # Reader
 
 **Kind:** person in a role
-**Evidence:** `index.html` (`load` reads whatever repository `?url=` names, with no sign-in; `openTokenPanel` and `saveToken` take the reader's own access token for a private repository, kept in their browser; `showSignIn` offers an optional GitHub sign-in), `worker/app.js` (`callback`: a signed-in reader is a GitHub account, known by its login and avatar in the sealed session; `session`)
+**Evidence:** `index.html` (`load` reads whatever repository `?url=` names, with no sign-in; `openTokenPanel` and `saveToken` take the reader's own access token for a private repository, kept in their browser; `showSignIn` offers an optional GitHub sign-in; `walkTo` takes them down into a Cyberspace city's street), `worker/app.js` (`callback`: a signed-in reader is a GitHub account, known by its login and avatar in the sealed session; `session`)
 
 ## What they want from the system
 
@@ -9,6 +9,7 @@
 - To read a private repository with their own access, and nobody else's ([use cases](../.dev/use-case.json), `add-token`, `sign-in-with-github`; [journeys](../.dev/user-journey.json), `private-repository`, `signed-in-on-github`).
 - To open their own repositories without copying addresses ([use cases](../.dev/use-case.json), `sign-in-with-github`; [features](../.dev/feature.json), `github-sign-in`).
 - To find what is waiting on someone, and to judge how far to trust what agents wrote ([use cases](../.dev/use-case.json), `see-waiting`; [journeys](../.dev/user-journey.json), `review-agent-work`).
+- To walk through a repository's parts in 3D, and read one where it stands among those round it ([use cases](../.dev/use-case.json), `walk-to-part`; [journeys](../.dev/user-journey.json), `walk-a-district`).
 
 ## How they reach it
 
