@@ -2722,38 +2722,29 @@ function spaceRig(stage) {
       rig.rest = setTimeout(() => { stage.city?.sort(camera.position); stage.request(); }, 150);
     },
     set(pose) { Object.assign(rig, pose); rig.apply(); },
-    /** The opening pose: the least distance at which the bounds' eight corners all stand inside the free rectangle, 24 px from
-     *  its edges, with the target moved across the view from their centre so that they stand in the middle of it. */
-    fit(bounds = rig.bounds) {
+    /** The opening pose: the least distance at which the corners of everything that stands (`points`: each plate's, tower's
+     *  and beacon's box, each start point) are all inside the free rectangle, 24 px from its edges, with the target moved across
+     *  the view so that they stand in the middle of it. Labels stand above their towers and are pushed further up to clear each
+     *  other: where some then run into the top of the room (`crowded` counts them), it fits again with 28 px more left above,
+     *  up to 30% of the room's height, and keeps the least room that leaves the fewest out. */
+    fit() {
       rig.room = spaceRoom();
-      const { H, free } = rig.room;
-      if (!bounds) { rig.set({ target: [0, 0, 0], azimuth: -40, elevation: 33.6, distance: 60 }); return; }
-      const b = (rig.bounds = bounds), centre = [(b.x0 + b.x1) / 2, b.top / 2, (b.z0 + b.z1) / 2];
-      Object.assign(rig, { target: centre, azimuth: -40, elevation: 33.6, distance: 1, touched: false });
-      rig.apply();
-      const right = new T.Vector3(), up = new T.Vector3(), ahead = new T.Vector3();
-      camera.matrixWorld.extractBasis(right, up, ahead);
-      ahead.negate();
-      const F = H / 2 / Math.tan((rig.fov * rad) / 2), hx = Math.max(40, (free.x1 - free.x0) / 2 - 24), hy = Math.max(40, (free.y1 - free.y0) / 2 - 24);
-      const corners = [];
-      for (const x of [b.x0, b.x1]) for (const y of [0, b.top]) for (const z of [b.z0, b.z1]) corners.push(V(x, y, z).sub(V(...centre)));
-      // At distance d, the shifts of the target along an axis of the view that keep every corner inside: an interval, empty when d is too short.
-      const span = (d, axis, h) => {
-        let lo = -Infinity, hi = Infinity;
-        for (const p of corners) { const m = (h * (d + p.dot(ahead))) / F; lo = Math.max(lo, p.dot(axis) - m); hi = Math.min(hi, p.dot(axis) + m); }
-        return [lo, hi];
-      };
-      const fits = (d) => { const [a, c] = span(d, right, hx), [e, g] = span(d, up, hy); return a <= c && e <= g && corners.every((p) => d + p.dot(ahead) > 1); };
-      let near = 1, far = 2;
-      while (!fits(far) && far < 1e5) { near = far; far *= 2; }
-      for (let i = 0; i < 40; i++) { const mid = (near + far) / 2; if (fits(mid)) far = mid; else near = mid; }
-      const d = Math.max(8, far), [a, c] = span(d, right, hx), [e, g] = span(d, up, hy);
-      const shift = right.multiplyScalar((a + c) / 2).add(up.multiplyScalar((e + g) / 2));
-      rig.fitDistance = d;
-      rig.set({ distance: d, target: [centre[0] + shift.x, centre[1] + shift.y, centre[2] - shift.z] });
+      if (!rig.points?.length) { rig.set({ target: [0, 0, 0], azimuth: -40, elevation: 33.6, distance: 60 }); return; }
+      const height = rig.room.free.y1 - rig.room.free.y0;
+      let best = null;
+      for (let above = 0; above <= 0.3 * height; above += 28) {
+        frame(above);
+        const left = rig.crowded?.() ?? 0;
+        if (!best || left < best.left) best = { above, left };
+        if (!left) break;
+      }
+      // With none left out the last framing is the one kept; otherwise frame the best again.
+      if (best.left) frame(best.above);
     },
     /** After a resize: the room is measured again, and an untouched camera fitted again. */
-    resized() { if (rig.touched || !rig.bounds) { rig.room = spaceRoom(); rig.apply(); } else rig.fit(); },
+    resized() { if (rig.touched || !rig.points?.length) { rig.room = spaceRoom(); rig.apply(); } else rig.fit(); },
+    /** How far labels show: 90 units, or the far side of the city as fitted when that is further. */
+    cut() { const b = rig.bounds; return b ? Math.max(90, rig.fitDistance + Math.hypot(b.x1 - b.x0, b.z1 - b.z0) / 2) : 90; },
     /** Keeps the pose inside the limits: elevation 8° to 85°, distance 8 to three times the fit, the target near the city. */
     limit() {
       rig.elevation = clamp(rig.elevation, 8, 85);
@@ -2778,6 +2769,33 @@ function spaceRig(stage) {
     },
     setMode(mode) { rig.mode = mode; for (const b of document.querySelectorAll("#space-controls [data-cam=orbit], #space-controls [data-cam=pan]")) b.setAttribute("aria-pressed", String(b.dataset.cam === mode)); },
   };
+  /** Frames rig.points from the opening angles, `above` px more room left at the top of the free rectangle. */
+  function frame(above) {
+    const { H, free } = rig.room, b = rig.bounds, centre = [(b.x0 + b.x1) / 2, b.top / 2, (b.z0 + b.z1) / 2];
+    Object.assign(rig, { target: centre, azimuth: -40, elevation: 33.6, distance: 1, touched: false });
+    rig.apply();
+    const right = new T.Vector3(), up = new T.Vector3(), ahead = new T.Vector3();
+    camera.matrixWorld.extractBasis(right, up, ahead);
+    ahead.negate();
+    const F = H / 2 / Math.tan((rig.fov * rad) / 2), hx = Math.max(40, (free.x1 - free.x0) / 2 - 24), hy = Math.max(40, (free.y1 - free.y0) / 2 - 24);
+    const at = V(...centre), points = rig.points.map((p) => V(...p).sub(at));
+    // At distance d, the shifts of the target along an axis of the view that keep every point between `low` px below (or left
+    // of) the projection centre and `high` px above (or right of) it: an interval, empty when d is too short.
+    const span = (d, axis, low, high) => {
+      let lo = -Infinity, hi = Infinity;
+      for (const p of points) { const m = (d + p.dot(ahead)) / F, s = p.dot(axis); lo = Math.max(lo, s - high * m); hi = Math.min(hi, s + low * m); }
+      return [lo, hi];
+    };
+    const top = Math.max(40 - hy, hy - above);
+    const fits = (d) => { const [a, c] = span(d, right, hx, hx), [e, g] = span(d, up, hy, top); return a <= c && e <= g && points.every((p) => d + p.dot(ahead) > 1); };
+    let near = 1, far = 2;
+    while (!fits(far) && far < 1e5) { near = far; far *= 2; }
+    for (let i = 0; i < 40; i++) { const mid = (near + far) / 2; if (fits(mid)) far = mid; else near = mid; }
+    const d = Math.max(8, far), [a, c] = span(d, right, hx, hx), [e, g] = span(d, up, hy, top);
+    const shift = right.multiplyScalar((a + c) / 2).add(up.multiplyScalar((e + g) / 2));
+    rig.fitDistance = d;
+    rig.set({ distance: d, target: [centre[0] + shift.x, centre[1] + shift.y, centre[2] - shift.z] });
+  }
   // The point on the level of the target under a pixel of the canvas, in the spec's frame.
   const ray = new T.Raycaster(), plane = new T.Plane(new T.Vector3(0, 1, 0), 0), hit = new T.Vector3(), ndc = new T.Vector2();
   const ground = (px, py) => {
@@ -2877,8 +2895,13 @@ function spaceLabels(world) {
   };
   for (const t of world.towers) pill(t.key, t.name, [t.x, t.base + t.h, t.z], 10, false);
   for (const b of world.beacons) pill(b.key, b.name, [b.x, b.y + 1.3 + 1.7, b.z], 0, true);
+  // A plate's parts: every tower and beacon standing on it or on a plate within it.
+  const held = new Map(world.plates.map((p) => [p.key, 0]));
+  for (const { key } of [...world.towers, ...world.beacons]) {
+    for (let up = world.parts.get(key)?.parent, n = 0; up && n < held.size; up = world.parts.get(up)?.parent) if (held.has(up)) { held.set(up, held.get(up) + 1); n++; }
+  }
   for (const p of world.plates) {
-    const n = world.towers.filter((t) => t.plate === p.key).length, el = document.createElement("div");
+    const n = held.get(p.key), el = document.createElement("div");
     const name = document.createElement("span"), count = document.createElement("span");
     name.textContent = p.name;
     count.textContent = ` · ${n} part${n === 1 ? "" : "s"}`;
@@ -2898,9 +2921,11 @@ function spaceLabels(world) {
   const hide = (it) => { if (it.shown) { it.el.hidden = true; it.shown = false; } };
   return {
     /** Places the labels for the camera as it now stands: nearest first, each pushed up until it is clear of those placed, and
-     *  moved sideways off a panel. `cut`: beyond it labels are hidden, fading out over the last 10 units. */
-    place(camera, { W, H, panels }, cut) {
+     *  moved sideways off a panel. `cut`: beyond it labels are hidden, fading out over the last 10 units. Returns `topped`, the
+     *  number of part labels left out because they ran up past the top of the free rectangle, which the fit makes room for. */
+    place(camera, { W, H, panels, free }, cut) {
       const grid = new Map(), cell = 64;
+      let topped = 0;
       const cells = (r, f) => { for (let i = Math.floor(r.x0 / cell); i <= Math.floor(r.x1 / cell); i++) for (let j = Math.floor(r.y0 / cell); j <= Math.floor(r.y1 / cell); j++) f(i + "," + j); };
       const clear = (r) => { let ok = true; cells(r, (k) => { for (const o of grid.get(k) ?? []) if (r.x0 < o.x1 + 4 && r.x1 > o.x0 - 4 && r.y0 < o.y1 + 4 && r.y1 > o.y0 - 4) ok = false; }); return ok; };
       const take = (r) => cells(r, (k) => { if (!grid.has(k)) grid.set(k, []); grid.get(k).push(r); });
@@ -2949,12 +2974,13 @@ function spaceLabels(world) {
         aside(r, it.w);
         let step = 0;
         while (!clear(r) && step < 40) { r.y0 -= 6; r.y1 -= 6; step++; }
-        if (step >= 40 || under(r)) { hide(it); continue; }
+        if (step >= 40 || under(r)) { if (r.y0 < free.y0) topped++; hide(it); continue; }
         take(r);
         if (step * 6 > 12) d += `M${s.x.toFixed(1)},${(s.y - it.lift).toFixed(1)}L${((r.x0 + r.x1) / 2).toFixed(1)},${r.y1.toFixed(1)}`;
         show(it, r.x0, r.y0, fade(s.d));
       }
       path.setAttribute("d", d);
+      return { topped };
     },
     clear() { layer.textContent = ""; },
   };
@@ -3100,10 +3126,7 @@ function stageOn() {
     stage.onFrame = () => {
       if (!rig.moved) return;
       rig.moved = false;
-      if (labels && rig.bounds) {
-        const b = rig.bounds, cut = Math.max(90, rig.fitDistance + Math.hypot(b.x1 - b.x0, b.z1 - b.z0) / 2);
-        labels.place(stage.camera, rig.room, cut);
-      }
+      if (labels && rig.bounds) labels.place(stage.camera, rig.room, rig.cut());
     };
   }
   stage.fill((theme ??= spaceTheme()));
@@ -3190,8 +3213,9 @@ function spaceScene() {
   }
   if (standing?.key !== v.key || standing.made !== made) standCity({ key: v.key, made });
   const n = [...byFolder.values()].reduce((s, docs) => s + docs.length, 0), what = KIND_NAME[v.d.kind].toLowerCase() + (v.e ? ` ${v.e.name ?? v.e.id}` : "");
+  // No hint yet: Esc does nothing in the city until the folder tower (step 4) gives it a level to go up to; step 4 adds "Esc goes up a level".
   sceneSay(`Read ${plural(n, "view")} in ${plural(byFolder.size, "folder")}. Flying the ${what}: drag to orbit, scroll to fly, click a tower to read it.`,
-    made.why ? SPACE_SAYS.grid[made.why] : "", "Esc goes up a level");
+    made.why ? SPACE_SAYS.grid[made.why] : "");
 }
 /** Builds a city's meshes, labels and legend and fits the camera to it; null stands the bare ground. */
 function standCity(next) {
@@ -3202,7 +3226,21 @@ function standCity(next) {
   spaceHud(world);
   if (world) labels = spaceLabels(world);
   rig.bounds = world?.bounds ?? null;
-  rig.fit(rig.bounds);
+  rig.points = world ? standingPoints(world) : null;
+  rig.crowded = labels ? () => labels.place(stage.camera, rig.room, rig.cut()).topped : null;
+  rig.fit();
+}
+/** The corners of what stands, which the camera is fitted to: each plate's, tower's and beacon's box (a beacon's from the
+ *  ground its tether reaches), each start point, and the beams' arcs. The bounds' own corners are often bare ground nearest the eye. */
+function standingPoints(world) {
+  const points = [], box = (x0, x1, y0, y1, z0, z1) => { for (const x of [x0, x1]) for (const y of [y0, y1]) for (const z of [z0, z1]) points.push([x, y, z]); };
+  for (const p of world.plates) box(p.x0, p.x1, p.base, p.base + PH, p.z0, p.z1);
+  for (const t of world.towers) box(t.x - t.side / 2, t.x + t.side / 2, t.base, t.base + t.h, t.z - t.side / 2, t.z + t.side / 2);
+  for (const b of world.beacons) box(b.x - 1.25, b.x + 1.25, 0, b.y + 1.3, b.z - 1.25, b.z + 1.25);
+  for (const m of world.markers) for (const [dx, dz] of [[-0.5, -0.5], [0.5, -0.5], [0.5, 0.5], [-0.5, 0.5]]) points.push([m.x + dx, m.base, m.z + dz]);
+  // And each beam's quarter points, so that its arc stays in the frame.
+  for (const b of world.beams) points.push(b.points[8], b.points[16], b.points[24]);
+  return points;
 }
 /** After the window changed size: a state machine or a deployment stands again if sheetOf would now turn it the other way. */
 function spaceTurn() {
