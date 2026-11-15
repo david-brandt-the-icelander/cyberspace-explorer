@@ -1,8 +1,8 @@
 {
   "$schema": "../Meta/Agents/Skills/describe-state-diagram/schema.json",
   "kind": "state",
-  "title": "Flat, the folder tower, the city and the street",
-  "description": "Which of its ways in the page shows, and how the reader moves between them: Flat, Cyberspace's folder tower, its city and the city's street, and the flat view a ~space address gets where Cyberspace can't run. The address decides it: route() reads its last segment, and every move here either changes the address (a new history entry, so Back and Forward retrace it) or replaces the entry (a selection, a floor slid back, walking). The skyline (step 6 of the plan) is not built yet.",
+  "title": "Flat, the skyline, the folder tower, the city and the street",
+  "description": "Which of its ways in the page shows, and how the reader moves between them: Flat, Cyberspace's folder tower, its city and the city's street, and the flat view a ~space address gets where Cyberspace can't run. The address decides it: route() reads its last segment, and every move here either changes the address (a new history entry, so Back and Forward retrace it) or replaces the entry (a selection, a floor slid back, walking). A repository with several folders has a skyline above the folder towers. The views a city stands beside the one in the address (its layers) are not in the address: they last while the reader stays in that folder's city and its street.",
   "sources": [
     {
       "path": "index.html",
@@ -99,6 +99,58 @@
     {
       "path": "index.html",
       "symbol": "walkStep"
+    },
+    {
+      "path": "index.html",
+      "symbol": "spaceSceneFor"
+    },
+    {
+      "path": "index.html",
+      "symbol": "skylineScene"
+    },
+    {
+      "path": "index.html",
+      "symbol": "standSkyline"
+    },
+    {
+      "path": "index.html",
+      "symbol": "riseToSkyline"
+    },
+    {
+      "path": "index.html",
+      "symbol": "flyIntoTower"
+    },
+    {
+      "path": "index.html",
+      "symbol": "skylineEnter"
+    },
+    {
+      "path": "index.html",
+      "symbol": "skylineStep"
+    },
+    {
+      "path": "index.html",
+      "symbol": "folderCard"
+    },
+    {
+      "path": "index.html",
+      "symbol": "layersHud"
+    },
+    {
+      "path": "index.html",
+      "symbol": "layerOn"
+    },
+    {
+      "path": "index.html",
+      "symbol": "layerOff"
+    },
+    {
+      "path": "index.html",
+      "symbol": "leadTo"
+    },
+    {
+      "path": "index.html",
+      "symbol": "districtTo"
     }
   ],
   "machine": "Cyberspace's scenes",
@@ -109,12 +161,16 @@
       "description": "The flat page: the folder column, and the folder's drawings, cards and tables. The address has no ~space segment."
     },
     {
+      "id": "skyline",
+      "description": "Cyberspace's skyline (#<folder>|~space:skyline), above the folder towers of a repository with several folders: every folder a building on a radial tree round the root, a floor plate per view in its kind's colour, dashed lines to the folder it is in. The address folder's building is lit and ringed and the camera is aimed at it; the folder card on the right is its tower's, with what the repository holds and Enter <its title>. A building under the pointer, or focused with Tab, lights and shows the hover card. Walk is off, and Esc does nothing: the skyline is the top. The status line says how many folders have views; its hint, Drag to orbit · click a building to enter it."
+    },
+    {
       "id": "tower",
       "description": "Cyberspace's folder tower: the address folder as a stack of glass floors, one per .dev file, drawn at the bottom, then written, then knowledge, with labels and group brackets on the left, the folder's card and the pulled-out floor's card on the right. One drawn floor at a time is pulled out to the right with its city standing on it, small; the address names it (#<folder>|view:<file>|~space), or names none (#<folder>|~space, the first drawn view). A written or knowledge floor's inspector can be open in place of the cards. The status line says how many floors the tower has; its hint, Scroll to climb · click a floor to pull it out."
     },
     {
       "id": "city",
-      "description": "Cyberspace's city: one drawn view (#<folder>|view:<file>|~space:city, or a part's focus with it selected) standing full size on the ground, with its labels, legend and camera controls; a selected part lights its beams and opens the inspector. The status line's hint is Esc goes up a level."
+      "description": "Cyberspace's city: one drawn view (#<folder>|view:<file>|~space:city, or a part's focus with it selected) standing full size on the ground, with its labels, legend and camera controls; a selected part lights its beams and opens the inspector. The status line's hint is Esc goes up a level. The Layers panel on the left lists the folder's views: ticking a drawn view stands its city 12 units right of the last, unticking fades it out, and a file's use cases or journeys are radio buttons that change the address; written and knowledge views are listed, disabled."
     },
     {
       "id": "street",
@@ -154,6 +210,20 @@
       "action": "the status line says Cyberspace couldn't load its 3D library. Showing the flat view; the next entry tries again"
     },
     {
+      "from": "flat",
+      "to": "skyline",
+      "trigger": "the address gains ~space:skyline",
+      "guard": "the repository has several folders, the browser has WebGL 2 and three.js loads",
+      "action": "the skyline stands at once, the camera on the address folder's building"
+    },
+    {
+      "from": "flat",
+      "to": "tower",
+      "trigger": "the address gains ~space:skyline",
+      "guard": "the repository has one folder",
+      "action": "that folder's tower stands, as for ~space: a repository with one folder has no skyline, and the folder card has no See the skyline"
+    },
+    {
       "from": "tower",
       "to": "tower",
       "trigger": "a click on a drawn floor that is not out",
@@ -164,7 +234,7 @@
       "to": "tower",
       "trigger": "Slide back, or Esc with no inspector open",
       "guard": "a floor is out",
-      "action": "the floor slides back and the entry is replaced with #<folder>|~space; until the reader goes elsewhere every floor stays in. With none out Esc does nothing yet"
+      "action": "the floor slides back and the entry is replaced with #<folder>|~space; until the reader goes elsewhere every floor stays in. With none out Esc rises to the skyline"
     },
     {
       "from": "tower",
@@ -303,6 +373,66 @@
       "to": "flat",
       "trigger": "an address without ~space",
       "action": "the status line's message goes"
+    },
+    {
+      "from": "tower",
+      "to": "skyline",
+      "trigger": "See the skyline on the folder card, its `and N more` chip, or Esc with no floor out and no inspector open",
+      "guard": "the repository has several folders",
+      "action": "a new history entry #<folder>|~space:skyline; in one frame the tower stands in its building, as wide as it, seen as it was, and the camera flies up and back to the skyline's pose (600 ms) as the tower fades out and the skyline in. At once with reduced motion"
+    },
+    {
+      "from": "tower",
+      "to": "skyline",
+      "trigger": "Back or Forward to a skyline address",
+      "action": "as See the skyline does, landing on the building of the folder that address names"
+    },
+    {
+      "from": "skyline",
+      "to": "tower",
+      "trigger": "a click on a building, Enter on the building under the pointer or focused with Tab, or Enter <title> on the folder card, or a folder's chip",
+      "action": "a new history entry #<folder>|~space; the camera flies down to the tower standing small in its building (600 ms) as the skyline fades out and the tower in, then in one frame the tower takes its own size, seen as its opening pose sees it. At once with reduced motion; input on the way lands it where the eye is"
+    },
+    {
+      "from": "skyline",
+      "to": "tower",
+      "trigger": "Back or Forward to a tower address",
+      "action": "as entering a building does"
+    },
+    {
+      "from": "skyline",
+      "to": "skyline",
+      "trigger": "a building under the pointer, Tab or Shift+Tab, Esc, or another skyline address",
+      "action": "the building lights and the hover card opens by it (Tab goes from building to building in folder order, and past the last leaves the canvas); Esc does nothing; another folder's skyline address flies the camera to its building"
+    },
+    {
+      "from": "city",
+      "to": "skyline",
+      "trigger": "an address of the skyline (a link, or Back or Forward past the tower)",
+      "action": "the skyline stands at once, and the city and its layers go"
+    },
+    {
+      "from": "skyline",
+      "to": "flat",
+      "trigger": "an address without ~space: the switch (#<folder>), Back"
+    },
+    {
+      "from": "city",
+      "to": "city",
+      "trigger": "a tick box in the Layers panel",
+      "action": "ticked, the view's city stands 12 units right of the last, in its own kind's colour; unticked, it fades to the dim state over 200 ms and goes, and the cities right of it close up. A camera the reader hasn't moved fits again to everything standing over 300 ms. At once with reduced motion. The address and the history are left alone"
+    },
+    {
+      "from": "city",
+      "to": "city",
+      "trigger": "a radio button in the Layers panel (one of a file's use cases or journeys), or Back or Forward to another view's city of the folder",
+      "action": "a new history entry for that view; its city takes the place of the one in the address, and the layers stay standing beside it; one already standing as a layer becomes the address's where it stands"
+    },
+    {
+      "from": "city",
+      "to": "city",
+      "trigger": "a click on a part of a city standing as a layer",
+      "action": "that layer's view becomes the address's where it stands (the entry is replaced with #<folder>|<kind>:<part>|~space:city), the view that was there stays standing as a layer, and the part is selected in its own city. Nothing moves"
     }
   ],
   "folder": "."

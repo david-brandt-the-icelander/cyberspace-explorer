@@ -1,0 +1,964 @@
+{
+ "about": "retro-games' folders at commit a337ee5 (2026-11-12, the last before 2026-11-14 00:00 UTC; artboard 7 draws them on 2026-11-13): each folder with views and its files' kinds, found as index.html's load() fills byFolder (every .dev/*.json file whose kind the page knows, in the folder its folder field names, else the one its path names). skylineWorldFrom's test reads it, so that folders added later don't move its numbers.",
+ "repository": "https://github.com/david-brandt-the-icelander/retro-games",
+ "commit": "a337ee58c5f5f69cb3abe14f524e3b6460db1cb3",
+ "views": 491,
+ "folders": [
+  {
+   "folder": "",
+   "kinds": [
+    "component",
+    "deployment",
+    "glossary",
+    "backlog",
+    "plan",
+    "decisions",
+    "folder",
+    "references"
+   ]
+  },
+  {
+   "folder": ".github",
+   "kinds": [
+    "component",
+    "use-case",
+    "capability",
+    "operation",
+    "backlog",
+    "folder",
+    "pipeline"
+   ]
+  },
+  {
+   "folder": "docs",
+   "kinds": [
+    "use-case",
+    "folder",
+    "runbooks"
+   ]
+  },
+  {
+   "folder": "games",
+   "kinds": [
+    "component",
+    "backlog",
+    "decisions",
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/chess",
+   "kinds": [
+    "component",
+    "deployment",
+    "user-journey",
+    "requirements",
+    "quality-requirements",
+    "glossary",
+    "backlog",
+    "decisions",
+    "folder",
+    "pipeline",
+    "delivery",
+    "observability",
+    "runbooks",
+    "limitations"
+   ]
+  },
+  {
+   "folder": "games/chess/bridge",
+   "kinds": [
+    "component",
+    "state",
+    "capability",
+    "feature",
+    "operation",
+    "folder",
+    "contracts",
+    "verification",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/chess/godot",
+   "kinds": [
+    "component",
+    "decisions",
+    "folder",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/chess/godot/chess",
+   "kinds": [
+    "component",
+    "class",
+    "capability",
+    "operation",
+    "backlog",
+    "folder",
+    "verification",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/chess/godot/scenes",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/chess/godot/scripts",
+   "kinds": [
+    "component",
+    "class",
+    "state",
+    "state",
+    "state",
+    "state",
+    "state",
+    "use-case",
+    "feature",
+    "backlog",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "configuration"
+   ]
+  },
+  {
+   "folder": "games/chess/godot/tests",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/chess/godot/web_shell",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/chess/scripts",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/chess/scripts/reference",
+   "kinds": [
+    "backlog",
+    "folder",
+    "runbooks"
+   ]
+  },
+  {
+   "folder": "games/chess/shared",
+   "kinds": [
+    "component",
+    "backlog",
+    "folder",
+    "verification",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/chess/test",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/chess/web",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/chess/worker",
+   "kinds": [
+    "component",
+    "class",
+    "state",
+    "state",
+    "capability",
+    "feature",
+    "operation",
+    "backlog",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "configuration"
+   ]
+  },
+  {
+   "folder": "games/dictator",
+   "kinds": [
+    "component",
+    "deployment",
+    "user-journey",
+    "requirements",
+    "quality-requirements",
+    "glossary",
+    "backlog",
+    "decisions",
+    "folder",
+    "pipeline",
+    "delivery",
+    "configuration",
+    "observability",
+    "runbooks",
+    "limitations"
+   ]
+  },
+  {
+   "folder": "games/dictator/docs",
+   "kinds": [
+    "backlog",
+    "folder",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/dictator/public",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/dictator/scripts",
+   "kinds": [
+    "folder",
+    "runbooks"
+   ]
+  },
+  {
+   "folder": "games/dictator/src",
+   "kinds": [
+    "component",
+    "use-case",
+    "feature",
+    "backlog",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "configuration"
+   ]
+  },
+  {
+   "folder": "games/dictator/src/engine",
+   "kinds": [
+    "component",
+    "state",
+    "use-case",
+    "capability",
+    "feature",
+    "operation",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/dictator/src/ui",
+   "kinds": [
+    "component",
+    "class",
+    "decisions",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/dictator/src/zx",
+   "kinds": [
+    "component",
+    "class",
+    "decisions",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/dictator/test",
+   "kinds": [
+    "backlog",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/dictator/worker",
+   "kinds": [
+    "component",
+    "state",
+    "capability",
+    "feature",
+    "operation",
+    "backlog",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "configuration"
+   ]
+  },
+  {
+   "folder": "games/dictator/worker/migrations",
+   "kinds": [
+    "folder",
+    "versions"
+   ]
+  },
+  {
+   "folder": "games/hivestorm",
+   "kinds": [
+    "component",
+    "deployment",
+    "user-journey",
+    "requirements",
+    "quality-requirements",
+    "glossary",
+    "backlog",
+    "decisions",
+    "folder",
+    "pipeline",
+    "delivery",
+    "observability",
+    "runbooks",
+    "limitations"
+   ]
+  },
+  {
+   "folder": "games/hivestorm/public",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/hivestorm/src",
+   "kinds": [
+    "component",
+    "class",
+    "state",
+    "use-case",
+    "capability",
+    "feature",
+    "backlog",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "configuration",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/hivestorm/src/engine",
+   "kinds": [
+    "component",
+    "class",
+    "state",
+    "state",
+    "capability",
+    "feature",
+    "operation",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/hivestorm/src/ui",
+   "kinds": [
+    "component",
+    "class",
+    "backlog",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/hivestorm/test",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/hivestorm/worker",
+   "kinds": [
+    "component",
+    "state",
+    "capability",
+    "feature",
+    "operation",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "configuration"
+   ]
+  },
+  {
+   "folder": "games/lodestar",
+   "kinds": [
+    "component",
+    "deployment",
+    "user-journey",
+    "stakeholders",
+    "risks",
+    "requirements",
+    "quality-requirements",
+    "glossary",
+    "backlog",
+    "decisions",
+    "folder",
+    "pipeline",
+    "delivery",
+    "runbooks",
+    "limitations",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/lodestar/docs",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src",
+   "kinds": [
+    "component",
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/capabilities",
+   "kinds": [
+    "component",
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/capabilities/ai",
+   "kinds": [
+    "class",
+    "capability",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/capabilities/bubble",
+   "kinds": [
+    "class",
+    "capability",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/capabilities/cockpit",
+   "kinds": [
+    "class",
+    "state",
+    "capability",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/capabilities/combat",
+   "kinds": [
+    "class",
+    "capability",
+    "decisions",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/capabilities/equipment",
+   "kinds": [
+    "class",
+    "capability",
+    "decisions",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/capabilities/flight",
+   "kinds": [
+    "class",
+    "capability",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/capabilities/market",
+   "kinds": [
+    "class",
+    "capability",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/capabilities/pilot",
+   "kinds": [
+    "class",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/capabilities/random",
+   "kinds": [
+    "class",
+    "capability",
+    "decisions",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/capabilities/ships",
+   "kinds": [
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/capabilities/space",
+   "kinds": [
+    "class",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/capabilities/universe",
+   "kinds": [
+    "class",
+    "capability",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/features",
+   "kinds": [
+    "component",
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/features/death",
+   "kinds": [
+    "class",
+    "feature",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/features/docking",
+   "kinds": [
+    "feature",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/features/escape_pod",
+   "kinds": [
+    "class",
+    "feature",
+    "decisions",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/features/hyperspace",
+   "kinds": [
+    "class",
+    "state",
+    "feature",
+    "decisions",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/features/in_system_jump",
+   "kinds": [
+    "feature",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/features/planet_and_sun",
+   "kinds": [
+    "feature",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/features/saving",
+   "kinds": [
+    "class",
+    "feature",
+    "backlog",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/features/spawning",
+   "kinds": [
+    "class",
+    "feature",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/features/station",
+   "kinds": [
+    "feature",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/features/trading",
+   "kinds": [
+    "class",
+    "feature",
+    "decisions",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/hosting",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/hosting/godot",
+   "kinds": [
+    "blockers",
+    "folder",
+    "configuration",
+    "runbooks"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/hosting/godot/src",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/infrastructure",
+   "kinds": [
+    "capability",
+    "operation",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/infrastructure/src",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/presentation",
+   "kinds": [
+    "component",
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/presentation/bridge",
+   "kinds": [
+    "class",
+    "capability",
+    "operation",
+    "backlog",
+    "folder",
+    "contracts",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/presentation/bridge/src",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/presentation/game",
+   "kinds": [
+    "class",
+    "folder",
+    "verification",
+    "configuration"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/presentation/hud",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/presentation/ships",
+   "kinds": [
+    "class",
+    "folder",
+    "contracts",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/presentation/space",
+   "kinds": [
+    "class",
+    "folder",
+    "configuration"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/presentation/text",
+   "kinds": [
+    "backlog",
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/presentation/ui",
+   "kinds": [
+    "class",
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/use_cases",
+   "kinds": [
+    "component",
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/lodestar/src/use_cases/fly_in_system",
+   "kinds": [
+    "class",
+    "state",
+    "use-case",
+    "operation",
+    "decisions",
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/lodestar/tests",
+   "kinds": [
+    "folder",
+    "verification"
+   ]
+  },
+  {
+   "folder": "games/rally",
+   "kinds": [
+    "component",
+    "deployment",
+    "user-journey",
+    "requirements",
+    "quality-requirements",
+    "glossary",
+    "decisions",
+    "folder",
+    "pipeline",
+    "delivery",
+    "observability",
+    "runbooks",
+    "limitations"
+   ]
+  },
+  {
+   "folder": "games/rally/public",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/rally/src",
+   "kinds": [
+    "component",
+    "class",
+    "state",
+    "state",
+    "use-case",
+    "capability",
+    "feature",
+    "backlog",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "configuration",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/rally/src/engine",
+   "kinds": [
+    "component",
+    "class",
+    "state",
+    "capability",
+    "feature",
+    "operation",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/rally/src/ui",
+   "kinds": [
+    "component",
+    "class",
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/rally/test",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/rally/worker",
+   "kinds": [
+    "component",
+    "state",
+    "capability",
+    "feature",
+    "operation",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "configuration"
+   ]
+  },
+  {
+   "folder": "games/shatterbelt",
+   "kinds": [
+    "component",
+    "deployment",
+    "user-journey",
+    "requirements",
+    "quality-requirements",
+    "glossary",
+    "backlog",
+    "decisions",
+    "folder",
+    "pipeline",
+    "delivery",
+    "observability",
+    "runbooks",
+    "limitations"
+   ]
+  },
+  {
+   "folder": "games/shatterbelt/public",
+   "kinds": [
+    "backlog",
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/shatterbelt/src",
+   "kinds": [
+    "component",
+    "class",
+    "state",
+    "state",
+    "use-case",
+    "capability",
+    "feature",
+    "backlog",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "configuration",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/shatterbelt/src/engine",
+   "kinds": [
+    "component",
+    "state",
+    "state",
+    "capability",
+    "feature",
+    "operation",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "references"
+   ]
+  },
+  {
+   "folder": "games/shatterbelt/test",
+   "kinds": [
+    "folder"
+   ]
+  },
+  {
+   "folder": "games/shatterbelt/worker",
+   "kinds": [
+    "component",
+    "state",
+    "capability",
+    "feature",
+    "operation",
+    "backlog",
+    "decisions",
+    "folder",
+    "contracts",
+    "verification",
+    "configuration"
+   ]
+  }
+ ]
+}

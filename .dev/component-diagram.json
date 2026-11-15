@@ -163,6 +163,66 @@
     {
       "path": "index.html",
       "symbol": "streetHover"
+    },
+    {
+      "path": "index.html",
+      "symbol": "floorOrder"
+    },
+    {
+      "path": "index.html",
+      "symbol": "skylineWorldFrom"
+    },
+    {
+      "path": "index.html",
+      "symbol": "skylineWorld"
+    },
+    {
+      "path": "index.html",
+      "symbol": "buildingCorners"
+    },
+    {
+      "path": "index.html",
+      "symbol": "layerOffsets"
+    },
+    {
+      "path": "index.html",
+      "symbol": "districtWorld"
+    },
+    {
+      "path": "index.html",
+      "symbol": "buildDistrict"
+    },
+    {
+      "path": "index.html",
+      "symbol": "buildSkyline"
+    },
+    {
+      "path": "index.html",
+      "symbol": "skylineScene"
+    },
+    {
+      "path": "index.html",
+      "symbol": "skylineLabels"
+    },
+    {
+      "path": "index.html",
+      "symbol": "layersHud"
+    },
+    {
+      "path": "index.html",
+      "symbol": "layerViews"
+    },
+    {
+      "path": "index.html",
+      "symbol": "folderCard"
+    },
+    {
+      "path": "index.html",
+      "symbol": "skylineHud"
+    },
+    {
+      "path": "index.html",
+      "symbol": "placeCard"
     }
   ],
   "components": [
@@ -313,37 +373,37 @@
     {
       "id": "cyberspace",
       "name": "Cyberspace",
-      "responsibility": "The second way in: the repository in 3D, over a sky and on a ground grid, in place of the folder column and view. A folder opens as a tower of glass floors, one per .dev file, with a drawn view pulled out and its city small on it; entering that floor flies down into the city, and Esc flies back up. A drawn view stands as a city of glass towers on the flat layout's ground plan; clicking a tower, plate or beacon selects it, lights its beams and neighbours, opens the inspector on it and puts it in the address. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
+      "responsibility": "The second way in: the repository in 3D, over a sky and on a ground grid, in place of the folder column and view. A folder opens as a tower of glass floors, one per .dev file, with a drawn view pulled out and its city small on it; entering that floor flies down into the city, and Esc flies back up. A drawn view stands as a city of glass towers on the flat layout's ground plan; clicking a tower, plate or beacon selects it, lights its beams and neighbours, opens the inspector on it and puts it in the address. Above the towers, a repository with several folders is a skyline of buildings, one per folder, that the reader rises to and flies into. A city can stand other drawn views of its folder beside it. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
       "folder": "."
     },
     {
       "id": "stage",
       "name": "Stage",
-      "responsibility": "The WebGL renderer, scene and camera: stands a city's meshes (instanced glass plates and towers, merged lines, beacons and beams, a dozen draw calls) or a folder tower's (the floors as one instanced glass mesh, their edges, rails and faces as one set of lines and one of tiles, and the pulled-out floor as a drawer with its glow, its ghost slot and its city scaled down) on the ground, slides floors out and back, fades the tower out behind the city that takes its place and in again, draws a frame only when something changed and none while hidden, follows the window's size and the system's light or dark colours, lets go of the scene on leaving and of the context a minute later, and offers Restore it when the context is lost.",
+      "responsibility": "The WebGL renderer, scene and camera: stands a city's meshes (instanced glass plates and towers, merged lines, beacons and beams, a dozen draw calls) or a folder tower's (the floors as one instanced glass mesh, their edges, rails and faces as one set of lines and one of tiles, and the pulled-out floor as a drawer with its glow, its ghost slot and its city scaled down) on the ground, or every city standing in a city scene, side by side, or the skyline's buildings (their floor plates and shells instanced, their edges and ground lines one set of lines: six draw calls with the ground), slides floors out and back, fades the tower out behind the city that takes its place and in again, and out as the skyline fades in and back, fades an unticked city to dim before it goes, draws a frame only when something changed and none while hidden, follows the window's size and the system's light or dark colours, lets go of the scene on leaving and of the context a minute later, and offers Restore it when the context is lost.",
       "folder": "."
     },
     {
       "id": "world-builders",
       "name": "World builders",
-      "responsibility": "Turn a drawn view into a city in world units, from the layout Flat draws it with (or a grid without one): groups as plates, parts as towers as tall as their beams make them, a component's or deployment's outside services as beacons, start points as discs and every edge as an arc, those between the same two parts fanned out. Turn a folder's files into a tower of floors in three groups (drawn, written, knowledge), each floor with what its top shows: a drawn view's plan from its city, a written view's cards as bars, a knowledge file's records as lines. Pure functions, tested in Node; built once per view and direction, and once per folder.",
+      "responsibility": "Turn a drawn view into a city in world units, from the layout Flat draws it with (or a grid without one): groups as plates, parts as towers as tall as their beams make them, a component's or deployment's outside services as beacons, start points as discs and every edge as an arc, those between the same two parts fanned out. Turn a folder's files into a tower of floors in three groups (drawn, written, knowledge), each floor with what its top shows: a drawn view's plan from its city, a written view's cards as bars, a knowledge file's records as lines. Turn the repository's folders into a skyline: a building per folder on the radial tree of folders, each subtree given the angle its buildings need, the rings widened until they fit, a floor per file in its tower's order. Place the cities standing side by side, each 12 units right of the last, and join them into one world to walk in and map. Pure functions, tested in Node; built once per view and direction, once per folder, and once for the skyline.",
       "folder": "."
     },
     {
       "id": "camera-rig",
       "name": "Camera rig",
-      "responsibility": "The camera in orbit, pan and walk modes: fits the city into the room the panels leave, with the projection centred on it, and turns, pans and flies with a drag, the wheel, a pinch, the arrow keys, + and −, and F, within limits. In the tower it takes the design's opening pose, framed in the whole window and climbed for a stack taller than 24 floors, and the wheel climbs; it flies between the tower and a city, and between a city and its street, on an arc, at once with reduced motion. In the street it walks: it puts the eye 12 units from a part across the layout's flow, looking up at it, then moves it with W A S D, the arrows, Space and Z at a pace that doesn't depend on the frame rate, turns it with Alt and a drag, slides it along towers, steps it onto plates and keeps it within the city's bounds grown by 30; the city's beams are drawn at 0.28 of their radii while it walks.",
+      "responsibility": "The camera in orbit, pan and walk modes: fits the city into the room the panels leave, with the projection centred on it, and turns, pans and flies with a drag, the wheel, a pinch, the arrow keys, + and −, and F, within limits. In the tower it takes the design's opening pose, framed in the whole window and climbed for a stack taller than 24 floors, and the wheel climbs; it flies between the tower and a city, and between a city and its street, on an arc, at once with reduced motion. In the street it walks: it puts the eye 12 units from a part across the layout's flow, looking up at it, then moves it with W A S D, the arrows, Space and Z at a pace that doesn't depend on the frame rate, turns it with Alt and a drag, slides it along towers, steps it onto plates and keeps it within the city's bounds grown by 30; the city's beams are drawn at 0.28 of their radii while it walks. In the skyline it opens 6.25 rings from the address folder's building, 24° up, framed in the whole window, and Fit everything shows every building; it flies between the skyline and a tower. A camera the reader hasn't moved fits again, over 300 ms, to everything standing when a city is stood beside the others or taken away.",
       "folder": "."
     },
     {
       "id": "labels",
       "name": "Labels",
-      "responsibility": "HTML labels over the canvas: a pill for each part, cut at 150 px, with Flat's badge or the step's glyph, and each plate's name with its number of parts; placed nearest first, pushed clear of each other and off the panels, with leaders, and faded out with distance. By a tower: each floor's kind and title left of its slot, and a bracket for each group with its name and count.",
+      "responsibility": "HTML labels over the canvas: a pill for each part, cut at 150 px, with Flat's badge or the step's glyph, and each plate's name with its number of parts; placed nearest first, pushed clear of each other and off the panels, with leaders, and faded out with distance. By a tower: each floor's kind and title left of its slot, and a bracket for each group with its name and count. With several cities standing, each label belongs to its city and its part. Over the skyline: a pill per building, its folder's title and last segment, for the address folder, its ancestors, the folders two levels below it and the one under the pointer, at any distance.",
       "folder": "."
     },
     {
       "id": "hud",
       "name": "HUD",
-      "responsibility": "The panels over the scene: over a city, the camera controls (orbit, pan, walk, zoom in and out, fit everything) and the legend, worded for the kind of view; over the tower, the folder's card (its name, path, purpose, counts of drawn, written and knowledge files, and the folders inside it) and the pulled-out floor's (its view, what its city holds, Enter the city and Slide back); in the street, in place of the city's, the breadcrumb (folder, view, plate and the part selected or ahead), the key hints, the map (plates, towers, beacons and the eye with its view cone; a click flies the eye there), the hover card by the part under the pointer (never under the inspector), a crosshair and a vignette.",
+      "responsibility": "The panels over the scene: over a city, the camera controls (orbit, pan, walk, zoom in and out, fit everything) and the legend, worded for the kind of view; over the tower, the folder's card (its name, path, purpose, counts of drawn, written and knowledge files, and the folders inside it) and the pulled-out floor's (its view, what its city holds, Enter the city and Slide back); in the street, in place of the city's, the breadcrumb (folder, view, plate and the part selected or ahead), the key hints, the map (plates, towers, beacons and the eye with its view cone; a click flies the eye there), the hover card by the part under the pointer (never under the inspector), a crosshair and a vignette. Over a city, the Layers panel on the left: the folder's views by kind, a tick box for a drawn view with a city of its own, radio buttons for a file's use cases or journeys, written and knowledge views listed but disabled. Over the tower, See the skyline, and the folders inside folded into a chip that opens it. Over the skyline, the address folder's card with what the repository holds and Enter <its title>, the camera controls with Walk off, the legend, and the street's hover card by a building, clear of the folder card.",
       "folder": "."
     },
     {

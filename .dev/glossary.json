@@ -185,6 +185,28 @@
       ]
     },
     {
+      "id": "skyline",
+      "title": "Skyline",
+      "summary": "A repository's folders in Cyberspace, one level above the folder towers: every folder a building on a radial tree round the root folder, as tall as its views, a floor plate per view in its kind's colour, with a dashed line on the ground to the folder it is in. Only a repository with several folders has one.",
+      "aliases": [
+        "~space:skyline"
+      ],
+      "notToBeConfusedWith": [
+        "Folder tower"
+      ]
+    },
+    {
+      "id": "layer",
+      "title": "Layer, in a city",
+      "summary": "A drawn view standing in a Cyberspace city beside the one the address names, ticked in the city's Layers panel: its own city, 12 units right of the last, in its kind's colour. Layers are not in the address; they last while the reader stays in that folder's city and its street.",
+      "aliases": [
+        "Layers panel"
+      ],
+      "notToBeConfusedWith": [
+        "Plate, in a city"
+      ]
+    },
+    {
       "id": "token-scope",
       "title": "Scope",
       "summary": "What a token is for: every repository on a host, everything under an owner or group, or one repository."
