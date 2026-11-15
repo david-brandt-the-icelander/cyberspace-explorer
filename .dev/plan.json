@@ -86,6 +86,81 @@
         }
       ],
       "evidenceStatus": "documented"
+    },
+    {
+      "id": "cyberspace-gibson",
+      "title": "Give Cyberspace the Gibson look",
+      "summary": "Four pull requests after a design pass: the dark and the palette, the floor's traces, the towers' faces, then the arcs, labels and HUD.",
+      "goal": "Cyberspace looks as artboards 11 to 15 draw it and docs/cyberspace-mode-spec.md says, always dark, within the budgets of quality requirement space-frame-rate.",
+      "status": "in-progress",
+      "scope": [
+        {
+          "path": ".dev/backlog.json",
+          "entityId": "cyberspace-gibson"
+        }
+      ],
+      "approach": "A design pass first, approved by the owner before any build: artboards 11 to 15, rendered with three.js core from this repository's data by a scratch prototype that also measured the budgets, and the spec's Rendering, Labels and HUD rewritten to match. Then one pull request per step, into main, in order, each from the latest main, each leaving the page working and checked as plan cyberspace-mode's steps were: the diff against the spec, the tests and both validators on a clean checkout, the page in a real browser beside the renders, the flat page's regression list and the ?spacestats readout. Merging deploys to cyberspace-explorer.com, so each merges only on the owner's word. A sub-session builds each step, one at a time, because every step changes index.html.",
+      "steps": [
+        {
+          "id": "gibson-design",
+          "title": "Design pass: artboards 11 to 15, the spec's Rendering, Labels and HUD, decision space-gibson-look and this plan",
+          "status": "done"
+        },
+        {
+          "id": "gibson-dark",
+          "title": "G1 · Dark and palette: html.space and the dark block, Cyberspace's tokens, the sky and the glossy floor, fog, the glass's new colours, glowing edges, magenta beacons, multisampling below pixel ratio 2 only, the HUD's colours, and ?spacestats reading a pixel back",
+          "status": "todo"
+        },
+        {
+          "id": "gibson-traces",
+          "title": "G2 · Floor traces: dagre's points kept, routeTraces, skylineTraces and traceAt with their tests, traces and pads in place of the quiet beams, picking on the floor, the map's traces, cityCalls counted again",
+          "status": "todo"
+        },
+        {
+          "id": "gibson-faces",
+          "title": "G3 · Faces: faceText and its kin with their tests, the atlas and the codes, the glass shader's faces, the folder tower's floors and the skyline's buildings carrying their text, the reflections",
+          "status": "todo"
+        },
+        {
+          "id": "gibson-arcs",
+          "title": "G4 · Arcs, labels and HUD: lit beams as arcs, the labels' look and the street's rule for near towers, the legend and its icons, the words, the records and the acceptance checklist again",
+          "status": "todo"
+        }
+      ],
+      "outOfScope": [
+        "Turning the view toward what is selected: built in a pull request of its own, alongside",
+        "Light mode in Cyberspace",
+        "Motion of its own: glows that pulse, text that scrolls"
+      ],
+      "origin": {
+        "kind": "request",
+        "by": "owner",
+        "date": "2026-11-15",
+        "description": "Make Cyberspace always dark, styled like the Gibson in Hackers, with a design pass approved before any build."
+      },
+      "links": [
+        {
+          "label": "Implementation spec",
+          "path": "docs/cyberspace-mode-spec.md"
+        },
+        {
+          "label": "Artboards 11 to 15 and their renders",
+          "path": "docs/cyberspace-design/README.md"
+        }
+      ],
+      "relationships": [
+        {
+          "relation": "relates-to",
+          "path": ".dev/plan.json",
+          "entityId": "cyberspace-mode"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/decisions.json",
+          "entityId": "space-gibson-look"
+        }
+      ],
+      "evidenceStatus": "documented"
     }
   ]
 }

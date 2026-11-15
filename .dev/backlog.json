@@ -92,6 +92,39 @@
       "evidenceStatus": "proposed"
     },
     {
+      "id": "cyberspace-gibson",
+      "title": "Cyberspace in the Gibson look",
+      "type": "feature",
+      "status": "accepted",
+      "priority": "medium",
+      "summary": "Cyberspace always dark, like the Gibson in Hackers: cyan glass towers carrying their own record, circuit traces on a glossy black floor, arcs when lit.",
+      "details": "Decision space-gibson-look says what the look is, and the [spec](docs/cyberspace-mode-spec.md)'s Rendering section how it is drawn; artboards 11 to 15 in [docs/cyberspace-design](docs/cyberspace-design/README.md) draw it. Plan cyberspace-gibson builds it in four pull requests.",
+      "origin": {
+        "kind": "request",
+        "by": "owner",
+        "date": "2026-11-15",
+        "description": "Make Cyberspace always dark, styled like the Gibson in Hackers, with a design pass approved before any build."
+      },
+      "acceptanceCriteria": [
+        "Every scene looks as artboards 11 to 15 draw it, whatever the system's colour scheme, and Flat follows the system as before.",
+        "Every word on a tower's face is the part's own, and nothing moves unless the camera does.",
+        "No trace passes through a tower, for every drawn view of this repository and retro-games.",
+        "The budgets in quality requirement space-frame-rate still hold, measured with a pixel read back."
+      ],
+      "relationships": [
+        {
+          "relation": "relates-to",
+          "path": ".dev/decisions.json",
+          "entityId": "space-gibson-look"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/plan.json",
+          "entityId": "cyberspace-gibson"
+        }
+      ]
+    },
+    {
       "id": "landing-form-after-bad-address",
       "title": "The landing page forgets a new address after a bad one",
       "type": "defect",

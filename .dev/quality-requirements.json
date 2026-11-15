@@ -92,10 +92,10 @@
     {
       "id": "light-dark",
       "title": "Light and dark",
-      "summary": "Every colour has a light and a dark value.",
+      "summary": "Every colour of Flat has a light and a dark value; Cyberspace is always dark.",
       "area": "Appearance",
-      "requirement": "Every colour is a token with a value for light and one for dark, chosen by the system's setting. Cyberspace draws with the same tokens, read by spaceTheme and read again when the system's setting changes, which re-colours what stands without building it again; label text stands at least 4.5:1 against its pill in both, over every part of the sky.",
-      "measuredBy": "Reading the :root tokens and their dark block; opening the page in both. For Cyberspace, test/space.test.js reads the two :root blocks and the label rules and checks every pill; a city re-themed both ways keeps its geometries (15 before and after, 2026-11-15).",
+      "requirement": "Every colour is a token with a value for light and one for dark, chosen by the system's setting, in Flat. Cyberspace is always dark (decision space-gibson-look): while it shows, the window takes the dark values and Cyberspace's own tokens, which have no light value, read by spaceTheme; leaving it, Flat follows the system again. Label text stands at least 4.5:1 against its pill over every part of Cyberspace's sky.",
+      "measuredBy": "Reading the :root tokens and their dark block; opening the page in both. For Cyberspace, test/space.test.js reads the dark block, its copy under :root.space and Cyberspace's tokens, and checks every pill; with the system in light mode, Cyberspace and the whole window are dark.",
       "evidenceStatus": "source-verified",
       "sources": [
         {
@@ -114,7 +114,15 @@
           "path": "test/space.test.js",
           "symbol": "label text stands 4.5:1 against its pill"
         }
-      ]
+      ],
+      "relationships": [
+        {
+          "relation": "amended-by",
+          "path": ".dev/decisions.json",
+          "entityId": "space-gibson-look"
+        }
+      ],
+      "details": "Until decision space-gibson-look Cyberspace followed the system too: a city re-themed both ways kept its geometries (15 before and after, 2026-11-15), and artboards 4 to 6 drew it in light mode."
     },
     {
       "id": "screen-sizes",
