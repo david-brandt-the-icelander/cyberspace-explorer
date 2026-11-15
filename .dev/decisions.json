@@ -106,6 +106,14 @@
           "path": "index.html",
           "symbol": "kind-component"
         }
+      ],
+      "details": "In Cyberspace the kind colour is an accent (decision space-gibson-look): towers are cyan glass whatever their kind, and the kind colour marks their edges, pads, labels, plates' rims and names, the frames and headings on their faces, and the floors of the folder tower and the skyline. Cyberspace uses the dark values, being always dark.",
+      "relationships": [
+        {
+          "relation": "amended-by",
+          "path": ".dev/decisions.json",
+          "entityId": "space-gibson-look"
+        }
       ]
     },
     {
@@ -528,7 +536,7 @@
       "id": "space-light-mode",
       "title": "Cyberspace in light mode",
       "summary": "Light mode in Cyberspace is what the page's light tokens give, as artboards 4 to 6 on the canvas draw it.",
-      "status": "accepted",
+      "status": "superseded",
       "context": "Every colour in Cyberspace comes from the page's tokens (quality requirement light-dark), with four new ones for the sky and the major grid, so light mode follows from the light values. Artboards 4 to 6 (docs/cyberspace-design/StrataLight, MainLight and StreetLight) draw the three scenes from those values. What is lit turns ink-dark, because --hot is the ink colour in light mode: the selected tower's edges, the lit beams, the selected label. Flat's lit lines do the same.",
       "options": [
         {
@@ -554,9 +562,15 @@
           "relation": "relates-to",
           "path": ".dev/plan.json",
           "entityId": "cyberspace-mode"
+        },
+        {
+          "relation": "superseded-by",
+          "path": ".dev/decisions.json",
+          "entityId": "space-gibson-look"
         }
       ],
-      "evidenceStatus": "documented"
+      "evidenceStatus": "documented",
+      "details": "Superseded by space-gibson-look on 2026-11-15: Cyberspace is always dark, and artboards 4 to 6 are kept as history."
     },
     {
       "id": "space-other-kinds",
@@ -590,6 +604,72 @@
           "entityId": "cyberspace-mode"
         }
       ],
+      "evidenceStatus": "documented"
+    },
+    {
+      "id": "space-gibson-look",
+      "title": "Cyberspace looks like the Gibson in Hackers",
+      "summary": "Cyberspace is always dark: cyan glass towers whose faces carry their own record, relationships as circuit traces on a black glossy floor that rise as arcs when lit, the kind colour as an accent, as artboards 11 to 15 on the canvas draw it.",
+      "status": "accepted",
+      "context": "On 2026-11-15 the owner asked for Cyberspace to look like the Gibson in the film Hackers (1995), from four reference stills: tall translucent cyan-to-teal glass towers densely covered in small glowing monospace text, long straight streets fading into black, a black glossy floor with glowing circuit traces in violet, blue and magenta that turn at right angles and end in pads at the towers' bases, and a black-to-indigo sky. On the stills the owner chose: circuit traces on the floor with arcs only when lit; cyan glass with the kind colour as an accent; tower faces carrying their own data, standing still; and a design pass first. Until then Cyberspace followed the system's colour scheme (decision space-light-mode), drew relationships as arcs of light and its towers as glass in their kind's colour.",
+      "options": [
+        {
+          "title": "Accept artboards 11 to 15 and the spec as it now stands",
+          "consequences": "Plan cyberspace-gibson builds the look in four pull requests: dark and palette, floor traces, faces, arcs, labels and HUD. Light mode goes from Cyberspace; Flat keeps it."
+        },
+        {
+          "title": "Change an artboard first",
+          "consequences": "The spec and the plan follow the change before step G1."
+        }
+      ],
+      "decision": "Cyberspace is always dark: while it shows, the whole window takes the page's dark tokens, and Cyberspace's own tokens colour the scene and its panels; Flat keeps following the system. Towers are cyan-to-teal glass; the kind colour accents their edges, pads, labels, plates and the frames on their faces. Each tower's faces carry its own record as the inspector shows it, in glowing monospace: its name, kind, description and file on two faces, its relationships on the other two; a short record repeats down its face, dimmed, and a long one is cut with an ellipsis; at a distance the text thins into a haze; nothing moves unless the camera does. Every relationship is a glowing circuit trace on the floor, routed at right angles along the streets dagre's own route takes, between pins on the two parts' pads, parallel traces in lanes; a selected part's relationships also rise as arcs of light, and the quiet arcs go. Beacons are magenta, as are the traces that reach them. The glows are geometry with a falloff in its own shader: no post-processing, three.js core only.",
+      "rationale": "It is the look the owner chose, and a prototype drawn from this repository's data with three.js core alone shows it holds the budgets: 9 draw calls for a city of any size (10 with a selection), 7 for the skyline, and frames of 1.5 to 3.6 ms on an M1 Pro at up to 3440 × 1440 and device pixel ratio 2, without multisampling at that pixel ratio. Every word on a face is the part's own, and every relationship stays on the floor whether or not anything is selected.",
+      "decidedBy": "owner",
+      "decidedOn": "2026-11-15",
+      "origin": {
+        "kind": "request",
+        "by": "owner",
+        "date": "2026-11-15",
+        "description": "Make Cyberspace always dark, styled like the Gibson in Hackers; selecting something should turn the view toward it."
+      },
+      "relationships": [
+        {
+          "relation": "supersedes",
+          "path": ".dev/decisions.json",
+          "entityId": "space-light-mode"
+        },
+        {
+          "relation": "amends",
+          "path": ".dev/decisions.json",
+          "entityId": "colour-per-kind"
+        },
+        {
+          "relation": "amends",
+          "path": ".dev/quality-requirements.json",
+          "entityId": "light-dark"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/decisions.json",
+          "entityId": "cyberspace-motion"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/plan.json",
+          "entityId": "cyberspace-gibson"
+        }
+      ],
+      "links": [
+        {
+          "label": "The spec's Rendering section",
+          "path": "docs/cyberspace-mode-spec.md"
+        },
+        {
+          "label": "Artboards 11 to 15 and their renders",
+          "path": "docs/cyberspace-design/README.md"
+        }
+      ],
+      "details": "The owner accepted artboards 11 to 15 on 2026-11-15, after asking for thinner lines at the buildings' edges. Measured in the scratch prototype that drew artboards 11 to 15 (2026-11-15, M1 Pro, Chrome for Testing): the face atlas is 512 × 1024 RGBA (2.7 MiB with its mips), built in 33 to 53 ms; a city's face text is 2 bytes a cell (47 KB for this repository's component city, 381 KB for the 400 parts of perf/400-parts); routing 474 traces takes 31 ms; no trace of this repository's 20 drawn views, retro-games' 142 or the 400-part city passes through a tower. Frame times are in the spec's Performance budgets, measured with a pixel read back: gl.finish() returned before the GPU had finished there.",
       "evidenceStatus": "documented"
     },
     {
