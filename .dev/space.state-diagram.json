@@ -239,7 +239,7 @@
       "from": "tower",
       "to": "tower",
       "trigger": "a click on a drawn floor that is not out",
-      "action": "a new history entry #<folder>|view:<file>|~space; the floor out slides back as this one slides out with its city, 450 ms eased out, at once with reduced motion"
+      "action": "a new history entry #<folder>|view:<file>|~space; the floor out slides back as this one slides out with its city, 450 ms eased out, at once with reduced motion; where it stands outside the room, the camera climbs to it"
     },
     {
       "from": "tower",
@@ -252,7 +252,7 @@
       "from": "tower",
       "to": "tower",
       "trigger": "a click on a written or knowledge floor, or an address naming one (view:<file>, entity:<file>[#<record id>])",
-      "action": "the inspector opens on that floor (title, kind, description, the record named, Read it in Flat) in place of the cards, its edges in --hot, and the entry is replaced with its address; Esc or a click on empty ground closes it and the entry is the tower's again"
+      "action": "the inspector opens on that floor (title, kind, description, the record named, Read it in Flat) in place of the cards, its edges in --hot, the camera climbing to it where it stands outside the room, and the entry is replaced with its address; Esc or a click on empty ground closes it and the entry is the tower's again"
     },
     {
       "from": "tower",
@@ -301,8 +301,8 @@
     {
       "from": "city",
       "to": "city",
-      "trigger": "a click on a tower, plate or beacon; Esc or a click on empty ground with one selected",
-      "action": "the part is selected or cleared, and the entry is replaced with its address or the view's own"
+      "trigger": "a click on a tower, plate or beacon, Enter on its button in the list Tab walks, a link in the inspector to another part, or Back or Forward to a part's address; Esc or a click on empty ground with one selected",
+      "action": "the part is selected or cleared, and the entry is replaced with its address or the view's own. Selected, the point the camera turns about glides to the part's middle, which comes to the centre of the room the inspector leaves, distance and angles kept (at once with reduced motion, stopped by input); cleared, nothing moves"
     },
     {
       "from": "city",
@@ -332,8 +332,8 @@
     {
       "from": "street",
       "to": "street",
-      "trigger": "a click on a part, Enter on the part under the crosshair, or Esc with one selected",
-      "action": "the part is selected or cleared and the entry replaced, as in the city; the eye stays"
+      "trigger": "a click on a part, Enter on its button in the list Tab walks, Enter on the part under the crosshair, or Esc with one selected",
+      "action": "the part is selected or cleared and the entry replaced, as in the city. The eye stays where it stands and turns to face the part, for 250 ms and 3 more a degree, at most 700 (at once with reduced motion, stopped by walking or a drag); at the crosshair the part is ahead already and nothing turns"
     },
     {
       "from": "street",
@@ -418,7 +418,7 @@
       "from": "skyline",
       "to": "skyline",
       "trigger": "a building under the pointer, Tab or Shift+Tab to its button in the list after the canvas, Esc, or another skyline address",
-      "action": "the building lights and the hover card opens by it (Tab goes from building to building in folder order through the list, then on to the panels); Esc does nothing; another folder's skyline address flies the camera to its building"
+      "action": "the building lights and the hover card opens by it (Tab goes from building to building in folder order through the list, then on to the panels; a building focused out of view or under the folder card is brought just inside the room, and the pointer never moves the camera); Esc does nothing; another folder's skyline address flies the camera to its building"
     },
     {
       "from": "city",
@@ -448,7 +448,7 @@
       "from": "city",
       "to": "city",
       "trigger": "a click on a part of a city standing as a layer",
-      "action": "that layer's view becomes the address's where it stands (the entry is replaced with #<folder>|<kind>:<part>|~space:city), the view that was there stays standing as a layer, and the part is selected in its own city. Nothing moves"
+      "action": "that layer's view becomes the address's where it stands (the entry is replaced with #<folder>|<kind>:<part>|~space:city), the view that was there stays standing as a layer, and the part is selected in its own city; the camera turns toward it, as for any selection"
     }
   ],
   "folder": "."

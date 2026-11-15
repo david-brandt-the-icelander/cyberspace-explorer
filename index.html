@@ -2796,25 +2796,71 @@ function streetSide(dir) {
   const a = (20 * Math.PI) / 180;
   return dir === "TB" ? [-Math.cos(a), Math.sin(a)] : [-Math.sin(a), -Math.cos(a)];
 }
+/** Where a part of a city stands, for the camera to look at it: its centre on the ground, its base, its height, the height of
+ *  its middle, and its box ([x0, y0, z0, x1, y1, z1]). A beacon's height is its top's (y + 1.3, from a base on the ground) and
+ *  its middle its diamond's, where it hovers; a plate's height is its thickness. Among cities standing side by side
+ *  (districtWorld's) `view` says which city's part it is. Null for none. */
+function partStand(world, key, view = undefined) {
+  const is = (x) => x.key === key && (view === undefined || x.view === view);
+  const t = world.towers.find(is), b = !t && world.beacons.find(is), p = !t && !b && world.plates.find(is);
+  if (t) { const s = t.side / 2; return { x: t.x, z: t.z, base: t.base, h: t.h, mid: t.base + t.h / 2, box: [t.x - s, t.base, t.z - s, t.x + s, t.base + t.h, t.z + s] }; }
+  if (b) return { x: b.x, z: b.z, base: 0, h: b.y + 1.3, mid: b.y, box: [b.x - 1.25, b.y - 1.3, b.z - 1.25, b.x + 1.25, b.y + 1.3, b.z + 1.25] };
+  if (p) return { x: (p.x0 + p.x1) / 2, z: (p.z0 + p.z1) / 2, base: p.base, h: PH, mid: p.base + PH / 2, box: [p.x0, p.base, p.z0, p.x1, p.base + PH, p.z1] };
+  return null;
+}
+/** The point the orbit camera turns about to look at a part selected (docs/cyberspace-mode-spec.md, Camera and input, Looking
+ *  at the selection): its centre, half way up it, moved `dx` along x where its city stands among others. Null for none. */
+function orbitTarget(world, key, dx = 0) {
+  const s = partStand(world, key);
+  return s && [s.x + dx, s.mid, s.z];
+}
+/** The point on a part (partStand's) the eye in the street looks at: its centre line, min(0.55 × its height, 6.5) above its base. */
+const streetAim = (s) => [s.x, s.base + Math.min(0.55 * s.h, 6.5), s.z];
+/** The rig's angles for an eye that faces a point: the azimuth, the way the eye stands from the point in degrees (0 on its −z
+ *  side, 90 on its +x side), and the elevation, the pitch with its sign turned (positive looks down), within ±`limit`°. */
+function faceAngles(eye, point, limit = 60) {
+  const v = eye.map((c, i) => c - point[i]), d = Math.hypot(...v) || 1, deg = 180 / Math.PI;
+  return { azimuth: Math.atan2(v[0], -v[2]) * deg, elevation: Math.max(-limit, Math.min(limit, Math.asin(v[1] / d) * deg)) };
+}
+/** The shorter way round from azimuth a to azimuth b: −180 to 180 degrees. */
+const turnBy = (a, b) => ((((b - a) % 360) + 540) % 360) - 180;
+/** The angle in degrees between where two sets of the rig's angles look. */
+function turnDegrees(a, b) {
+  const r = Math.PI / 180, dir = ({ azimuth, elevation }) => [Math.cos(elevation * r) * Math.sin(azimuth * r), Math.sin(elevation * r), -Math.cos(elevation * r) * Math.cos(azimuth * r)];
+  const p = dir(a), q = dir(b);
+  return Math.acos(Math.max(-1, Math.min(1, p[0] * q[0] + p[1] * q[1] + p[2] * q[2]))) / r;
+}
+/** How long the street's eye takes to turn by `deg` degrees: 250 ms and 3 more a degree, at most 700. */
+const turnMs = (deg) => Math.max(250, Math.min(700, 250 + 3 * deg));
+/** The least move [dx, dy] that brings a box ({ x0, y0, x1, y1 }; a point when it has no size) inside a rectangle: none along
+ *  an axis where it is inside already, and along one where it is larger than the rectangle, its middle to the rectangle's. */
+function leastMove(box, rect) {
+  const axis = (a0, a1, r0, r1) => (a1 - a0 > r1 - r0 ? (r0 + r1 - a0 - a1) / 2 : a0 < r0 ? r0 - a0 : a1 > r1 ? r1 - a1 : 0);
+  return [axis(box.x0, box.x1, rect.x0, rect.x1), axis(box.y0, box.y1, rect.y0, rect.y1)];
+}
+/** The least turn of an eye where it stands that brings the points it faces at `faces` (faceAngles's, unclamped) inside a window
+ *  of the view: `room` says how many degrees the window reaches left, right, up and down of where the eye looks. From the rig's
+ *  angles `at`, the angles to turn to, the same ones when every point is inside; the pitch within ±60°. */
+function leastTurn(at, faces, room) {
+  // Each point's place in the view, in degrees: right of where the eye looks, and below it.
+  const xs = faces.map((f) => turnBy(f.azimuth, at.azimuth)), ys = faces.map((f) => f.elevation - at.elevation);
+  const [dx, dy] = leastMove({ x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) }, { x0: -room.left, x1: room.right, y0: -room.up, y1: room.down });
+  return { azimuth: at.azimuth + dx, elevation: Math.max(-60, Math.min(60, at.elevation - dy)) };
+}
 /** Where Walk to <part> puts the eye (docs/cyberspace-mode-spec.md, Scene 3, Arriving): 12 units from the part's base across
  *  the flow, 1.7 above the ground there, stepped further out a unit at a time while it is inside a tower's footprint grown by
- *  0.6; looking at the part's centre line, min(0.55 × its height, 6.5) above its base. A beacon's height is its top's, a
- *  plate's its thickness; with no part (`key` null), the centre of the bounds, as high as the city. Among cities standing side
- *  by side (districtWorld's) `view` says which city's part it is. */
+ *  0.6; looking at the part's centre line, min(0.55 × its height, 6.5) above its base (partStand, streetAim). With no part
+ *  (`key` null), the centre of the bounds, as high as the city. Among cities standing side by side (districtWorld's) `view`
+ *  says which city's part it is. */
 function streetPose(world, key = null, view = undefined) {
-  const is = (x) => x.key === key && (view === undefined || x.view === view);
-  const t = world.towers.find(is), b = world.beacons.find(is), p = world.plates.find(is);
   const B = world.bounds;
-  const part = t ? { x: t.x, z: t.z, base: t.base, h: t.h }
-    : b ? { x: b.x, z: b.z, base: 0, h: b.y + 1.3 }
-    : p ? { x: (p.x0 + p.x1) / 2, z: (p.z0 + p.z1) / 2, base: p.base, h: PH }
-    : { x: (B.x0 + B.x1) / 2, z: (B.z0 + B.z1) / 2, base: 0, h: B.top };
+  const part = (key != null && partStand(world, key, view)) || { x: (B.x0 + B.x1) / 2, z: (B.z0 + B.z1) / 2, base: 0, h: B.top };
   const [dx, dz] = streetSide(world.dir);
   const inside = (x, z) => world.towers.some((o) => Math.abs(x - o.x) < o.side / 2 + 0.6 && Math.abs(z - o.z) < o.side / 2 + 0.6);
   let k = 12;
   while (inside(part.x + k * dx, part.z + k * dz) && k < 1000) k++;
   const x = part.x + k * dx, z = part.z + k * dz;
-  return { eye: [x, groundAt(world, x, z) + EYE.low, z], target: [part.x, part.base + Math.min(0.55 * part.h, 6.5), part.z] };
+  return { eye: [x, groundAt(world, x, z) + EYE.low, z], target: streetAim(part) };
 }
 /** One step of walking (Scene 3, Walking): from [x, z] by [dx, dz], the eye `y` high. A tower whose top is above the eye is
  *  solid, and the eye's circle slides along its footprint; plates, beams and beacons are not. The step is cut into pieces no
@@ -3739,8 +3785,6 @@ function towerLabels(world, tower) {
       }
       return { topped: 0 };
     },
-    /** The bottom of a floor's label on the screen, for the opening pose to keep it in the window. */
-    bottom(camera, i, H) { v.copy(tower.corner(i)).project(camera); return ((1 - v.y) / 2) * H + 10; },
     /** The floors whose titles are in --hot: under the pointer, with its inspector open, and the one the keyboard is on. */
     mark(...lit) {
       for (const i of marked) items[i]?.el.classList.remove("hot");
@@ -3826,16 +3870,17 @@ function spaceRig(stage) {
       return { target: [...rig.target], azimuth: rig.azimuth, elevation: rig.elevation, distance: rig.distance, fov: rig.fov, top: rig.top, centre: rig.centre ?? rig.anchor?.(rig.room) ?? middle(rig.room.free) };
     },
     /** Flies to a pose (`to.centre`: the projection's centre where it lands) in `ms`, eased in and out, the eye lifted on an arc
-     *  that peaks 0.15 of the way it travels above the straight path. At once with reduced motion. Input on the way stops it
-     *  where it is (`stopped` is called); `done` is called when it lands. Returns the flight: finish() lands it at once. */
-    flyTo(to, ms, { done = null, stopped = null } = {}) {
+     *  that peaks `lift` (0.15) of the way it travels above the straight path. At once with reduced motion. Input on the way
+     *  stops it where it is (`stopped` is called); `done` is called when it lands. `pin`: the projection's centre stays where it
+     *  lands, not where the free rectangle puts it. Returns the flight: finish() lands it at once. */
+    flyTo(to, ms, { done = null, stopped = null, lift = 0.15, pin = false } = {}) {
       rig.flight = rig.tween = null;
       const from = rig.pose(), end = { ...from, ...to }, e0 = eyeOf(from), e1 = eyeOf(end), travel = Math.hypot(...e1.map((v, i) => v - e0[i]));
       const flight = {};
       const land = () => {
         rig.flight = null;
         const { centre, ...pose } = end;
-        rig.centre = null;
+        rig.centre = pin ? centre : null;
         rig.set(pose);
         done?.();
       };
@@ -3849,13 +3894,107 @@ function spaceRig(stage) {
         const k = Math.min(1, (t - t0) / ms);
         if (k >= 1) { land(); return; }
         const s = ease.inOut(k), mix = (a, b) => a + (b - a) * s, eye = e0.map((v, i) => mix(v, e1[i]));
-        eye[1] += 0.15 * travel * Math.sin(Math.PI * s);
+        eye[1] += lift * travel * Math.sin(Math.PI * s);
         Object.assign(rig, poseFrom(eye, from.target.map((v, i) => mix(v, end.target[i]))), { fov: mix(from.fov, end.fov), top: mix(from.top, end.top), centre: [mix(from.centre[0], end.centre[0]), mix(from.centre[1], end.centre[1])] });
         rig.apply();
         requestAnimationFrame(step);
       };
       requestAnimationFrame(step);
       return flight;
+    },
+    /** Glides to a pose (Looking at the selection): eased in and out as a flight is, for as long, but without the arc; at once
+     *  with reduced motion or when `now`. Input on the way stops it where it is. Without `to.centre` the projection's centre
+     *  stays where it is drawn. The camera counts as moved. */
+    glide(to, now = false) {
+      const from = rig.pose(), pin = to.centre === undefined && rig.centre != null;
+      rig.touched = true;
+      const flight = rig.flyTo(to, now ? 0 : flightMs(from, { ...from, ...to }), { lift: 0, pin });
+      flight.look = true;
+      return flight;
+    },
+    /** Turns the camera about another point, its distance and angles kept, and moves the projection's centre to the middle of the
+     *  free rectangle as it now is: a part selected stands there, by the inspector it opened. */
+    aim(target, now = false) {
+      rig.centre ??= rig.anchor?.(rig.room) ?? middle(rig.room.free);
+      rig.room = spaceRoom();
+      return rig.glide({ target: held(target), centre: rig.anchor?.(rig.room) ?? middle(rig.room.free) }, now);
+    },
+    /** Moves the camera across the ground, as panning does, just far enough that `points` (a part's corners, in the spec's
+     *  frame) stand inside the free rectangle, 24 px in from its edges; nothing when they do already. Where one is behind the
+     *  camera, `at` (the part's middle) is aimed at instead. */
+    reveal(points, at) {
+      rig.room = spaceRoom();
+      const { W, H, free } = rig.room, m = 24, cam = camera.clone(), q = new T.Vector3(), ps = points.map((p) => V(...p)), mid = V(...at);
+      const right = new T.Vector3(), up = new T.Vector3(), ahead = new T.Vector3(), shift = new T.Vector3(), step = new T.Vector3();
+      camera.matrixWorld.extractBasis(right, up, ahead);
+      right.setY(0).normalize();
+      ahead.setY(0).normalize();
+      const put = (s) => { cam.position.copy(camera.position).add(s); cam.updateMatrixWorld(); };
+      const px = (p) => { q.copy(p).project(cam); return [((q.x + 1) / 2) * W, ((1 - q.y) / 2) * H]; };
+      // How far the box has to move on the screen, and how a unit's move right or ahead moves the part's middle there: the
+      // move is solved for, and worked out again from where it leaves the box, since perspective bends it.
+      for (let k = 0; k < 6; k++) {
+        put(shift);
+        if (ps.some((p) => q.copy(p).applyMatrix4(cam.matrixWorldInverse).z > -cam.near)) { if (!k) { rig.aim(at); return; } break; }
+        const xy = ps.map(px), xs = xy.map((p) => p[0]), ys = xy.map((p) => p[1]);
+        const [dx, dy] = leastMove({ x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) }, { x0: free.x0 + m, x1: free.x1 - m, y0: free.y0 + m, y1: free.y1 - m });
+        if (Math.hypot(dx, dy) < 0.5) break;
+        const p0 = px(mid);
+        put(step.copy(shift).add(right));
+        const r = px(mid);
+        put(step.copy(shift).add(ahead));
+        const a = px(mid), j = [r[0] - p0[0], r[1] - p0[1], a[0] - p0[0], a[1] - p0[1]], det = j[0] * j[3] - j[2] * j[1];
+        if (Math.abs(det) < 1e-9) break;
+        shift.addScaledVector(right, (dx * j[3] - dy * j[2]) / det).addScaledVector(ahead, (dy * j[0] - dx * j[1]) / det);
+      }
+      if (shift.lengthSq() > 1e-9) rig.glide({ target: held([rig.target[0] + shift.x, rig.target[1], rig.target[2] - shift.z]) });
+    },
+    /** How far the free rectangle reaches from the projection's centre, `m` px in from its edges, in degrees: left, right, up
+     *  and down. Walking, what leastTurn keeps a part inside. */
+    sight(m = 24) {
+      rig.room = spaceRoom();
+      const { H, free } = rig.room, [cx, cy] = rig.centre ?? rig.anchor?.(rig.room) ?? middle(free), F = (H + rig.top) / 2 / Math.tan((rig.fov * rad) / 2);
+      const deg = (px) => Math.atan(px / F) / rad;
+      return { left: deg(cx - free.x0 - m), right: deg(free.x1 - m - cx), up: deg(cy - free.y0 - m), down: deg(free.y1 - m - cy) };
+    },
+    /** Turns the eye where it stands to the rig's angles `to` (walking, Looking at the selection), the shorter way round,
+     *  eased in and out for turnMs of the angle; at once with reduced motion or when `now`. Walking or a drag stops it where it
+     *  is. The camera counts as moved. */
+    turnTo(to, now = false) {
+      rig.flight = rig.tween = null;
+      rig.room = spaceRoom();
+      const eye = eyeOf(rig), a0 = rig.azimuth, e0 = rig.elevation, end = { azimuth: a0 + turnBy(a0, to.azimuth), elevation: clamp(to.elevation, -60, 60) };
+      const flight = { look: true };
+      const put = (s) => {
+        Object.assign(rig, { azimuth: a0 + (end.azimuth - a0) * s, elevation: e0 + (end.elevation - e0) * s });
+        const o = eyeOf({ ...rig, target: [0, 0, 0] });
+        rig.target = eye.map((v, i) => v - o[i]);
+        rig.apply();
+      };
+      flight.finish = () => { if (rig.flight === flight) { rig.flight = null; put(1); } };
+      flight.stop = () => { if (rig.flight === flight) rig.flight = null; };
+      rig.touched = true;
+      const ms = now || reducedMotion.matches ? 0 : turnMs(turnDegrees({ azimuth: a0, elevation: e0 }, end));
+      if (!ms) { put(1); return flight; }
+      rig.flight = flight;
+      const t0 = performance.now();
+      const step = (t) => {
+        if (rig.flight !== flight) return;
+        const k = Math.min(1, (t - t0) / ms);
+        put(ease.inOut(k));
+        if (k < 1) requestAnimationFrame(step); else rig.flight = null;
+      };
+      requestAnimationFrame(step);
+      return flight;
+    },
+    /** A panel closed (the inspector, as the selection is cleared), and nothing moves: the pose stays, and the projection's
+     *  centre where it is drawn, until the camera next goes to the room (a selection, a fit, a resize). A turn toward the
+     *  selection stops where it is. */
+    hold() {
+      if (rig.flight?.look) rig.flight.stop();
+      if (!rig.anchor) { rig.tween = null; rig.centre ??= middle(rig.room.free); }
+      rig.room = spaceRoom();
+      rig.apply();
     },
     /** The opening pose: the least distance at which the corners of everything that stands (`points`: each plate's, tower's
      *  and beacon's box, each start point) are all inside the free rectangle, 24 px from its edges, with the target moved across
@@ -3865,6 +4004,7 @@ function spaceRig(stage) {
      *  its own (`home`) opens there; `all` (F, Fit everything) frames everything in a scene that has points to frame. */
     fit(all = false) {
       rig.room = spaceRoom();
+      rig.centre = null;
       if (rig.mode === "walk") { rig.apply(); return; }
       if (rig.home && !(all && rig.points?.length)) { rig.centre = null; rig.touched = false; rig.home(); return; }
       if (!rig.points?.length) { rig.set({ target: [0, 0, 0], azimuth: -40, elevation: 33.6, distance: 60 }); return; }
@@ -3887,6 +4027,8 @@ function spaceRig(stage) {
     reroom(now = false, again = false) {
       // A scene that fixes the projection's centre has nothing to move to.
       if (rig.anchor) { rig.room = spaceRoom(); rig.apply(); return; }
+      // What stands changed under a turn toward the selection: it stops where it is.
+      if (rig.flight?.look) rig.flight.stop();
       const was = rig.room ?? spaceRoom(), room = spaceRoom();
       // `again`: what stands changed (a layer ticked or unticked), so an untouched camera fits again in any case.
       if (!again && ["x0", "y0", "x1", "y1"].every((k) => Math.abs(was.free[k] - room.free[k]) < 1) && was.W === room.W && was.H === room.H) { rig.room = room; return; }
@@ -3915,8 +4057,7 @@ function spaceRig(stage) {
       if (rig.mode === "walk") { rig.elevation = clamp(rig.elevation, -60, 60); return; }
       rig.elevation = clamp(rig.elevation, 8, 85);
       rig.distance = clamp(rig.distance, 8, Math.max(8, 3 * rig.fitDistance));
-      const b = rig.bounds, [lo, hi] = rig.climbs ?? [-20, (b?.top ?? 0) + 20];
-      if (b) rig.target = [clamp(rig.target[0], b.x0 - 20, b.x1 + 20), clamp(rig.target[1], lo, hi), clamp(rig.target[2], b.z0 - 20, b.z1 + 20)];
+      rig.target = held(rig.target);
     },
     move(change) {
       // Input during a move to a new free rectangle stops it where it is, centred on the new one; during a flight, where it is.
@@ -4000,6 +4141,11 @@ function spaceRig(stage) {
   };
   const walkFrom = () => { if (!rig.walk.frame) { rig.walk.last = performance.now(); rig.walk.frame = requestAnimationFrame(walking); } };
   const middle = (f) => [(f.x0 + f.x1) / 2, (f.y0 + f.y1) / 2];
+  /** A target kept near what stands: within the bounds grown by 20, and as high as the scene's `climbs` let it be. */
+  const held = (t) => {
+    const b = rig.bounds, [lo, hi] = rig.climbs ?? [-20, (b?.top ?? 0) + 20];
+    return b ? [clamp(t[0], b.x0 - 20, b.x1 + 20), clamp(t[1], lo, hi), clamp(t[2], b.z0 - 20, b.z1 + 20)] : t;
+  };
   /** Frames rig.points from the scene's opening angles, `above` px more room left at the top of the free rectangle, round the
    *  projection's centre: the free rectangle's, or where the scene's anchor puts it. */
   function frame(above) {
@@ -4709,6 +4855,8 @@ const plural = (n, one) => `${n} ${one}${n === 1 ? "" : "s"}`;
 function spaceScene() {
   if (!stage || !rig) return;
   trip?.finish();
+  // A turn toward a selection belongs to the scene it was made in.
+  if (rig.flight?.look) rig.flight = null;
   standScene();
   spaceParts();
 }
@@ -4742,7 +4890,8 @@ function standScene() {
   if (fresh && here) districtTo({ key: v.key, made, v });
   else if (fresh) standCity({ key: v.key, made, v });
   ({ v, made } = standing);
-  spaceFocus(fresh);
+  // A city just stood takes the address's part at once; in the folder's city, where the camera carries on, it glides to it.
+  spaceFocus(fresh && !here);
   if (space.scene === "street") { enterStreet(v, made, fresh); return; }
   if (street) riseToCity(made);
   citySay(v, made);
@@ -4942,11 +5091,12 @@ function towerScene() {
   if (fromCity && v?.key === standing.v.key) v = standing.v;
   const next = { folder, world, v, i: v ? world.floors.findIndex((f) => f.path === v.d._path) : -1, made: null, why: null };
   if (v) try { next.made = fromCity && v === standing.v ? standing.made : cityFor(v); } catch (e) { next.why = String(e.message ?? e); }
-  if (same) { Object.assign(towered, next); towered.tower.pull(next.i, next.made?.world ?? null); drawerCard(); }
+  // A floor pulled out is climbed to, as one opened is.
+  if (same) { const pulled = towered.tower.pulled; Object.assign(towered, next); towered.tower.pull(next.i, next.made?.world ?? null); drawerCard(); if (next.i >= 0 && next.i !== pulled) towerReach(next.i); }
   else if (fromCity && next.made && v === standing.v) flyUp(next);
   else if (stage.skyline && skied?.world.buildings.some((b) => b.folder === folder)) flyIntoTower(next);
   else standTower(next);
-  if (ask.inspect !== undefined) towerInspect(ask.inspect, { record: ask.record, quiet: true });
+  if (ask.inspect !== undefined) towerInspect(ask.inspect, { record: ask.record, quiet: true, now: !same });
   else if (space.selected != null) towerUnselect({ quiet: true });
   // A part named in the address is lit in the city on the drawer.
   const city = towered.tower.city, key = ask.part && city ? focusedPart(city.world, space.focus) : null, hood = key && cityNeighbours(city.world, key);
@@ -5032,7 +5182,7 @@ function flyDown(v, made) {
       was.group.position.copy(V(cx, 0, cz).sub(V(...top).multiplyScalar(1 / k)));
       stage.fade(was, 1, 0, 200);
     }
-    spaceFocus(true);
+    spaceFocus();
     citySay(v, made);
   };
   fly(small(pose), 600, { done: () => land(true), stopped: () => land(false) });
@@ -5131,7 +5281,7 @@ function drawerCard() {
 
 /** Opens the inspector on a floor: its title, kind and description (and the record an entity: address names), with Read it in
  *  Flat. A drawn floor whose view couldn't be built says why. `quiet`: the address already names it. */
-function towerInspect(i, { record = null, quiet = false } = {}) {
+function towerInspect(i, { record = null, quiet = false, now = false } = {}) {
   const f = towered.world.floors[i], d = byPath.get(f.path), knows = f.group === "knowledge";
   const records = (Array.isArray(d.entities) ? d.entities : []).filter((e) => e && typeof e === "object"), rec = record ? records.find((e) => e.id === record) : null;
   const why = f.group === "drawn" ? (i === towered.i ? towered.why : f.error) : null, focus = rec ? `entity:${f.file}#${rec.id}` : `view:${f.file}`;
@@ -5147,6 +5297,7 @@ function towerInspect(i, { record = null, quiet = false } = {}) {
   if (!quiet && f.group !== "drawn") { space.focus = focus; history.replaceState(history.state, "", spaceHash({ folder: towered.folder, focus })); }
   $("space-live").textContent = `${f.title} selected.`;
   rig.reroom();
+  towerReach(i, now);
   stage.request();
 }
 /** Closes a floor's inspector (closeInspector does, in either mode): the cards come back, and the address is the tower's again. */
@@ -5216,13 +5367,36 @@ function towerFocus(i) {
   stage.request();
 }
 /** ↑ and ↓ on the canvas: the floor above or below the one the keyboard is on, the first press the pulled-out floor (or the
- *  bottom one). The camera climbs a floor when it would be out of the room. */
+ *  bottom one). The camera climbs to it when it is out of the room (towerReach). */
 function towerStep(dir) {
   const n = towered.world.floors.length, at = towered.focus ?? -1;
   const i = at >= 0 ? Math.max(0, Math.min(n - 1, at + dir)) : towered.tower.pulled >= 0 ? towered.tower.pulled : 0;
   towerFocus(i);
-  const y = labels?.bottom?.(stage.camera, i, rig.room.H);
-  if (y > rig.room.free.y1 - 24) rig.climb(-FLOOR.step); else if (y < rig.room.free.y0 + 44) rig.climb(FLOOR.step);
+  towerReach(i);
+}
+/** Climbs, as the wheel does, until floor `i` stands inside the free rectangle, 24 px in from its top and bottom, if it doesn't
+ *  (Looking at the selection): a floor opened or pulled out, or the one the keyboard is on. The pulled-out floor is reached
+ *  where it stands out. It glides as a flight does; at once when `now`. Not while a flight between scenes is under way. */
+function towerReach(i, now = false) {
+  const f = towered?.world.floors[i];
+  if (!f || !stage?.tower || !rig.climbs || trip) return;
+  rig.room = spaceRoom();
+  const { H, free } = rig.room, [ox, , oz] = i === towered.tower.pulled ? PULL : [0, 0, 0], cam = stage.camera.clone(), y0 = cam.position.y;
+  const corners = [];
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) for (const y of [f.y, f.y + FLOOR.h]) corners.push(V(ox + (sx * FLOOR.w) / 2, y, oz + (sz * FLOOR.d) / 2));
+  // How far the floor still has to move down the screen (up, when less than 0) with the camera climbed by c.
+  const need = (c) => {
+    cam.position.y = y0 + c;
+    cam.updateMatrixWorld();
+    const ys = corners.map((p) => ((1 - p.clone().project(cam).y) / 2) * H);
+    return leastMove({ x0: 0, x1: 0, y0: Math.min(...ys), y1: Math.max(...ys) }, { x0: 0, x1: 0, y0: free.y0 + 24, y1: free.y1 - 24 })[1];
+  };
+  const first = need(0), s = Math.sign(first), t = rig.target[1], [lo, hi] = rig.climbs;
+  if (Math.abs(first) < 1) return;
+  // Climbing moves the floors down the screen: the least climb that leaves nothing to move, within the stack.
+  let a = 0, b = s > 0 ? hi - t : lo - t;
+  if (need(b) * s <= 0) for (let k = 0; k < 30; k++) { const c = (a + b) / 2; if (need(c) * s > 0) a = c; else b = c; }
+  if (Math.abs(b) > 1e-3) rig.glide({ target: [rig.target[0], t + b, rig.target[2]] }, now);
 }
 /** Enter on a floor, focused with ↑ ↓ or Tab: what a click on it does, but the pulled-out floor is entered. With none, Enter
  *  enters the pulled-out floor. */
@@ -5854,10 +6028,12 @@ function spaceFocus(now = false) {
 }
 
 /** Selects a part of the city standing (a tower, a plate or a beacon): it lights, its neighbours brighten, the beams between
- *  them light, rings stand round a tower's base, the inspector opens with what Flat shows for it, and the address names it
- *  (the history entry is replaced). `quiet`: the address already does. A part of a city standing beside the one in the address
- *  (`view`) makes that city's view the address's first (leadTo). */
-function spaceSelect(key, { quiet = false, now = false, view = null } = {}) {
+ *  them light, rings stand round a tower's base, the inspector opens with what Flat shows for it, the address names it (the
+ *  history entry is replaced), and the view turns toward it (spaceLook). `quiet`: the address already does. `now`: the city
+ *  was just stood, so the camera goes there at once. `look` false: the part is ahead already (Enter at the street's
+ *  crosshair). A part of a city standing beside the one in the address (`view`) makes that city's view the address's first
+ *  (leadTo). */
+function spaceSelect(key, { quiet = false, now = false, view = null, look = true } = {}) {
   if (view != null && view !== standing?.key) { const w = stage?.city?.of(view)?.world, m = w?.parts.get(key); if (!m?.info || !cityNeighbours(w, key)) return; leadTo(view); }
   const city = stage?.city, world = city?.world, n = world?.parts.get(key), hood = world && cityNeighbours(world, key);
   if (!hood || !n?.info) return;
@@ -5869,8 +6045,51 @@ function spaceSelect(key, { quiet = false, now = false, view = null } = {}) {
   if (!quiet) history.replaceState(history.state, "", cityHash(space.folder, standingView(), key, space.scene));
   $("space-live").textContent = `${world.towers.concat(world.beacons, world.plates).find((x) => x.key === key).name} selected. ${plural(hood.beams.length, "beam")}. ${plate ? `In ${plate.name}` : "On the ground"}.`;
   rig.moved = true;
-  rig.reroom(now);
+  // On the way down to the street there is nothing to turn: the street's pose looks at the part.
+  if (look && (space.scene !== "street" || street?.on)) spaceLook(key, now); else rig.reroom(now);
   stage.request();
+}
+/** Turns the view toward a part just selected in the city in the address (docs/cyberspace-mode-spec.md, Camera and input,
+ *  Looking at the selection). In a city the orbit camera turns about the part's middle, which comes to the middle of the free
+ *  rectangle the inspector leaves, from as far and the same way as before; in the street the eye stays where it stands and
+ *  turns to face the part's centre line, as Arriving looks at it. A flight under way lands first. */
+function spaceLook(key, now = false) {
+  trip?.finish();
+  if (street?.on) {
+    const s = partStand(street.world, key, standing.key);
+    if (s) rig.turnTo(faceAngles(rig.eye(), streetAim(s)), now);
+    return;
+  }
+  const c = stage.city.of(standing.key), at = c && orbitTarget(c.world, key, c.city.dx);
+  if (at) rig.aim(at, now);
+}
+/** Brings what the keyboard is on into view (Looking at the selection), only when it is out of view or under a panel, and
+ *  just far enough to stand inside the free rectangle: in a city the camera moves across the view, in the street the eye
+ *  turns where it stands, in the tower it climbs to the floor, and in the skyline it moves across the view. The pointer never
+ *  moves it. */
+function spaceReveal(at) {
+  if (!at || !rig || trip) return;
+  if (stage.city && at.key != null) {
+    const c = stage.city.of(at.view);
+    if (street?.on) {
+      const s = c && partStand(street.world, at.key, at.view);
+      if (!s) return;
+      // Its corners as high as the eye looks at it, kept 40 px inside the room.
+      const [x0, , z0, x1, , z1] = s.box, y = streetAim(s)[1], e = rig.eye();
+      const to = leastTurn(rig, [[x0, z0], [x1, z0], [x1, z1], [x0, z1]].map(([x, z]) => faceAngles(e, [x, y, z], 90)), rig.sight(40));
+      if (turnDegrees(rig, to) > 0.1) rig.turnTo(to);
+    } else if (!street) {
+      const s = c && partStand(c.world, at.key), dx = c?.city.dx ?? 0;
+      if (!s) return;
+      const [x0, y0, z0, x1, y1, z1] = s.box, points = [];
+      for (const x of [x0, x1]) for (const y of [y0, y1]) for (const z of [z0, z1]) points.push([x + dx, y, z]);
+      rig.reveal(points, [s.x + dx, s.mid, s.z]);
+    }
+  } else if (stage.tower && at.floor != null) towerReach(at.floor);
+  else if (stage.skyline && at.folder != null) {
+    const b = skied?.world.buildings.find((x) => x.folder === at.folder);
+    if (b) rig.reveal(buildingCorners(b).flatMap(([x, z]) => [[x, 0, z], [x, b.h, z]]), [b.x, b.h / 2, b.z]);
+  }
 }
 /** The labels of the selection in the city in the address: its part's in the selected style, its neighbours', and the box of
  *  a selected tower, which no other label covers; none for null. */
@@ -5897,7 +6116,8 @@ function spaceUnselect({ quiet = false } = {}) {
   }
   $("space-live").textContent = "Nothing selected.";
   rig.moved = true;
-  rig.reroom();
+  // Clearing moves nothing: the camera stays as it is on the screen as the inspector closes.
+  rig.hold();
   stage.request();
 }
 
@@ -6000,7 +6220,8 @@ function spaceParts() {
   else if (was != null) $("space-gl").focus({ preventScroll: true });
 }
 /** Lights what a button of #space-parts names as the pointer would, and says nothing more: the focus ring, its edges in --hot
- *  (a part in a city, with the hover card in the street; a floor; a building, with its hover card). Null: nothing. */
+ *  (a part in a city, with the hover card in the street; a floor; a building, with its hover card). What it names is brought
+ *  into view if it is out of it or under a panel (spaceReveal). Null: nothing. */
 function spacePoint(at) {
   if (!space.on || !stage) return;
   if (stage.city) {
@@ -6011,6 +6232,7 @@ function spacePoint(at) {
     if (street?.on) streetHover(w && [...w.towers, ...w.beacons].some((x) => x.key === at.key) ? at.key : null, at?.view ?? null);
   } else if (stage.tower) towerFocus(at?.floor ?? -1);
   else if (stage.skyline) skylineHover(at?.folder ?? null, "key");
+  spaceReveal(at);
   rig.moved = true;
   stage.request();
 }
@@ -6033,8 +6255,9 @@ $("space-parts").addEventListener("click", (e) => { const at = spaceItems[+e.tar
  *  crosshair. In the tower a floor under the pointer lights its edges and its label; a click is towerClick's, and a
  *  double-click on the pulled-out floor goes into its city; ↑ and ↓ move the keyboard's focus from floor to floor, and Enter
  *  acts on it (towerAct). In the skyline a building under the pointer lights and shows the hover card; a click or Enter flies
- *  into its tower. Tab is #space-parts's (spaceParts). Nothing here moves the camera but ↑ and ↓ climbing to the floor they
- *  reach. Returns `hit`, what is at a point of the canvas (`beams` false: parts alone). */
+ *  into its tower. Tab is #space-parts's (spaceParts). Nothing here moves the camera but a selection turning toward its part
+ *  (spaceLook) and ↑ and ↓ climbing to the floor they reach (towerReach); Enter at the crosshair selects what is ahead, and
+ *  turns nothing. Returns `hit`, what is at a point of the canvas (`beams` false: parts alone). */
 function spacePointer(stage, rig) {
   const ray = new three.Raycaster(), ndc = new three.Vector2(), canvas = stage.canvas;
   let at = null, queued = 0, city = null, beam = null, view = null;
@@ -6107,7 +6330,7 @@ function spacePointer(stage, rig) {
     if (e.metaKey || e.ctrlKey || e.altKey || e.key !== "Enter") return;
     if (stage.tower) { e.preventDefault(); towerAct(towered?.focus ?? -1); }
     else if (stage.skyline) { e.preventDefault(); skylineEnter(skied?.hovered ?? space.folder); }
-    else if (street?.on) { e.preventDefault(); const h = hit(...streetAnchor(rig.room), false); if (h) spaceSelect(h.key, { view: h.view }); }
+    else if (street?.on) { e.preventDefault(); const h = hit(...streetAnchor(rig.room), false); if (h) spaceSelect(h.key, { view: h.view, look: false }); }
   });
   return { hit };
 }
