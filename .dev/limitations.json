@@ -100,8 +100,8 @@
     {
       "id": "inspector-covers",
       "title": "The inspector covers the drawing",
-      "summary": "The inspector is a fixed panel at the right, over the page.",
-      "impact": "On a 15-inch screen its 380 px cover about a third of the content area beside the folder column, and whatever part of the drawing is under it. It does not take the focus, so a keyboard reader doesn't land in it.",
+      "summary": "The inspector is a fixed panel at the right, over the page; in Cyberspace, a card the city makes room for.",
+      "impact": "On a 15-inch screen its 380 px cover about a third of the content area beside the folder column, and whatever part of the drawing is under it. It does not take the focus, so a keyboard reader doesn't land in it. In Cyberspace it is a 340 px card over the scene, and a city the reader hasn't moved is fitted, over 300 ms, to the room it leaves, so it covers none of the city; one the reader has turned or moved keeps its pose, and may run under it.",
       "evidenceStatus": "source-verified",
       "sources": [
         {
@@ -111,6 +111,10 @@
         {
           "path": "index.html",
           "symbol": "select"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceRoom"
         }
       ],
       "workaround": "Close it with Escape."
@@ -118,8 +122,8 @@
     {
       "id": "wide-screens-unused",
       "title": "Large monitors are not put to use",
-      "summary": "The page was not laid out for 27-inch and wider screens.",
-      "impact": "On a 27-inch or 34-inch monitor most of the width is empty: a drawing is fitted at no more than 100%, so it keeps its natural size in a wide frame; cards stop at 940 px and descriptions at 76 characters; the folder column stays 290 px; and only one kind of view shows at a time.",
+      "summary": "Flat was not laid out for 27-inch and wider screens; Cyberspace uses their width.",
+      "impact": "On a 27-inch or 34-inch monitor most of the width is empty: a drawing is fitted at no more than 100%, so it keeps its natural size in a wide frame; cards stop at 940 px and descriptions at 76 characters; the folder column stays 290 px; and only one kind of view shows at a time. Cyberspace puts the width to use: its panels keep their pixel sizes and the scene takes the rest of the window (checked at 2560 × 1440 and 3440 × 1440).",
       "evidenceStatus": "source-verified",
       "sources": [
         {
@@ -133,6 +137,10 @@
         {
           "path": "index.html",
           "symbol": "grid-template-columns: 290px"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceRoom"
         }
       ]
     },
@@ -243,6 +251,31 @@
         {
           "path": "index.html",
           "symbol": "showSpace"
+        }
+      ]
+    },
+    {
+      "id": "street-by-touch",
+      "title": "The street is walked with keys",
+      "summary": "Walking takes a keyboard; on a touch screen the street is walked through its map.",
+      "impact": "On a tablet or a touch screen without a keyboard W A S D can't be pressed: in the street a drag looks round and a tap selects, and the eye moves only where a tap on the map flies it. The city, the tower and the skyline turn, pan and zoom by touch.",
+      "workaround": "Tap the street's map to go somewhere, or attach a keyboard.",
+      "relationships": [
+        {
+          "relation": "relates-to",
+          "path": ".dev/quality-requirements.json",
+          "entityId": "keyboard"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "walkKey"
+        },
+        {
+          "path": "index.html",
+          "symbol": "streetGo"
         }
       ]
     },

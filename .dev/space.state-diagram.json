@@ -126,7 +126,7 @@
     },
     {
       "path": "index.html",
-      "symbol": "skylineStep"
+      "symbol": "spaceParts"
     },
     {
       "path": "index.html",
@@ -390,7 +390,7 @@
     {
       "from": "skyline",
       "to": "tower",
-      "trigger": "a click on a building, Enter on the building under the pointer or focused with Tab, or Enter <title> on the folder card, or a folder's chip",
+      "trigger": "a click on a building, Enter on its button in the list Tab walks, Enter on the canvas (the building under the pointer or focused, else the address folder's), Enter <title> on the folder card, or a folder's chip",
       "action": "a new history entry #<folder>|~space; the camera flies down to the tower standing small in its building (600 ms) as the skyline fades out and the tower in, then in one frame the tower takes its own size, seen as its opening pose sees it. At once with reduced motion; input on the way lands it where the eye is"
     },
     {
@@ -402,8 +402,8 @@
     {
       "from": "skyline",
       "to": "skyline",
-      "trigger": "a building under the pointer, Tab or Shift+Tab, Esc, or another skyline address",
-      "action": "the building lights and the hover card opens by it (Tab goes from building to building in folder order, and past the last leaves the canvas); Esc does nothing; another folder's skyline address flies the camera to its building"
+      "trigger": "a building under the pointer, Tab or Shift+Tab to its button in the list after the canvas, Esc, or another skyline address",
+      "action": "the building lights and the hover card opens by it (Tab goes from building to building in folder order through the list, then on to the panels); Esc does nothing; another folder's skyline address flies the camera to its building"
     },
     {
       "from": "city",
