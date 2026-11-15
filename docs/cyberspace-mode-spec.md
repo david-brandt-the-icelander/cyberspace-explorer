@@ -21,7 +21,7 @@ The 3D ground plan is the flat drawing's dagre layout laid on the floor. A part 
 
 **Done means:**
 
-- [ ] A **Flat / Cyberspace** switch in the bar; the choice is in the address and survives reload, back and forward.
+- [x] A **Flat / Cyberspace** switch in the bar; the choice is in the address and survives reload, back and forward. (Shown since 2026-11-15; in step 7 every row of *Switching modes keeps the place* was pressed both ways in Chrome.)
 - [ ] The four scenes work for this repository and for any repository the flat page can open, for every drawn kind (component, deployment, class, state, use case, user journey).
 - [ ] Selecting a tower opens the existing inspector with the same content as the flat page.
 - [ ] Without WebGL, without three.js, with reduced motion, from the keyboard and in light mode, the mode degrades as section *Fallbacks, performance budgets, accessibility* says.
@@ -101,11 +101,12 @@ The new section only reads `byFolder` and the models; it writes the scene, the H
 
 ```html
 <section id="space" hidden aria-label="Cyberspace">
-  <canvas id="space-gl" tabindex="0" aria-describedby="space-help"></canvas>
+  <canvas id="space-gl" tabindex="0" role="application" aria-label="Cyberspace" aria-describedby="space-help"></canvas>
+  <ul id="space-parts" class="sr" aria-label="Parts in this scene"></ul>   <!-- right after the canvas: Tab walks it next -->
   <div id="space-labels" aria-hidden="true"></div>
   <div id="space-hud"></div>      <!-- layers, legend, controls, map, breadcrumb, hover card -->
-  <p id="space-help" class="sr">…keyboard help text…</p>
-  <ul id="space-parts" class="sr" aria-label="Parts in this scene"></ul>
+  <p id="space-help" class="sr">…what the scene shows and how to move…</p>
+  <p id="space-live" class="sr" aria-live="polite"></p>
 </section>
 ```
 
@@ -312,6 +313,7 @@ Labels are HTML in `#space-labels`, never textures: they stay sharp, use Barlow,
 - Overlap: sort by anchor screen y, nearest first; push each label up in 6 px steps until clear of the ones placed (4 px gap), at most 40 steps, else hide it. When pushed more than 12 px, draw a 1 px leader in `--ink3` from the anchor to the label's bottom centre.
 - The selected tower's box on screen and the plate names count as placed, so no other label covers them. A neighbour's label that can't be placed clear is hidden like any other: the cut-off below spares it, this rule does not.
 - A label that would run under a panel moves sideways, by at most half its width, to clear the panel by 4 px. One that still would is hidden.
+- Labels keep inside the canvas (decided in step 7): a label or plate name that the canvas's left or right edge would cut slides in, by at most half its width, to 4 px from the edge; one the edge, or the canvas's top, would still cut is hidden. At the street's arrival by this repository's Loader, `Part interaction`, whose part stands at the left edge, reads whole 4 px from it.
 - Hide labels behind the camera, off the canvas, or further than the cut-off: 45 units in the street; in the city 90 units, or the far side of the city as fitted when that is further (the fit distance plus half the diagonal of the bounds on the ground). A fixed 90 hides the far labels of a larger city in its opening view, the selected part's among them: 3 of the 159 drawn views of this repository and retro-games reach past it, this repository's component diagram for one. Fade them over the last 10 units. The selected part's label and its neighbours' stay whatever the distance.
 - Beam labels: in a state machine or a deployment, a lit beam shows its edge's `label` (the trigger, the link's kind) at its crest, in a pill 20 px tall, radius 10, `500 12px` Semi Condensed, `--ink` on `--paper` at 86%, with a 1 px dashed border in the kind colour at 70%. They are placed with the part labels and are never hidden. A use case's conditions are sentences: they stay in the inspector and the beam's tooltip.
 - Plate names: uppercase, `600 13px` Semi Condensed, letter-spacing 0.1em, kind colour, then `· N parts` in `--ink3`, counting every tower and beacon standing on the plate or on a plate within it (Screen holds Landing page, so its 7 parts and Landing page's 1 make 8); placed 8 px under the plate's front-left corner: the left end of the edge lowest on the screen. Plate names are placed before the part labels, which keep clear of them; a name that would cover another steps down 6 px at a time (at most 5 times, else it is hidden) and moves off a panel as a label does.
@@ -352,12 +354,13 @@ The folder tower is where Cyberspace opens: the folder in the address as a stack
 | Click a written or knowledge floor | Opens the inspector with the view's title, kind, description and a **Read it in Flat** link to `#<folder>\|view:<file>` in flat mode. The inspector takes the cards' place while it is open, and the floor's edges are drawn in `--hot`. The address names the floor (`#<folder>\|view:<file>\|~space`; `#<folder>\|entity:<file>#<record id>\|~space` opens it with the record), replacing the history entry; closing it gives the tower's address back. |
 | Double-click the pulled floor, **Enter the city**, or Enter on it | Flies into Scene 2 (section *Camera and input*). |
 | Wheel | Climbs: moves the camera and its target up or down 1.05 units a notch, clamped to the stack. ⌘/Ctrl + wheel or pinch zooms. |
-| ↑ / ↓ | Moves keyboard focus floor by floor (focus ring: the floor's edges in `--hot`). |
+| ↑ / ↓ (on the canvas) | Moves keyboard focus floor by floor, the first press to the pulled-out floor (or the bottom one); in the tower they take the place of the orbit rig's elevation keys. The focus ring is the floor's edges and its label's title in `--hot`; the camera climbs a floor when the focused one would leave the room. The canvas losing the focus clears it. |
+| Enter (on the canvas) | What a click on the focused floor does, except that the pulled-out floor is entered; with no floor focused, enters the pulled-out floor. |
 | Esc | Closes an inspector that is open; else slides the pulled floor back (as **Slide back** does); with none out, rises to the skyline where the repository has one (a new history entry). |
 
 Sliding a floor back replaces the history entry with `#<folder>|~space`. That address also means "the first drawn view pulled out", so the tower keeps every floor in only until the reader goes somewhere; reloading it pulls the first drawn view out again.
 
-Status line: `The root folder is a tower of 24 floors, one per view. Pull a floor out to walk through it.`, right side `Scroll to climb · click a floor to pull it out`. For another folder, `<folder> is a tower of N floors…`.
+Status line: `The root folder is a tower of 24 floors, one per view. Pull a floor out to walk through it.`, right side `Scroll to climb · click a floor to pull it out`. For another folder, `<folder> is a tower of N floors…`. A folder with no drawn views has no floor to pull out, so its tower says what it offers instead (step 7): `.github is a tower of 3 floors, one per view. Nothing here is drawn: open a floor to read it.`, right side `Scroll to climb · click a floor to read it`.
 
 ## Scene 2: the city
 
@@ -378,6 +381,7 @@ Written and knowledge kinds are listed with their counts but disabled, with the 
 Several cities standing (decided in step 6; the cities standing are a `buildDistrict`, which the stage stands as one thing):
 
 - **Placement.** In the order they were stood, each 12 units right of the last (`layerOffsets`). When an unticked city goes, the ones right of it close up at once, after its fade. The panel's view in the address is ticked and stays so.
+- **The draw-call budget** (decided in step 7). Each city standing is its own meshes, and a city scene may take 40 draw calls (*Performance budgets*). So the panel counts them: `cityCalls(world)` gives what a city takes with nothing selected, from its world (its plates', towers' and beacons' glass; its solid and dashed lines and the plates' insets; the discs under beacons and at start points; the beams and their end dots: 9 for this repository's component city, 5 for a state machine), and the scene keeps 7 for the ground and the most a selection adds (the rings 3, the lit beams' core and glow, a beam under the pointer). A tick box whose city would take the scene past 40 (`layerFits`) is disabled, with the tooltip `Untick another view first: one more would slow the scene down` and, under the rows, `Untick a view to stand another: more cities at once would slow the scene down.`; a radio button counts the city it would replace. This repository's component diagram stands with its deployment diagram and three of its four state machines (33, 40 with Loader selected and a beam under the pointer); the fourth waits until one is unticked. It is the simplest rule that holds 40: sharing meshes between cities would save a call or two a city at the cost of picking, marking and fading by city, which every city now does on its own meshes.
 - **Picking and labels** belong to a city and a part: two views can share a part's key. The pointer finds what it is over in any city; labels are made for every city standing, each in its own kind's colour.
 - **Selecting a part of a layer** makes that view the address's: `#F|<kind>:<key>|~space:city`, replacing the entry as a selection does. The view that was in the address stays standing as a layer. Nothing moves; the beams that light are that city's, and the legend and the status line follow it.
 - **Fitting.** A camera the reader hasn't moved fits again, over 300 ms, to everything standing when a layer is ticked or unticked (after the fade); one they have moved keeps its pose, as on a resize. F and **Fit everything** fit everything standing.
@@ -432,6 +436,8 @@ Arriving, the inspector closes, as artboard 3 has it, and what was selected stay
 | Enter | Select what is under the crosshair. |
 | Esc | Clear the selection; with none, rise back to the city orbit. |
 
+**Where the walking keys work** (decided in step 7). They are read on the whole page while the street stands, not only on the canvas, so that a click in the inspector or on the map doesn't stop them; but never where they mean something else. W A S D and Z walk wherever the focus is, except in a text field (an `input`, a `textarea`, a `select` or an editable element), where they type. The arrows and Space walk only from the canvas or with nothing focused (`document.body`): a focused button, link or tick box uses Space, and the arrows scroll the inspector and move between radio buttons. Shift and Alt are read with them. A key let go anywhere stops, and the window losing the focus stops every key. Tab still leaves the canvas for the list of parts and the panels (*Accessibility*).
+
 Towers are solid: the eye is a circle of radius 0.4 and slides along a footprint it walks into, below that tower's top. Plates are steps: the eye's ground height eases to the plate top under it over 150 ms. Beams and beacons are not solid. Walking ends at the world bounds grown by 30 units. Each frame moves the eye by the real time since the last, cut into steps of at most 0.2 units so that a fast one can't pass through a thin tower (`walkStep`, in the `space-world` block).
 
 The address has no place for the eye, so walking replaces the history entry with the same address and the eye's place in the entry's state (`history.state.walk`), at most four times a second. Back or Forward to a street entry puts the eye where the reader walked in it, or, in an entry not walked in yet, where Walk to puts it.
@@ -474,8 +480,8 @@ The skyline is the level above the folder towers, for a repository with several 
 | Input | Effect |
 | --- | --- |
 | Hover a building | Its shell lights, and a hover card opens, placed as the street's is and clear of the folder card: folder icon, the folder's title `700 20px` Condensed, its path and number of files in monospace, its purpose (at most three lines), then `<a> drawn · <b> written · <c> knowledge · <n> folders inside · click to fly in` in `--ink3`; the folders inside are every folder below it, as artboard 7 counts Hivestorm's six. The card lies over the labels rather than hiding those it covers, as the street's does, so that the label of the building it is about stays. |
-| Click a building, Enter on it, or **Enter …** | Flies into that folder's tower (`#<folder>\|~space`). Enter takes the building under the pointer or focused with Tab, else the address folder's. |
-| Tab / Shift+Tab | Next / previous building, in `folders()` order, from the one focused or the address folder's: it lights as under the pointer and its hover card opens. The canvas's own key handler takes the key; past the last building (or before the first) it is left to the page, so the focus can leave the canvas. |
+| Click a building, Enter on it, or **Enter …** | Flies into that folder's tower (`#<folder>\|~space`). Enter on the canvas takes the building under the pointer or focused, else the address folder's. |
+| Tab / Shift+Tab | Next / previous building, in `folders()` order: the buttons of `#space-parts`, one per building (*Accessibility*). The building focused lights as under the pointer and its hover card opens. Step 6 had the canvas take Tab itself; since step 7 the list does, so it works whether or not the canvas has the focus, and Tab past the last building goes on to the panels. |
 | Drag, wheel, arrows, + −, F | The orbit rig (*Camera and input*). Walk is disabled. |
 | Esc | Nothing: the skyline is the top. |
 
@@ -533,7 +539,7 @@ The scene changes:
 
 Every panel is ordinary HTML over the canvas, built from the page's own CSS variables, icons and fonts; the scene sections say what each panel holds, this section says what they share.
 
-**The mode switch in the bar.** Between the repository name and **Tokens**, a group `role="group" aria-label="View mode"` of two buttons, **Flat** and **Cyberspace**, each with `aria-pressed`. Group: 2 px padding, 1 px `--rule` border, radius 6. Buttons: 28 px tall, 0 12 px padding, `600 13px` Semi Condensed; pressed = `--rule` background and `--hot` text, else transparent and `--ink2`. Hidden on the landing page and when WebGL is unavailable (section *Fallbacks*), It was hidden for everyone while the steps were built, when only a `~space` address opened Cyberspace, and has been shown since 2026-11-15, when the owner had it shown after step 6, ahead of step 7 (decision `cyberspace-launch`). Each press changes the address, nothing else; `route()` does the rest.
+**The mode switch in the bar.** Between the repository name and **Tokens**, a group `role="group" aria-label="View mode"` of two buttons, **Flat** and **Cyberspace**, each with `aria-pressed`. Group: 2 px padding, 1 px `--rule` border, radius 6. Buttons: 28 px tall, 0 12 px padding, `600 13px` Semi Condensed; pressed = `--rule` background and `--hot` text, else transparent and `--ink2`. Hidden on the landing page and when WebGL is unavailable (section *Fallbacks*); shown when three.js couldn't load, so that a later press can work. It was hidden for everyone while the steps were built, when only a `~space` address opened Cyberspace, and has been shown since 2026-11-15, when the owner had it shown after step 6, ahead of step 7 (decision `cyberspace-launch`). Each press changes the address, nothing else; `route()` does the rest.
 
 **Status line.** The existing `status()` keeps its job and wording rules; Cyberspace only writes its scene sentence when the loader has nothing to report. Its other messages (`Loading Cyberspace's 3D library…` on a first entry, and those in *Fallbacks*) follow whatever the loader said, which is left alone again when they no longer apply. Over the canvas it is translucent: `--paper` at 88%, bottom border `--grid`. The right-hand hint is a new optional `<span class="hint">` in `--ink3`.
 
@@ -558,8 +564,9 @@ Every panel is ordinary HTML over the canvas, built from the page's own CSS vari
 **Screen sizes** (quality `screen-sizes`, 15-inch laptop to 34-inch monitor):
 
 - From 1280 px wide up, panels sit as on the canvas, at fixed pixel sizes; wider screens give the scene more room, never bigger panels.
-- Below 1280 px, the Layers panel collapses to a 40 px button that opens it as a popover, and the legend shows icons only with their words as tooltips.
+- Below 1280 px, the Layers panel collapses to a 40 px button that opens it as a popover, and the legend shows icons only with their words as tooltips. Built in step 7: the button (the `sliders` icon, `aria-expanded`, `aria-controls`) stands where the panel's corner stands, left 20 and top 98; the panel opens 8 px under it, over the scene, and leaves the free rectangle as it is, so opening it moves no camera. Esc, a press on the scene or the button again closes it; ticking a view in it leaves it open.
 - Below 900 px tall, the map shrinks to 180 px wide.
+- Checked in step 7 in every scene at 1280 × 800, 1440 × 900, 2560 × 1440 and 3440 × 1440: no panel overlaps another or leaves the window, the inspector included.
 
 ## Routing, state and links
 
@@ -624,28 +631,46 @@ Cyberspace must never be the reason a repository can't be read (quality `fallbac
 | A folder with no drawn views | `towerWorld` finds none | The tower has no drawer and no city; the pulled-floor card says `Nothing here is drawn. Its views are written; read them in Flat.` |
 | A repository with one folder | `byFolder.size === 1` | No skyline: a `~space:skyline` address opens the tower, and the folder card has no **See the skyline**. |
 
+Every row was checked again in step 7, with all four scenes built, in Chrome: `--disable-3d-apis`; three.js and dagre blocked (`Network.setBlockedURLs`), and three.js let through again for a later try; a dagre that throws on the component diagram's graph; `.github`, which has no drawn views; a state diagram whose `states` is not a list; `WEBGL_lose_context.loseContext()` in a city with Loader selected (**Restore it** builds that city again with Loader selected) and in the tower (`restoreContext()` builds it again by itself); and the `worker` folder opened on its own.
+
 ### Performance budgets
 
 | Measure | Budget | How |
 | --- | --- | --- |
 | Draw calls, city of 400 parts | ≤ 40 | Instancing for towers and plates; one merged `LineSegments` for edges and bands; beams merged into one geometry per state (quiet, lit, glow). |
 | Draw calls, skyline of 100 folders | ≤ 8 | Two instanced meshes and one merged `LineSegments`, and the address folder's rings: six with the ground (retro-games' 93 folders, step 6). |
-| Draw calls, a city with its layers | ≤ 40 for this repository's six drawn views standing together | Each city standing is its own meshes, 6 to 10 draw calls: this repository's component diagram with its deployment diagram and four state machines beside it draws in 39 (step 6). |
+| Draw calls, a city with its layers | ≤ 40, whatever stands, is selected or is under the pointer | Each city standing is its own meshes, 4 to 10 draw calls. The first rule asked for this repository's six drawn views standing together; they draw in 39 with nothing selected (step 6), and in 45 with a part selected and a beam under the pointer. So since step 7 the Layers panel disables a tick box whose city would pass 40 (`cityCalls`, `layerFits`, *Scene 2, What stands in the city*): five of the six stand, in 34, and 40 with Loader selected and a beam under the pointer. |
 | Frame time, this repository, 1440 × 900, M1 MacBook Air | ≤ 16 ms | On-demand rendering; labels placed only on frames where the camera moved. |
 | Frame time, 400 parts | ≤ 33 ms | Same; labels beyond the cut-off culled before placing. |
 | First Cyberspace frame after a click on the switch | ≤ 1.5 s on a cold cache, ≤ 300 ms warm | three.js fetched once and cached by the browser; worlds built on demand, memoised per `doc._path` and direction. |
 | Extra requests on page load in Flat | none | three.js is `import()`ed on first entry to Cyberspace. The Cyberspace code itself is inline (decision `one-file`), so `index.html` grows by roughly 3,000–3,500 lines, about 35 KB compressed. |
 | GPU memory when leaving Cyberspace | released | Dispose every geometry, material and texture; keep the renderer for 60 s, then `forceContextLoss()`. |
 
-**Measuring.** With `?spacestats` in the page's address, a corner readout shows the frame time (from the start of a frame to the GPU finishing it: the readout calls `gl.finish()`, so only with `?spacestats`; averaged over the last frames, so the slow first frame, which compiles the shaders, weighs on it for a while; the latest frame's own time, `last`; and the interval between frames while they come one after another), the draw calls (`renderer.info.render.calls`) and the world's counts of plates, towers, beacons and beams. The budgets and the acceptance numbers are checked with it. On an M1 Pro, whose GPU is about twice an M1 Air's, the frame-time targets are half the ones above.
+**Measured in step 7** (quality requirement `space-frame-rate`, which has every number), on 2026-11-15 on an M1 Pro, where the frame-time targets are 8 and 16 ms, with the readout below, in Chrome for Testing driven through the DevTools protocol:
+
+| Measure | Target on an M1 Pro | Measured |
+| --- | --- | --- |
+| Frame time, this repository's component city and its street, orbiting and walking, 1440 × 900 and 3440 × 1440 at device pixel ratio 2 | ≤ 8 ms | 0.34 to 0.53 ms on average, 2.4 ms at worst; walking, a frame every 16.9 to 17.0 ms (60 Hz) |
+| Frame time, the 400-part city (`perf/400-parts`) and its street, the same | ≤ 16 ms | orbiting the city 4.28 ms (5.8 at worst) at 1440 × 900 and 3.91 ms (4.4) at 3440 × 1440; its street 0.39 to 0.52 ms |
+| Draw calls, a city of 400 parts | ≤ 40 | 10 with nothing selected |
+| Draw calls, a skyline | ≤ 8 | 6, retro-games' 93 buildings |
+| Draw calls, a city with its layers | ≤ 40 | 34 for five views, 40 with Loader selected and a beam under the pointer; the sixth view's tick box disabled |
+| First frame after the address asks for Cyberspace, as the switch does | ≤ 1.5 s cold, ≤ 300 ms warm | 158 to 247 ms cold (three.js fetched from jsDelivr), 150 to 257 ms warm, 13 to 20 ms coming back within the minute |
+| Requests on a page load in Flat | none for Cyberspace | 59 requests, none for three.js |
+| GPU memory on leaving | released | 0 geometries, 0 textures, 0 GPU buffers, programs and vertex arrays after each of ten trips through all four scenes; the context lost 61 s after leaving |
+| The panels' `backdrop-filter` blur, 3440 × 1440 at device pixel ratio 2 | keeps the frame rate | every frame 16.7 ms walking with the inspector open, with the blur and without it: the blur stays |
+
+The readout's frame time ends at `gl.finish()`, which waits for the GPU to finish the WebGL commands; the browser's compositing (the blur among it) comes after, which is why the frame interval while walking, held at the display's 60 Hz, is given beside it.
+
+**Measuring.** With `?spacestats` in the page's address, a corner readout shows the frame time (from the start of a frame to the GPU finishing it: the readout calls `gl.finish()`, so only with `?spacestats`; averaged over the last frames, so the slow first frame, which compiles the shaders, weighs on it for a while; the latest frame's own time, `last`; and the interval between frames while they come one after another), the draw calls (`renderer.info.render.calls`) and the world's counts of plates, towers, beacons and beams. The budgets and the acceptance numbers are checked with it. Since step 7 it also gives `renderer.info.memory` (`15 draw calls · 15 geometries · 0 textures`) and, on leaving for Flat, what is left of it (`left on leaving: 0 geometries, 0 textures`). It stands in the bottom right corner, where no panel is: where a panel reaches the corner (a long legend at 1440 px), it stands above the bottom bars, left of the inspector's column, and in the street left of the map. The first rule put it top right, over the folder card's title in the tower and the skyline and over the inspector in the city. On an M1 Pro, whose GPU is about twice an M1 Air's, the frame-time targets are half the ones above.
 
 ### Accessibility
 
-- **Keyboard** (quality `keyboard`): the canvas is focusable and takes the keys in *Camera and input*. Tab walks the parts in `#space-parts`, a visually hidden list with one `<button>` per part named after it (per building in the skyline); focusing one moves the scene's focus ring (edges in `--hot`) and announces nothing extra. Enter selects. The inspector, panels and switch are ordinary HTML in tab order.
-- **Screen readers:** the canvas has `role="application"` and `aria-describedby="space-help"`, which says what the scene shows and how to move. When a selection changes, an `aria-live="polite"` region says `Loader selected. 6 beams. In Repository reading.` Everything in the scene is also in Flat, which stays one press away.
-- **Reduced motion** (quality `reduced-motion`): flights, slides, fades and the glow's shimmer (if any is added later) are all instant. Walking still moves, because the reader drives it.
-- **Light and dark** (quality `light-dark`): every colour from `spaceTheme()`; listen to the `prefers-color-scheme` media query and rebuild materials' uniforms, not the geometry.
-- **Contrast:** label text 4.5:1 against its pill in both themes; check the quiet `--ink2` labels against the lightest sky in light mode with an automated contrast test.
+- **Keyboard** (quality `keyboard`): the canvas is focusable and takes the keys in *Camera and input*. Tab walks the parts in `#space-parts`, a visually hidden list right after the canvas with one `<button>` per part named after it: in a city and its street every part of every city standing (plates, towers and beacons; the address's city first, a layer's parts named `<part>, in <view>`), in the order `partOrder` gives (along the flow, a rank at a time, as the flat drawing reads, a plate before what stands on it); in the tower one per floor (`<title>, <kind> floor`, `, pulled out` for the drawer); in the skyline one per building, in `folders()` order. Focusing one moves the scene's focus ring (edges in `--hot`: a part's hover state, a floor's focus, a building's hover with its card, and in the street the part's hover card) and announces nothing extra; Enter, or a click, does what a click on it does: selects a part, pulls a drawn floor out, enters the pulled-out one or opens a written one, flies into a building. The list is made again when what stands changes, the focus kept on its button; a button whose scene went leaves the focus on the canvas. The inspector, panels and switch are ordinary HTML in tab order, after the list.
+- **Screen readers:** the canvas has `role="application"`, `aria-label="Cyberspace"` and `aria-describedby="space-help"`, which says, per scene, what the scene shows and how to move (for the tower, for example: `Cyberspace explorer as a tower of 26 floors, one per view: drawn views at the bottom, then written views, then knowledge. Its component diagram is pulled out, with its city standing on it. Tab walks the floors, and Enter pulls a drawn one out, enters the city on the one pulled out, or opens a written one to read it. On the 3D view ↑ and ↓ go from floor to floor, the wheel climbs, and Esc slides the floor back, then rises to the skyline. Everything here can be read in the flat view too.`). When a selection changes, an `aria-live="polite"` region says `Loader selected. 6 beams. In Repository reading.` (`On the ground.` for a part no plate holds; `<title> selected.` for a floor; `Nothing selected.`). Everything in the scene is also in Flat, which stays one press away.
+- **Reduced motion** (quality `reduced-motion`): flights, slides, fades and the glow's shimmer (if any is added later) are all instant. Walking still moves, because the reader drives it. Checked in step 7 by counting the animation frames each move asks for in the 0.9 to 1.6 s after it: 42 to 187 with motion, 1 to 3 with reduced motion, for every flight (tower ↔ city, city ↔ street, the map, tower ↔ skyline, building to building), slide (a floor out and back), fade (a layer going) and refit (the inspector opening, a layer coming or going); walking asked for 63 either way. A flight that lands at once never becomes the `trip` under way.
+- **Light and dark** (quality `light-dark`): every colour from `spaceTheme()`; listen to the `prefers-color-scheme` media query and rebuild materials' uniforms, not the geometry. Checked in step 7: a city re-themed both ways keeps its geometries (15 before, 15 after).
+- **Contrast:** label text 4.5:1 against its pill in both themes; check the quiet `--ink2` labels against the lightest sky in light mode with an automated contrast test. `test/space.test.js` reads the tokens from `index.html`'s two `:root` blocks and the label rules' colours, and checks each pill (`--paper` at 78% over each of the three sky stops) against a part's, a neighbour's, a beacon's and a building segment's text, a beam label against its pill, and the selected label: all at least 4.5:1. Two of Cyberspace's own rules failed it, and changed in step 7 without touching a token Flat shares: a beacon's label in light mode is `--k-deployment` mixed 75% with `--ink` (the amber alone stood 3.95:1 on the darkest sky), and a skyline building's folder segment is `--ink2`, not `--ink3` (2.72:1 in light, 4.06:1 in dark). `--ink2` stands 5.96:1 against `--space-sky-1`.
 - **Pointer size:** buttons 40 px or more; the hidden pick tube makes a beam 0.6 units thick to the pointer.
 
 ## Build order, tests and acceptance

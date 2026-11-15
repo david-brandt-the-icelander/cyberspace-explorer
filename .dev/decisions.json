@@ -349,9 +349,29 @@
           "relation": "relates-to",
           "path": ".dev/plan.json",
           "entityId": "cyberspace-mode"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/quality-requirements.json",
+          "entityId": "space-frame-rate"
         }
       ],
-      "evidenceStatus": "documented"
+      "evidenceStatus": "source-verified",
+      "details": "The switch was shown on 2026-11-15, after step 6 (pull request 20), ahead of the work this decision had it wait for. Step 7 then brought Cyberspace up to the quality requirements, checked in Chrome on 2026-11-15: keyboard (every part of this repository's component city, every floor of its root tower, every building of its skyline and a part in its street reached and selected from the keyboard alone), reduced motion (every flight, slide, fade and refit at once; walking still moves), light and dark (every scene beside artboards 1 to 6, a change of scheme re-colouring without new geometry, and a contrast test of the labels in test/space.test.js), fallbacks (WebGL off, three.js and dagre blocked, dagre failing on a view, a folder with nothing drawn, a view the models can't build, a lost context restored), screen sizes (every scene at 1280 × 800 to 3440 × 1440), disposal, and the budgets (quality requirement space-frame-rate). With the switch, every row of the spec's Switching modes keeps the place was pressed both ways, and aria-pressed followed the mode; it is hidden on the landing page and without WebGL 2, and stays where three.js couldn't load, so that a later press can work. Safari and Firefox wait for decision cross-browser-checks.",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "SPACE_SWITCH"
+        },
+        {
+          "path": "index.html",
+          "symbol": "modeSwitch"
+        },
+        {
+          "path": "index.html",
+          "symbol": "switchHash"
+        }
+      ]
     },
     {
       "id": "cyberspace-mode",

@@ -678,3 +678,109 @@ test("switching to Flat from the skyline opens the folder", () => {
   assert.equal(switchHash("flat", spacePlaceOf(parse("#worker|component:handler|~space:city"))), "#worker|component%3Ahandler");
   assert.equal(switchHash("flat", spacePlaceOf(parse("#|view:use-case.json#a|~space:city"))), "#|view%3Ause-case.json%23a");
 });
+
+test("every row of Switching modes keeps the place, both ways", () => {
+  const rows = [
+    // Flat, folder F, tab K open, part P selected
+    [switchHash("space", { folder: "worker", kind: "component", part: "handler", view: "component-diagram.json" }), "#worker|component%3Ahandler|~space:city"],
+    // Flat, tab K open, nothing selected: the first file of K when K is drawn, the folder's tower otherwise
+    [switchHash("space", { folder: "worker", view: "component-diagram.json" }), "#worker|view%3Acomponent-diagram.json|~space"],
+    [switchHash("space", { folder: "worker", view: null }), "#worker|~space"],
+    // Flat, Waiting
+    [switchHash("space", { waiting: true }), "#|~space"],
+    // Cyberspace, any scene, part P of kind K selected
+    ...["", ":city", ":street"].map((s) => [switchHash("flat", spacePlaceOf(parse(`#worker|component:handler|~space${s}`))), "#worker|component%3Ahandler"]),
+    // Cyberspace, no selection, view V; and the tower with no view named
+    [switchHash("flat", spacePlaceOf(parse("#worker|view:deployment-diagram.json|~space:city"))), "#worker|view%3Adeployment-diagram.json"],
+    [switchHash("flat", spacePlaceOf(parse("#worker|~space"))), "#worker"],
+    // Cyberspace, the skyline, folder F
+    [switchHash("flat", spacePlaceOf(parse("#worker|~space:skyline"))), "#worker"],
+  ];
+  for (const [got, want] of rows) assert.equal(got, want);
+});
+
+// ── Finish: the keyboard's order, the layers' draw calls, the labels' contrast ──
+
+const { partOrder, cityCalls, layerFits, DRAW_BUDGET } = vm.runInContext("({ partOrder, cityCalls, layerFits, DRAW_BUDGET })", context);
+
+test("Tab walks a city's parts along its flow, a rank at a time, a plate before what stands on it", () => {
+  // Left to right: ranks by x, each from the back of the sheet (+z) forwards.
+  const lr = {
+    dir: "LR",
+    plates: [{ key: "p", x0: 3, x1: 9, z0: -2, z1: 6 }],
+    towers: [{ key: "a", x: 0, z: 0 }, { key: "c", x: 5, z: -1 }, { key: "b", x: 5, z: 4 }, { key: "e", x: 10.1, z: 0 }],
+    beacons: [{ key: "x", x: 10, z: 3 }],
+  };
+  assert.deepEqual([...partOrder(lr)], ["a", "p", "b", "c", "x", "e"]);
+  // Top to bottom: ranks from the back, each from the left.
+  const tb = { dir: "TB", plates: [], towers: [{ key: "low", x: 0, z: -5 }, { key: "right", x: 4, z: 5 }, { key: "left", x: -4, z: 5 }], beacons: [] };
+  assert.deepEqual([...partOrder(tb)], ["left", "right", "low"]);
+});
+
+test("a city's draw calls are counted from its world, as buildCity draws it", () => {
+  const beam = (from, to) => ({ from, to });
+  // The component city of this repository: plates, towers, beacons, their lines and discs, the beams and their dots.
+  const component = { plates: [{}], towers: [{ alt: false }], beacons: [{}], markers: [], beams: [beam("a", "b")] };
+  assert.equal(cityCalls(component), 9);
+  // A state machine: towers, their lines, the start point, the beams and their dots.
+  assert.equal(cityCalls({ plates: [], towers: [{ alt: false }], beacons: [], markers: [{}], beams: [beam("s", "a"), beam("a", "a")] }), 5);
+  // A use case with an alternative outcome draws its dashed lines too, and no dots where every beam is a loop.
+  assert.equal(cityCalls({ plates: [], towers: [{ alt: false }, { alt: true }], beacons: [], markers: [], beams: [beam("a", "a")] }), 4);
+});
+
+test("the Layers panel keeps a city scene within 40 draw calls, with a selection and a beam under the pointer", () => {
+  assert.equal(DRAW_BUDGET, 40);
+  // This repository's views of 2026-11-15: component 9, deployment 9, four state machines 5 each.
+  const standing = [9, 9, 5, 5];
+  assert.ok(layerFits(standing, 5), "the fifth fits: 33 standing, 40 at most");
+  assert.ok(!layerFits([...standing, 5], 5), "the sixth would pass 40 with a part selected");
+  // A view standing in the place of another counts only the difference.
+  assert.ok(layerFits([...standing, 5], 5, 5));
+  assert.ok(!layerFits([33], 1));
+});
+
+// The pills' text against the pills, in both themes (Accessibility, Contrast): the tokens of index.html's two :root blocks
+// and the colours its label rules mix from them, as the browser mixes them, in sRGB.
+const css = html.match(/<style>([\s\S]*?)<\/style>/)[1];
+const roots = [...css.matchAll(/:root\s*\{([^}]*)\}/g)].map((m) => Object.fromEntries([...m[1].matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})/g)].map(([, k, v]) => [k, v])));
+const THEMES = { light: roots[0], dark: { ...roots[0], ...roots[1] } };
+const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+const mix = (a, p, b) => a.map((v, i) => v * p + b[i] * (1 - p));
+const luminance = (c) => { const [r, g, b] = c.map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+const contrast = (a, b) => { const [x, y] = [luminance(a), luminance(b)].sort((m, n) => n - m); return (x + 0.05) / (y + 0.05); };
+/** A colour a rule gives, `var(--x)` or `color-mix(in srgb, var(--x) p%, var(--y) | transparent)` (over `under`), in a theme. */
+const colour = (value, t, under = null) => {
+  const m = value.match(/color-mix\(in srgb, var\(--([\w-]+)\) (\d+)%, (?:var\(--([\w-]+)\)|transparent)\)/);
+  if (!m) return rgb(t[value.match(/var\(--([\w-]+)\)/)[1]]);
+  return mix(rgb(t[m[1]]), +m[2] / 100, m[3] ? rgb(t[m[3]]) : under);
+};
+/** A property of the rule for exactly `selector`, in `scope`. */
+const rule = (selector, prop, scope = css) => scope.match(new RegExp(`(?:^|[\\n{]) *${selector.replace(/[.]/g, "\\.")} \\{[^}]*?(?:^|[ ;{])${prop}: ([^;]+);`))?.[1];
+const darkCss = [...css.matchAll(/@media \(prefers-color-scheme: dark\) \{(.*?\}) \}/g)].map((m) => m[1]).join("\n");
+
+test("label text stands 4.5:1 against its pill over every part of the sky, in light and dark", () => {
+  for (const [name, t] of Object.entries(THEMES)) {
+    const own = (sel, prop) => (name === "dark" && rule(sel, prop, darkCss)) || rule(sel, prop);
+    for (const sky of ["space-sky-1", "space-sky-2", "space-sky-3"]) {
+      const pill = colour(own(".sl", "background"), t, rgb(t[sky]));
+      const pairs = {
+        "a part's label": colour(own(".sl", "color"), t),
+        "a neighbour's label": colour(own(".sl.near", "color"), t),
+        "a beacon's label": colour(own(".sl.beacon", "color"), t),
+        "a building's folder segment": colour(own(".sl .seg", "color"), t),
+      };
+      for (const [what, text] of Object.entries(pairs)) assert.ok(contrast(text, pill) >= 4.5, `${name}, ${sky}: ${what} is ${contrast(text, pill).toFixed(2)}:1`);
+      const beamPill = colour(own(".sbl", "background"), t, rgb(t[sky]));
+      assert.ok(contrast(colour(own(".sbl", "color"), t), beamPill) >= 4.5, `${name}, ${sky}: a beam's label`);
+    }
+    // Selected: --paper on a pill of --hot, and a selected building's folder segment at 70% of it.
+    const hot = colour(rule(".sl.sel", "background"), t), paper = colour(rule(".sl.sel", "color"), t);
+    assert.ok(contrast(paper, hot) >= 4.5, `${name}: the selected label`);
+    assert.ok(contrast(mix(paper, 0.7, hot), hot) >= 4.5, `${name}: the selected building's segment`);
+  }
+});
+
+test("the quiet --ink2 labels stand 4.5:1 against the lightest sky in light mode", () => {
+  const t = THEMES.light;
+  assert.ok(contrast(rgb(t.ink2), rgb(t["space-sky-1"])) >= 4.5, contrast(rgb(t.ink2), rgb(t["space-sky-1"])).toFixed(2));
+});

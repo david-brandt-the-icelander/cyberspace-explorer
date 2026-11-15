@@ -472,6 +472,79 @@
       ]
     },
     {
+      "id": "cyberspace",
+      "name": "Fly through a repository in 3D",
+      "description": "Cyberspace, the second way in: the same views, standing as towers and cities a reader can fly through and walk in.",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "showSpace"
+        },
+        {
+          "path": "index.html",
+          "symbol": "modeSwitch"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceScene"
+        }
+      ],
+      "behavior": "The Flat / Cyberspace switch in the bar, or an address ending in ~space, opens the folder as a tower of glass floors, one per view, with a drawn view pulled out and its city small on it. Entering the floor flies down into the city: the flat layout's ground plan raised into towers as tall as their beams make them, groups as plates, outside services as beacons, relationships as beams of light. Clicking a part lights its beams and opens the inspector with what Flat shows for it; Walk to puts the reader at street level beside it, to walk with W A S D. The Layers panel stands the folder's other drawn views beside it, and above the towers a repository with several folders is a skyline of buildings, one per folder. Esc goes up a level; the switch goes back to the same place in Flat. Everything works from the keyboard, with reduced motion, in light and dark.",
+      "outcome": "A reader sees how a repository's parts stand to each other, and moves through it the way it is built.",
+      "constraints": [
+        "Needs WebGL 2 and three.js from jsDelivr; without them the page says why and shows Flat.",
+        "Everything Cyberspace shows is in Flat too, one press away.",
+        "A city scene draws in at most 40 calls, so the Layers panel stands only as many views as fit.",
+        "The street is walked with keys; on a touch screen, through its map."
+      ],
+      "implementation": [
+        {
+          "path": "index.html",
+          "symbol": "showSpace"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceScene"
+        },
+        {
+          "path": "index.html",
+          "symbol": "towerScene"
+        },
+        {
+          "path": "index.html",
+          "symbol": "skylineScene"
+        },
+        {
+          "path": "index.html",
+          "symbol": "buildCity"
+        },
+        {
+          "path": "index.html",
+          "symbol": "buildTower"
+        },
+        {
+          "path": "index.html",
+          "symbol": "buildSkyline"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceRig"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceSelect"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceParts"
+        },
+        {
+          "path": "index.html",
+          "symbol": "switchHash"
+        }
+      ]
+    },
+    {
       "id": "written-views",
       "name": "Capabilities, features and operations written out",
       "description": "The views that are not drawn are written as cards and a table.",
