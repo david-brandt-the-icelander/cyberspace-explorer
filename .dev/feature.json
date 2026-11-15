@@ -768,7 +768,7 @@
           "symbol": "max-width: 860px"
         }
       ],
-      "behavior": "Colours follow the system's light or dark setting. Under 860 px the folder column moves above the content and the bar drops the ref and shortens Choose another repository to Choose; under 560 px the brand keeps only its mark. With reduced motion the drill, pulses, flashes, ticking and fades are off and scrolling jumps.",
+      "behavior": "Flat's colours follow the system's light or dark setting; Cyberspace is always dark, and the whole window with it while it shows. Under 860 px the folder column moves above the content and the bar drops the ref and shortens Choose another repository to Choose; under 560 px the brand keeps only its mark. With reduced motion the drill, pulses, flashes, ticking and fades are off and scrolling jumps.",
       "outcome": "The page reads well at night, in a narrowed window, and for readers who turn motion off.",
       "constraints": [
         "There is no switch on the page for light or dark: the system decides."
@@ -785,6 +785,10 @@
         {
           "path": "index.html",
           "symbol": "prefers-reduced-motion: reduce"
+        },
+        {
+          "path": "index.html",
+          "symbol": ":root.space"
         }
       ]
     }

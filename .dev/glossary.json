@@ -144,7 +144,7 @@
     {
       "id": "beacon",
       "title": "Beacon",
-      "summary": "An outside service in a city of a component or deployment diagram: an amber diamond floating over the ground on a dotted tether."
+      "summary": "An outside service in a city of a component or deployment diagram: a magenta glass diamond floating over the floor, a glowing uplink under it."
     },
     {
       "id": "beam",

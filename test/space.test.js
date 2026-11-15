@@ -809,31 +809,57 @@ test("Tab walks a city's parts along its flow, a rank at a time, a plate before 
 
 test("a city's draw calls are counted from its world, as buildCity draws it", () => {
   const beam = (from, to) => ({ from, to });
-  // The component city of this repository: plates, towers, beacons, their lines and discs, the beams and their dots.
+  // The component city of this repository: plates, towers, beacons, their edges, the discs under beacons, the beams and their dots.
   const component = { plates: [{}], towers: [{ alt: false }], beacons: [{}], markers: [], beams: [beam("a", "b")] };
-  assert.equal(cityCalls(component), 9);
-  // A state machine: towers, their lines, the start point, the beams and their dots.
+  assert.equal(cityCalls(component), 7);
+  // A state machine: towers, their edges, the start point, the beams and their dots.
   assert.equal(cityCalls({ plates: [], towers: [{ alt: false }], beacons: [], markers: [{}], beams: [beam("s", "a"), beam("a", "a")] }), 5);
-  // A use case with an alternative outcome draws its dashed lines too, and no dots where every beam is a loop.
-  assert.equal(cityCalls({ plates: [], towers: [{ alt: false }, { alt: true }], beacons: [], markers: [], beams: [beam("a", "a")] }), 4);
+  // A use case: an alternative outcome's dashed edges are glow lines like the rest, and no dots where every beam is a loop.
+  assert.equal(cityCalls({ plates: [], towers: [{ alt: false }, { alt: true }], beacons: [], markers: [], beams: [beam("a", "a")] }), 3);
 });
 
 test("the Layers panel keeps a city scene within 40 draw calls, with a selection and a beam under the pointer", () => {
   assert.equal(DRAW_BUDGET, 40);
-  // This repository's views of 2026-11-15: component 9, deployment 9, four state machines 5 each.
-  const standing = [9, 9, 5, 5];
-  assert.ok(layerFits(standing, 5), "the fifth fits: 33 standing, 40 at most");
+  // This repository's views of 2026-11-15: component 7, deployment 7, four state machines 5 each; the sky and the floor 2.
+  const standing = [7, 7, 5, 5];
+  assert.ok(layerFits(standing, 5), "the fifth fits: 29 standing, 37 at most");
   assert.ok(!layerFits([...standing, 5], 5), "the sixth would pass 40 with a part selected");
   // A view standing in the place of another counts only the difference.
   assert.ok(layerFits([...standing, 5], 5, 5));
-  assert.ok(!layerFits([33], 1));
+  assert.ok(!layerFits([31], 2));
 });
 
-// The pills' text against the pills, in both themes (Accessibility, Contrast): the tokens of index.html's two :root blocks
-// and the colours its label rules mix from them, as the browser mixes them, in sRGB.
+// ── The token blocks and the labels' contrast (G1): Cyberspace is always dark ──
+
+// index.html's style sheet: the light :root, the dark block under the media query, its copy under :root.space, and Cyberspace's
+// own tokens, which have no light value.
 const css = html.match(/<style>([\s\S]*?)<\/style>/)[1];
-const roots = [...css.matchAll(/:root\s*\{([^}]*)\}/g)].map((m) => Object.fromEntries([...m[1].matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})/g)].map(([, k, v]) => [k, v])));
-const THEMES = { light: roots[0], dark: { ...roots[0], ...roots[1] } };
+const tokens = (body) => Object.fromEntries([...body.matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})/g)].map(([, k, v]) => [k, v]));
+const LIGHT = tokens(css.match(/\n {2}:root \{([^}]*)\}/)[1]);
+const DARK = tokens(css.match(/@media \(prefers-color-scheme: dark\) \{\s*:root \{([^}]*)\}/)[1]);
+const SPACE_DARK = tokens(css.match(/\n {2}:root\.space \{([^}]*)\}/)[1]);
+const SPACE_OWN = Object.assign({}, ...[...css.matchAll(/\n {2}:root \{([^}]*)\}/g)].slice(1).map((m) => tokens(m[1])));
+// The palette the spec names (Rendering, Palette): its table's tokens and values.
+const spec = await readFile(new URL("../docs/cyberspace-mode-spec.md", import.meta.url), "utf8");
+const PALETTE = Object.fromEntries([...spec.matchAll(/^\| `--(space-[\w-]+)` \| `(#[0-9a-f]{6})` \|/gm)].map(([, k, v]) => [k, v]));
+
+test("the dark block under :root.space is the one under prefers-color-scheme: dark", () => {
+  assert.ok(Object.keys(DARK).length >= 20);
+  assert.deepEqual(SPACE_DARK, DARK);
+});
+
+test("every --space-* token the spec's palette names is defined once, with no light value", () => {
+  assert.equal(Object.keys(PALETTE).length, 23);
+  for (const [name, value] of Object.entries(PALETTE)) {
+    assert.equal(css.split(`--${name}:`).length - 1, 1, `--${name} is defined once`);
+    assert.equal(SPACE_OWN[name], value, `--${name} is the spec's ${value}`);
+    for (const block of [LIGHT, DARK, SPACE_DARK]) assert.ok(!(name in block), `--${name} has no light or dark value`);
+  }
+  // And Cyberspace defines nothing the palette doesn't name: the first look's sky and grid tokens are gone.
+  assert.deepEqual(Object.keys(SPACE_OWN).filter((k) => k.startsWith("space-") && !(k in PALETTE)), []);
+});
+
+// Label text against its pill: the colours the rules give, mixed as the browser mixes them, in sRGB.
 const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
 const mix = (a, p, b) => a.map((v, i) => v * p + b[i] * (1 - p));
 const luminance = (c) => { const [r, g, b] = c.map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
@@ -844,33 +870,36 @@ const colour = (value, t, under = null) => {
   if (!m) return rgb(t[value.match(/var\(--([\w-]+)\)/)[1]]);
   return mix(rgb(t[m[1]]), +m[2] / 100, m[3] ? rgb(t[m[3]]) : under);
 };
-/** A property of the rule for exactly `selector`, in `scope`. */
-const rule = (selector, prop, scope = css) => scope.match(new RegExp(`(?:^|[\\n{]) *${selector.replace(/[.]/g, "\\.")} \\{[^}]*?(?:^|[ ;{])${prop}: ([^;]+);`))?.[1];
-const darkCss = [...css.matchAll(/@media \(prefers-color-scheme: dark\) \{(.*?\}) \}/g)].map((m) => m[1]).join("\n");
+/** A property of the rule for exactly `selector`. */
+const rule = (selector, prop) => css.match(new RegExp(`(?:^|[\\n{]) *${selector.replace(/[.]/g, "\\.")} \\{[^}]*?(?:^|[ ;{])${prop}: ([^;]+);`))?.[1];
 
-test("label text stands 4.5:1 against its pill over every part of the sky, in light and dark", () => {
-  for (const [name, t] of Object.entries(THEMES)) {
-    const own = (sel, prop) => (name === "dark" && rule(sel, prop, darkCss)) || rule(sel, prop);
-    for (const sky of ["space-sky-1", "space-sky-2", "space-sky-3"]) {
-      const pill = colour(own(".sl", "background"), t, rgb(t[sky]));
-      const pairs = {
-        "a part's label": colour(own(".sl", "color"), t),
-        "a neighbour's label": colour(own(".sl.near", "color"), t),
-        "a beacon's label": colour(own(".sl.beacon", "color"), t),
-        "a building's folder segment": colour(own(".sl .seg", "color"), t),
-      };
-      for (const [what, text] of Object.entries(pairs)) assert.ok(contrast(text, pill) >= 4.5, `${name}, ${sky}: ${what} is ${contrast(text, pill).toFixed(2)}:1`);
-      const beamPill = colour(own(".sbl", "background"), t, rgb(t[sky]));
-      assert.ok(contrast(colour(own(".sbl", "color"), t), beamPill) >= 4.5, `${name}, ${sky}: a beam's label`);
-    }
-    // Selected: --paper on a pill of --hot, and a selected building's folder segment at 70% of it.
-    const hot = colour(rule(".sl.sel", "background"), t), paper = colour(rule(".sl.sel", "color"), t);
-    assert.ok(contrast(paper, hot) >= 4.5, `${name}: the selected label`);
-    assert.ok(contrast(mix(paper, 0.7, hot), hot) >= 4.5, `${name}: the selected building's segment`);
+test("in Cyberspace label text stands 4.5:1 against its pill over every part of the sky, in its dark values alone", () => {
+  // What shows while Cyberspace does: the page's dark block and Cyberspace's own tokens, whatever the system's setting.
+  const t = { ...LIGHT, ...SPACE_DARK, ...SPACE_OWN };
+  for (const sky of ["space-sky-horizon", "space-sky-mid", "space-sky-zenith", "space-sky-band", "space-fog"]) {
+    const pill = colour(rule(".sl", "background"), t, rgb(t[sky]));
+    const pairs = {
+      "a part's label": colour(rule(".sl", "color"), t),
+      "a neighbour's label": colour(rule(".sl.near", "color"), t),
+      "a beacon's label": colour(rule(".sl.beacon", "color"), t),
+      "a building's folder segment": colour(rule(".sl .seg", "color"), t),
+    };
+    for (const [what, text] of Object.entries(pairs)) assert.ok(contrast(text, pill) >= 4.5, `${sky}: ${what} is ${contrast(text, pill).toFixed(2)}:1`);
+    const beamPill = colour(rule(".sbl", "background"), t, rgb(t[sky]));
+    assert.ok(contrast(colour(rule(".sbl", "color"), t), beamPill) >= 4.5, `${sky}: a beam's label`);
   }
+  // Selected: --space-pill on a pill of --space-hot, and a selected building's folder segment at 70% of it.
+  const hot = colour(rule(".sl.sel", "background"), t), text = colour(rule(".sl.sel", "color"), t);
+  assert.ok(contrast(text, hot) >= 4.5, "the selected label");
+  assert.ok(contrast(mix(text, 0.7, hot), hot) >= 4.5, "the selected building's segment");
 });
 
-test("the quiet --ink2 labels stand 4.5:1 against the lightest sky in light mode", () => {
-  const t = THEMES.light;
-  assert.ok(contrast(rgb(t.ink2), rgb(t["space-sky-1"])) >= 4.5, contrast(rgb(t.ink2), rgb(t["space-sky-1"])).toFixed(2));
+test("Flat's labels stand 4.5:1 against what they are drawn on, in light and dark", () => {
+  for (const [name, t] of Object.entries({ light: LIGHT, dark: { ...LIGHT, ...DARK } })) {
+    // A part's name and its kind on its plate; a relationship's label on its tab.
+    const plate = rgb(t.plate), tab = colour(rule(".elabel rect", "fill"), t);
+    for (const [what, text, under] of [["a part's name", colour(rule(".dg text", "fill"), t), plate], ["a part's kind", colour(rule(".dg .sub", "fill"), t), plate], ["a relationship's label", colour(rule(".elabel text", "fill"), t), tab]]) {
+      assert.ok(contrast(text, under) >= 4.5, `${name}: ${what} is ${contrast(text, under).toFixed(2)}:1`);
+    }
+  }
 });

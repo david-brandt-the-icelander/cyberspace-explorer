@@ -63,7 +63,7 @@
     },
     {
       "id": "cyberspace",
-      "description": "Cyberspace in place of the folder column and the view: a sky and a ground grid under the bar, with the status line floating over them. On a first entry the status line reads 'Loading Cyberspace's 3D library…' with the ticking square; if the WebGL context is lost it reads 'The 3D view stopped.' with a Restore it button."
+      "description": "Cyberspace in place of the folder column and the view: a black-to-indigo sky and a glossy black floor under the bar, and the whole window dark whatever the system's setting, with the status line floating over them. On a first entry the status line reads 'Loading Cyberspace's 3D library…' with the ticking square; if the WebGL context is lost it reads 'The 3D view stopped.' with a Restore it button."
     }
   ],
   "transitions": [
