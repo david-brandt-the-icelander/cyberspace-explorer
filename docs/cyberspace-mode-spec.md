@@ -21,7 +21,7 @@ The 3D ground plan is the flat drawing's dagre layout laid on the floor. A part 
 
 **Done means:**
 
-- [ ] A **Flat / Cyberspace** switch in the bar; the choice is in the address and survives reload, back and forward.
+- [x] A **Flat / Cyberspace** switch in the bar; the choice is in the address and survives reload, back and forward. (Shown since 2026-11-15; in step 7 every row of *Switching modes keeps the place* was pressed both ways in Chrome.)
 - [ ] The four scenes work for this repository and for any repository the flat page can open, for every drawn kind (component, deployment, class, state, use case, user journey).
 - [ ] Selecting a tower opens the existing inspector with the same content as the flat page.
 - [ ] Without WebGL, without three.js, with reduced motion, from the keyboard and in light mode, the mode degrades as section *Fallbacks, performance budgets, accessibility* says.
@@ -539,7 +539,7 @@ The scene changes:
 
 Every panel is ordinary HTML over the canvas, built from the page's own CSS variables, icons and fonts; the scene sections say what each panel holds, this section says what they share.
 
-**The mode switch in the bar.** Between the repository name and **Tokens**, a group `role="group" aria-label="View mode"` of two buttons, **Flat** and **Cyberspace**, each with `aria-pressed`. Group: 2 px padding, 1 px `--rule` border, radius 6. Buttons: 28 px tall, 0 12 px padding, `600 13px` Semi Condensed; pressed = `--rule` background and `--hot` text, else transparent and `--ink2`. Hidden on the landing page and when WebGL is unavailable (section *Fallbacks*), It was hidden for everyone while the steps were built, when only a `~space` address opened Cyberspace, and has been shown since 2026-11-15, when the owner had it shown after step 6, ahead of step 7 (decision `cyberspace-launch`). Each press changes the address, nothing else; `route()` does the rest.
+**The mode switch in the bar.** Between the repository name and **Tokens**, a group `role="group" aria-label="View mode"` of two buttons, **Flat** and **Cyberspace**, each with `aria-pressed`. Group: 2 px padding, 1 px `--rule` border, radius 6. Buttons: 28 px tall, 0 12 px padding, `600 13px` Semi Condensed; pressed = `--rule` background and `--hot` text, else transparent and `--ink2`. Hidden on the landing page and when WebGL is unavailable (section *Fallbacks*); shown when three.js couldn't load, so that a later press can work. It was hidden for everyone while the steps were built, when only a `~space` address opened Cyberspace, and has been shown since 2026-11-15, when the owner had it shown after step 6, ahead of step 7 (decision `cyberspace-launch`). Each press changes the address, nothing else; `route()` does the rest.
 
 **Status line.** The existing `status()` keeps its job and wording rules; Cyberspace only writes its scene sentence when the loader has nothing to report. Its other messages (`Loading Cyberspace's 3D library…` on a first entry, and those in *Fallbacks*) follow whatever the loader said, which is left alone again when they no longer apply. Over the canvas it is translucent: `--paper` at 88%, bottom border `--grid`. The right-hand hint is a new optional `<span class="hint">` in `--ink3`.
 

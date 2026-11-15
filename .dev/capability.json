@@ -103,6 +103,43 @@
       ]
     },
     {
+      "id": "fly-through",
+      "name": "Fly through a repository in 3D",
+      "description": "Shows the views and knowledge files of a repository as a scene to fly through and walk in.",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "showSpace"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceStage"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceRig"
+        }
+      ],
+      "responsibility": "Stands each folder as a tower of its views, each drawn view as a city on its flat layout, a city's street to walk in, and the repository's folders as a skyline; selects a part as Flat does, into the same inspector; and keeps the mode, the scene and the part in the address, so that the switch, a link, Back and Forward land on the same place.",
+      "operations": [
+        {
+          "path": "index.html",
+          "symbol": "route"
+        },
+        {
+          "path": "index.html",
+          "symbol": "showSpace"
+        },
+        {
+          "path": "index.html",
+          "symbol": "switchHash"
+        }
+      ],
+      "access": [
+        "Anyone who has opened a repository in the page, in a browser with WebGL 2."
+      ]
+    },
+    {
       "id": "keep-tokens",
       "name": "Keep the reader's tokens",
       "description": "Holds access tokens in the reader's browser, by host and scope.",

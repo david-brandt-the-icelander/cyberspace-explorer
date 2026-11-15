@@ -151,6 +151,18 @@
     {
       "path": "index.html",
       "symbol": "districtTo"
+    },
+    {
+      "path": "index.html",
+      "symbol": "modeSwitch"
+    },
+    {
+      "path": "index.html",
+      "symbol": "switchHash"
+    },
+    {
+      "path": "index.html",
+      "symbol": "flatPlace"
     }
   ],
   "machine": "Cyberspace's scenes",
@@ -185,16 +197,16 @@
     {
       "from": "flat",
       "to": "tower",
-      "trigger": "the address gains ~space or ~space:tower (a link, or the switch once it shows)",
+      "trigger": "Cyberspace in the bar's switch with no part selected in Flat, or an address gaining ~space or ~space:tower (a link)",
       "guard": "the browser has WebGL 2 and three.js loads",
-      "action": "three.js is imported on the first entry; the tower stands at once, the view the address names (or the folder's first drawn view) pulled out, the camera in its opening pose"
+      "action": "three.js is imported on the first entry; the tower stands at once, the view the address names (or the folder's first drawn view) pulled out, the camera in its opening pose; from the switch, the address is #<folder>|view:<first file of the open tab>|~space when the tab is drawn, #<folder>|~space otherwise, and #|~space from Waiting; the switch's Cyberspace is pressed"
     },
     {
       "from": "flat",
       "to": "city",
-      "trigger": "the address gains ~space:city",
+      "trigger": "Cyberspace in the bar's switch with a part selected in Flat, or an address gaining ~space:city",
       "guard": "the browser has WebGL 2 and three.js loads",
-      "action": "the city of the view or part it names stands, fitted to the room the panels leave"
+      "action": "the city of the view or part it names stands, fitted to the room the panels leave; from the switch, the address is #<folder>|<kind>:<part>|~space:city, the part selected"
     },
     {
       "from": "flat",
@@ -205,9 +217,9 @@
     {
       "from": "flat",
       "to": "flat",
-      "trigger": "the address gains ~space",
+      "trigger": "Cyberspace in the bar's switch, or an address gaining ~space",
       "guard": "three.js can't be loaded",
-      "action": "the status line says Cyberspace couldn't load its 3D library. Showing the flat view; the next entry tries again"
+      "action": "the status line says Cyberspace couldn't load its 3D library. Showing the flat view; the next entry tries again; the switch stays, so a later press can work"
     },
     {
       "from": "flat",
@@ -356,17 +368,20 @@
     {
       "from": "street",
       "to": "flat",
-      "trigger": "an address without ~space: Open flat, the switch, Back"
+      "trigger": "an address without ~space: Open flat, Flat in the bar's switch, Back",
+      "action": "from the switch, the address is #<folder>|<kind>:<part> with a part selected, #<folder>|view:<file> with none, and Flat shows that tab with the part selected; the switch's Flat is pressed"
     },
     {
       "from": "tower",
       "to": "flat",
-      "trigger": "an address without ~space: Read it in Flat, the switch, Back"
+      "trigger": "an address without ~space: Read it in Flat, Flat in the bar's switch, Back",
+      "action": "from the switch, the address is #<folder>|<kind>:<part> with a part selected, #<folder>|view:<file> with none, and Flat shows that tab with the part selected; the switch's Flat is pressed"
     },
     {
       "from": "city",
       "to": "flat",
-      "trigger": "an address without ~space: Open flat, the switch, Back"
+      "trigger": "an address without ~space: Open flat, Flat in the bar's switch, Back",
+      "action": "from the switch, the address is #<folder>|<kind>:<part> with a part selected, #<folder>|view:<file> with none, and Flat shows that tab with the part selected; the switch's Flat is pressed"
     },
     {
       "from": "webgl-missing",
@@ -414,7 +429,8 @@
     {
       "from": "skyline",
       "to": "flat",
-      "trigger": "an address without ~space: the switch (#<folder>), Back"
+      "trigger": "an address without ~space: Flat in the bar's switch (#<folder>), Back",
+      "action": "the switch's Flat is pressed"
     },
     {
       "from": "city",
