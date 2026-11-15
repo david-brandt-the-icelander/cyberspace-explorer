@@ -317,8 +317,8 @@
     },
     {
       "id": "cyberspace-launch",
-      "title": "Cyberspace appears when it is whole",
-      "summary": "Each step of Cyberspace is merged and deployed as it is built, but the Flat / Cyberspace switch appears only when step 7 is done.",
+      "title": "When the Cyberspace switch appears",
+      "summary": "Each step of Cyberspace is merged and deployed as it is built. The Flat / Cyberspace switch was to appear when step 7 was done; the owner had it shown on 2026-11-15, after step 6.",
       "status": "accepted",
       "context": "Merging to main deploys to cyberspace-explorer.com, and the Worker has no preview URLs. Cyberspace is built in eight pull requests (plan cyberspace-mode).",
       "options": [
@@ -335,7 +335,7 @@
           "consequences": "Nothing reaches readers early, but the branch drifts while others change index.html, and one large merge is hard to review."
         }
       ],
-      "decision": "One pull request per step into main. The switch is built in step 1 and stays hidden until step 7 meets the recorded quality requirements: keyboard, reduced motion, light and dark, fallbacks. Until then only an address with ~space in it opens Cyberspace.",
+      "decision": "One pull request per step into main. The switch is built in step 1 and stays hidden until step 7 meets the recorded quality requirements: keyboard, reduced motion, light and dark, fallbacks. Until then only an address with ~space in it opens Cyberspace. On 2026-11-15, after step 6, the owner had the switch shown ahead of step 7, which still brings the keyboard, reduced motion, light and dark, screen sizes and the budgets up to the quality requirements.",
       "rationale": "Changes stay small enough to review, and readers see Cyberspace only when it is whole.",
       "decidedBy": "owner",
       "decidedOn": "2026-11-13",
@@ -391,7 +391,7 @@
           "entityId": "works-without-webgl"
         }
       ],
-      "details": "Built so far: the address, the switch (hidden until the launch), the fallbacks; the folder tower, a folder's .dev files as floors with a drawn view pulled out and its city small on it; and the city: a drawn view standing on the flat layout's ground plan, with its labels, legend and camera controls. A tower, plate or beacon can be selected: its beams light, the inspector opens on it with the text Flat shows, and the address names it. From a city the reader walks down to its street: eye level by a part, walking with the keys among towers that are solid and plates that are steps, with a map, a breadcrumb and a hover card. A city can stand the folder's other drawn views beside it, ticked in its Layers panel. Above the towers, a repository with several folders is a skyline: a building per folder, which the reader rises to from a tower and flies into.",
+      "details": "Built so far: the address, the switch (shown in the bar since 2026-11-15), the fallbacks; the folder tower, a folder's .dev files as floors with a drawn view pulled out and its city small on it; and the city: a drawn view standing on the flat layout's ground plan, with its labels, legend and camera controls. A tower, plate or beacon can be selected: its beams light, the inspector opens on it with the text Flat shows, and the address names it. From a city the reader walks down to its street: eye level by a part, walking with the keys among towers that are solid and plates that are steps, with a map, a breadcrumb and a hover card. A city can stand the folder's other drawn views beside it, ticked in its Layers panel. Above the towers, a repository with several folders is a skyline: a building per folder, which the reader rises to from a tower and flies into.",
       "evidenceStatus": "proposed",
       "sources": [
         {

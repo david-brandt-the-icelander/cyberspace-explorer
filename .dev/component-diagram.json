@@ -235,7 +235,7 @@
     {
       "id": "bar",
       "name": "Bar",
-      "responsibility": "The strip across the top: the brand (a link to the landing page), the repository and its ref, the Flat / Cyberspace switch (built, and hidden until Cyberspace launches), the Tokens button and Choose another repository.",
+      "responsibility": "The strip across the top: the brand (a link to the landing page), the repository and its ref, the Flat / Cyberspace switch (offered where WebGL works), the Tokens button and Choose another repository.",
       "folder": "."
     },
     {

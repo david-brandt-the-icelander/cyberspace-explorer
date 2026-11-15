@@ -2807,8 +2807,9 @@ function streetWhere(world, x, z) {
 /* space-world:end */
 
 const THREE_URL = "https://cdn.jsdelivr.net/npm/three@0.187.0/+esm";
-/** Whether the bar offers the switch. Until the launch only an address with ~space in it opens Cyberspace (decision cyberspace-launch). */
-const SPACE_SWITCH = false;
+/** Whether the bar offers the switch: hidden while Cyberspace was built, and shown since the owner had it shown after step 6 of
+ *  the plan (decision cyberspace-launch). */
+const SPACE_SWITCH = true;
 const SPACE_SAYS = {
   webgl: "Cyberspace needs WebGL, which this browser has turned off. Showing the flat view.",
   three: "Cyberspace couldn't load its 3D library. Showing the flat view.",
@@ -5903,7 +5904,7 @@ function spacePointer(stage, rig) {
   return { hit };
 }
 
-/** The switch shows which mode is on. It is offered only with WebGL, and not before the launch. */
+/** The switch shows which mode is on. It is offered only with WebGL. */
 function modeSwitch() {
   const el = $("modes");
   el.hidden = !(SPACE_SWITCH && webgl);
