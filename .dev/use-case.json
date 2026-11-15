@@ -1033,11 +1033,15 @@
         {
           "id": "offer",
           "actor": "Browser",
-          "action": "Lights its beams and opens the inspector, with Walk to <name> at its foot.",
+          "action": "Lights its beams, opens the inspector with Walk to <name> at its foot, and turns the view toward the part, which comes to the centre of the room beside the inspector.",
           "sources": [
             {
               "path": "index.html",
               "symbol": "spaceInspect"
+            },
+            {
+              "path": "index.html",
+              "symbol": "spaceLook"
             }
           ],
           "participantKind": "system"

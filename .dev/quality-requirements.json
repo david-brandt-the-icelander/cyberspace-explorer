@@ -67,8 +67,8 @@
       "title": "Respects reduced motion",
       "summary": "With reduced motion on, nothing animates.",
       "area": "Accessibility",
-      "requirement": "When the system asks for reduced motion, the drill animation, pulses, flashes, the ticking square and the fades are off, and scrolling jumps. In Cyberspace every flight, slide and fade lands at once, and the camera's move to the room the inspector leaves; walking still moves, because the reader drives it (decision cyberspace-motion).",
-      "measuredBy": "Turning on reduced motion in the system and walking a folder. In Cyberspace, counting the animation frames each move asks for with reduced motion emulated: 1 to 3 for every flight, slide, fade and refit (42 to 187 without it), and as many as without it while walking (Chrome, 2026-11-15).",
+      "requirement": "When the system asks for reduced motion, the drill animation, pulses, flashes, the ticking square and the fades are off, and scrolling jumps. In Cyberspace every flight, slide and fade lands at once, and so does the view's turn toward a selection and its move to bring a part focused from the keyboard into view; walking still moves, because the reader drives it (decision cyberspace-motion).",
+      "measuredBy": "Turning on reduced motion in the system and walking a folder. In Cyberspace, counting the animation frames each move asks for with reduced motion emulated: 1 to 3 for every flight, slide, fade and refit (42 to 187 without it), and as many as without it while walking (Chrome, 2026-11-15); a selection in the city, turning toward its part, 2 with reduced motion against 65 without (2026-11-15).",
       "evidenceStatus": "source-verified",
       "sources": [
         {
@@ -86,6 +86,14 @@
         {
           "path": "index.html",
           "symbol": "fly"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceLook"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceReveal"
         }
       ]
     },

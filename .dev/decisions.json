@@ -251,7 +251,7 @@
           "entityId": "reduced-motion"
         }
       ],
-      "details": "Built (plan cyberspace-mode, steps city, selection, tower and street): the camera moves while the reader drags, scrolls, pinches or presses a key, and when the inspector they opened or closed changes the room left for the city, over 300 ms; a floor of the folder tower slides out and back over 450 ms when the reader pulls another out or slides it back; and the camera flies between the tower and a city (600 ms) when they enter a floor or go up with Esc, Back or Forward, the tower fading out or in over 200 ms. Each is at once with reduced motion, and input during a flight stops it where it is. The camera also flies from a city down to its street and back up (400 ms and 12 more a unit the eye travels, from 500 to 1200, on an arc), and the eye flies to where the reader clicks on the street's map; a plate under the walking eye is a step it eases onto over 150 ms. Walking itself moves only while the reader holds a key or drags, and it moves with reduced motion too, because the reader drives it. The camera flies between the skyline and a folder's tower (600 ms) as one fades out and the other in, and flies to another folder's building when the skyline's address changes. An unticked layer fades to the dim state over 200 ms before it goes, and a camera the reader hasn't moved fits to what stands over 300 ms when a layer comes or goes. Each is at once with reduced motion. Checked again in Chrome on 2026-11-15 (step 8), counting the animation frames asked for in the 1.6 s after each move: 36 to 148 with motion for tower to city, a selection's refit, city to street and back, city to tower, a floor sliding out, tower to skyline, building to building and skyline to tower; 2 for each with reduced motion.",
+      "details": "Built (plan cyberspace-mode, steps city, selection, tower and street): the camera moves while the reader drags, scrolls, pinches or presses a key, and when the inspector they opened or closed changes the room left for the city, over 300 ms; a floor of the folder tower slides out and back over 450 ms when the reader pulls another out or slides it back; and the camera flies between the tower and a city (600 ms) when they enter a floor or go up with Esc, Back or Forward, the tower fading out or in over 200 ms. Each is at once with reduced motion, and input during a flight stops it where it is. The camera also flies from a city down to its street and back up (400 ms and 12 more a unit the eye travels, from 500 to 1200, on an arc), and the eye flies to where the reader clicks on the street's map; a plate under the walking eye is a step it eases onto over 150 ms. Walking itself moves only while the reader holds a key or drags, and it moves with reduced motion too, because the reader drives it. The camera flies between the skyline and a folder's tower (600 ms) as one fades out and the other in, and flies to another folder's building when the skyline's address changes. An unticked layer fades to the dim state over 200 ms before it goes, and a camera the reader hasn't moved fits to what stands over 300 ms when a layer comes or goes. Each is at once with reduced motion. Checked again in Chrome on 2026-11-15 (step 8), counting the animation frames asked for in the 1.6 s after each move: 36 to 148 with motion for tower to city, a selection's refit, city to street and back, city to tower, a floor sliding out, tower to skyline, building to building and skyline to tower; 2 for each with reduced motion. Since 2026-11-15, at the owner's request, the view turns toward a selection (docs/cyberspace-mode-spec.md, Camera and input, Looking at the selection): in a city the point the camera turns about glides to the part's middle, which comes to the centre of the room the inspector leaves, distance and angles kept, for as long as a flight over the distance; in the street the eye turns where it stands to face the part, for 250 ms and 3 more a degree, at most 700; in the tower the camera climbs to the floor selected. Keyboard focus moves the camera only to bring what it names just inside the room. Input stops a turn where it is; each is at once with reduced motion, and clearing the selection moves nothing.",
       "evidenceStatus": "source-verified",
       "sources": [
         {
@@ -289,6 +289,14 @@
         {
           "path": "index.html",
           "symbol": "layerOff"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceLook"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceReveal"
         }
       ]
     },

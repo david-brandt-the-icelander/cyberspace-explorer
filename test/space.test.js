@@ -567,6 +567,96 @@ test("street addresses read back the same, with a part and without", () => {
   }
 });
 
+// ── Looking at the selection ──────────────────────────────────────────────
+
+const { orbitTarget, partStand, streetAim, faceAngles, turnBy, turnDegrees, turnMs, leastMove, leastTurn } = vm.runInContext("({ orbitTarget, partStand, streetAim, faceAngles, turnBy, turnDegrees, turnMs, leastMove, leastTurn })", context);
+/** Where an eye stands seen from a point at the rig's angles, `d` away: eyeOf in index.html. */
+const eyeAt = (p, { azimuth, elevation }, d) => {
+  const a = (azimuth * Math.PI) / 180, e = (elevation * Math.PI) / 180;
+  return [p[0] + d * Math.cos(e) * Math.sin(a), p[1] + d * Math.sin(e), p[2] - d * Math.cos(e) * Math.cos(a)];
+};
+const angles = (x) => ({ azimuth: x.azimuth, elevation: x.elevation });
+
+test("the orbit camera turns about a part's middle: half way up a tower or a plate, a beacon's diamond, moved where its city stands", () => {
+  const w = street({ towers: [{ key: "loader", x: -10, z: -19.96, side: 2.2, base: 0.5, h: 10 }], beacons: [{ key: "gh", x: 1.2, y: 6.5, z: -18.9 }], plates: [{ key: "reading", x0: -12.4, x1: -1.6, z0: -24.3, z1: -13.9, base: 0 }] });
+  assert.ok(close(orbitTarget(w, "loader"), [-10, 5.5, -19.96]));
+  assert.ok(close(orbitTarget(w, "gh"), [1.2, 6.5, -18.9]));
+  assert.ok(close(orbitTarget(w, "reading"), [-7, 0.25, -19.1]));
+  // A city standing as a layer, 60 units right of the first.
+  assert.ok(close(orbitTarget(w, "loader", 60), [50, 5.5, -19.96]));
+  assert.equal(orbitTarget(w, "nothing"), null);
+  // Its box, for the keyboard to bring into view.
+  assert.ok(close([...partStand(w, "loader").box], [-11.1, 0.5, -21.06, -8.9, 10.5, -18.86]));
+});
+
+test("the eye faces a point at the angles an orbit pose reads it from; the pitch stays within ±60°", () => {
+  // Straight ahead along +z, to the right (+x), and behind.
+  assert.deepEqual(angles(faceAngles([0, 0, 0], [0, 0, 10])), { azimuth: 0, elevation: 0 });
+  assert.ok(near(faceAngles([0, 0, 0], [10, 0, 0]).azimuth, -90));
+  assert.ok(near(Math.abs(faceAngles([0, 0, 0], [0, 0, -10]).azimuth), 180));
+  // From the angles it gives, the eye is where it stands.
+  for (const [eye, p] of [[[-14.1, 1.7, -31.2], [-10, 6, -20]], [[3, 9, 2], [-4, 1, 7]], [[0, 1.7, 0], [5, 1.7, -5]]]) {
+    const a = faceAngles(eye, p), d = Math.hypot(...eye.map((v, i) => v - p[i]));
+    assert.ok(close(eyeAt(p, a, d), eye, 1e-9), String(eyeAt(p, a, d)));
+  }
+  // Looking up at a tower's top from beside it: no more than 60° up.
+  assert.equal(faceAngles([0, 1.7, 0], [0, 30, 1]).elevation, -60);
+  assert.equal(faceAngles([0, 30, 0], [0, 0, 1], 90).elevation > 60, true);
+  // Arriving by this repository's Loader, the street's pose already faces it: selecting it turns nothing.
+  const pose = streetPose(street({ towers: [{ key: "loader", x: -10, z: -19.96, side: 2.2, base: 0.5, h: 10 }] }), "loader");
+  const s = partStand(street({ towers: [{ key: "loader", x: -10, z: -19.96, side: 2.2, base: 0.5, h: 10 }] }), "loader");
+  assert.ok(close([...streetAim(s)], [...pose.target]));
+});
+
+test("the eye turns the shorter way round, for 250 ms and 3 more a degree, at most 700", () => {
+  assert.equal(turnBy(170, -170), 20);
+  assert.equal(turnBy(-170, 170), -20);
+  assert.equal(turnBy(10, 370), 0);
+  assert.equal(Math.abs(turnBy(0, 180)), 180);
+  assert.equal(turnBy(-400, 50), 90);
+  assert.ok(near(turnDegrees({ azimuth: 0, elevation: 0 }, { azimuth: 90, elevation: 0 }), 90, 1e-9));
+  assert.ok(near(turnDegrees({ azimuth: -170, elevation: 0 }, { azimuth: 170, elevation: 0 }), 20, 1e-9));
+  assert.ok(near(turnDegrees({ azimuth: 30, elevation: 0 }, { azimuth: 30, elevation: -40 }), 40, 1e-9));
+  assert.ok(near(turnDegrees({ azimuth: 0, elevation: 0 }, { azimuth: 180, elevation: 0 }), 180, 1e-6));
+  assert.deepEqual([0, 10, 50, 150, 180].map(turnMs), [250, 280, 400, 700, 700]);
+});
+
+test("the least move brings a box or a point inside a rectangle, and none when it is inside", () => {
+  const room = { x0: 260, y0: 60, x1: 1060, y1: 780 }, move = (box, rect) => [...leastMove(box, rect)];
+  assert.deepEqual(move({ x0: 400, x1: 450, y0: 300, y1: 360 }, room), [0, 0]);
+  // Under the inspector on the right, and above the top.
+  assert.deepEqual(move({ x0: 1100, x1: 1160, y0: 30, y1: 90 }, room), [-100, 30]);
+  // Off the left edge, and a point below the bottom.
+  assert.deepEqual(move({ x0: -80, x1: -20, y0: 300, y1: 300 }, room), [340, 0]);
+  assert.deepEqual(move({ x0: 500, x1: 500, y0: 900, y1: 900 }, room), [0, -120]);
+  // Larger than the rectangle along an axis: its middle to the rectangle's.
+  assert.deepEqual(move({ x0: 0, x1: 1000, y0: 100, y1: 900 }, room), [160, -80]);
+  // Touching the edge is inside.
+  assert.deepEqual(move({ x0: 260, x1: 300, y0: 740, y1: 780 }, room), [0, 0]);
+});
+
+test("the least turn brings a part into the window of the view, the way that turns least, and none when it is inside", () => {
+  const room = { left: 30, right: 30, up: 20, down: 20 }, at = { azimuth: 0, elevation: 0 }, eye = [0, 1.7, 0];
+  const toward = (deg, d = 10, y = 1.7) => faceAngles(eye, [d * Math.sin((deg * Math.PI) / 180), y, d * Math.cos((deg * Math.PI) / 180)], 90);
+  // 10° right of where the eye looks: inside, nothing turns.
+  assert.deepEqual(angles(leastTurn(at, [toward(10)], room)), at);
+  // 40° right: the eye turns 10° right, and the point stands at the window's right edge.
+  const r = leastTurn(at, [toward(40)], room);
+  assert.ok(near(r.azimuth, -10, 1e-9) && near(r.elevation, 0, 1e-9), JSON.stringify(r));
+  assert.ok(near(turnBy(toward(40).azimuth, r.azimuth), 30, 1e-9));
+  // Behind the eye, a little to the left: it turns left until the part is at the window's left edge.
+  const b = leastTurn(at, [toward(-170)], room);
+  assert.ok(near(b.azimuth, 140, 1e-9), JSON.stringify(b));
+  // A part's corners: the whole of it comes in, so the far corner is at the edge.
+  const c = leastTurn(at, [toward(36), toward(44)], room);
+  assert.ok(near(c.azimuth, -14, 1e-9), JSON.stringify(c));
+  // High above: it looks up only as far as the window needs, and never past 60°.
+  const up = leastTurn(at, [faceAngles(eye, [0, 40, 3], 90)], room);
+  assert.equal(up.elevation, -60);
+  const some = leastTurn(at, [faceAngles(eye, [0, 1.7 + 10 * Math.tan((30 * Math.PI) / 180), 10], 90)], room);
+  assert.ok(near(some.elevation, -10, 1e-9) && near(some.azimuth, 0, 1e-9), JSON.stringify(some));
+});
+
 // ── The skyline and layers ────────────────────────────────────────────────
 
 const { skylineWorldFrom, buildingCorners, BUILDING, layerOffsets, LAYER_GAP, spaceSceneFor, spacePlaceOf } = vm.runInContext("({ skylineWorldFrom, buildingCorners, BUILDING, layerOffsets, LAYER_GAP, spaceSceneFor, spacePlaceOf })", context);
