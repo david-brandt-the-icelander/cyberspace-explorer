@@ -7,7 +7,7 @@
     {
       "id": "cyberspace-explorer",
       "title": "Cyberspace explorer",
-      "summary": "A web page that shows a repository's .dev folders (its diagrams drawn, its behavior views and knowledge files written out), and the Worker that serves it at cyberspace-explorer.com.",
+      "summary": "A web page that shows a repository's .dev folders (its diagrams drawn, its behavior views and knowledge files written out, or all of it in 3D, in Cyberspace), and the Worker that serves it at cyberspace-explorer.com.",
       "purpose": "Lets a person read what agents keep in a repository's .dev folders (how it is built, what it does and what it knows about itself) in a browser, with nothing to install, clone or run.",
       "boundaries": [
         "It reads .dev files (or the one .cyberspace-explorer tree that can stand in for them); it never writes to a repository.",

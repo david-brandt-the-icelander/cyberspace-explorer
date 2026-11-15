@@ -45,10 +45,10 @@
       "id": "cyberspace-mode",
       "title": "Cyberspace: the repository in 3D",
       "type": "feature",
-      "status": "accepted",
+      "status": "done",
       "priority": "medium",
       "summary": "A second way to read a repository beside the flat page: a folder as a tower of floors, a drawn view as a city of glass towers, and a walk through it at street level.",
-      "details": "The [implementation spec](docs/cyberspace-mode-spec.md) says how to build it: where the code goes in `index.html`, how a view becomes a 3D world, the exact look, the address forms, the fallbacks, the build order and the tests. The design it follows is the canvas *Cyberspace explorer in 3D*, linked from the spec and copied in [docs/cyberspace-design](docs/cyberspace-design/README.md).\n\nThe [plan](.dev/plan.json) builds it in eight pull requests and says how each is checked. It changes one recorded decision, `one-motion`, which the spec amends with a new decision `cyberspace-motion`. The questions still open are decisions: `per-entity-cities` and `cross-browser-checks`.",
+      "details": "The [implementation spec](docs/cyberspace-mode-spec.md) says how to build it: where the code goes in `index.html`, how a view becomes a 3D world, the exact look, the address forms, the fallbacks, the build order and the tests. The design it follows is the canvas *Cyberspace explorer in 3D*, linked from the spec and copied in [docs/cyberspace-design](docs/cyberspace-design/README.md).\n\nThe [plan](.dev/plan.json) builds it in eight pull requests and says how each is checked. It changes one recorded decision, `one-motion`, which the spec amends with a new decision `cyberspace-motion`. The questions still open are decisions: `per-entity-cities` and `cross-browser-checks`.\n\nDone on 2026-11-15 (plan cyberspace-mode, step 8). What it delivered is described by the feature and capability *Fly through a repository in 3D*, the use case *Walk to a part and read it* and the journey *Walking through a district*, the state machine of Cyberspace's scenes, the Cyberspace group of the component diagram, decisions cyberspace-mode and cyberspace-motion, requirement works-without-webgl and quality requirement space-frame-rate. The spec's acceptance checklist passed in Chrome on that day, in the look Cyberspace was built with; its Safari and Firefox part is backlog item safari-firefox-checks, and the items for the Gibson look wait for plan cyberspace-gibson.",
       "origin": {
         "kind": "request",
         "by": "owner",
@@ -87,9 +87,85 @@
         {
           "relation": "depends-on",
           "path": ".dev/quality-requirements.json"
+        },
+        {
+          "relation": "resolved-by",
+          "path": ".dev/feature.json",
+          "entityId": "cyberspace"
+        },
+        {
+          "relation": "resolved-by",
+          "path": ".dev/capability.json",
+          "entityId": "fly-through"
+        },
+        {
+          "relation": "resolved-by",
+          "path": ".dev/use-case.json",
+          "entityId": "walk-to-part"
+        },
+        {
+          "relation": "resolved-by",
+          "path": ".dev/user-journey.json",
+          "entityId": "walk-a-district"
+        },
+        {
+          "relation": "resolved-by",
+          "path": ".dev/space.state-diagram.json"
+        },
+        {
+          "relation": "resolved-by",
+          "path": ".dev/component-diagram.json",
+          "description": "The Cyberspace group and the three.js beacon."
+        },
+        {
+          "relation": "resolved-by",
+          "path": ".dev/decisions.json",
+          "entityId": "cyberspace-mode"
+        },
+        {
+          "relation": "resolved-by",
+          "path": ".dev/requirements.json",
+          "entityId": "works-without-webgl"
+        },
+        {
+          "relation": "resolved-by",
+          "path": ".dev/quality-requirements.json",
+          "entityId": "space-frame-rate"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/backlog.json",
+          "entityId": "safari-firefox-checks",
+          "description": "The acceptance checklist in Safari and Firefox, left open."
         }
       ],
-      "evidenceStatus": "proposed"
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "showSpace"
+        },
+        {
+          "path": "index.html",
+          "symbol": "towerScene"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceScene"
+        },
+        {
+          "path": "index.html",
+          "symbol": "skylineScene"
+        },
+        {
+          "path": "index.html",
+          "symbol": "enterStreet"
+        },
+        {
+          "path": "index.html",
+          "symbol": "layersHud"
+        }
+      ]
     },
     {
       "id": "cyberspace-gibson",
@@ -175,6 +251,145 @@
         {
           "path": "index.html",
           "symbol": "showSignIn"
+        }
+      ]
+    },
+    {
+      "id": "side-by-side-entities",
+      "title": "Stand a file's use cases or journeys side by side in Cyberspace",
+      "type": "feature",
+      "status": "proposed",
+      "priority": "low",
+      "summary": "A city stands one use case or journey of a file at a time, chosen by a radio button in its Layers panel; decision per-entity-cities is whether several can stand together, as tick boxes.",
+      "details": "What steps 6 and 7 found. Standing a file's use cases side by side needs no new rules: every city standing is placed by its bounds, 12 units right of the last (`layerOffsets`), and picked, labelled, walked and mapped by its view and part (`districtWorld`), as the folder's other views already are. What limits it is the draw-call cap. Each city standing is its own meshes, 4 to 10 draw calls (`cityCalls`: 9 for this repository's component city, 5 for a state machine), and the scene keeps 7 for the ground and the most a selection adds, so the Layers panel (`layerFits`) lets about four to six cities stand at once within the 40 calls a city scene may take: this repository's component diagram with its deployment diagram and three of its four state machines (33 calls, 40 with Loader selected and a beam under the pointer). Tick boxes for a file's use cases would work within that cap, disabled as the other views' are when one more would pass it; standing all six of this repository's use cases beside the component city would not fit. Standing more would need cities merged into shared meshes, at the cost of picking, marking and fading by city, which each city now does on its own meshes.",
+      "origin": {
+        "kind": "document",
+        "reference": "docs/cyberspace-mode-spec.md",
+        "date": "2026-11-15",
+        "description": "The spec's Records to update: a backlog item for each open question that stays open."
+      },
+      "acceptanceCriteria": [
+        "The owner has decided per-entity-cities.",
+        "If they stand side by side: a file's use cases or journeys are tick boxes in the Layers panel, each standing as the folder's other views do, and the scene stays within 40 draw calls whatever is ticked, selected or under the pointer."
+      ],
+      "relationships": [
+        {
+          "relation": "depends-on",
+          "path": ".dev/decisions.json",
+          "entityId": "per-entity-cities"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/quality-requirements.json",
+          "entityId": "space-frame-rate"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "layersHud"
+        },
+        {
+          "path": "index.html",
+          "symbol": "cityCalls"
+        },
+        {
+          "path": "index.html",
+          "symbol": "layerFits"
+        },
+        {
+          "path": "index.html",
+          "symbol": "layerOffsets"
+        },
+        {
+          "path": "index.html",
+          "symbol": "districtWorld"
+        }
+      ]
+    },
+    {
+      "id": "safari-firefox-checks",
+      "title": "Run Cyberspace's acceptance checklist in Safari and Firefox",
+      "type": "chore",
+      "status": "proposed",
+      "priority": "medium",
+      "summary": "The checklist has passed in Chrome; Safari and Firefox are unchecked until decision cross-browser-checks says who runs it there.",
+      "details": "The spec's acceptance checklist was run in Chrome for Testing, driven through the DevTools protocol, on 2026-11-15, and everything on it passed in the look Cyberspace was built with; the items for the Gibson look wait for plan cyberspace-gibson, whose last step runs the checklist again. The machine the work is checked on has no WebKit or Firefox build an agent can drive, so the checklist's Safari and Firefox part waits for decision cross-browser-checks: the owner runs it, or approves installing Playwright's WebKit and Firefox builds so that an agent can. Worth watching there: WebGL 2 (Safari has had it since 15), `:has()` (the ?spacestats readout steps left of an open inspector with it), `backdrop-filter`, and pointer and wheel events for orbiting, pinching and the trackpad.",
+      "origin": {
+        "kind": "document",
+        "reference": "docs/cyberspace-mode-spec.md",
+        "date": "2026-11-15",
+        "description": "The spec's Records to update: a backlog item for each open question that stays open."
+      },
+      "acceptanceCriteria": [
+        "Every item of the spec's acceptance checklist passes in current Safari and Firefox, in light and dark, on a 15-inch laptop and a 27-inch monitor."
+      ],
+      "relationships": [
+        {
+          "relation": "depends-on",
+          "path": ".dev/decisions.json",
+          "entityId": "cross-browser-checks"
+        },
+        {
+          "relation": "documents",
+          "path": "docs/cyberspace-mode-spec.md",
+          "description": "Its acceptance checklist."
+        }
+      ],
+      "evidenceStatus": "documented"
+    },
+    {
+      "id": "slid-back-tower-address",
+      "title": "Give a tower with every floor in an address of its own",
+      "type": "improvement",
+      "status": "proposed",
+      "priority": "low",
+      "summary": "Slide back leaves #<folder>|~space in the address, which also means the folder's first drawn view pulled out, so a reload, a shared link or Back brings a floor out again. #<folder>|view:|~space, an empty view, would say it without breaking any copy of the page.",
+      "details": "Found in step 8, in Chrome on 2026-11-15.\n\nToday, Slide back replaces the history entry with `#<folder>|~space` and keeps every floor in only while the reader stays (`space.shut`). Reloaded, `#|~space` pulls the component diagram out again; after the reader moves on, Back to that entry stands the tower with whatever floor the tower had out. So the address doesn't hold what the reader sees, as decision address-is-state asks.\n\nAn empty view is the form to use:\n\n- Today's Flat reads `#<folder>|view:` as `#<folder>`: `focusPart` finds no section with an empty file name and leaves the folder as it opened (checked on the root and on `worker`). A copy of the page from before Cyberspace reads it the same way (its `focusPart` is the same), and ignores the `|~space` after it.\n- Today's Cyberspace reads `#<folder>|view:|~space` as `#<folder>|~space`: `towerAsk` finds no floor with an empty file name and asks for nothing, so a fresh load pulls the first drawn view out, and a tower already standing keeps the floor it has out (checked on the root and on `worker`).\n\nSo no copy of the page misreads it, and the grammar needs no new segment. The change would be: `towerAsk` reads an empty `view:` as no floor out, `towerSlideBack` writes `#<folder>|view:|~space`, contract page-address gains the form, and test/space.test.js a row. `#<folder>|~space` keeps its meaning, the first drawn view out. If the owner would rather a slid-back tower stay a passing state, nothing is needed: the tower is the same either way, and only the drawer differs.",
+      "origin": {
+        "kind": "agent",
+        "date": "2026-11-15",
+        "reference": "index.html",
+        "description": "Step 7's session suggested the empty view; step 8 checked what today's page does with it."
+      },
+      "acceptanceCriteria": [
+        "After Slide back the address is #<folder>|view:|~space, and reloading it, or coming back to it with Back or Forward, stands the tower with every floor in.",
+        "#<folder>|~space still pulls the folder's first drawn view out, and #<folder>|view: still opens the folder in Flat."
+      ],
+      "relationships": [
+        {
+          "relation": "affects",
+          "path": ".dev/contracts.json",
+          "entityId": "page-address"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/decisions.json",
+          "entityId": "address-is-state"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "towerSlideBack"
+        },
+        {
+          "path": "index.html",
+          "symbol": "towerAsk"
+        },
+        {
+          "path": "index.html",
+          "symbol": "towerScene"
+        },
+        {
+          "path": "index.html",
+          "symbol": "focusPart"
+        },
+        {
+          "path": "index.html",
+          "symbol": "parseSpaceHash"
         }
       ]
     }

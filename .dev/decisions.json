@@ -251,8 +251,46 @@
           "entityId": "reduced-motion"
         }
       ],
-      "details": "Built (plan cyberspace-mode, steps city, selection, tower and street): the camera moves while the reader drags, scrolls, pinches or presses a key, and when the inspector they opened or closed changes the room left for the city, over 300 ms; a floor of the folder tower slides out and back over 450 ms when the reader pulls another out or slides it back; and the camera flies between the tower and a city (600 ms) when they enter a floor or go up with Esc, Back or Forward, the tower fading out or in over 200 ms. Each is at once with reduced motion, and input during a flight stops it where it is. The camera also flies from a city down to its street and back up (400 ms and 12 more a unit the eye travels, from 500 to 1200, on an arc), and the eye flies to where the reader clicks on the street's map; a plate under the walking eye is a step it eases onto over 150 ms. Walking itself moves only while the reader holds a key or drags, and it moves with reduced motion too, because the reader drives it. The camera flies between the skyline and a folder's tower (600 ms) as one fades out and the other in, and flies to another folder's building when the skyline's address changes. An unticked layer fades to the dim state over 200 ms before it goes, and a camera the reader hasn't moved fits to what stands over 300 ms when a layer comes or goes. Each is at once with reduced motion.",
-      "evidenceStatus": "proposed"
+      "details": "Built (plan cyberspace-mode, steps city, selection, tower and street): the camera moves while the reader drags, scrolls, pinches or presses a key, and when the inspector they opened or closed changes the room left for the city, over 300 ms; a floor of the folder tower slides out and back over 450 ms when the reader pulls another out or slides it back; and the camera flies between the tower and a city (600 ms) when they enter a floor or go up with Esc, Back or Forward, the tower fading out or in over 200 ms. Each is at once with reduced motion, and input during a flight stops it where it is. The camera also flies from a city down to its street and back up (400 ms and 12 more a unit the eye travels, from 500 to 1200, on an arc), and the eye flies to where the reader clicks on the street's map; a plate under the walking eye is a step it eases onto over 150 ms. Walking itself moves only while the reader holds a key or drags, and it moves with reduced motion too, because the reader drives it. The camera flies between the skyline and a folder's tower (600 ms) as one fades out and the other in, and flies to another folder's building when the skyline's address changes. An unticked layer fades to the dim state over 200 ms before it goes, and a camera the reader hasn't moved fits to what stands over 300 ms when a layer comes or goes. Each is at once with reduced motion. Checked again in Chrome on 2026-11-15 (step 8), counting the animation frames asked for in the 1.6 s after each move: 36 to 148 with motion for tower to city, a selection's refit, city to street and back, city to tower, a floor sliding out, tower to skyline, building to building and skyline to tower; 2 for each with reduced motion.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "fly"
+        },
+        {
+          "path": "index.html",
+          "symbol": "flyUp"
+        },
+        {
+          "path": "index.html",
+          "symbol": "flyDown"
+        },
+        {
+          "path": "index.html",
+          "symbol": "enterStreet"
+        },
+        {
+          "path": "index.html",
+          "symbol": "riseToCity"
+        },
+        {
+          "path": "index.html",
+          "symbol": "riseToSkyline"
+        },
+        {
+          "path": "index.html",
+          "symbol": "flyIntoTower"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceStage"
+        },
+        {
+          "path": "index.html",
+          "symbol": "layerOff"
+        }
+      ]
     },
     {
       "id": "address-is-state",
@@ -419,8 +457,8 @@
           "entityId": "works-without-webgl"
         }
       ],
-      "details": "Built so far: the address, the switch (shown in the bar since 2026-11-15), the fallbacks; the folder tower, a folder's .dev files as floors with a drawn view pulled out and its city small on it; and the city: a drawn view standing on the flat layout's ground plan, with its labels, legend and camera controls. A tower, plate or beacon can be selected: its beams light, the inspector opens on it with the text Flat shows, and the address names it. From a city the reader walks down to its street: eye level by a part, walking with the keys among towers that are solid and plates that are steps, with a map, a breadcrumb and a hover card. A city can stand the folder's other drawn views beside it, ticked in its Layers panel. Above the towers, a repository with several folders is a skyline: a building per folder, which the reader rises to from a tower and flies into.",
-      "evidenceStatus": "proposed",
+      "details": "Built (plan cyberspace-mode, done 2026-11-15): the address, the Flat / Cyberspace switch (shown in the bar since 2026-11-15) and the fallbacks; four scenes. The folder tower, a folder's .dev files as floors with a drawn view pulled out and its city small on it. The city: a drawn view standing on the flat layout's ground plan, with its labels, legend and camera controls; a tower, plate or beacon can be selected, which lights its beams, opens the inspector on it with the text Flat shows and puts it in the address. The street: eye level by a part, walking with the keys among towers that are solid and plates that are steps, with a map, a breadcrumb and a hover card. The skyline: a repository with several folders as a building per folder, which the reader rises to from a tower and flies into. A city can stand the folder's other drawn views beside it, ticked in its Layers panel, as many as keep the scene within 40 draw calls. Everything works from the keyboard, with reduced motion, and in light and dark.",
+      "evidenceStatus": "source-verified",
       "sources": [
         {
           "path": "index.html",
@@ -449,16 +487,40 @@
         {
           "path": "index.html",
           "symbol": "buildCity"
+        },
+        {
+          "path": "index.html",
+          "symbol": "towerScene"
+        },
+        {
+          "path": "index.html",
+          "symbol": "skylineScene"
+        },
+        {
+          "path": "index.html",
+          "symbol": "enterStreet"
+        },
+        {
+          "path": "index.html",
+          "symbol": "layersHud"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceRig"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceLabels"
         }
       ]
     },
     {
       "id": "design-copies",
       "title": "The Cyberspace design is copied into the repository",
-      "summary": "docs/cyberspace-design/ holds the canvas's three artboards and a render of each; the canvas stays the source.",
+      "summary": "docs/cyberspace-design/ holds the canvas's fifteen artboards and a render of each; the canvas stays the source.",
       "status": "accepted",
       "context": "The design is a private claude.ai canvas. The agents who build Cyberspace, and anyone reviewing it, can't open it, so the spec's \"match the artboard\" couldn't be checked.",
-      "decision": "The three artboards (static HTML) and a 1440 × 900 render of each are copied into docs/cyberspace-design/, with a README that says what they show and what they don't. The design changes on the canvas and is copied here again.",
+      "decision": "The artboards (static HTML) and a 1440 × 900 render of each are copied into docs/cyberspace-design/, with a README that says what they show and what they don't. The design changes on the canvas and is copied here again.",
       "rationale": "The design can be seen wherever the repository can.",
       "decidedBy": "owner",
       "decidedOn": "2026-11-13",
@@ -473,7 +535,13 @@
           "path": "docs/cyberspace-design/README.md"
         }
       ],
-      "evidenceStatus": "documented"
+      "evidenceStatus": "source-verified",
+      "details": "There were three artboards when this was decided; the light-mode, skyline and other-kind artboards (4 to 10) joined them on 2026-11-13, and the Gibson look's (11 to 15, decision space-gibson-look) on 2026-11-15, each of those with the image of its scene beside it.",
+      "sources": [
+        {
+          "path": "docs/cyberspace-design/README.md"
+        }
+      ]
     },
     {
       "id": "space-skyline",
@@ -604,7 +672,30 @@
           "entityId": "cyberspace-mode"
         }
       ],
-      "evidenceStatus": "documented"
+      "evidenceStatus": "source-verified",
+      "details": "Built (plan cyberspace-mode, steps city, selection and layers), and checked in Chrome on 2026-11-15 on this repository's page state machine and component city: the start point a disc, empty the one final state, ringed twice with a solid top; the five transitions between opened and choosing on five arcs; listing's four triggers shown when it is selected; the Worker's label with Flat's badge, and its inspector with the Its folder block and Enter its folder, which opens the Worker's tower.",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "cityWorldFrom"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceLabels"
+        },
+        {
+          "path": "index.html",
+          "symbol": "itsFolder"
+        },
+        {
+          "path": "index.html",
+          "symbol": "layersHud"
+        },
+        {
+          "path": "index.html",
+          "symbol": "cityLegend"
+        }
+      ]
     },
     {
       "id": "space-gibson-look",
@@ -677,14 +768,21 @@
       "title": "Use cases and journeys side by side in Cyberspace",
       "summary": "A file of several use cases becomes one city per use case. Whether readers can stand them side by side is decided after step 6.",
       "status": "open",
-      "context": "Flat draws one canvas per use case or journey, and the spec builds one city per entity, chosen in the address. Standing several side by side would be the Layers mechanism of step 6 applied to entities.",
-      "waitingOn": "owner, after step 6",
+      "context": "Flat draws one canvas per use case or journey, and the spec builds one city per entity, chosen in the address. Standing several side by side would be the Layers mechanism of step 6 applied to entities. What steps 6 and 7 found: cities side by side need no new rules, since every city is placed by its bounds and picked, labelled and walked by its view and part; but each is its own meshes, and the 40-call cap the Layers panel keeps lets about four to six cities stand at once.",
+      "waitingOn": "owner",
       "origin": {
         "kind": "conversation",
         "by": "owner",
         "date": "2026-11-13"
       },
-      "evidenceStatus": "proposed"
+      "evidenceStatus": "proposed",
+      "relationships": [
+        {
+          "relation": "blocks",
+          "path": ".dev/backlog.json",
+          "entityId": "side-by-side-entities"
+        }
+      ]
     },
     {
       "id": "cross-browser-checks",
@@ -695,7 +793,7 @@
       "options": [
         {
           "title": "The owner runs the checklist in Safari and Firefox",
-          "consequences": "Nothing to download; the owner's time at steps 7 and 8."
+          "consequences": "Nothing to download; the owner's time, once and after changes to Cyberspace."
         },
         {
           "title": "Install Playwright's WebKit and Firefox builds",
@@ -705,9 +803,9 @@
       "waitingOn": "owner",
       "blocks": [
         {
-          "path": ".dev/plan.json",
-          "entityId": "cyberspace-mode",
-          "description": "Acceptance, in steps 7 and 8."
+          "path": ".dev/backlog.json",
+          "entityId": "safari-firefox-checks",
+          "description": "The acceptance checklist in Safari and Firefox; it has passed in Chrome."
         }
       ],
       "origin": {
