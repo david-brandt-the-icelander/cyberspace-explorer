@@ -7,10 +7,10 @@
     {
       "id": "folder",
       "title": "The tests",
-      "summary": "Node's test runner over worker/app.js, with GitHub faked, and over the pure block of index.html that reads and writes Cyberspace's addresses.",
-      "purpose": "Checks the Worker's routes, sign-in and door to GitHub without a network or a Cloudflare account, and Cyberspace's addresses without a browser.",
+      "summary": "Node's test runner over worker/app.js, with GitHub faked, and over the pure block of index.html that builds Cyberspace's worlds and reads and writes its addresses.",
+      "purpose": "Checks the Worker's routes, sign-in and door to GitHub without a network or a Cloudflare account, and Cyberspace without a browser: its addresses, the cities, towers, streets and skylines its world builders make, the draw calls the Layers panel counts, and its labels' contrast.",
       "boundaries": [
-        "Tests the Worker, and of index.html only the block between /* space-world:start */ and /* space-world:end */, run in node:vm; nothing here drives a browser.",
+        "Tests the Worker, and of index.html the block between /* space-world:start */ and /* space-world:end */, run in node:vm, and the two :root blocks and the label rules, read as text for the contrast test; nothing here drives a browser.",
         "GitHub is a fake fetch; the secrets are test values."
       ],
       "relationships": [

@@ -544,9 +544,11 @@
   #space-card.folder .shh span { color: var(--k-knowledge); }
   #space-card .shp { font: 400 12px/1.4 var(--mono); color: var(--ink3); }
   #space-card.folder p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
-  /* The ?spacestats readout, bottom right where no panel is; in the street, left of the map. */
+  /* The ?spacestats readout, bottom right where no panel is; while the inspector is open, left of its column, which reaches
+     82 px above the window's bottom; in the street, left of the map. */
   #space-stats { position: absolute; z-index: 3; bottom: 20px; right: 20px; padding: 6px 10px; border: 1px solid var(--rule); border-radius: 6px; background: color-mix(in srgb, var(--sheet) 90%, transparent); font: 400 12px/1.45 var(--mono); color: var(--ink2); white-space: pre; pointer-events: none; }
-  #space-stats.up { bottom: 84px; right: 380px; }
+  body.space:not(.street):has(#inspector:not([hidden])) #space-stats, #space-stats.up { right: 380px; }
+  #space-stats.up { bottom: 84px; }
   body.street #space-stats { right: 290px; }
   @media (max-height: 899.98px) { body.street #space-stats { right: 210px; } }
   /* Below 1280 px wide the Layers panel folds into a 40 px button that opens it as a popover over the scene, and the legend

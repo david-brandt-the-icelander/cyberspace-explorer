@@ -7,9 +7,9 @@
     {
       "id": "cyberspace-mode",
       "title": "Build Cyberspace, the repository in 3D",
-      "summary": "Eight pull requests take the spec to cyberspace-explorer.com: plumbing, the city, selection, the folder tower, the street, layers and the skyline, finishing and launch, then the records.",
+      "summary": "Eight pull requests took the spec to cyberspace-explorer.com: plumbing, the city, selection, the folder tower, the street, layers and the skyline, finishing and launch, then the records.",
       "goal": "Cyberspace works as docs/cyberspace-mode-spec.md says, for every repository the flat page can open, and the spec's acceptance checklist passes.",
-      "status": "in-progress",
+      "status": "done",
       "scope": [
         {
           "path": ".dev/backlog.json",
@@ -61,7 +61,7 @@
         {
           "id": "records",
           "title": "Records: every .dev file reconciled with the code, the README's Cyberspace paragraph, and the acceptance numbers worked out again",
-          "status": "todo"
+          "status": "done"
         }
       ],
       "outOfScope": [
@@ -85,7 +85,27 @@
           "path": "docs/cyberspace-design/README.md"
         }
       ],
-      "evidenceStatus": "documented"
+      "evidenceStatus": "documented",
+      "details": "Done on 2026-11-15, when step 8 reconciled the .dev files with the code, added Cyberspace to the README and ran the spec's acceptance checklist again in Chrome with the numbers of the day. Two things are left, and neither is this plan's: the checklist in Safari and Firefox, which waits on decision cross-browser-checks (backlog item safari-firefox-checks), and standing a file's use cases side by side, which waits on decision per-entity-cities (backlog item side-by-side-entities). The branch perf/400-parts is still there for the owner to delete. Cyberspace's new look is plan cyberspace-gibson's.",
+      "relationships": [
+        {
+          "relation": "delivers",
+          "path": ".dev/backlog.json",
+          "entityId": "cyberspace-mode"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/backlog.json",
+          "entityId": "safari-firefox-checks",
+          "description": "Left when the plan closed."
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/backlog.json",
+          "entityId": "side-by-side-entities",
+          "description": "Left when the plan closed."
+        }
+      ]
     },
     {
       "id": "cyberspace-gibson",

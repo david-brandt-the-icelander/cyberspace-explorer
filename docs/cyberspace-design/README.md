@@ -1,6 +1,6 @@
 # Cyberspace design
 
-The design that [the Cyberspace spec](../cyberspace-mode-spec.md) implements. These are copies of the canvas [Cyberspace explorer in 3D](https://claude.ai/artifact/VDLEAr9k5mUna6aAPuC1Pp), taken on 2026-11-15, so that whoever builds or reviews Cyberspace can see the design without access to the canvas. The canvas is the source. Change the design there, then copy it here again.
+The design that [the Cyberspace spec](../cyberspace-mode-spec.md) implements. These are copies of the canvas [Cyberspace explorer in 3D](https://claude.ai/artifact/VDLEAr9k5mUna6aAPuC1Pp), taken on 2026-11-15, so that whoever works on or reviews Cyberspace can see the design without access to the canvas. The canvas is the source. Change the design there, then copy it here again.
 
 ## The Gibson look: artboards 11 to 15
 
