@@ -533,7 +533,7 @@ The scene changes:
 
 Every panel is ordinary HTML over the canvas, built from the page's own CSS variables, icons and fonts; the scene sections say what each panel holds, this section says what they share.
 
-**The mode switch in the bar.** Between the repository name and **Tokens**, a group `role="group" aria-label="View mode"` of two buttons, **Flat** and **Cyberspace**, each with `aria-pressed`. Group: 2 px padding, 1 px `--rule` border, radius 6. Buttons: 28 px tall, 0 12 px padding, `600 13px` Semi Condensed; pressed = `--rule` background and `--hot` text, else transparent and `--ink2`. Hidden on the landing page and when WebGL is unavailable (section *Fallbacks*), and hidden for everyone until the launch (*Build order*, step 7); a `~space` address opens Cyberspace before then. Each press changes the address, nothing else; `route()` does the rest.
+**The mode switch in the bar.** Between the repository name and **Tokens**, a group `role="group" aria-label="View mode"` of two buttons, **Flat** and **Cyberspace**, each with `aria-pressed`. Group: 2 px padding, 1 px `--rule` border, radius 6. Buttons: 28 px tall, 0 12 px padding, `600 13px` Semi Condensed; pressed = `--rule` background and `--hot` text, else transparent and `--ink2`. Hidden on the landing page and when WebGL is unavailable (section *Fallbacks*), It was hidden for everyone while the steps were built, when only a `~space` address opened Cyberspace, and has been shown since 2026-11-15, when the owner had it shown after step 6, ahead of step 7 (decision `cyberspace-launch`). Each press changes the address, nothing else; `route()` does the rest.
 
 **Status line.** The existing `status()` keeps its job and wording rules; Cyberspace only writes its scene sentence when the loader has nothing to report. Its other messages (`Loading Cyberspace's 3D library…` on a first entry, and those in *Fallbacks*) follow whatever the loader said, which is left alone again when they no longer apply. Over the canvas it is translucent: `--paper` at 88%, bottom border `--grid`. The right-hand hint is a new optional `<span class="hint">` in `--ink3`.
 
@@ -650,7 +650,7 @@ Cyberspace must never be the reason a repository can't be read (quality `fallbac
 
 ## Build order, tests and acceptance
 
-Build it in eight steps, each a change that leaves the page working and could ship on its own behind the switch. Each step is one pull request into `main`, and merging deploys, so the switch stays hidden until step 7, which is the launch (decision `cyberspace-launch`). Each step's pull request also updates the `.dev` files for what it built, as `AGENTS.md` asks; step 8 reconciles them. Step 2 may split in two: world, meshes and rig; then labels and fit.
+Build it in eight steps, each a change that leaves the page working and could ship on its own behind the switch. Each step is one pull request into `main`, and merging deploys, so the switch stayed hidden while they were built; the owner had it shown on 2026-11-15, after step 6, ahead of step 7's finishing work (decision `cyberspace-launch`). Each step's pull request also updates the `.dev` files for what it built, as `AGENTS.md` asks; step 8 reconciles them. Step 2 may split in two: world, meshes and rig; then labels and fit.
 
 1. **Plumbing.** The switch (hidden), the address marker, `route()` and `showSpace`, `#space` and `body.space`, `loadThree()`, the WebGL check and every fallback message, and the changes in *Where it touches the existing code* that it needs (`current`, Esc). Cyberspace shows only the sky and the ground grid.
 2. **City, still.** `sheetOf` and `flatRoom`, `cityWorld`, `buildCity`, the glass shader, edges and bands, beams, beacons, plate names, labels with overlap avoidance, fit to the free rectangle. Orbit, pan and zoom.
@@ -658,7 +658,7 @@ Build it in eight steps, each a change that leaves the page working and could sh
 4. **Folder tower.** `towerWorld`, floors and their real contents, labels and brackets, the folder and pulled-floor cards, sliding floors, tower → city and back.
 5. **Street.** Walk controls, collision, the map, the breadcrumb, the hover card, city → street and back.
 6. **Layers and many folders.** Several drawn views in one city, and the Layers panel's rows; the skyline scene, **See the skyline** and Esc from the tower.
-7. **Finish, then launch.** Light mode, reduced motion, keyboard and screen-reader paths, screen sizes, context loss, disposal, the performance budgets; then the switch appears.
+7. **Finish.** Light mode, reduced motion, keyboard and screen-reader paths, screen sizes, context loss, disposal, the performance budgets. The switch was to appear here; it was shown on 2026-11-15, after step 6.
 8. **Records.** Every `.dev` file reconciled with the code, the README (last section), and the acceptance numbers worked out again.
 
 ### Automated tests

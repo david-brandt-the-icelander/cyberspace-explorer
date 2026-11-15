@@ -16,7 +16,7 @@
           "entityId": "cyberspace-mode"
         }
       ],
-      "approach": "One pull request per step, into main, in order. Each branches from the latest main, passes CI, updates the .dev files for what it built, and marks its step done here; where a step departs from the spec, the same pull request changes the spec. Merging deploys, so the Flat / Cyberspace switch stays hidden until step 7 (decision cyberspace-launch); before that only an address with ~space in it opens Cyberspace. A sub-session builds each step from the spec and the copies of the design in docs/cyberspace-design/, one at a time, because every step changes index.html and builds on the one before. Before the owner merges a step, it is checked: the diff against its section of the spec, the tests and both validators on a clean checkout, the page in a real browser beside the renders, the flat page's regression list and, from step 2, the ?spacestats readout. The budget for 400 parts is measured on a branch, perf/400-parts, that holds a generated .cyberspace-explorer/ tree and is never merged.",
+      "approach": "One pull request per step, into main, in order. Each branches from the latest main, passes CI, updates the .dev files for what it built, and marks its step done here; where a step departs from the spec, the same pull request changes the spec. Merging deploys, so the Flat / Cyberspace switch stayed hidden while the steps were built, when only an address with ~space in it opened Cyberspace; the owner had it shown on 2026-11-15, after step 6 (decision cyberspace-launch). A sub-session builds each step from the spec and the copies of the design in docs/cyberspace-design/, one at a time, because every step changes index.html and builds on the one before. Before the owner merges a step, it is checked: the diff against its section of the spec, the tests and both validators on a clean checkout, the page in a real browser beside the renders, the flat page's regression list and, from step 2, the ?spacestats readout. The budget for 400 parts is measured on a branch, perf/400-parts, that holds a generated .cyberspace-explorer/ tree and is never merged.",
       "steps": [
         {
           "id": "spec-and-design",
@@ -55,7 +55,7 @@
         },
         {
           "id": "launch",
-          "title": "Finish and launch: light mode, reduced motion, keyboard, screen sizes, context loss and the budgets measured; then the switch appears",
+          "title": "Finish: light mode, reduced motion, keyboard, screen sizes, context loss and the budgets measured (the switch itself was shown on 2026-11-15, after step 6)",
           "status": "todo"
         },
         {
