@@ -25,7 +25,6 @@
     --k-component: #2c6e8e; --k-deployment: #a26a14; --k-class: #527a31; --k-state: #8b4a8c;
     --k-use-case: #bb5430; --k-capability: #4f58b0; --k-feature: #b0456f; --k-operation: #5b6a72;
     --k-user-journey: #1f7f74; --k-knowledge: #7a5f36;
-    --space-sky-1: #ffffff; --space-sky-2: #f8fafa; --space-sky-3: #e3eaeb; --space-grid-major: #b9c6c9;
     --sans: "Barlow", "Avenir Next", system-ui, sans-serif;
     --semi: "Barlow Semi Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif;
     --cond: "Barlow Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif;
@@ -40,8 +39,29 @@
       --k-component: #6cb2d6; --k-deployment: #e0a54a; --k-class: #9bc472; --k-state: #cb8cd3;
       --k-use-case: #ee8f66; --k-capability: #97a0ea; --k-feature: #e58aae; --k-operation: #a7b6bd;
       --k-user-journey: #5cc4b6; --k-knowledge: #d2b585;
-      --space-sky-1: #1b3340; --space-sky-2: #122027; --space-sky-3: #0b1216; --space-grid-major: #2c4652;
     }
+  }
+  /* While Cyberspace shows, the whole window is dark whatever the system's setting (decision space-gibson-look): the dark
+     block again, since a media query can't share a block with a selector. test/space.test.js checks the two hold the same. */
+  :root.space {
+    color-scheme: dark;
+    --paper: #10181d; --sheet: #152128; --plate: #1b2a32;
+    --ink: #dce5e5; --ink2: #9aabb1; --ink3: #6c7f87;
+    --rule: #2a3a42; --grid: #22333b; --edge: #6f858e; --hot: #eef4f4;
+    --k-component: #6cb2d6; --k-deployment: #e0a54a; --k-class: #9bc472; --k-state: #cb8cd3;
+    --k-use-case: #ee8f66; --k-capability: #97a0ea; --k-feature: #e58aae; --k-operation: #a7b6bd;
+    --k-user-journey: #5cc4b6; --k-knowledge: #d2b585;
+  }
+  /* Cyberspace's own colours (the spec's Palette): the Gibson of Hackers, always dark, so they have no light value. */
+  :root {
+    --space-void: #020208;
+    --space-sky-zenith: #010105; --space-sky-mid: #04041a; --space-sky-horizon: #0e0b2c; --space-sky-band: #3b2bb0;
+    --space-fog: #03030d; --space-floor: #020309; --space-floor-sheen: #141038;
+    --space-glass-low: #0c9f96; --space-glass-high: #3fdcff; --space-glass-glow: #25e6d6;
+    --space-text: #7eefff; --space-text-bright: #e9feff; --space-text-quiet: #3a9fb6;
+    --space-trace: #9b7bff; --space-trace-halo: #5148ff; --space-trace-out: #ff5ad6; --space-trace-out-halo: #c837ff;
+    --space-plate: #0a2433; --space-hot: #f2fdff;
+    --space-panel: #060a16; --space-pill: #04050d; --space-rule: #1d3247;
   }
   .kind-component { --k: var(--k-component); }
   .kind-deployment { --k: var(--k-deployment); }
@@ -142,6 +162,7 @@
   #status:empty { display: none; }
   #status.error { color: #b3261e; }
   @media (prefers-color-scheme: dark) { #status.error { color: #ff8a80; } }
+  :root.space #status.error { color: #ff8a80; }
   #status.loading::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 9px; border-radius: 2px; background: var(--k-component); animation: tick 1s steps(4) infinite; vertical-align: 0; }
   @keyframes tick { to { transform: rotate(360deg); } }
 
@@ -318,6 +339,7 @@
   .badge.ev-source-verified { color: #2c6e3a; border-color: color-mix(in srgb, #2c6e3a 45%, var(--rule)); }
   .badge.ev-proposed { border-style: dashed; }
   @media (prefers-color-scheme: dark) { .badge.ev-source-verified { color: #8fd39d; border-color: color-mix(in srgb, #8fd39d 40%, var(--rule)); } }
+  :root.space .badge.ev-source-verified { color: #8fd39d; border-color: color-mix(in srgb, #8fd39d 40%, var(--rule)); }
   .md { max-width: 76ch; margin: 8px 0 0; font-size: 15px; }
   .md p, .md ul, .md ol { margin: 0 0 8px; }
   .md ul, .md ol { padding-left: 1.3em; }
@@ -376,8 +398,8 @@
   body.space { overflow: hidden; }
   body.space #view, body.space #side { display: none; }
   body.space #status { position: fixed; z-index: 2; top: 54px; left: 0; right: 0; background: color-mix(in srgb, var(--paper) 88%, transparent); border-bottom: 1px solid var(--grid); }
-  /* The sky is CSS: the canvas over it draws only the world, on a transparent clear colour. */
-  #space { position: fixed; z-index: 1; top: 54px; left: 0; right: 0; bottom: 0; overflow: hidden; background: radial-gradient(75% 75% at 50% 35%, var(--space-sky-1), var(--space-sky-2) 45%, var(--space-sky-3)); }
+  /* The sky is drawn in the scene, so that its horizon stays on the horizon; the void shows before the first frame. */
+  #space { position: fixed; z-index: 1; top: 54px; left: 0; right: 0; bottom: 0; overflow: hidden; background: var(--space-void); }
   #space-gl { position: absolute; inset: 0; display: block; width: 100%; height: 100%; outline: none; touch-action: none; cursor: grab; }
   #space-gl:active { cursor: grabbing; }
   #space-labels, #space-hud { position: absolute; inset: 0; pointer-events: none; }
@@ -387,16 +409,13 @@
   /* Labels: a pill per part, each plate's name, and thin leaders from a part to a label pushed off it. */
   #space-labels > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
   #space-labels path { fill: none; stroke: var(--ink3); stroke-width: 1; }
-  .sl { position: absolute; left: 0; top: 0; height: 22px; padding: 0 8px; display: flex; align-items: center; gap: 5px; white-space: nowrap; border: 1px solid var(--rule); border-radius: 4px; background: color-mix(in srgb, var(--paper) 78%, transparent); font: 500 13px/1 var(--semi); color: var(--ink2); will-change: transform; }
+  .sl { position: absolute; left: 0; top: 0; height: 22px; padding: 0 8px; display: flex; align-items: center; gap: 5px; white-space: nowrap; border: 1px solid var(--space-rule); border-radius: 4px; background: color-mix(in srgb, var(--space-pill) 80%, transparent); font: 500 13px/1 var(--semi); color: var(--ink2); will-change: transform; }
   .sl svg { width: 14px; height: 14px; flex: none; color: var(--k); }
-  /* On the light sky the amber alone is under 4.5:1 against its pill (test/space.test.js), so there its text leans to the ink. */
-  .sl.beacon { color: color-mix(in srgb, var(--k-deployment) 75%, var(--ink)); border-color: color-mix(in srgb, var(--k-deployment) 40%, transparent); }
-  @media (prefers-color-scheme: dark) { .sl.beacon { color: var(--k-deployment); } }
+  .sl.beacon { color: var(--space-trace-out); border-color: color-mix(in srgb, var(--space-trace-out) 45%, transparent); }
   .spn { position: absolute; left: 0; top: 0; white-space: nowrap; font: 600 13px/1 var(--semi); letter-spacing: .1em; text-transform: uppercase; color: var(--k); will-change: transform; }
   .spn span + span { color: var(--ink3); letter-spacing: .04em; }
   /* Panels over the scene. */
-  .hud { position: absolute; pointer-events: auto; padding: 16px; border: 1px solid var(--rule); border-radius: 10px; background: color-mix(in srgb, var(--sheet) 90%, transparent); box-shadow: 0 12px 32px rgb(0 0 0 / .12); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-  @media (prefers-color-scheme: dark) { .hud { box-shadow: 0 12px 32px rgb(0 0 0 / .35); } }
+  .hud { position: absolute; pointer-events: auto; padding: 16px; border: 1px solid var(--space-rule); border-radius: 10px; background: color-mix(in srgb, var(--space-panel) 90%, transparent); box-shadow: 0 12px 32px rgb(0 0 0 / .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
   #space-controls { left: 20px; bottom: 20px; padding: 6px; display: flex; align-items: center; gap: 2px; }
   #space-controls button { width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 6px; background: none; color: var(--ink2); cursor: pointer; }
   #space-controls button:hover { color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent); }
@@ -406,22 +425,21 @@
   #space-legend { left: 340px; bottom: 20px; height: 52px; padding: 0 16px; display: flex; align-items: center; gap: 18px; white-space: nowrap; font: 400 13px/1 var(--sans); color: var(--ink2); }
   #space-legend span { display: inline-flex; align-items: center; gap: 6px; }
   #space-legend svg { width: 18px; height: 18px; flex: none; color: var(--k); }
-  #space-legend .amber svg { color: var(--k-deployment); }
+  #space-legend .out svg { color: var(--space-trace-out); }
   /* Selection: the selected label and its neighbours', a lit beam's label, and the pointer over what can be selected. */
   #space-gl.pick { cursor: pointer; }
-  .sl.near { color: var(--hot); border-color: var(--k); }
-  .sl.beacon.near { border-color: var(--k-deployment); }
-  .sl.sel { background: var(--hot); border-color: var(--hot); color: var(--paper); font-weight: 600; }
-  .spn.sel span:first-child { color: var(--hot); }
-  .sbl { position: absolute; left: 0; top: 0; height: 20px; padding: 0 8px; display: flex; align-items: center; white-space: nowrap; border: 1px dashed color-mix(in srgb, var(--k) 70%, transparent); border-radius: 10px; background: color-mix(in srgb, var(--paper) 86%, transparent); font: 500 12px/1 var(--semi); color: var(--ink); will-change: transform; }
+  .sl.near { color: var(--space-hot); border-color: var(--k); }
+  .sl.beacon.near { border-color: var(--space-trace-out); }
+  .sl.sel { background: var(--space-hot); border-color: var(--space-hot); color: var(--space-pill); font-weight: 600; }
+  .spn.sel span:first-child { color: var(--space-hot); }
+  .sbl { position: absolute; left: 0; top: 0; height: 20px; padding: 0 8px; display: flex; align-items: center; white-space: nowrap; border: 1px dashed color-mix(in srgb, var(--k) 70%, transparent); border-radius: 10px; background: color-mix(in srgb, var(--space-pill) 86%, transparent); font: 500 12px/1 var(--semi); color: var(--ink); will-change: transform; }
   /* The inspector as a floating card over the scene: the same element and the same body as in Flat. */
-  body.space #inspector { top: 98px; right: 20px; bottom: auto; width: 340px; max-height: calc(100vh - 180px); border-radius: 10px; background: color-mix(in srgb, var(--sheet) 90%, transparent); box-shadow: 0 12px 32px rgb(0 0 0 / .12); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-  @media (prefers-color-scheme: dark) { body.space #inspector { box-shadow: 0 12px 32px rgb(0 0 0 / .35); } }
+  body.space #inspector { top: 98px; right: 20px; bottom: auto; width: 340px; max-height: calc(100vh - 180px); border-radius: 10px; border-color: var(--space-rule); background: color-mix(in srgb, var(--space-panel) 90%, transparent); box-shadow: 0 12px 32px rgb(0 0 0 / .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
   body.space #inspector .ihead { padding: 18px 18px 0; border-bottom: 0; }
   body.space #inspector .ihead .tile { display: none; }
   body.space #inspector .ihead > div { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
   body.space #inspector .isub { order: -1; margin: 0 0 6px; padding: 2px 8px; border-radius: 4px; background: color-mix(in srgb, var(--k) 16%, transparent); font: 600 12px/1.4 var(--semi); letter-spacing: .08em; text-transform: uppercase; }
-  body.space #inspector h3 { font: 700 34px/38px var(--cond); color: var(--hot); }
+  body.space #inspector h3 { font: 700 34px/38px var(--cond); color: var(--space-hot); }
   body.space #inspector .iline { font-size: 13px; color: var(--ink3); }
   body.space #inspector .ibody { padding: 12px 18px 4px; font-size: 14px; line-height: 21px; }
   body.space #inspector h4 { font: 600 11.5px/1.2 var(--semi); letter-spacing: .08em; text-transform: uppercase; margin: 14px 0 4px; }
@@ -429,23 +447,23 @@
   body.space #inspector .ifoot { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 18px 18px; }
   #inspector .ibtn, #space-cards .ibtn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 1px solid var(--rule); border-radius: 6px; background: none; color: var(--ink); text-decoration: none; font: 600 14px/1 var(--semi); white-space: nowrap; cursor: pointer; }
   #inspector .ibtn:hover, #space-cards .ibtn:hover { background: color-mix(in srgb, var(--ink) 7%, transparent); }
-  #inspector .ibtn.primary, #space-cards .ibtn.primary { background: var(--k); border-color: var(--k); color: var(--paper); }
+  #inspector .ibtn.primary, #space-cards .ibtn.primary { background: var(--k); border-color: var(--k); color: var(--space-pill); }
   #inspector .ibtn.primary:hover, #space-cards .ibtn.primary:hover { background: color-mix(in srgb, var(--k) 85%, var(--hot)); }
-  #inspector .ibtn.primary svg { width: 15px; height: 15px; color: var(--paper); }
+  #inspector .ibtn.primary svg { width: 15px; height: 15px; color: var(--space-pill); }
   #inspector .ibtn.primary svg use { color: var(--k); }
   /* The folder a part opens: a miniature of its tower, one band per view in its kind's colour. */
   #inspector .ifolder { margin-top: 14px; padding: 12px; border: 1px solid color-mix(in srgb, var(--k) 55%, transparent); border-radius: 8px; background: color-mix(in srgb, var(--k) 6%, transparent); }
   #inspector .ifolder .ifh { display: flex; gap: 12px; align-items: center; }
   #inspector .ifolder path { fill: color-mix(in srgb, var(--k) 18%, transparent); stroke: color-mix(in srgb, var(--k) 85%, transparent); stroke-width: 1; }
   #inspector .ifolder .caps { font: 600 11.5px/1.2 var(--semi); letter-spacing: .08em; text-transform: uppercase; color: var(--k); }
-  #inspector .ifolder .ift { margin-top: 2px; font: 700 22px/26px var(--cond); color: var(--hot); }
+  #inspector .ifolder .ift { margin-top: 2px; font: 700 22px/26px var(--cond); color: var(--space-hot); }
   #inspector .ifolder .ifp { font: 400 12px/1.4 var(--mono); color: var(--ink3); }
   #inspector .ifolder p { margin: 10px 0; font-size: 13px; line-height: 19px; color: var(--ink2); }
   /* The folder tower: floor labels and group brackets left of the stack, the folder's and the pulled-out floor's cards. */
   .sfl { position: absolute; left: 0; top: 0; height: 20px; display: flex; align-items: center; gap: 8px; white-space: nowrap; font: 400 13px/1 var(--sans); color: var(--ink); will-change: transform; }
   .sfl .w { font: 600 11.5px/1 var(--semi); letter-spacing: .08em; text-transform: uppercase; color: var(--k); }
   .sfl span + span { max-width: 300px; overflow: hidden; text-overflow: ellipsis; }
-  .sfl.hot span + span { color: var(--hot); }
+  .sfl.hot span + span { color: var(--space-hot); }
   .sfl.out, .sfl.out .w { color: var(--ink3); }
   .sfl.out span + span { font-style: italic; }
   .sbr { position: absolute; left: 22px; top: 0; width: 2px; background: var(--rule); }
@@ -456,12 +474,12 @@
   #space-folder { width: 340px; padding: 18px; }
   #space-drawer { width: 300px; }
   #space-cards .caps { font: 600 12px/1.2 var(--semi); letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
-  #space-cards .sct { margin-top: 4px; font: 700 30px/34px var(--cond); color: var(--hot); overflow-wrap: anywhere; }
+  #space-cards .sct { margin-top: 4px; font: 700 30px/34px var(--cond); color: var(--space-hot); overflow-wrap: anywhere; }
   #space-cards .scp { font: 400 12px/1.4 var(--mono); color: var(--ink3); }
   #space-cards .scd { margin: 12px 0 0; font: 400 14px/21px var(--sans); color: var(--ink); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; overflow: hidden; }
   #space-cards .sctiles { margin-top: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-  #space-cards .sctiles > div { padding: 8px 10px; border: 1px solid var(--rule); border-radius: 6px; }
-  #space-cards .sctiles b { display: block; font: 700 24px/28px var(--cond); color: var(--hot); }
+  #space-cards .sctiles > div { padding: 8px 10px; border: 1px solid var(--space-rule); border-radius: 6px; }
+  #space-cards .sctiles b { display: block; font: 700 24px/28px var(--cond); color: var(--space-hot); }
   #space-cards .sctiles span { font-size: 12.5px; color: var(--ink2); }
   #space-cards .sci { margin-top: 14px; font-size: 11.5px; color: var(--ink3); }
   #space-cards .scc { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; }
@@ -471,44 +489,42 @@
   #space-cards .scn { margin: 6px 0 0; font-size: 13px; line-height: 19px; color: var(--ink3); }
   #space-cards .sck { display: flex; align-items: center; gap: 8px; font: 600 12px/1.2 var(--semi); letter-spacing: .08em; text-transform: uppercase; color: var(--k); }
   #space-cards .sw { width: 10px; height: 10px; border-radius: 2px; background: var(--k); }
-  #space-cards .sct2 { margin-top: 4px; font: 700 24px/28px var(--cond); color: var(--hot); }
+  #space-cards .sct2 { margin-top: 4px; font: 700 24px/28px var(--cond); color: var(--space-hot); }
   #space-cards .sch { margin-top: 2px; font-size: 13px; color: var(--ink2); }
   #space-cards .scb { margin-top: 12px; display: flex; gap: 8px; }
   /* The street: a vignette over the canvas, the crosshair, the breadcrumb, the key hints, the map and the hover card. */
-  #space-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse farthest-side, transparent 60%, color-mix(in srgb, var(--ink) 12%, transparent)); }
-  @media (prefers-color-scheme: dark) { #space-vignette { background: radial-gradient(ellipse farthest-side, transparent 60%, rgb(0 0 0 / .55)); } }
+  #space-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse farthest-side, transparent 60%, rgb(0 0 0 / .55)); }
   #space-cross { position: absolute; left: 0; top: 0; width: 30px; height: 30px; pointer-events: none; }
-  #space-cross svg { display: block; width: 30px; height: 30px; fill: none; stroke: var(--hot); stroke-opacity: .7; stroke-width: 1.5; }
+  #space-cross svg { display: block; width: 30px; height: 30px; fill: none; stroke: var(--space-hot); stroke-opacity: .7; stroke-width: 1.5; }
   #space-crumbs { left: 20px; top: 44px; height: 36px; padding: 0 14px; display: flex; align-items: center; gap: 8px; border-radius: 8px; white-space: nowrap; font: 500 14px/1 var(--semi); color: var(--ink2); }
   #space-crumbs a { color: var(--ink2); text-decoration: none; }
-  #space-crumbs a:hover { color: var(--hot); }
+  #space-crumbs a:hover { color: var(--space-hot); }
   #space-crumbs i { font-style: normal; color: var(--ink3); }
-  #space-crumbs b { font-weight: 600; color: var(--hot); }
+  #space-crumbs b { font-weight: 600; color: var(--space-hot); }
   #space-keys { left: 20px; bottom: 20px; height: 52px; padding: 0 16px; display: flex; align-items: center; gap: 18px; white-space: nowrap; font: 400 13px/1 var(--sans); color: var(--ink2); }
   #space-keys > span { display: flex; align-items: center; gap: 5px; }
-  #space-keys kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 6px; box-sizing: border-box; border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 4px; font: 400 12px/1 var(--mono); color: var(--ink); }
+  #space-keys kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 6px; box-sizing: border-box; border: 1px solid var(--space-rule); border-bottom-width: 2px; border-radius: 4px; font: 400 12px/1 var(--mono); color: var(--ink); }
   #space-map { right: 20px; bottom: 20px; width: 260px; padding: 14px; box-sizing: border-box; }
   #space-map .smh { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--ink3); }
   #space-map .caps { font: 600 12px/1.2 var(--semi); letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
   #space-map svg { display: block; margin-top: 6px; overflow: hidden; cursor: crosshair; }
-  #space-map .mp { fill: var(--k); fill-opacity: .12; stroke: var(--k); stroke-opacity: .5; }
-  #space-map .mt { fill: var(--k); fill-opacity: .7; }
-  #space-map .mt.sel { fill: var(--hot); fill-opacity: 1; }
-  #space-map .mb { fill: var(--k-deployment); }
-  #space-map .mc { fill: var(--hot); fill-opacity: .1; stroke: var(--hot); stroke-opacity: .45; }
-  #space-map .me { fill: var(--hot); stroke: var(--paper); stroke-width: 2; }
+  #space-map .mp { fill: var(--space-plate); stroke: var(--k); stroke-opacity: .5; }
+  #space-map .mt { fill: var(--space-glass-high); }
+  #space-map .mt.sel { fill: var(--space-hot); }
+  #space-map .mb { fill: var(--space-trace-out); }
+  #space-map .mc { fill: var(--space-hot); fill-opacity: .1; stroke: var(--space-hot); stroke-opacity: .45; }
+  #space-map .me { fill: var(--space-hot); stroke: var(--space-pill); stroke-width: 2; }
   @media (max-height: 899.98px) { #space-map { width: 180px; } }
-  #space-card { position: absolute; z-index: 3; left: 0; top: 0; width: 280px; box-sizing: border-box; padding: 12px 14px; border: 1px solid var(--k); border-radius: 8px; background: color-mix(in srgb, var(--sheet) 94%, transparent); box-shadow: 0 12px 32px rgb(0 0 0 / .12); pointer-events: none; will-change: transform; }
-  @media (prefers-color-scheme: dark) { #space-card { box-shadow: 0 12px 32px rgb(0 0 0 / .45); } }
-  #space-card.amber { border-color: var(--k-deployment); }
+  #space-card { position: absolute; z-index: 3; left: 0; top: 0; width: 280px; box-sizing: border-box; padding: 12px 14px; border: 1px solid var(--k); border-radius: 8px; background: color-mix(in srgb, var(--space-panel) 94%, transparent); box-shadow: 0 12px 32px rgb(0 0 0 / .55); pointer-events: none; will-change: transform; }
+  #space-card.out { border-color: var(--space-trace-out); }
   #space-card .shh { display: flex; align-items: center; gap: 8px; }
   #space-card .shh span { display: flex; color: var(--k); }
-  #space-card.amber .shh span { color: var(--k-deployment); }
+  #space-card.out .shh span { color: var(--space-trace-out); }
   #space-card .shh .ic { width: 16px; height: 16px; }
-  #space-card b { font: 700 20px/24px var(--cond); color: var(--hot); }
+  #space-card b { font: 700 20px/24px var(--cond); color: var(--space-hot); }
   #space-card p { margin: 6px 0 0; font: 400 13.5px/20px var(--sans); color: var(--ink); }
   #space-card .scm { margin-top: 8px; font-size: 12.5px; color: var(--ink3); }
-  #inspector .ibtn.primary svg.ic use { color: var(--paper); }
+  #inspector .ibtn.primary svg.ic use { color: var(--space-pill); }
   /* In the street the inspector ends 10 px above the map. */
   body.street #inspector { max-height: calc(100vh - 128px - var(--map-h, 250px)); }
   /* The Layers panel over a city: a row per kind, a heading over a kind's several cities, the written and knowledge kinds disabled. */
@@ -539,7 +555,7 @@
   .sl.sel .seg { color: inherit; opacity: .7; }
   #space-legend .sws { display: inline-flex; gap: 2px; }
   #space-legend .sws i { width: 8px; height: 8px; border-radius: 2px; background: var(--k); }
-  #space-cards .scr { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--rule); font-size: 13px; line-height: 19px; color: var(--ink2); }
+  #space-cards .scr { margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--space-rule); font-size: 13px; line-height: 19px; color: var(--ink2); }
   #space-cards .ibtn .ic { width: 16px; height: 16px; }
   #space-card.folder .shh span { color: var(--k-knowledge); }
   #space-card .shp { font: 400 12px/1.4 var(--mono); color: var(--ink3); }
@@ -554,7 +570,7 @@
   /* Below 1280 px wide the Layers panel folds into a 40 px button that opens it as a popover over the scene, and the legend
      shows its icons alone, their words as tooltips. */
   #space-layers-btn { left: 20px; top: 44px; width: 40px; height: 40px; padding: 0; display: none; place-items: center; color: var(--ink2); cursor: pointer; }
-  #space-layers-btn:hover, #space-layers-btn[aria-expanded="true"] { color: var(--hot); }
+  #space-layers-btn:hover, #space-layers-btn[aria-expanded="true"] { color: var(--space-hot); }
   #space-layers-btn .ic { width: 20px; height: 20px; }
   @media (max-width: 1279.98px) {
     #space-layers-btn:not([hidden]) { display: grid; }
@@ -619,7 +635,7 @@
     <ul id="space-parts" class="sr" aria-label="Parts in this scene"></ul>
     <div id="space-labels" aria-hidden="true"></div>
     <div id="space-hud"></div>
-    <p id="space-help" class="sr">The repository's .dev views in 3D, standing on a ground grid. Everything here can be read in the flat view too.</p>
+    <p id="space-help" class="sr">The repository's .dev views in 3D, standing on a dark floor. Everything here can be read in the flat view too.</p>
     <p id="space-live" class="sr" aria-live="polite"></p>
   </section>
 </div>
@@ -2623,17 +2639,15 @@ function partOrder(world) {
   return at.sort((a, b) => (lr ? rank(a.x) - rank(b.x) || b.z - a.z : rank(b.z) - rank(a.z) || a.x - b.x) || a.plate - b.plate).map((p) => p.key);
 }
 /** The draw calls a city takes as buildCity stands it with nothing selected: the glass of its plates, towers and beacons; its
- *  lines, solid, dashed (alternative outcomes, beacons' tethers) and the plates' insets; the discs under beacons and at start
- *  points; the beams, and the dots where they arrive. */
+ *  edges, one set of glow lines; the discs under beacons and at start points; the beams, and the dots where they arrive. */
 function cityCalls(w) {
-  const one = (x) => (x ? 1 : 0), alt = w.towers.some((t) => t.alt);
-  return one(w.plates.length) + one(w.towers.length) + one(w.beacons.length)
-    + one(w.plates.length || w.beacons.length || w.towers.some((t) => !t.alt)) + one(alt || w.beacons.length) + one(w.plates.length)
+  const one = (x) => (x ? 1 : 0);
+  return one(w.plates.length) + one(w.towers.length) + one(w.beacons.length) + one(w.plates.length || w.towers.length || w.beacons.length)
     + one(w.beacons.length) + one(w.markers.length) + one(w.beams.length) + one(w.beams.some((b) => b.from !== b.to));
 }
-/** A city scene draws in at most 40 calls (Performance budgets): the ground takes 1, and a selection may take 6 more, its
- *  rings (3), the lit beams' core and glow, and the beam under the pointer. */
-const DRAW_BUDGET = 40, MARKED_CALLS = 1 + 6;
+/** A city scene draws in at most 40 calls (Performance budgets): the sky and the floor take 2, and a selection may take 6
+ *  more, its rings (3), the lit beams' core and glow, and the beam under the pointer. */
+const DRAW_BUDGET = 40, MARKED_CALLS = 2 + 6;
 /** Whether another city may stand in the scene: beside those standing (`calls`, each one's cityCalls), or in the place of one
  *  of them that takes `instead`. The Layers panel disables a tick box that would pass the budget (Scene 2). */
 const layerFits = (calls, add, instead = 0) => calls.reduce((s, c) => s + c, 0) - instead + add + MARKED_CALLS <= DRAW_BUDGET;
@@ -2715,9 +2729,10 @@ function floorOrder(docs, { drawn, order, knowledge }) {
 /** A building of the skyline: 4.5 units along its ring and 6 towards the centre; a floor plate 0.05 thick per file, their
  *  tops 0.5 apart, in a glass shell 0.3 taller; and on its ring the building and a gap of 1.5. */
 const BUILDING = { w: 4.5, d: 6, gap: 1.5, floor: 0.5, plate: 0.05, shell: 0.3 };
-/** The corners of a building's footprint, [x, z] in the spec's frame: turned so that its depth points at the centre. */
-function buildingCorners(b) {
-  const r = [Math.sin(b.angle), Math.cos(b.angle)], t = [r[1], -r[0]], w = BUILDING.w / 2, d = BUILDING.d / 2;
+/** The corners of a building's footprint, [x, z] in the spec's frame: turned so that its depth points at the centre; `inset`
+ *  units in from each side (its floor slabs'). */
+function buildingCorners(b, inset = 0) {
+  const r = [Math.sin(b.angle), Math.cos(b.angle)], t = [r[1], -r[0]], w = BUILDING.w / 2 - inset, d = BUILDING.d / 2 - inset;
   return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([i, j]) => [b.x + i * w * t[0] + j * d * r[0], b.z + i * w * t[1] + j * d * r[1]]);
 }
 /** A repository's folders as a skyline (docs/cyberspace-mode-spec.md, Skyline world): a building per folder on the radial
@@ -2939,78 +2954,206 @@ function loadThree() {
   return threeLoad;
 }
 
-/** The page's tokens the scene draws with, as CSS colours: it has none of its own (decision survey-sheet). */
-const SPACE_TOKENS = { sky1: "--space-sky-1", sky2: "--space-sky-2", sky3: "--space-sky-3", grid: "--grid", gridMajor: "--space-grid-major", edge: "--edge", hot: "--hot", ink: "--ink", ink2: "--ink2", ink3: "--ink3", paper: "--paper", sheet: "--sheet", rule: "--rule" };
+/** The colours the scene draws with, as CSS colours: Cyberspace's own tokens (the spec's Palette) and the kind colours, which
+ *  accent. html.space takes the page's dark block, so the kind colours are their dark values. Read once, on the first entry:
+ *  Cyberspace is always dark (decision space-gibson-look), so there is no scheme to follow. */
+const SPACE_TOKENS = { void: "--space-void", skyZenith: "--space-sky-zenith", skyMid: "--space-sky-mid", skyHorizon: "--space-sky-horizon", skyBand: "--space-sky-band", fog: "--space-fog", floor: "--space-floor", floorSheen: "--space-floor-sheen", glassLow: "--space-glass-low", glassHigh: "--space-glass-high", glassGlow: "--space-glass-glow", textBright: "--space-text-bright", out: "--space-trace-out", plate: "--space-plate", hot: "--space-hot" };
 function spaceTheme() {
   const css = getComputedStyle(document.documentElement), read = (v) => css.getPropertyValue(v).trim();
-  return { ...Object.fromEntries(Object.entries(SPACE_TOKENS).map(([k, v]) => [k, read(v)])), kinds: Object.fromEntries([...Object.keys(KIND_ORDER), "knowledge"].map((k) => [k, read("--k-" + k)])), dark: matchMedia("(prefers-color-scheme: dark)").matches };
+  return { ...Object.fromEntries(Object.entries(SPACE_TOKENS).map(([k, v]) => [k, read(v)])), kinds: Object.fromEntries([...Object.keys(KIND_ORDER), "knowledge"].map((k) => [k, read("--k-" + k)])) };
 }
 let theme = null;
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { theme = spaceTheme(); stage?.retheme(theme); });
 
 /** The spec's frame, left-handed (the default camera looks along +z, +x to its right), to three.js's. The one place it is converted. */
 const V = (x, y, z) => new three.Vector3(x, y, -z);
-/** The ground: a line every 2 units and a stronger one every 10, anti-aliased with fwidth, fading out from 40 to 140 units from the eye. */
-function groundGrid(T, colours) {
-  const geometry = new T.PlaneGeometry(600, 600).rotateX(-Math.PI / 2);
+/** What every material of the scene shares, set by the stage: the canvas's size in CSS px, which glow lines are measured in,
+ *  and where the fog starts and ends, in units from the eye (Glow and fog). */
+const SPACE_U = { view: { value: [1, 1] }, fogNear: { value: 90 }, fogFar: { value: 320 } };
+const fogged = () => ({ fogNear: SPACE_U.fogNear, fogFar: SPACE_U.fogFar });
+/** Fog: 1 near the eye, 0 past the fog's far end. Everything fades by it into --space-fog; the floor mixes into it. */
+const FOG_GLSL = `uniform float fogNear, fogFar; float fogOf(vec3 w) { return 1.0 - smoothstep(fogNear, fogFar, distance(cameraPosition, w)); }`;
+
+/** The sky (Meshes and materials): a sphere round the eye (the stage keeps it there), unlit, by the elevation e of the view
+ *  direction: --space-sky-horizon to -mid over e 0 to 0.12, to -zenith over 0.12 to 0.6, the fog's colour below the horizon
+ *  (it shows only past the floor's end), and a thin band of light on the horizon. Drawn first, behind everything. */
+function spaceSky(T, c) {
   const material = new T.ShaderMaterial({
-    transparent: true,
-    depthWrite: false,
-    uniforms: { minor: { value: new T.Color() }, major: { value: new T.Color() }, fadeFrom: { value: 40 }, fadeTo: { value: 140 } },
-    vertexShader: `varying vec3 vWorld;
-      void main() { vec4 w = modelMatrix * vec4(position, 1.0); vWorld = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
-    fragmentShader: `uniform vec3 minor, major; uniform float fadeFrom, fadeTo; varying vec3 vWorld;
-      float lines(float every) { vec2 c = vWorld.xz / every, g = abs(fract(c - 0.5) - 0.5) / fwidth(c); return 1.0 - min(min(g.x, g.y), 1.0); }
+    side: T.BackSide, depthWrite: false, depthTest: false,
+    uniforms: { zenith: { value: new T.Color(c.skyZenith) }, mid: { value: new T.Color(c.skyMid) }, horizon: { value: new T.Color(c.skyHorizon) }, band: { value: new T.Color(c.skyBand) }, fog: { value: new T.Color(c.fog) } },
+    vertexShader: `varying vec3 vDir;
+      void main() { vec4 w = modelMatrix * vec4(position, 1.0); vDir = w.xyz - cameraPosition; gl_Position = projectionMatrix * viewMatrix * w; }`,
+    fragmentShader: `uniform vec3 zenith, mid, horizon, band, fog; varying vec3 vDir;
       void main() {
-        float big = lines(10.0), a = max(lines(2.0), big) * clamp((fadeTo - distance(cameraPosition, vWorld)) / (fadeTo - fadeFrom), 0.0, 1.0);
-        if (a <= 0.0) discard;
-        gl_FragColor = vec4(mix(minor, major, big), a);
+        float e = normalize(vDir).y, up = clamp(e, 0.0, 1.0);
+        vec3 c = mix(horizon, mid, smoothstep(0.0, 0.12, up));
+        c = mix(c, zenith, smoothstep(0.12, 0.6, up));
+        c = mix(fog, c, smoothstep(-0.02, 0.0, e));
+        c += band * (0.5 * exp(-pow(e / 0.0035, 2.0)) + 0.12 * exp(-pow(e / 0.03, 2.0)));
+        gl_FragColor = vec4(c, 1.0);
         #include <colorspace_fragment>
       }`,
   });
-  const mesh = new T.Mesh(geometry, material);
-  mesh.renderOrder = 0;
-  const paint = (c) => { material.uniforms.minor.value.setStyle(c.grid); material.uniforms.major.value.setStyle(c.gridMajor); };
-  paint(colours);
-  return { mesh, paint, dispose() { geometry.dispose(); material.dispose(); } };
+  const mesh = new T.Mesh(new T.SphereGeometry(800, 48, 24), material);
+  Object.assign(mesh, { renderOrder: -3, frustumCulled: false });
+  return mesh;
+}
+/** The floor: one plane at y = 0, black near the eye, with a gloss where the eye grazes it (--space-floor-sheen × (1 −
+ *  |v·up|)⁴, v the direction to the eye), mixed into the fog's colour far off. It writes no depth. */
+function spaceFloor(T, c) {
+  const material = new T.ShaderMaterial({
+    depthWrite: false,
+    uniforms: { floor: { value: new T.Color(c.floor) }, sheen: { value: new T.Color(c.floorSheen) }, fog: { value: new T.Color(c.fog) }, ...fogged() },
+    vertexShader: `varying vec3 vWorld;
+      void main() { vec4 w = modelMatrix * vec4(position, 1.0); vWorld = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
+    fragmentShader: `uniform vec3 floor, sheen, fog; ${FOG_GLSL} varying vec3 vWorld;
+      void main() {
+        vec3 v = normalize(cameraPosition - vWorld);
+        gl_FragColor = vec4(mix(fog, floor + sheen * pow(1.0 - abs(v.y), 4.0), fogOf(vWorld)), 1.0);
+        #include <colorspace_fragment>
+      }`,
+  });
+  const mesh = new T.Mesh(new T.PlaneGeometry(3000, 3000).rotateX(-Math.PI / 2), material);
+  Object.assign(mesh, { renderOrder: -2, frustumCulled: false });
+  return mesh;
 }
 
-/** Unlit glass: a face's alpha comes from the way it faces, so every tower reads alike from any side: tops the first of a
- *  row, faces turned to -x or -z (the spec's frame) the second, the rest the third. Per instance: its colour, its state (a
- *  row of the table), and the least its top may be (a final state's solid top). Writes no depth; front faces only. */
+/** Glass alphas (The glass and the faces), a row per state: top, faces turned to -x or -z (the spec's frame), the rest. */
 const GLASS = {
   // norm, near, dim, sel, hover
-  tower: [[0.30, 0.16, 0.10], [0.42, 0.24, 0.14], [0.12, 0.07, 0.04], [0.85, 0.55, 0.36], [0.42, 0.24, 0.14]],
-  plate: [[0.10, 0.22, 0.14]],
-  beacon: [[0.34, 0.16, 0.16]],
+  tower: [[0.22, 0.13, 0.085], [0.30, 0.18, 0.12], [0.08, 0.05, 0.03], [0.55, 0.34, 0.24], [0.30, 0.18, 0.12]],
+  plate: [[0.55, 0.30, 0.18]],
+  beacon: [[0.42, 0.20, 0.20]],
 };
 const STATES = { norm: 0, near: 1, dim: 2, sel: 3, hover: 4 };
-/** A floor slab's glass: top and underside 0.13, sides 2.2 times that; a knowledge floor's 0.10. */
-const FLOOR_GLASS = [[0.13, 0.286, 0.286], [0.10, 0.22, 0.22]];
-/** `under`: an underside takes the top's alpha, for floors the eye sees from below. The uniform `fade` scales every alpha, for
- *  a scene fading out behind the next. */
-function glass(T, rows, under = false) {
+/** A floor slab's glass: top (and underside) 0.09, sides 0.29 (Scene 1, Floors). */
+const FLOOR_GLASS = [[0.09, 0.29, 0.29]];
+/** Unlit glass, premultiplied: it writes colour × alpha and alpha, blended ONE, ONE_MINUS_SRC_ALPHA, so it dims what is behind
+ *  it by its alpha. A face's alpha comes from the way it faces, so every tower reads alike from any side: tops the first of a
+ *  row, faces turned to -x or -z (the spec's frame) the second, the rest the third, undersides none. Per instance: its tint,
+ *  its state (a row of the table) and the least its top may be (a final state's solid top). `kind`:
+ *  - "tower": --space-glass-low at the base to -high at the roof, whatever its tint (its kind colour), and brighter near the floor, where the traces
+ *    light it: alpha × (1 + 0.6 e^(−y/0.9)), and its sides add --space-glass-glow × 0.10 e^(−y/0.5), y above its base;
+ *  - "plate": glass of its tint's colour (plates, beacons, the skyline's floors);
+ *  - "floor": the folder tower's floors, the two glass colours half and half; an underside takes the top's alpha, for floors
+ *    the eye sees from below.
+ *  Writes no depth; front faces only; fades into the fog. The uniform `fade` scales every alpha, for a scene fading out
+ *  behind the next. */
+function glass(T, rows, kind = "tower") {
   return new T.ShaderMaterial({
     transparent: true,
     depthWrite: false,
-    defines: under ? { ROWS: rows.length, UNDER: 1 } : { ROWS: rows.length },
-    uniforms: { alphas: { value: rows.map(([a, b, c]) => new T.Vector3(a, b, c)) }, fade: { value: 1 } },
-    vertexShader: `uniform vec3 alphas[ROWS]; uniform float fade; attribute float aState; attribute float aSolid; varying vec4 vColor;
+    blending: T.CustomBlending, blendSrc: T.OneFactor, blendDst: T.OneMinusSrcAlphaFactor, blendSrcAlpha: T.OneFactor, blendDstAlpha: T.OneMinusSrcAlphaFactor,
+    defines: { ROWS: rows.length, [kind.toUpperCase()]: 1 },
+    uniforms: { alphas: { value: rows.map(([a, b, c]) => new T.Vector3(a, b, c)) }, fade: { value: 1 }, low: { value: new T.Color(theme.glassLow) }, high: { value: new T.Color(theme.glassHigh) }, glow: { value: new T.Color(theme.glassGlow) }, ...fogged() },
+    vertexShader: `uniform vec3 alphas[ROWS]; uniform float fade; attribute float aState; attribute float aSolid;
+      varying vec4 vColor; varying vec3 vWorld; varying float vUp, vY, vSide;
       void main() {
         vec3 a = alphas[int(aState + 0.5)];
         float side = normal.x < -0.5 || normal.z > 0.5 ? a.y : a.z;
-        #ifdef UNDER
+        #ifdef FLOOR
         if (normal.y < -0.5) side = a.x;
+        #else
+        if (normal.y < -0.5) side = 0.0;
         #endif
         vColor = vec4(instanceColor, (normal.y > 0.5 ? max(a.x, aSolid) : side) * fade);
-        gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+        vUp = position.y; vY = position.y * length(instanceMatrix[1].xyz); vSide = abs(normal.y) < 0.5 ? 1.0 : 0.0;
+        vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0);
+        vWorld = w.xyz;
+        gl_Position = projectionMatrix * viewMatrix * w;
       }`,
-    fragmentShader: `varying vec4 vColor;
+    fragmentShader: `uniform vec3 low, high, glow; uniform float fade; ${FOG_GLSL} varying vec4 vColor; varying vec3 vWorld; varying float vUp, vY, vSide;
       void main() {
-        gl_FragColor = vColor;
+        #if defined(TOWER)
+        float a = vColor.a * (1.0 + 0.6 * exp(-vY / 0.9));
+        vec3 rgb = mix(low, high, clamp(vUp, 0.0, 1.0)) * a + glow * exp(-vY / 0.5) * 0.10 * vSide * fade;
+        #elif defined(FLOOR)
+        float a = vColor.a;
+        vec3 rgb = mix(low, high, 0.55) * a;
+        #else
+        float a = vColor.a;
+        vec3 rgb = vColor.rgb * a;
+        #endif
+        float f = fogOf(vWorld);
+        gl_FragColor = vec4(rgb * f, a * f);
         #include <colorspace_fragment>
       }`,
   });
+}
+
+/** Glow lines' widths (Meshes and materials, Edges): the core and the halo, in px each side of the line, and the halo's
+ *  strength. `hot`: what is selected or under the pointer. */
+const GLOW = {
+  tower: [0.35, 3, 0.2], hot: [0.55, 4.5, 0.35], plate: [0.3, 2.5, 0.15], beacon: [0.35, 3, 0.22], uplink: [0.35, 3.5, 0.25],
+  ring: [0.3, 2.5, 0.15], floor: [0.3, 2.5, 0.18], rail: [0.3, 2.5, 0.15], building: [0.5, 4.5, 0.2], slab: [0.45, 1.2, 0], line: [0.3, 2, 0.15],
+};
+/** Lines that glow (Glow and fog): one quad per segment, its two ends projected in the vertex shader and the quad widened
+ *  across the segment on the screen by its halo; an end behind the near plane is moved along the segment to it first. The
+ *  fragment draws a core of the segment's half-width in px (anti-aliased over ±0.4 px) and a halo e^−(d/0.42 h)² under it, and
+ *  the whole is added (ONE, ONE): light on the dark. A halo's width and strength fall off with distance, × clamp(25 / d, 0.33,
+ *  1), so that far halos don't pile up. A box's edges run 0.6 of a halo past their ends (`joint`), so its corners close; a
+ *  circle's segments don't, so it has no beads where they meet. A dashed segment drops 38% of every `dash` units along it.
+ *  `segments`: [{ a, b, joint, dash }], their ends three.js vectors (V); colour and widths are written per run of them
+ *  (style), so a change of state restyles them in place. `k` scales the widths for a city stood small (the folder tower's
+ *  drawer): cores by k but at least 0.8, halos by k but at least 0.6. Null for no segments: an empty one would still be a draw. */
+function glowLines(T, segments, k = 1) {
+  const n = segments.length;
+  if (!n) return null;
+  const geometry = new T.InstancedBufferGeometry();
+  geometry.setAttribute("position", new T.Float32BufferAttribute([0, -1, 0, 1, -1, 0, 1, 1, 0, 0, 1, 0], 3));
+  geometry.setIndex([0, 1, 2, 0, 2, 3]);
+  const A = new Float32Array(n * 3), B = new Float32Array(n * 3), D = new Float32Array(n), Wd = new Float32Array(n * 4);
+  segments.forEach((s, i) => { s.a.toArray(A, i * 3); s.b.toArray(B, i * 3); D[i] = s.dash ?? 0; Wd[i * 4 + 3] = s.joint ?? 0.6; });
+  geometry.setAttribute("aA", new T.InstancedBufferAttribute(A, 3));
+  geometry.setAttribute("aB", new T.InstancedBufferAttribute(B, 3));
+  geometry.setAttribute("aD", new T.InstancedBufferAttribute(D, 1));
+  geometry.setAttribute("aC", new T.InstancedBufferAttribute(new Float32Array(n * 4), 4));
+  geometry.setAttribute("aW", new T.InstancedBufferAttribute(Wd, 4));
+  geometry.instanceCount = n;
+  const material = new T.ShaderMaterial({
+    transparent: true, depthWrite: false, depthTest: false,
+    blending: T.CustomBlending, blendSrc: T.OneFactor, blendDst: T.OneFactor, blendSrcAlpha: T.OneFactor, blendDstAlpha: T.OneFactor,
+    uniforms: { view: SPACE_U.view, k: { value: k }, fade: { value: 1 }, ...fogged() },
+    vertexShader: `uniform vec2 view; uniform float k; attribute vec3 aA, aB; attribute vec4 aC, aW; attribute float aD;
+      varying vec4 vC; varying vec3 vW, vWorld; varying float vD, vAlong, vDash;
+      void main() {
+        vec4 wa = modelMatrix * vec4(aA, 1.0), wb = modelMatrix * vec4(aB, 1.0), va = viewMatrix * wa, vb = viewMatrix * wb;
+        float nz = -0.61;
+        if (va.z > nz && vb.z > nz) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
+        if (va.z > nz) va = mix(va, vb, (nz - va.z) / (vb.z - va.z));
+        if (vb.z > nz) vb = mix(vb, va, (nz - vb.z) / (va.z - vb.z));
+        vec4 ca = projectionMatrix * va, cb = projectionMatrix * vb;
+        vec2 sa = ca.xy / ca.w * view * 0.5, sb = cb.xy / cb.w * view * 0.5, d = sb - sa;
+        float L = length(d);
+        d = L > 1e-4 ? d / L : vec2(1.0, 0.0);
+        float far = clamp(25.0 / length(mix(va.xyz, vb.xyz, position.x)), 0.33, 1.0), halo = aW.y * max(k, 0.6) * far;
+        vec2 s = mix(sa, sb, position.x) + vec2(-d.y, d.x) * position.y * halo + d * (position.x * 2.0 - 1.0) * halo * aW.w;
+        vec4 c = mix(ca, cb, position.x);
+        gl_Position = vec4(s / (view * 0.5) * c.w, c.z, c.w);
+        vC = aC; vW = vec3(aW.x * max(k, 0.8), halo, aW.z * mix(0.5, 1.0, far)); vD = position.y * halo;
+        vWorld = mix(wa.xyz, wb.xyz, position.x); vAlong = position.x * length(aB - aA); vDash = aD;
+      }`,
+    fragmentShader: `uniform float fade; ${FOG_GLSL} varying vec4 vC; varying vec3 vW, vWorld; varying float vD, vAlong, vDash;
+      void main() {
+        if (vDash > 0.0 && fract(vAlong / vDash) > 0.62) discard;
+        float d = abs(vD), core = 1.0 - smoothstep(vW.x - 0.4, vW.x + 0.4, d), halo = exp(-pow(d / max(vW.y * 0.42, 0.01), 2.0)) * vW.z;
+        float a = (core + halo) * vC.a * fade * fogOf(vWorld);
+        gl_FragColor = vec4(vC.rgb * a, a);
+        #include <colorspace_fragment>
+      }`,
+  });
+  const mesh = new T.Mesh(geometry, material), tint = new T.Color();
+  mesh.frustumCulled = false;
+  return {
+    mesh, material,
+    /** Colours `count` segments from `start` in a CSS colour at `alpha`, with widths [core, halo, halo strength]. */
+    style(start, count, css, alpha, [core, halo, haloA]) {
+      const c = geometry.attributes.aC, w = geometry.attributes.aW;
+      tint.setStyle(css);
+      for (let i = start; i < start + count; i++) { c.setXYZW(i, tint.r, tint.g, tint.b, alpha); w.setXYZ(i, core, halo, haloA); }
+      c.needsUpdate = w.needsUpdate = true;
+    },
+    dispose() { geometry.dispose(); material.dispose(); },
+  };
 }
 
 /** The width a drawing has in Flat, worked out while #view is hidden: #layout's last column, less #view's padding and the canvas's border. */
@@ -3028,30 +3171,33 @@ function cityWorld(doc, folder) {
   return { world, why };
 }
 
-/** One world's meshes, with three.js core alone: plates and towers as instanced glass, their edges and floor bands as one set
- *  of lines, beacons with their tethers and rings, start points, final states' rings and the beams in their quiet state. */
-function buildCity(world, colours) {
+/** One world's meshes, with three.js core alone: plates, towers and beacons as instanced glass, every edge one set of glow
+ *  lines (beacons' uplinks and ground rings and final states' rings among them), start points, and the beams in their quiet
+ *  state. `k`: the scale the city stands at (the folder tower's drawer), which its glow lines' widths follow. */
+function buildCity(world, colours, k = 1) {
   const T = three, group = new T.Group(), owned = [], kind = world.kind;
   const keep = (x) => (owned.push(x), x);
   const put = (obj, order) => { obj.renderOrder = order; obj.frustumCulled = false; group.add(obj); return obj; };
-  const roleColour = (c, role) => (role === "amber" ? c.kinds.deployment : role === "ink" ? c.ink : role === "hot" ? c.hot : c.kinds[kind]);
+  /** A role's colour: a beacon's and what reaches it ("out", magenta), a start point's, a plate's, what is lit, else the kind
+   *  colour (a tower's tint, which its cyan glass doesn't use). */
+  const roleColour = (c, role) => (role === "out" ? c.out : role === "start" ? c.textBright : role === "plate" ? c.plate : role === "hot" ? c.hot : c.kinds[kind]);
   const m4 = new T.Matrix4(), q = new T.Quaternion(), one = new T.Vector3(1, 1, 1);
 
   // Glass, one instanced mesh per shape: unit boxes standing on their base for plates and towers, octahedra for beacons.
-  const glassMesh = (geometry, rows, list, place, role, order) => {
+  const glassMesh = (geometry, rows, glassKind, list, place, role, order) => {
     if (!list.length) return null;
     geometry.setAttribute("aState", new T.InstancedBufferAttribute(new Float32Array(list.length), 1));
     geometry.setAttribute("aSolid", new T.InstancedBufferAttribute(new Float32Array(list.length), 1));
-    const mesh = put(new T.InstancedMesh(keep(geometry), keep(glass(T, rows)), list.length), order);
+    const mesh = put(new T.InstancedMesh(keep(geometry), keep(glass(T, rows, glassKind)), list.length), order);
     list.forEach((x, i) => { mesh.setMatrixAt(i, place(x)); mesh.setColorAt(i, new T.Color()); });
     mesh.userData.role = role;
     return mesh;
   };
   const unitBox = () => new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0);
-  const plates = glassMesh(unitBox(), GLASS.plate, world.plates, (p) => m4.compose(V((p.x0 + p.x1) / 2, p.base, (p.z0 + p.z1) / 2), q, new T.Vector3(p.x1 - p.x0, PH, p.z1 - p.z0)), "kind", 1);
+  const plates = glassMesh(unitBox(), GLASS.plate, "plate", world.plates, (p) => m4.compose(V((p.x0 + p.x1) / 2, p.base, (p.z0 + p.z1) / 2), q, new T.Vector3(p.x1 - p.x0, PH, p.z1 - p.z0)), "plate", 1);
   const towerAt = (t) => m4.compose(V(t.x, t.base, t.z), q, new T.Vector3(t.side, t.h, t.side));
-  const towers = glassMesh(unitBox(), GLASS.tower, world.towers, towerAt, "kind", 2);
-  const beacons = glassMesh(new T.OctahedronGeometry(1.25), GLASS.beacon, world.beacons, (b) => m4.compose(V(b.x, b.y, b.z), q, new T.Vector3(1, 1.04, 1)), "amber", 3);
+  const towers = glassMesh(unitBox(), GLASS.tower, "tower", world.towers, towerAt, "kind", 3);
+  const beacons = glassMesh(new T.OctahedronGeometry(1.25), GLASS.beacon, "plate", world.beacons, (b) => m4.compose(V(b.x, b.y, b.z), q, new T.Vector3(1, 1.04, 1)), "out", 4);
   // A tower's state and solid top, by tower; `slot` says which tower each instance draws, as they are sorted back to front.
   const state = world.towers.map(() => STATES.norm), solid = world.towers.map((t) => (t.final ? 0.75 : 0));
   let slot = world.towers.map((_, i) => i);
@@ -3063,49 +3209,36 @@ function buildCity(world, colours) {
   };
   writeTowers();
 
-  // Lines, coloured per vertex (RGBA) so that a change of state or theme rewrites colours, not geometry. Each run of vertices
-  // remembers its role (kind colour, amber or ink) and alpha.
-  const sets = { solid: { pos: [], runs: [] }, dash: { pos: [], runs: [] }, inset: { pos: [], runs: [] } };
-  let into = sets.solid;
-  const seg = (a, b) => into.pos.push(a.x, a.y, a.z, b.x, b.y, b.z);
-  const run = (set, role, alpha, draw) => { into = set; const start = set.pos.length / 3; draw(); const r = { start, count: set.pos.length / 3 - start, role, alpha, set }; set.runs.push(r); return r; };
+  // Edges, every one a glow line (Meshes and materials, Edges). Each run of segments remembers its role, alpha and widths, so
+  // that a change of state restyles it in place.
+  const segs = [], lines = [];
+  let how = {};
+  const seg = (a, b) => segs.push({ a, b, ...how });
+  const run = (role, alpha, w, draw, shape = {}) => { how = shape; const start = segs.length; draw(); const r = { start, count: segs.length - start, role, alpha, w, base: w }; lines.push(r); return r; };
   const ring4 = (x0, x1, z0, z1, y) => { const c = [V(x0, y, z0), V(x1, y, z0), V(x1, y, z1), V(x0, y, z1)]; for (let i = 0; i < 4; i++) seg(c[i], c[(i + 1) % 4]); };
   const boxEdges = (x0, x1, z0, z1, y0, y1) => { ring4(x0, x1, z0, z1, y0); ring4(x0, x1, z0, z1, y1); for (const [x, z] of [[x0, z0], [x1, z0], [x1, z1], [x0, z1]]) seg(V(x, y0, z), V(x, y1, z)); };
   const circle = (x, y, z, r, n = 48) => { for (let i = 0; i < n; i++) { const a = (2 * Math.PI * i) / n, b = (2 * Math.PI * (i + 1)) / n; seg(V(x + r * Math.cos(a), y, z + r * Math.sin(a)), V(x + r * Math.cos(b), y, z + r * Math.sin(b))); } };
+  const round = { joint: 0 };
   // A plate's and a beacon's edges, which selection lights as it lights a tower's.
-  const plateRuns = world.plates.map((p) => {
-    const edges = run(sets.solid, "kind", 0.55, () => boxEdges(p.x0, p.x1, p.z0, p.z1, p.base, p.base + PH));
-    run(sets.inset, "kind", 0.28, () => ring4(p.x0 + 0.5, p.x1 - 0.5, p.z0 + 0.5, p.z1 - 0.5, p.base + PH));
+  const plateRuns = world.plates.map((p) => ({ edges: run("kind", 0.6, GLOW.plate, () => boxEdges(p.x0, p.x1, p.z0, p.z1, p.base, p.base + PH)) }));
+  // Per tower, its edges, for selection to light (step 3 of the plan); an alternative outcome's are dashed.
+  const towerRuns = world.towers.map((t) => {
+    const s = t.side / 2;
+    const edges = run("kind", 0.8, GLOW.tower, () => boxEdges(t.x - s, t.x + s, t.z - s, t.z + s, t.base, t.base + t.h), t.alt ? { dash: 0.55 } : {});
+    if (t.final) run("kind", 0.9, GLOW.ring, () => { circle(t.x, t.base, t.z, 0.8 * t.side); circle(t.x, t.base, t.z, 0.8 * t.side + 0.45); }, round);
     return { edges };
   });
-  // Per tower, its edges and its bands, for selection to light (step 3 of the plan).
-  const towerRuns = world.towers.map((t) => {
-    const s = t.side / 2, set = t.alt ? sets.dash : sets.solid;
-    const edges = run(set, "kind", 0.75, () => boxEdges(t.x - s, t.x + s, t.z - s, t.z + s, t.base, t.base + t.h));
-    const bands = run(set, "kind", 0.75 * 0.35, () => { for (let y = 1; y < t.h - 0.05; y++) ring4(t.x - s, t.x + s, t.z - s, t.z + s, t.base + y); });
-    if (t.final) run(sets.solid, "kind", 0.9, () => { circle(t.x, t.base, t.z, 0.8 * t.side); circle(t.x, t.base, t.z, 0.8 * t.side + 0.45); });
-    return { edges, bands };
-  });
+  // A beacon's edges, its rings on the ground and its uplink from the ground to its lower point.
   const beaconRuns = world.beacons.map((b) => {
     const top = V(b.x, b.y + 1.3, b.z), low = V(b.x, b.y - 1.3, b.z), eq = [[1.25, 0], [0, 1.25], [-1.25, 0], [0, -1.25]].map(([dx, dz]) => V(b.x + dx, b.y, b.z + dz));
-    const edges = run(sets.solid, "amber", 0.9, () => eq.forEach((p, i) => { seg(p, eq[(i + 1) % 4]); seg(p, top); seg(p, low); }));
-    run(sets.solid, "amber", 0.6, () => circle(b.x, 0, b.z, 1.6));
-    run(sets.solid, "amber", 0.25, () => circle(b.x, 0, b.z, 2.6, 64));
-    run(sets.dash, "amber", 0.54, () => seg(V(b.x, b.y - 1.3, b.z), V(b.x, 0, b.z)));
+    const edges = run("out", 0.9, GLOW.beacon, () => eq.forEach((p, i) => { seg(p, eq[(i + 1) % 4]); seg(p, top); seg(p, low); }));
+    run("out", 0.6, GLOW.ring, () => circle(b.x, 0.02, b.z, 1.6), round);
+    run("out", 0.25, GLOW.ring, () => circle(b.x, 0.02, b.z, 2.6, 64), round);
+    run("out", 0.55, GLOW.uplink, () => seg(V(b.x, 0.02, b.z), low), round);
     return { edges };
   });
-  const lineSets = [];
-  for (const [name, set, order, dash] of [["solid", sets.solid, 2, null], ["dash", sets.dash, 2, [0.12, 0.2]], ["inset", sets.inset, 1, [0.12, 0.3]]]) {
-    if (!set.pos.length) continue;
-    const geometry = keep(new T.BufferGeometry());
-    geometry.setAttribute("position", new T.Float32BufferAttribute(set.pos, 3));
-    geometry.setAttribute("color", new T.Float32BufferAttribute(new Float32Array((set.pos.length / 3) * 4), 4));
-    const opts = { vertexColors: true, transparent: true, depthWrite: false };
-    const lines = put(new T.LineSegments(geometry, keep(dash ? new T.LineDashedMaterial({ ...opts, dashSize: dash[0], gapSize: dash[1] }) : new T.LineBasicMaterial(opts))), order);
-    if (dash) lines.computeLineDistances();
-    set.geometry = geometry;
-    lineSets.push({ name, geometry, runs: set.runs });
-  }
+  const edges = glowLines(T, segs, k);
+  if (edges) { put(edges.mesh, 5); owned.push(edges); }
 
   // Flat discs: the ground rings' fill under beacons, and start points.
   const discMesh = (list, at, r, role, alpha, order) => {
@@ -3116,7 +3249,7 @@ function buildCity(world, colours) {
     mesh.userData.role = role;
     return mesh;
   };
-  const discs = [discMesh(world.beacons, (b) => V(b.x, 0, b.z), 1.6, "amber", 0.06, 3), discMesh(world.markers, (m) => V(m.x, m.base, m.z), 0.5, "ink", 0.6, 2)].filter(Boolean);
+  const discs = [discMesh(world.beacons, (b) => V(b.x, 0, b.z), 1.6, "out", 0.06, 2), discMesh(world.markers, (m) => V(m.x, m.base, m.z), 0.5, "start", 0.6, 2)].filter(Boolean);
 
   // Beams: tubes along each beam's curve, merged by hand into one geometry (core three.js has no merge). A dashed beam keeps
   // every other segment. Each run of vertices and of triangles is remembered, so that a colour can change and a face hit by
@@ -3127,7 +3260,7 @@ function buildCity(world, colours) {
       ? new T.CatmullRomCurve3(p.slice(0, 32).map((x) => V(...x)), true)
       : new T.QuadraticBezierCurve3(V(...p[0]), V(2 * mid[0] - (p[0][0] + p[32][0]) / 2, 2 * mid[1] - (p[0][1] + p[32][1]) / 2, 2 * mid[2] - (p[0][2] + p[32][2]) / 2), V(...p[32]));
   });
-  const roleOf = (b) => (b.ext ? "amber" : "kind");
+  const roleOf = (b) => (b.ext ? "out" : "kind");
   /** The tubes of some beams (indices into world.beams), radius r, as one geometry with a colour per vertex. */
   const tubes = (list, r, { along = 32, radial = 6, dashes = true } = {}) => {
     const pos = [], nor = [], idx = [], runs = [];
@@ -3163,9 +3296,11 @@ function buildCity(world, colours) {
   const pickTube = tubes(all, 0.3, { along: 16, radial: 4, dashes: false });
   const pickBeams = pickTube ? new T.Mesh(keep(pickTube.geometry), keep(new T.MeshBasicMaterial())) : null;
   pickBeams?.updateMatrixWorld();
-  // Lit beams, a core in --hot and a glow round it in the kind colour, and the beam under the pointer: made when they change.
+  // Lit beams, a core in --space-hot and a glow round it in the kind colour, and the beam under the pointer: made when they change.
   const coreMaterial = keep(new T.MeshBasicMaterial({ transparent: true, depthWrite: false }));
   const glowMaterial = keep(tubeMaterial()), hoverMaterial = keep(tubeMaterial());
+  // A glow adds light to the dark.
+  glowMaterial.blending = T.AdditiveBlending;
   const lit = { core: null, glow: null, hover: null };
   const swap = (name, made, material, order) => {
     if (lit[name]) { group.remove(lit[name]); lit[name].geometry.dispose(); }
@@ -3173,7 +3308,7 @@ function buildCity(world, colours) {
     if (lit[name]) lit[name].userData.runs = made.runs;
   };
 
-  // Selection rings round the selected tower's base: r 2.0 filled and stroked in --hot, r 3.0 dashed in the kind colour.
+  // Selection rings round the selected tower's base: r 2.0 filled and stroked in --space-hot, r 3.0 dashed in the kind colour.
   const ringAt = (r, n) => new T.BufferGeometry().setFromPoints(Array.from({ length: n }, (_, i) => V(r * Math.cos((2 * Math.PI * i) / n), 0, r * Math.sin((2 * Math.PI * i) / n))));
   const rings = new T.Group(), ringFill = keep(new T.MeshBasicMaterial({ transparent: true, opacity: 0.08, depthWrite: false }));
   const ringLine = keep(new T.LineBasicMaterial({ transparent: true, opacity: 0.8, depthWrite: false }));
@@ -3184,10 +3319,10 @@ function buildCity(world, colours) {
   group.add(rings);
 
   // What selection and the pointer mark: the selected part, its neighbours, the part under the pointer, the lit beams and the
-  // beam under the pointer. A part's look is a row of the state table, and its edges and bands are drawn as that row says.
+  // beam under the pointer. A part's look is a row of the state table, and its edges are drawn as that row says.
   const index = new Map([...world.towers.map((t, i) => [t.key, ["tower", i]]), ...world.plates.map((p, i) => [p.key, ["plate", i]]), ...world.beacons.map((b, i) => [b.key, ["beacon", i]])]);
   const beamIndex = new Map(world.beams.map((b, i) => [b.key, i]));
-  const edgeAlpha = { tower: 0.75, plate: 0.55, beacon: 0.9 };
+  const edgeAlpha = { tower: 0.8, plate: 0.6, beacon: 0.9 };
   let marks = { sel: null, near: new Set(), hover: null, lit: new Set(), beam: null }, painted = colours;
   const lookOf = (key) => (key === marks.sel ? "sel" : key === marks.hover ? "hover" : marks.near.has(key) ? "near" : "norm");
   const tint = new T.Color();
@@ -3196,15 +3331,17 @@ function buildCity(world, colours) {
     for (let v = r.start; v < r.start + r.count; v++) attr.setXYZW(v, tint.r, tint.g, tint.b, r.alpha);
     attr.needsUpdate = true;
   };
-  /** Draws a part as it now looks: a tower's glass takes its row, and its edges (bands at 35% of them) their colour. */
+  /** Restyles a run of edges as it now is. */
+  const restyle = (r) => edges.style(r.start, r.count, roleColour(painted, r.role), r.alpha, r.w);
+  /** Draws a part as it now looks: a tower's glass takes its row, and its edges their colour: --space-hot, and wider, while it
+   *  is selected or under the pointer. */
   const look = (key) => {
     const [what, i] = index.get(key) ?? [];
     if (!what) return;
-    const l = lookOf(key), role = l === "sel" || l === "hover" ? "hot" : what === "beacon" ? "amber" : "kind", alpha = l === "norm" ? edgeAlpha[what] : 1;
+    const l = lookOf(key), hot = l === "sel" || l === "hover";
     const own = what === "tower" ? towerRuns[i] : what === "plate" ? plateRuns[i] : beaconRuns[i];
-    Object.assign(own.edges, { role, alpha });
-    refill(own.edges.set.geometry.attributes.color, own.edges);
-    if (own.bands) { Object.assign(own.bands, { role, alpha: alpha * 0.35 }); refill(own.bands.set.geometry.attributes.color, own.bands); }
+    Object.assign(own.edges, { role: hot ? "hot" : what === "beacon" ? "out" : "kind", alpha: l === "norm" ? edgeAlpha[what] : 1, w: hot ? GLOW.hot : own.edges.base });
+    restyle(own.edges);
     if (what === "tower") state[i] = STATES[l];
   };
   const self = {
@@ -3213,7 +3350,7 @@ function buildCity(world, colours) {
     stats: () => `${world.plates.length} plates · ${world.towers.length} towers · ${world.beacons.length} beacons · ${world.beams.length} beams`,
     /** The tower an instance of the towers' mesh draws. */
     towerOf: (instance) => slot[instance],
-    /** Colours from the theme, into uniforms and colour attributes: the geometry stays. */
+    /** Colours from the theme, into uniforms and colour attributes. */
     paint(c) {
       painted = c;
       for (const mesh of [plates, towers, beacons]) {
@@ -3224,7 +3361,7 @@ function buildCity(world, colours) {
       }
       for (const d of discs) d.material.color.setStyle(roleColour(c, d.userData.role));
       const fill = (attr, runs) => { for (const r of runs) refill(attr, r); };
-      for (const s of lineSets) fill(s.geometry.attributes.color, s.runs);
+      for (const r of lines) restyle(r);
       if (beams) fill(beams.geometry.attributes.color, beamRuns);
       for (const name of ["glow", "hover"]) if (lit[name]) fill(lit[name].geometry.attributes.color, lit[name].userData.runs);
       ends.forEach((e, i) => dots.setColorAt(i, tint.setStyle(roleColour(c, e.role))));
@@ -3233,9 +3370,6 @@ function buildCity(world, colours) {
       ringFill.color.setStyle(c.hot);
       ringLine.color.setStyle(c.hot);
       ringDash.color.setStyle(c.kinds[kind]);
-      // A glow adds light to the dark sky; on the light one adding would wash it out, so there it is laid over.
-      glowMaterial.blending = c.dark ? T.AdditiveBlending : T.NormalBlending;
-      glowMaterial.needsUpdate = true;
     },
     /** What a ray from the eye meets first: { key, beam }, beam true for a beam, or null. A start point is never met. `beams`
      *  false looks for parts alone, which is quicker (the street's crosshair, every frame the eye moves). */
@@ -3336,7 +3470,7 @@ function buildCity(world, colours) {
       for (const m of [plates, towers, beacons, dots, ...discs]) m?.dispose();
     },
   };
-  /** The lit beams: a core in --hot and a glow round it in the kind colour, as thick as the weight makes them. */
+  /** The lit beams: a core in --space-hot and a glow round it in the kind colour, as thick as the weight makes them. */
   function light() {
     const list = [...marks.lit].map((k) => beamIndex.get(k)).filter((i) => i !== undefined);
     swap("core", tubes(list, 0.06 * weight), coreMaterial, 4);
@@ -3463,10 +3597,10 @@ function glowTexture(T) {
 }
 
 /** A folder tower's meshes (docs/cyberspace-mode-spec.md, Scene 1): the floors in their slots as one instanced glass mesh, sorted
- *  so that the nearer slab paints last; their edges, the four rails and what each shows on its top face (a drawn view's plan, a
- *  written view's bars, a knowledge file's lines) as one set of lines and one of tiles. A floor out of the stack (pulled out, or
- *  sliding) is a drawer of its own: its slab, edges and glow, the city standing on it scaled by k, and its dashed ghost slot and
- *  drawer lines. `request` asks the stage for a frame while a drawer slides; `moved` is called on each step. */
+ *  so that the nearer slab paints last; their rims and the four rails as one set of glow lines; what each shows on its top face
+ *  (a drawn view's plan, a written view's bars, a knowledge file's lines) as one set of lines and one of tiles. A floor out of
+ *  the stack (pulled out, or sliding) is a drawer of its own: its slab, rims and glow, the city standing on it scaled by k, and
+ *  its dashed ghost slot and drawer lines. `request` asks the stage for a frame while a drawer slides; `moved` is called on each step. */
 function buildTower(world, colours, request) {
   const T = three, group = new T.Group(), owned = [], floors = world.floors, n = floors.length;
   const keep = (x) => (owned.push(x), x);
@@ -3476,7 +3610,7 @@ function buildTower(world, colours, request) {
   const tone = (f) => (f.group === "knowledge" ? "knowledge" : f.kind);
   const colourOf = (c, role) => (role === "hot" ? c.hot : c.kinds[role]);
   let painted = colours;
-  const slabMaterial = keep(glass(T, FLOOR_GLASS, true));
+  const slabMaterial = keep(glass(T, FLOOR_GLASS, "floor"));
   const slabMesh = (count, into) => {
     const geometry = keep(new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0));
     geometry.setAttribute("aState", new T.InstancedBufferAttribute(new Float32Array(count), 1));
@@ -3492,28 +3626,28 @@ function buildTower(world, colours, request) {
   const slabs = n ? slabMesh(n, group) : null;
   const writeSlabs = () => {
     if (!slabs) return;
-    const st = slabs.geometry.attributes.aState;
     slot.forEach((f, i) => {
       slabs.setMatrixAt(i, out.has(f) ? zero : m4.compose(V(0, floors[f].y, 0), q, slabSize));
       slabs.setColorAt(i, tint.setStyle(colourOf(painted, tone(floors[f]))));
-      st.array[i] = floors[f].group === "knowledge" ? 1 : 0;
     });
-    slabs.instanceMatrix.needsUpdate = slabs.instanceColor.needsUpdate = st.needsUpdate = true;
+    slabs.instanceMatrix.needsUpdate = slabs.instanceColor.needsUpdate = true;
   };
 
-  // Lines, coloured per vertex (RGBA), each run remembering its role (a kind, or hot) and its alpha: per floor its edges and its
-  // face's lines, and the rails.
-  const pos = [], runs = [];
-  const seg = (a, b) => pos.push(a.x, a.y, a.z, b.x, b.y, b.z);
-  const run = (role, alpha, draw) => { const start = pos.length / 3; draw(); const r = { start, count: pos.length / 3 - start, role, alpha, base: alpha }; runs.push(r); return r; };
+  // A floor's rims and the four rails are glow lines (Scene 1, Floors), each run of segments remembering its role (a kind, or
+  // hot) and its alpha; what a floor's top shows is lines coloured per vertex (RGBA) and tiles.
+  const segs = [], edgeLines = [], pos = [], runs = [];
+  let into = null;
+  const seg = (a, b) => (into ? into.push({ a, b }) : pos.push(a.x, a.y, a.z, b.x, b.y, b.z));
+  const run = (role, alpha, draw) => { const start = pos.length / 3; into = null; draw(); const r = { start, count: pos.length / 3 - start, role, alpha, base: alpha }; runs.push(r); return r; };
+  const glowRun = (role, alpha, w, draw) => { const start = segs.length; into = segs; draw(); into = null; const r = { start, count: segs.length - start, role, alpha, base: alpha, w }; edgeLines.push(r); return r; };
   const ring4 = (x0, x1, z0, z1, y) => { const c = [V(x0, y, z0), V(x1, y, z0), V(x1, y, z1), V(x0, y, z1)]; for (let i = 0; i < 4; i++) seg(c[i], c[(i + 1) % 4]); };
-  const slabEdges = (y, dx = 0, dz = 0) => { ring4(dx - hw, dx + hw, dz - hd, dz + hd, y); ring4(dx - hw, dx + hw, dz - hd, dz + hd, y + h); for (const [x, z] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]]) seg(V(dx + x, y, dz + z), V(dx + x, y + h, dz + z)); };
+  const slabEdges = (y) => { ring4(-hw, hw, -hd, hd, y); ring4(-hw, hw, -hd, hd, y + h); for (const [x, z] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]]) seg(V(x, y, z), V(x, y + h, z)); };
   // Tiles: flat quads on a floor's top, one instanced mesh; per floor the run of its instances.
   const tilePlaces = [], tileRuns = [];
   const tile = (f, x0, x1, z0, z1) => tilePlaces.push({ f, m: new T.Matrix4().compose(V((x0 + x1) / 2, f.y + h + 0.01, (z0 + z1) / 2), q, new T.Vector3(Math.max(0.05, x1 - x0), 1, Math.max(0.05, z1 - z0))) });
   const edgeRuns = floors.map((f) => {
     const top = f.y + h + 0.01, start = tilePlaces.length;
-    const edges = run(tone(f), f.group === "knowledge" ? 0.7 : 0.85, () => slabEdges(f.y));
+    const edges = glowRun(tone(f), f.group === "knowledge" ? 0.7 : 0.9, GLOW.floor, () => slabEdges(f.y));
     const face = [];
     if (f.plan) {
       face.push(run(tone(f), 0.35, () => { for (const [x0, z0, x1, z1] of f.plan.lines) seg(V(x0, top, z0), V(x1, top, z1)); }));
@@ -3527,7 +3661,10 @@ function buildTower(world, colours, request) {
     return { edges, face };
   });
   const top = n ? floors[n - 1].y : 0;
-  run("component", 0.18, () => { for (const [x, z] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]]) seg(V(x, -0.2, z), V(x, top + 1.2, z)); });
+  glowRun("component", 0.3, GLOW.rail, () => { for (const [x, z] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]]) seg(V(x, -0.2, z), V(x, top + 1.2, z)); });
+  const rims = glowLines(T, segs);
+  if (rims) { put(rims.mesh, 5); owned.push(rims); }
+  const restyle = (r) => rims.style(r.start, r.count, colourOf(painted, r.role), r.alpha, r.w);
   const lineGeometry = keep(new T.BufferGeometry());
   lineGeometry.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
   lineGeometry.setAttribute("color", new T.Float32BufferAttribute(new Float32Array((pos.length / 3) * 4), 4));
@@ -3549,15 +3686,14 @@ function buildTower(world, colours, request) {
     if (tiles.instanceColor) tiles.instanceColor.needsUpdate = true;
   };
   /** Draws a floor in the stack as it now is: hidden while it is out, its edges lit while under the pointer, selected or
-   *  focused, and in --hot while selected or focused. */
+   *  focused, and in --space-hot while selected or focused. */
   const look = (i) => {
     const r = edgeRuns[i], gone = out.has(i), hot = i === marks.sel || i === marks.focus, lit = hot || i === marks.hover;
     Object.assign(r.edges, { role: hot ? "hot" : tone(floors[i]), alpha: gone ? 0 : lit ? 1 : r.edges.base });
-    refill(r.edges);
+    restyle(r.edges);
     for (const x of r.face) { x.alpha = gone ? 0 : x.base; refill(x); }
     writeTiles(i);
-    const dr = out.get(i);
-    if (dr) { dr.edges.material.color.setStyle(colourOf(painted, hot ? "hot" : tone(floors[i]))); dr.edges.material.opacity = (lit ? 1 : r.edges.base) * fade; }
+    out.get(i)?.edges.style(0, 12, colourOf(painted, hot ? "hot" : tone(floors[i])), lit ? 1 : r.edges.base, GLOW.floor);
   };
 
   // The ghost slot and drawer lines of each floor out of the stack: dashed, rewritten as drawers slide.
@@ -3589,15 +3725,15 @@ function buildTower(world, colours, request) {
     const f = floors[i], g = new T.Group(), parts = [];
     const slab = slabMesh(1, g);
     slab.setMatrixAt(0, m4.compose(new T.Vector3(), q, slabSize));
-    slab.geometry.attributes.aState.array[0] = f.group === "knowledge" ? 1 : 0;
-    const eg = new T.BufferGeometry(), ep = [];
-    for (const [a, b] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]].map((p, k, all) => [p, all[(k + 1) % 4]])) for (const y of [0, h]) ep.push(...V(a[0], y, a[1]).toArray(), ...V(b[0], y, b[1]).toArray());
-    for (const [x, z] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]]) ep.push(...V(x, 0, z).toArray(), ...V(x, h, z).toArray());
-    eg.setAttribute("position", new T.Float32BufferAttribute(ep, 3));
-    const edges = put(new T.LineSegments(eg, new T.LineBasicMaterial({ transparent: true, depthWrite: false })), 3, g);
+    // Its rims, the floor's own glow lines, which slide with it.
+    const es = [], corners = [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]];
+    corners.forEach(([x, z], k) => { const [x1, z1] = corners[(k + 1) % 4]; for (const y of [0, h]) es.push({ a: V(x, y, z), b: V(x1, y, z1) }); es.push({ a: V(x, 0, z), b: V(x, h, z) }); });
+    const edges = glowLines(T, es);
+    put(edges.mesh, 5, g);
+    edges.material.uniforms.fade.value = fade;
     const glow = put(new T.Mesh(new T.PlaneGeometry(w + 3, d + 3).rotateX(-Math.PI / 2), new T.MeshBasicMaterial({ alphaMap: glowMap, transparent: true, opacity: 0.25, depthWrite: false })), 0, g);
     glow.position.y = -0.05;
-    parts.push(eg, edges.material, glow.geometry, glow.material);
+    parts.push(edges, glow.geometry, glow.material);
     const dr = { g, slab, edges, glow, parts, city: null, holder: null, k: 1, t: 0, from: 0, to: 0, t0: 0 };
     dr.place = () => g.position.copy(V(PULL[0] * dr.t, f.y, PULL[2] * dr.t));
     dr.paint = () => {
@@ -3651,8 +3787,8 @@ function buildTower(world, colours, request) {
         if (dr.city?.world !== city) {
           dr.drop();
           if (city) {
-            const b = city.bounds, built = buildCity(city, painted), holder = new T.Group();
-            dr.k = floorScale(b);
+            dr.k = floorScale(city.bounds);
+            const b = city.bounds, built = buildCity(city, painted, dr.k), holder = new T.Group();
             built.group.position.copy(V(-(b.x0 + b.x1) / 2, 0, -(b.z0 + b.z1) / 2));
             holder.add(built.group);
             holder.scale.setScalar(dr.k);
@@ -3672,7 +3808,7 @@ function buildTower(world, colours, request) {
     /** The front-left corner of a floor's slot, half way up its edge: where its label stands. */
     corner(i) { return V(-hw, floors[i].y + h / 2, -hd); },
     /** Marks the floor under the pointer, the one whose inspector is open and the one the keyboard is on (`focus`): their edges
-     *  at full strength, the selected and the focused one's in --hot. */
+     *  at full strength, the selected and the focused one's in --space-hot. */
     mark(next) {
       const was = marks;
       marks = { ...was, ...next };
@@ -3705,15 +3841,16 @@ function buildTower(world, colours, request) {
     /** Scales every alpha but the city's, for the tower to fade in or out round it. */
     fade(f) {
       fade = f;
-      slabMaterial.uniforms.fade.value = f;
+      slabMaterial.uniforms.fade.value = rims.material.uniforms.fade.value = f;
       lineMaterial.opacity = dashMaterial.opacity = f;
       tileMaterial.opacity = 0.42 * f;
-      for (const [i, dr] of out) { dr.glow.material.opacity = 0.25 * f; look(i); }
+      for (const dr of out.values()) { dr.glow.material.opacity = 0.25 * f; dr.edges.material.uniforms.fade.value = f; }
     },
     paint(c) {
       painted = c;
       writeSlabs();
       for (const r of runs) refill(r);
+      for (const r of edgeLines) restyle(r);
       for (let i = 0; i < n; i++) look(i);
       for (const dr of out.values()) dr.paint();
       writeDashes();
@@ -4489,7 +4626,7 @@ function cityLegend(world) {
         has(world.beacons) && ["beacon", "Beacon · outside the browser"],
         ["beam", `Beam · ${{ component: LEGENDS.component[0][1], deployment: LEGENDS.deployment[0][1], class: "extends, implements or uses", "user-journey": LEGENDS["user-journey"][0][1] }[world.kind]}`],
       ];
-  return items.filter(Boolean).map(([icon, text]) => legendItem(LEGEND_ICONS[icon], text, icon === "beacon" ? "amber" : "")).join("")
+  return items.filter(Boolean).map(([icon, text]) => legendItem(LEGEND_ICONS[icon], text, icon === "beacon" ? "out" : "")).join("")
     + (nav ? legendItem(BADGE, "Has views of its own") : "");
 }
 /** An item of a legend: its icon, then its words, which below 1280 px wide are hidden and left to the tooltip. */
@@ -4624,22 +4761,28 @@ const SPACE_STATS = new URLSearchParams(location.search).has("spacestats");
 
 /** The renderer, the scene and the camera. It draws a frame only when something changed, and none while #space or the tab is hidden. */
 function spaceStage(T, canvas) {
-  const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+  // Multisampling only below a pixel ratio of 2: from 2 up the edges, which anti-alias in their own shaders, look the same
+  // without it, and it cost most of a frame at 3440 × 1440 (Performance budgets).
+  const renderer = new T.WebGLRenderer({ canvas, antialias: devicePixelRatio < 2, alpha: false, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setClearAlpha(0);
-  const scene = new T.Scene(), camera = new T.PerspectiveCamera(54.1, 1, 0.6, 600);
-  // What stands (buildDistrict's, buildTower's or buildSkyline's), and what fades in or out round a change of scene.
-  let grid = null, shown = null, fading = new Map(), frame = 0, lost = false, last = 0, took = 0, every = 0;
+  const scene = new T.Scene(), camera = new T.PerspectiveCamera(54.1, 1, 0.6, 900);
+  // The sky and the floor (`ground`); what stands (buildDistrict's, buildTower's or buildSkyline's), and what fades in or out
+  // round a change of scene.
+  let ground = null, shown = null, fading = new Map(), frame = 0, lost = false, last = 0, took = 0, every = 0;
+  const pixel = new Uint8Array(4);
   const showing = () => !lost && !$("space").hidden && !document.hidden;
   const draw = (now) => {
     frame = 0;
     if (!showing()) return;
     const t0 = performance.now();
     self.onFrame?.();
+    ground?.sky.position.copy(camera.position);
     renderer.render(scene, camera);
     if (!SPACE_STATS) return;
-    // The readout waits for the GPU, so the time it gives is the whole frame's.
-    renderer.getContext().finish();
+    // The readout waits for the GPU, so the time it gives is the whole frame's: a pixel read back waits for the frame to be
+    // drawn, where gl.finish() returned before the GPU had finished (Chrome over ANGLE's Metal backend).
+    const gl = renderer.getContext();
+    gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
     // `frame` is a running average, so one slow frame (the first, which compiles the shaders) weighs on it for a while;
     // `last` is the latest frame's own.
     const one = performance.now() - t0;
@@ -4660,6 +4803,8 @@ function spaceStage(T, canvas) {
     const { width, height } = $("space").getBoundingClientRect();
     if (!width || !height) return;
     renderer.setSize(width, height, false);
+    SPACE_U.view.value[0] = width;
+    SPACE_U.view.value[1] = height;
     self.onResize?.();
     request();
   };
@@ -4676,9 +4821,14 @@ function spaceStage(T, canvas) {
     get city() { return shown?.kind === "city" ? shown : null; },
     get tower() { return shown?.kind === "tower" ? shown : null; },
     get skyline() { return shown?.kind === "skyline" ? shown : null; },
-    /** Lays the ground, again after a stay in Flat. */
+    /** Lays the sky and the floor, again after a stay in Flat; what three.js's own materials draw fades into the same fog. */
     fill(colours) {
-      if (!grid) { grid = groundGrid(T, colours); scene.add(grid.mesh); }
+      if (!ground) {
+        ground = { sky: spaceSky(T, colours), floor: spaceFloor(T, colours) };
+        scene.add(ground.sky, ground.floor);
+        renderer.setClearColor(colours.void, 1);
+        scene.fog = new T.Fog(colours.fog, SPACE_U.fogNear.value, SPACE_U.fogFar.value);
+      }
       resize();
       request();
     },
@@ -4717,20 +4867,21 @@ function spaceStage(T, canvas) {
       };
       requestAnimationFrame(step);
     },
-    /** Where the ground grid fades out, from and to so many units from the eye: 40 to 140, and 60 to 200 in the street. */
-    fadeGrid(from, to) {
-      if (!grid) return;
-      const u = grid.mesh.material.uniforms;
-      u.fadeFrom.value = from; u.fadeTo.value = to;
-      request();
+    /** Where the fog starts and ends, in units from the eye, for every material (Glow and fog). */
+    fog(near, far) {
+      SPACE_U.fogNear.value = near;
+      SPACE_U.fogFar.value = far;
+      if (scene.fog) Object.assign(scene.fog, { near, far });
     },
-    retheme(colours) { grid?.paint(colours); shown?.paint(colours); for (const r of fading.values()) if (r.thing !== shown) r.thing.paint(colours); request(); },
     /** Lets go of every geometry and material; the renderer stays for a return. */
     empty() {
       cancelAnimationFrame(frame); frame = 0;
       for (const r of [...fading.values()]) r.end();
       self.show(null);
-      if (grid) { scene.remove(grid.mesh); grid.dispose(); grid = null; }
+      if (ground) {
+        for (const m of [ground.sky, ground.floor]) { scene.remove(m); m.geometry.dispose(); m.material.dispose(); }
+        ground = null;
+      }
       // The readout ends with what is left on the GPU: nothing, once every geometry and texture is let go of.
       const { geometries, textures } = renderer.info.memory;
       if (SPACE_STATS && $("space-stats")) $("space-stats").textContent += `\nleft on leaving: ${geometries} geometries, ${textures} textures`;
@@ -4758,6 +4909,7 @@ function stageOn() {
     stage.onResize = () => { if (street?.on) streetMap(street.world); rig.resized(); clearTimeout(reshape); reshape = setTimeout(spaceTurn, 250); };
     // Labels are placed on a frame where the camera moved or the selection changed, never for the pointer alone.
     stage.onFrame = () => {
+      spaceFog();
       if (!rig.moved) return;
       rig.moved = false;
       // In the street the hover card goes first: the labels it covers are hidden. In the skyline it lies over them, so that
@@ -4768,8 +4920,17 @@ function stageOn() {
     };
     pointer = spacePointer(stage, rig);
   }
+  // html.space is on by now, so the kind colours read are the dark block's.
   stage.fill((theme ??= spaceTheme()));
   return true;
+}
+/** Where the fog starts and ends (Glow and fog): in a city from the label cut-off (90 units, or its far side as fitted) to
+ *  230 units further, in the street from 28 to 150, in the folder tower from 70 to 260 and in the skyline from 110 to 420. */
+function spaceFog() {
+  if (stage.skyline) stage.fog(110, 420);
+  else if (stage.tower) stage.fog(70, 260);
+  else if (street?.on) stage.fog(28, 150);
+  else { const cut = rig.cut(); stage.fog(cut, cut + 230); }
 }
 function closeStage() {
   clearTimeout(stageIdle);
@@ -5419,8 +5580,9 @@ const skylinePose = (world, folder) => {
 };
 /** How large a folder's tower stands in its building while the camera flies between them: as wide as the building. */
 const SKY_SCALE = BUILDING.w / FLOOR.w;
-/** A building's glass: a floor plate's top and sides; a shell's, as it stands, as the address folder's, under the pointer. */
-const SKY_GLASS = { plate: [[0.18, 0.18, 0.18]], shell: [[0.05, 0.05, 0.05], [0.16, 0.16, 0.16], [0.12, 0.12, 0.12]] };
+/** A building's glass: a floor slab's (its kind's colour at 7% on top), and a shell's, a tower's as it stands, as the address
+ *  folder's (a neighbour's row), under the pointer. */
+const SKY_GLASS = { plate: [[0.07, 0.12, 0.12]], shell: [GLASS.tower[STATES.norm], GLASS.tower[STATES.near], GLASS.tower[STATES.hover]] };
 /** The skyline standing: its world and meshes (buildSkyline's), the building under the pointer or focused with Tab (`by`:
  *  "pointer" or "key"), and the hover card's size. */
 let skied = null;
@@ -5435,30 +5597,31 @@ const repoName = () => repo.repo ?? repo.project.split("/").pop();
 /** A building's name: its folder's title, the repository's for a root with no folder record. */
 const skylineTitle = (folder) => { const { title } = folderNames(folder); return folder === "" && title === "/" ? repoName() : title; };
 
-/** The skyline's meshes (Meshes and materials, Skyline buildings): every floor plate one instanced mesh, every shell another, and
- *  their edges and the dashed ground lines one set of lines, coloured per vertex; and the address folder's rings, r 4.3 filled
- *  and stroked in --hot and r 5.2 dashed. Six draw calls with the ground, however many folders. Dashes are 4 px long and the
- *  gaps 5 px (the rings' 6) seen from the opening distance, as artboard 7 draws them. */
+/** The skyline's meshes (The skyline, How a building looks): every floor slab one instanced mesh of glass in its kind's colour,
+ *  every shell another of cyan glass; the shells' edges, each slab's top outline and the dashed ground lines one set of glow
+ *  lines; and the address folder's rings, r 4.3 filled and stroked in --space-hot and r 5.2 dashed. Seven draw calls with the
+ *  sky and the floor, however many folders. Dashes are 4 px long and the gaps 5 px (the rings' 6) seen from the opening
+ *  distance, as artboard 7 draws them. */
 function buildSkyline(world, colours) {
   const T = three, group = new T.Group(), owned = [], B = world.buildings, n = B.length;
   const keep = (x) => (owned.push(x), x);
   const put = (obj, order, into = group) => { obj.renderOrder = order; obj.frustumCulled = false; into.add(obj); return obj; };
   const m4 = new T.Matrix4(), q = new T.Quaternion(), Y = new T.Vector3(0, 1, 0), tint = new T.Color();
   const turn = (b) => q.setFromAxisAngle(Y, Math.PI - b.angle);
-  const dash = 0.0284 * world.ring, gap = 0.0355 * world.ring;
+  const dash = 0.0284 * world.ring, gap = 0.0355 * world.ring, inset = 0.175;
   let painted = colours, fade = 1;
   const colourOf = (c, role) => (role === "hot" ? c.hot : c.kinds[role] ?? c.kinds.knowledge);
-  const glassBoxes = (count, rows, order) => {
+  const glassBoxes = (count, rows, kind, order) => {
     const geometry = keep(new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0));
     geometry.setAttribute("aState", new T.InstancedBufferAttribute(new Float32Array(count), 1));
     geometry.setAttribute("aSolid", new T.InstancedBufferAttribute(new Float32Array(count), 1));
-    const mesh = put(new T.InstancedMesh(geometry, keep(glass(T, rows)), count), order);
-    for (let i = 0; i < count; i++) mesh.setColorAt(i, tint);
+    const mesh = put(new T.InstancedMesh(geometry, keep(glass(T, rows, kind)), count), order);
+    for (let i = 0; i < count; i++) mesh.setColorAt(i, tint.setStyle(colours.kinds.component));
     return mesh;
   };
-  // A plate per file, their tops 0.5 apart from 0.5 up, in the building's shell.
+  // A slab per file, their tops 0.5 apart from 0.5 up, in the building's shell.
   const floors = B.flatMap((b) => b.floors.map((kind, i) => ({ b, kind, y: BUILDING.floor * (i + 1) - BUILDING.plate })));
-  const plates = glassBoxes(floors.length, SKY_GLASS.plate, 1), shells = glassBoxes(n, SKY_GLASS.shell, 2);
+  const plates = glassBoxes(floors.length, SKY_GLASS.plate, "plate", 1), shells = glassBoxes(n, SKY_GLASS.shell, "tower", 3);
   let slot = B.map((_, i) => i), pslot = floors.map((_, i) => i);
   const index = new Map(B.map((b, i) => [b.folder, i])), state = B.map(() => 0);
   const writeShells = () => {
@@ -5467,15 +5630,17 @@ function buildSkyline(world, colours) {
     shells.instanceMatrix.needsUpdate = st.needsUpdate = true;
   };
   const writePlates = () => {
-    pslot.forEach((fi, i) => { const f = floors[fi]; plates.setMatrixAt(i, m4.compose(V(f.b.x, f.y, f.b.z), turn(f.b), new T.Vector3(BUILDING.w, BUILDING.plate, BUILDING.d))); plates.setColorAt(i, tint.setStyle(colourOf(painted, f.kind))); });
+    pslot.forEach((fi, i) => { const f = floors[fi]; plates.setMatrixAt(i, m4.compose(V(f.b.x, f.y, f.b.z), turn(f.b), new T.Vector3(BUILDING.w - 2 * inset, BUILDING.plate, BUILDING.d - 2 * inset))); plates.setColorAt(i, tint.setStyle(colourOf(painted, f.kind))); });
     plates.instanceMatrix.needsUpdate = true;
     plates.instanceColor.needsUpdate = true;
   };
 
-  // Lines, coloured per vertex (RGBA): each shell's edges, each plate's top, and the ground lines, each run with its role and alpha.
-  const pos = [], runs = [];
-  const seg = (a, b) => pos.push(a.x, a.y, a.z, b.x, b.y, b.z);
-  const run = (role, alpha, draw) => { const start = pos.length / 3; draw(); const r = { start, count: pos.length / 3 - start, role, alpha }; runs.push(r); return r; };
+  // Glow lines: each shell's edges, each slab's top outline (no halo: halos 0.5 units apart pile up at the skyline's
+  // distances), and the dashed ground lines to parent folders, each run with its role, alpha and widths.
+  const segs = [], runs = [];
+  let how = {};
+  const seg = (a, b) => segs.push({ a, b, ...how });
+  const run = (role, alpha, w, draw, shape = {}) => { how = shape; const start = segs.length; draw(); const r = { start, count: segs.length - start, role, alpha, w }; runs.push(r); return r; };
   const rect = (c, y) => { for (let i = 0; i < 4; i++) seg(V(c[i][0], y, c[i][1]), V(c[(i + 1) % 4][0], y, c[(i + 1) % 4][1])); };
   const dashes = (x0, z0, x1, z1, y) => {
     const len = Math.hypot(x1 - x0, z1 - z0), ux = (x1 - x0) / (len || 1), uz = (z1 - z0) / (len || 1);
@@ -5483,24 +5648,17 @@ function buildSkyline(world, colours) {
   };
   const edgeRuns = B.map((b) => {
     const c = buildingCorners(b);
-    return run("component", 0.25, () => { rect(c, 0); rect(c, b.h); for (const [x, z] of c) seg(V(x, 0, z), V(x, b.h, z)); });
+    return run("component", 0.55, GLOW.building, () => { rect(c, 0); rect(c, b.h); for (const [x, z] of c) seg(V(x, 0, z), V(x, b.h, z)); });
   });
-  for (const f of floors) run(f.kind, 0.8, () => rect(buildingCorners(f.b), f.y + BUILDING.plate));
+  for (const f of floors) run(f.kind, 0.6, GLOW.slab, () => rect(buildingCorners(f.b, inset), f.y + BUILDING.plate));
   const at = new Map(B.map((b) => [b.folder, b]));
-  run("component", 0.55, () => { for (const [f, p] of world.lines) { const a = at.get(f), b = at.get(p); if (a && b) dashes(a.x, a.z, b.x, b.z, 0.02); } });
-  const lineGeometry = keep(new T.BufferGeometry());
-  lineGeometry.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
-  lineGeometry.setAttribute("color", new T.Float32BufferAttribute(new Float32Array((pos.length / 3) * 4), 4));
-  const lineMaterial = keep(new T.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
-  put(new T.LineSegments(lineGeometry, lineMaterial), 3);
-  const refill = (r, role = r.role, alpha = r.alpha) => {
-    const attr = lineGeometry.attributes.color;
-    tint.setStyle(colourOf(painted, role));
-    for (let v = r.start; v < r.start + r.count; v++) attr.setXYZW(v, tint.r, tint.g, tint.b, alpha);
-    attr.needsUpdate = true;
-  };
+  run("component", 0.55, GLOW.line, () => { for (const [f, p] of world.lines) { const a = at.get(f), b = at.get(p); if (a && b) dashes(a.x, a.z, b.x, b.z, 0.02); } }, { joint: 0 });
+  const lines = glowLines(T, segs);
+  put(lines.mesh, 5);
+  owned.push(lines);
+  const refill = (r, role = r.role, alpha = r.alpha, w = r.w) => lines.style(r.start, r.count, colourOf(painted, role), alpha, w);
 
-  // The address folder's rings, as a selected tower's: r 4.3 filled --hot 8% and stroked 80%, r 5.2 dashed in the kind colour 50%.
+  // The address folder's rings, as a selected tower's: r 4.3 filled --space-hot 8% and stroked 80%, r 5.2 dashed in the kind colour 50%.
   const rings = new T.Group(), ringPos = [], ringCol = [];
   // An arc of radius r from angle a to angle b, as one segment.
   const arc = (r, a, b) => ringPos.push(...V(r * Math.sin(a), 0, r * Math.cos(a)).toArray(), ...V(r * Math.sin(b), 0, r * Math.cos(b)).toArray());
@@ -5524,13 +5682,14 @@ function buildSkyline(world, colours) {
   };
 
   let marks = { sel: null, hover: null };
-  /** Draws a building as it now looks: the address folder's shell at 0.16 and its edges --hot 90%; under the pointer, 0.12 and --hot. */
+  /** Draws a building as it now looks: the address folder's shell as a neighbour's and its edges --space-hot 90%; under the
+   *  pointer, as a part under the pointer, its edges --space-hot and wider. */
   const look = (folder) => {
     const i = index.get(folder);
     if (i === undefined) return;
     const l = folder === marks.sel ? 1 : folder === marks.hover ? 2 : 0;
     state[i] = l;
-    refill(edgeRuns[i], l ? "hot" : "component", l === 1 ? 0.9 : l === 2 ? 1 : 0.25);
+    refill(edgeRuns[i], l ? "hot" : "component", l === 1 ? 0.9 : l === 2 ? 1 : 0.55, l === 2 ? GLOW.hot : GLOW.building);
   };
   const self = {
     kind: "skyline", group, world,
@@ -5562,14 +5721,12 @@ function buildSkyline(world, colours) {
     /** Scales every alpha, for the skyline to fade in or out round a tower. */
     fade(f) {
       fade = f;
-      plates.material.uniforms.fade.value = shells.material.uniforms.fade.value = f;
-      lineMaterial.opacity = ringLines.opacity = f;
+      plates.material.uniforms.fade.value = shells.material.uniforms.fade.value = lines.material.uniforms.fade.value = f;
+      ringLines.opacity = f;
       ringFill.opacity = 0.08 * f;
     },
     paint(c) {
       painted = c;
-      for (let i = 0; i < n; i++) shells.setColorAt(i, tint.setStyle(c.kinds.component));
-      shells.instanceColor.needsUpdate = true;
       writePlates();
       for (const r of runs) refill(r);
       for (const f of index.keys()) look(f);
@@ -5620,7 +5777,6 @@ function standSkyline(world, { keep = false } = {}) {
     fitDistance: 6.25 * world.ring, home: () => rig.set({ ...skylinePose(world, space.folder), touched: false }),
   });
   rig.fit();
-  stage.fadeGrid(5 * world.ring, 18.75 * world.ring);
   skylineAim(space.folder);
   return was;
 }
@@ -5681,9 +5837,9 @@ function flyIntoTower(next) {
 function skylineEnter(folder) { if (byFolder.has(folder)) location.hash = spaceHash({ folder }); }
 
 /** The skyline's cards: the address folder's card, as the tower's but with what the repository holds and Enter <its title>.
- *  `on` false takes away what is the skyline's alone: the hover card, and the ground's long fade. */
+ *  `on` false takes away what is the skyline's alone: the hover card. */
 function skylineHud(on) {
-  if (!on) { hoverCard().hidden = true; stage?.fadeGrid(40, 140); return; }
+  if (!on) { hoverCard().hidden = true; return; }
   spaceCards().hidden = false;
   $("space-drawer").hidden = true;
   // Before the camera is fitted, so that the room it leaves is the one the card will take.
@@ -5792,7 +5948,6 @@ function streetOn(world) {
   rig.room = spaceRoom();
   rig.top = rig.room.top;
   rig.walkOn(world);
-  stage.fadeGrid(60, 200);
   stage.city?.weigh(STREET_WEIGHT);
   spaceParts();
   stage.canvas.focus({ preventScroll: true });
@@ -5807,7 +5962,6 @@ function streetOff() {
   document.body.classList.remove("street");
   streetHud(null);
   if (rig) { if (rig.mode === "walk") rig.setMode(rig.held); rig.walk.world = null; }
-  stage?.fadeGrid(40, 140);
 }
 /** From the street up to the city (scene change 3): the beams take the city's weight again, and the eye flies back to the
  *  orbit pose the reader left, or to the fit. A camera the reader hadn't moved is fitted to the room as it now is, as it
@@ -5867,7 +6021,7 @@ function streetHud(world) {
   if (world) { $("space-crumbs").textContent = ""; streetMap(world); }
 }
 /** The map: the world's bounds in plan, the top of the sheet up, as Flat draws it: plates as rounded rectangles, towers as
- *  5 px squares, beacons as amber diamonds, and the eye, a dot with its view cone of ±24° reaching 36 units. 232 px wide, or
+ *  5 px squares, beacons as magenta diamonds, and the eye, a dot with its view cone of ±24° reaching 36 units. 232 px wide, or
  *  152 below 900 px tall, and at most 180 px of plan high. */
 function streetMap(world) {
   const el = $("space-map"), svg = el.querySelector("svg"), B = world.bounds, inner = innerHeight < 900 ? 152 : 232, tall = (180 * inner) / 232;
@@ -5899,7 +6053,7 @@ function streetHover(key, view = standing?.key) {
   const tpl = document.createElement("template");
   tpl.innerHTML = n.tip ?? "";
   for (const x of tpl.content.querySelectorAll("b, .hint")) x.remove();
-  card.className = `kind-${world.kind}${beacon ? " amber" : ""}`;
+  card.className = `kind-${world.kind}${beacon ? " out" : ""}`;
   card.innerHTML = `<div class="shh"><span>${ic(ICONS[n.glyph] ? n.glyph : "kind-" + world.kind)}</span><b></b></div><p></p><div class="scm"></div>`;
   card.querySelector("b").textContent = name;
   card.querySelector("p").textContent = tpl.content.textContent.trim();
@@ -6356,6 +6510,8 @@ function showSpace(folder, focus, scene) {
     space.on = true;
     closeInspector();
     hideTip();
+    // Cyberspace is always dark: html.space takes the page's dark tokens, so the whole window is dark (decision space-gibson-look).
+    document.documentElement.classList.add("space");
     document.body.classList.add("space");
     $("space").hidden = false;
     modeSwitch();
@@ -6376,6 +6532,8 @@ function leaveSpace(asked) {
   const was = space.on;
   if (was) {
     space.on = false;
+    // Flat follows the system's colour scheme again.
+    document.documentElement.classList.remove("space");
     document.body.classList.remove("space");
     $("space").hidden = true;
     // A flight under way stops where it is: there is nothing left for it to land in.

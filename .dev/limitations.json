@@ -199,7 +199,7 @@
       "id": "colours-outside-tokens",
       "title": "Some colours are outside the tokens",
       "summary": "The error red and the source-verified green are written into their rules, not tokens.",
-      "impact": "A change of palette has to find them: #b3261e and #ff8a80 for errors, #2c6e3a and #8fd39d for source-verified, and the shadows.",
+      "impact": "A change of palette has to find them: #b3261e and #ff8a80 for errors, #2c6e3a and #8fd39d for source-verified (each dark value twice, under the dark media query and under :root.space for Cyberspace), and the shadows, Cyberspace's at 55% black. Cyberspace's scene itself has none: every colour it draws is a --space-* token or a kind colour, read by spaceTheme.",
       "evidenceStatus": "source-verified",
       "sources": [
         {
@@ -209,19 +209,27 @@
         {
           "path": "index.html",
           "symbol": "ev-source-verified"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceTheme"
         }
       ]
     },
     {
       "id": "system-theme-only",
       "title": "No light or dark switch",
-      "summary": "The page follows the system's setting.",
-      "impact": "A reader can't choose dark on a light system or the other way round.",
+      "summary": "Flat follows the system's setting; Cyberspace is always dark.",
+      "impact": "A reader can't choose dark on a light system or the other way round, in Flat; Cyberspace is dark on either, by design (decision space-gibson-look).",
       "evidenceStatus": "source-verified",
       "sources": [
         {
           "path": "index.html",
           "symbol": "prefers-color-scheme: dark"
+        },
+        {
+          "path": "index.html",
+          "symbol": ":root.space"
         }
       ]
     },

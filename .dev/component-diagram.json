@@ -287,6 +287,30 @@
     {
       "path": "index.html",
       "symbol": "fly"
+    },
+    {
+      "path": "index.html",
+      "symbol": "spaceTheme"
+    },
+    {
+      "path": "index.html",
+      "symbol": "spaceSky"
+    },
+    {
+      "path": "index.html",
+      "symbol": "spaceFloor"
+    },
+    {
+      "path": "index.html",
+      "symbol": "glass"
+    },
+    {
+      "path": "index.html",
+      "symbol": "glowLines"
+    },
+    {
+      "path": "index.html",
+      "symbol": "spaceFog"
     }
   ],
   "components": [
@@ -437,13 +461,13 @@
     {
       "id": "cyberspace",
       "name": "Cyberspace",
-      "responsibility": "The second way in: the repository in 3D, over a sky and on a ground grid, in place of the folder column and view. A folder opens as a tower of glass floors, one per .dev file, with a drawn view pulled out and its city small on it; entering that floor flies down into the city, and Esc flies back up. A drawn view stands as a city of glass towers on the flat layout's ground plan; clicking a tower, plate or beacon selects it, lights its beams and neighbours, opens the inspector on it and puts it in the address. Above the towers, a repository with several folders is a skyline of buildings, one per folder, that the reader rises to and flies into. A city can stand other drawn views of its folder beside it. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
+      "responsibility": "The second way in: the repository in 3D, under a black-to-indigo sky on a glossy black floor, in place of the folder column and view; always dark, whatever the system's setting, with the whole window in the page's dark colours while it shows. A folder opens as a tower of glass floors, one per .dev file, with a drawn view pulled out and its city small on it; entering that floor flies down into the city, and Esc flies back up. A drawn view stands as a city of cyan glass towers with glowing edges in its kind's colour and magenta beacons on the flat layout's ground plan; clicking a tower, plate or beacon selects it, lights its beams and neighbours, opens the inspector on it and puts it in the address. Above the towers, a repository with several folders is a skyline of buildings, one per folder, that the reader rises to and flies into. A city can stand other drawn views of its folder beside it. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
       "folder": "."
     },
     {
       "id": "stage",
       "name": "Stage",
-      "responsibility": "The WebGL renderer, scene and camera: stands a city's meshes (instanced glass plates and towers, merged lines, beacons and beams, 4 to 10 draw calls a city) or a folder tower's (the floors as one instanced glass mesh, their edges, rails and faces as one set of lines and one of tiles, and the pulled-out floor as a drawer with its glow, its ghost slot and its city scaled down) on the ground, or every city standing in a city scene, side by side, or the skyline's buildings (their floor plates and shells instanced, their edges and ground lines one set of lines: six draw calls with the ground), slides floors out and back, fades the tower out behind the city that takes its place and in again, and out as the skyline fades in and back, fades an unticked city to dim before it goes, draws a frame only when something changed and none while hidden, follows the window's size and the system's light or dark colours, lets go of the scene on leaving and of the context a minute later, and offers Restore it when the context is lost.",
+      "responsibility": "The WebGL renderer, scene and camera, in Cyberspace's palette read once (spaceTheme): a sky sphere round the eye and a glossy floor, fog in every material, unlit premultiplied glass (teal at a tower's base to cyan at its roof), and every edge a glow line drawn with its own falloff, no post-processing; multisampling only below a pixel ratio of 2. Stands a city's meshes (instanced glass plates, towers and beacons, one set of glow lines, the discs, beacons' uplinks and beams: 3 to 7 draw calls a city) or a folder tower's (the floors as one instanced glass mesh, their rims and the rails as glow lines, their faces as one set of lines and one of tiles, and the pulled-out floor as a drawer with its glow, its ghost slot and its city scaled down) on the floor, or every city standing in a city scene, side by side, or the skyline's buildings (their floor slabs and shells instanced, their edges, slab outlines and ground lines one set of glow lines: seven draw calls with the sky and the floor), slides floors out and back, fades the tower out behind the city that takes its place and in again, and out as the skyline fades in and back, fades an unticked city to dim before it goes, draws a frame only when something changed and none while hidden, follows the window's size, times each frame to the GPU's finish with a pixel read back under ?spacestats, lets go of the scene on leaving and of the context a minute later, and offers Restore it when the context is lost.",
       "folder": "."
     },
     {
@@ -467,7 +491,7 @@
     {
       "id": "hud",
       "name": "HUD",
-      "responsibility": "The panels over the scene: over a city, the camera controls (orbit, pan, walk, zoom in and out, fit everything) and the legend, worded for the kind of view; over the tower, the folder's card (its name, path, purpose, counts of drawn, written and knowledge files, and the folders inside it) and the pulled-out floor's (its view, what its city holds, Enter the city and Slide back); in the street, in place of the city's, the breadcrumb (folder, view, plate and the part selected or ahead), the key hints, the map (plates, towers, beacons and the eye with its view cone; a click flies the eye there), the hover card by the part under the pointer (never under the inspector), a crosshair and a vignette. Over a city, the Layers panel on the left: the folder's views by kind, a tick box for a drawn view with a city of its own, radio buttons for a file's use cases or journeys, written and knowledge views listed but disabled. Over the tower, See the skyline, and the folders inside folded into a chip that opens it. Over the skyline, the address folder's card with what the repository holds and Enter <its title>, the camera controls with Walk off, the legend, and the street's hover card by a building, clear of the folder card. From the keyboard: a visually hidden list after the canvas, a button per part, floor or building, named after it, which Tab walks in the order of the flow and which lights what it names and does what a click does on Enter; and, per scene, what the scene shows and how to move in it, for screen readers. The Layers panel disables a view whose city would take the scene past 40 draw calls; below 1280 px wide it folds into a 40 px button that opens it as a popover, and the legend shows its icons alone.",
+      "responsibility": "The panels over the scene, in Cyberspace's own colours (--space-panel, --space-rule, --space-pill, --space-hot) over the page's dark ones: over a city, the camera controls (orbit, pan, walk, zoom in and out, fit everything) and the legend, worded for the kind of view; over the tower, the folder's card (its name, path, purpose, counts of drawn, written and knowledge files, and the folders inside it) and the pulled-out floor's (its view, what its city holds, Enter the city and Slide back); in the street, in place of the city's, the breadcrumb (folder, view, plate and the part selected or ahead), the key hints, the map (plates, towers, beacons and the eye with its view cone; a click flies the eye there), the hover card by the part under the pointer (never under the inspector), a crosshair and a vignette. Over a city, the Layers panel on the left: the folder's views by kind, a tick box for a drawn view with a city of its own, radio buttons for a file's use cases or journeys, written and knowledge views listed but disabled. Over the tower, See the skyline, and the folders inside folded into a chip that opens it. Over the skyline, the address folder's card with what the repository holds and Enter <its title>, the camera controls with Walk off, the legend, and the street's hover card by a building, clear of the folder card. From the keyboard: a visually hidden list after the canvas, a button per part, floor or building, named after it, which Tab walks in the order of the flow and which lights what it names and does what a click does on Enter; and, per scene, what the scene shows and how to move in it, for screen readers. The Layers panel disables a view whose city would take the scene past 40 draw calls; below 1280 px wide it folds into a 40 px button that opens it as a popover, and the legend shows its icons alone.",
       "folder": "."
     },
     {
@@ -783,7 +807,7 @@
       "from": "stage",
       "to": "three",
       "kind": "depends-on",
-      "description": "Renders the scene with its WebGLRenderer, and the ground grid as a ShaderMaterial."
+      "description": "Renders the scene with its WebGLRenderer; the sky, the floor, the glass and the glow lines are ShaderMaterials of its core."
     },
     {
       "from": "world-builders",
