@@ -757,7 +757,7 @@
     {
       "id": "light-dark",
       "name": "Light and dark, wide and narrow",
-      "description": "The page is light or dark, as the reader chooses or as the system is set.",
+      "description": "Flat is light or dark, as the reader chooses or as the system is set; Cyberspace is always dark.",
       "sources": [
         {
           "path": "index.html",
@@ -768,10 +768,10 @@
           "symbol": "max-width: 860px"
         }
       ],
-      "behavior": "The switch at the right of the bar has three buttons: System follows the system's light or dark setting as it changes, Light and Dark fix one and are remembered by the browser. Flat and Cyberspace both follow it; Cyberspace repaints at once, keeping the camera and the selection. Under 860 px the folder column moves above the content and the bar drops the ref and shortens Choose another repository to Choose; under 560 px the brand keeps only its mark. With reduced motion the drill, pulses, flashes, ticking and fades are off and scrolling jumps.",
+      "behavior": "The switch at the right of the bar has three buttons for Flat's theme: System follows the system's light or dark setting as it changes, Light and Dark fix one and are remembered by the browser. Cyberspace is always dark, and the whole window with it while it shows; the switch stays in the bar, its buttons disabled with the title Cyberspace is always dark: the theme is Flat's, and a choice made meanwhile in another tab, or a change of the system's setting, shows when the reader goes back to Flat. Under 860 px the folder column moves above the content and the bar drops the ref and shortens Choose another repository to Choose; under 560 px the brand keeps only its mark. With reduced motion the drill, pulses, flashes, ticking and fades are off and scrolling jumps.",
       "outcome": "The page reads well at night, in a narrowed window, and for readers who turn motion off.",
       "constraints": [
-        "In the VS Code extension the editor's theme decides and the switch hides."
+        "In the VS Code extension the editor's theme decides Flat's and the switch hides; Cyberspace is dark there too."
       ],
       "implementation": [
         {
@@ -780,7 +780,7 @@
         },
         {
           "path": "index.html",
-          "symbol": "retheme"
+          "symbol": ":root.space"
         },
         {
           "path": "index.html",

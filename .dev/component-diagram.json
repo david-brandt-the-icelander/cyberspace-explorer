@@ -346,7 +346,7 @@
     },
     {
       "path": "index.html",
-      "symbol": "retheme"
+      "symbol": "modeSwitch"
     },
     {
       "path": "index.html",
@@ -511,7 +511,7 @@
     {
       "id": "cyberspace",
       "name": "Cyberspace",
-      "responsibility": "The second way in: the repository in 3D, under a black-to-indigo sky on a glossy black floor by night, or a pale sky on a near-white floor by day, in place of the folder column and view; it follows the theme and repaints in place when it changes. A folder opens as a tower of glass floors, one per .dev file, with a drawn view pulled out and its city small on it; entering that floor flies down into the city, and Esc flies back up. A drawn view stands as a city of cyan glass towers with glowing edges in its kind's colour and magenta beacons on the flat layout's ground plan, every relationship a glowing circuit trace on the floor between pads at the parts' bases; clicking a tower, plate or beacon selects it, lights its traces in place and raises them as beams, brightens its neighbours' pads, opens the inspector on it and puts it in the address. Above the towers, a repository with several folders is a skyline of buildings, one per folder, that the reader rises to and flies into. A city can stand other drawn views of its folder beside it. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
+      "responsibility": "The second way in: the repository in 3D, under a black-to-indigo sky on a glossy black floor, in place of the folder column and view; always dark, whatever the theme switch, the system or a host says, with the whole window in the page's dark colours while it shows, and the theme switch disabled. A folder opens as a tower of glass floors, one per .dev file, with a drawn view pulled out and its city small on it; entering that floor flies down into the city, and Esc flies back up. A drawn view stands as a city of cyan glass towers with glowing edges in its kind's colour and magenta beacons on the flat layout's ground plan, every relationship a glowing circuit trace on the floor between pads at the parts' bases; clicking a tower, plate or beacon selects it, lights its traces in place and raises them as beams, brightens its neighbours' pads, opens the inspector on it and puts it in the address. Above the towers, a repository with several folders is a skyline of buildings, one per folder, that the reader rises to and flies into. A city can stand other drawn views of its folder beside it. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
       "folder": "."
     },
     {
@@ -541,13 +541,13 @@
     {
       "id": "hud",
       "name": "HUD",
-      "responsibility": "The panels over the scene, in Cyberspace's own colours (--space-panel, --space-rule, --space-pill, --space-hot): over a city, the camera controls (orbit, pan, walk, zoom in and out, fit everything) and the legend, worded for the kind of view; over the tower, the folder's card (its name, path, purpose, counts of drawn, written and knowledge files, and the folders inside it) and the pulled-out floor's (its view, what its city holds, Enter the city and Slide back); in the street, in place of the city's, the breadcrumb (folder, view, plate and the part selected or ahead), the key hints, the map (plates, the traces as hairlines with the selection's lit, towers, beacons and the eye with its view cone; a click flies the eye there), the hover card by the part under the pointer (never under the inspector), a crosshair and a vignette. Over a city, the Layers panel on the left: the folder's views by kind, a tick box for a drawn view with a city of its own, radio buttons for a file's use cases or journeys, written and knowledge views listed but disabled. Over the tower, See the skyline, and the folders inside folded into a chip that opens it. Over the skyline, the address folder's card with what the repository holds and Enter <its title>, the camera controls with Walk off, the legend, and the street's hover card by a building, clear of the folder card. From the keyboard: a visually hidden list after the canvas, a button per part, floor or building, named after it, which Tab walks in the order of the flow and which lights what it names and does what a click does on Enter; and, per scene, what the scene shows and how to move in it, for screen readers. The Layers panel disables a view whose city would take the scene past 40 draw calls; below 1280 px wide it folds into a 40 px button that opens it as a popover, and the legend shows its icons alone.",
+      "responsibility": "The panels over the scene, in Cyberspace's own colours (--space-panel, --space-rule, --space-pill, --space-hot) over the page's dark ones: over a city, the camera controls (orbit, pan, walk, zoom in and out, fit everything) and the legend, worded for the kind of view; over the tower, the folder's card (its name, path, purpose, counts of drawn, written and knowledge files, and the folders inside it) and the pulled-out floor's (its view, what its city holds, Enter the city and Slide back); in the street, in place of the city's, the breadcrumb (folder, view, plate and the part selected or ahead), the key hints, the map (plates, the traces as hairlines with the selection's lit, towers, beacons and the eye with its view cone; a click flies the eye there), the hover card by the part under the pointer (never under the inspector), a crosshair and a vignette. Over a city, the Layers panel on the left: the folder's views by kind, a tick box for a drawn view with a city of its own, radio buttons for a file's use cases or journeys, written and knowledge views listed but disabled. Over the tower, See the skyline, and the folders inside folded into a chip that opens it. Over the skyline, the address folder's card with what the repository holds and Enter <its title>, the camera controls with Walk off, the legend, and the street's hover card by a building, clear of the folder card. From the keyboard: a visually hidden list after the canvas, a button per part, floor or building, named after it, which Tab walks in the order of the flow and which lights what it names and does what a click does on Enter; and, per scene, what the scene shows and how to move in it, for screen readers. The Layers panel disables a view whose city would take the scene past 40 draw calls; below 1280 px wide it folds into a 40 px button that opens it as a popover, and the legend shows its icons alone.",
       "folder": "."
     },
     {
       "id": "theme",
       "name": "Theme switch",
-      "responsibility": "System, Light or Dark in the bar: sets html[data-theme] before the first paint and whenever the choice or the system changes, keeps a choice in localStorage, and hides when a host owns the theme; Cyberspace repaints when it changes.",
+      "responsibility": "System, Light or Dark in the bar, for Flat: sets html[data-theme] before the first paint and whenever the choice or the system changes, keeps a choice in localStorage, and hides when a host owns the theme. Cyberspace is always dark: its buttons are disabled while it shows.",
       "folder": "."
     },
     {
@@ -1011,10 +1011,10 @@
       "description": "Keeps a Light or Dark choice."
     },
     {
-      "from": "theme",
-      "to": "cyberspace",
+      "from": "cyberspace",
+      "to": "theme",
       "kind": "depends-on",
-      "description": "Has it repaint in the new theme."
+      "description": "Disables it while Cyberspace shows, and enables it again on leaving."
     },
     {
       "from": "reading",

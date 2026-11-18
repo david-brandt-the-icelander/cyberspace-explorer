@@ -5,7 +5,7 @@ The cyberspace explorer: a page (`index.html`) that shows a repository's `.dev` 
 - `index.html` is the whole page, with no build step. Keep it working when opened as a plain file, without the Worker.
 - `npm test` runs the Worker's tests (`test/app.test.js`), those of Cyberspace's pure functions in `index.html` (`test/space.test.js`) and the VS Code extension's (`vscode/test/`); the workflow runs them on every pull request and before every deploy.
 - `vscode/` is the VS Code extension: plain JavaScript, no build, hosting `index.html` in a webview through `window.cyberspaceWorkspace`. A change to how the page starts, loads or themes itself must keep it working there (`vscode/README.md`).
-- Every colour is a token with a light value in `:root` and a dark one in `:root[data-theme="dark"]`, Cyberspace's `--space-*` included (decision `theme-switch`).
+- Every colour of Flat is a token with a light value in `:root` and a dark one in the dark block, `:root[data-theme="dark"], :root.space` (decision `theme-switch`). Cyberspace is always dark: its `--space-*` tokens have one value, the dark one, and while it shows `html.space` takes the dark block (decision `space-gibson-look`).
 - `crates/` is the Rust workspace for `cyberspace-generator` and the validators it is built on: run `cargo fmt --all && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace` after changing it. When `Meta/Agents/Skills/validate_diagrams.py` or `Meta/Agents/Knowledge/validate_knowledge.py` changes upstream, port the change to `crates/cyberspace-diagrams` or `crates/cyberspace-knowledge` and add a case to `crates/cyberspace-generator/tests/parity.rs`.
 - No secrets in the repository: the Worker's secrets are set on Cloudflare (`wrangler.jsonc` names them).
 

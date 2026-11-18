@@ -27,7 +27,7 @@
 <style>
   /* ── Tokens ─────────────────────────────────────────────────────────────
      Cool survey-sheet paper and slate ink. Each diagram kind has one colour,
-     used for its icon, its plates and its pips in the folder tree. html[data-theme] picks the block: the reader's choice
+     used for its icon, its plates and its pips in the folder tree. html[data-theme] picks Flat's block: the reader's choice
      from the bar's theme switch, or the system's setting while they choose System (decision theme-switch). */
   :root {
     color-scheme: light;
@@ -43,18 +43,10 @@
     --cond: "Barlow Condensed", "Avenir Next Condensed", "Arial Narrow", sans-serif;
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --k: var(--k-component);
-    /* Cyberspace's own colours (the spec's Palette): the Gibson of Hackers by night, and by day in light mode. */
-    --space-void: #e4ebee;
-    --space-sky-zenith: #c4d6e2; --space-sky-mid: #d9e5eb; --space-sky-horizon: #eef3f6; --space-sky-band: #a99ff0;
-    --space-fog: #e5ecef; --space-floor: #f4f7f8; --space-floor-sheen: #0a0c12;
-    --space-glass-low: #1c7f86; --space-glass-high: #2f86b8; --space-glass-glow: #0fa496;
-    --space-text: #0f6f86; --space-text-bright: #0b2a36; --space-text-quiet: #4a7f8f;
-    --space-trace: #6146d4; --space-trace-halo: #8b7cf5; --space-trace-out: #ad2a8a; --space-trace-out-halo: #c86ee8;
-    --space-plate: #d3e1e7; --space-hot: #0f1d25;
-    --space-panel: #f8fafa; --space-pill: #ffffff; --space-rule: #c3cfd3;
-    --space-shadow: rgb(29 43 51 / .18);
   }
-  :root[data-theme="dark"] {
+  /* The dark block: the reader's choice, or the system's setting while they choose System, and the whole window while
+     Cyberspace shows, whatever the theme (html.space; decision space-gibson-look). */
+  :root[data-theme="dark"], :root.space {
     color-scheme: dark;
     --paper: #10181d; --sheet: #152128; --plate: #1b2a32;
     --ink: #dce5e5; --ink2: #9aabb1; --ink3: #6c7f87;
@@ -63,6 +55,9 @@
     --k-use-case: #ee8f66; --k-capability: #97a0ea; --k-feature: #e58aae; --k-operation: #a7b6bd;
     --k-user-journey: #5cc4b6; --k-knowledge: #d2b585;
     --error: #ff8a80; --verified: #8fd39d;
+  }
+  /* Cyberspace's own colours (the spec's Palette): the Gibson of Hackers, always dark, so they have no light value. */
+  :root {
     --space-void: #020208;
     --space-sky-zenith: #010105; --space-sky-mid: #04041a; --space-sky-horizon: #0e0b2c; --space-sky-band: #3b2bb0;
     --space-fog: #03030d; --space-floor: #020309; --space-floor-sheen: #141038;
@@ -402,6 +397,7 @@
   .modes button[aria-pressed="true"] { background: var(--rule); color: var(--hot); }
   .themes button { width: 32px; padding: 0; display: grid; place-items: center; }
   .themes .ic { width: 16px; height: 16px; }
+  .themes button:disabled { opacity: .45; cursor: default; color: var(--ink2); }
   /* The scene fills the window under the bar; the status line floats over it. */
   body.space { overflow: hidden; }
   body.space #view, body.space #side { display: none; }
@@ -647,7 +643,7 @@
     <ul id="space-parts" class="sr" aria-label="Parts in this scene"></ul>
     <div id="space-labels" aria-hidden="true"></div>
     <div id="space-hud"></div>
-    <p id="space-help" class="sr">The repository's .dev views in 3D, standing on a glossy floor. Everything here can be read in the flat view too.</p>
+    <p id="space-help" class="sr">The repository's .dev views in 3D, standing on a dark floor. Everything here can be read in the flat view too.</p>
     <p id="space-live" class="sr" aria-live="polite"></p>
   </section>
 </div>
@@ -3306,56 +3302,40 @@ function loadThree() {
 }
 
 /** The colours the scene draws with, as CSS colours: Cyberspace's own tokens (the spec's Palette) and the kind colours, which
- *  accent, in the theme html[data-theme] names; `light` says which it is. Read on every entry and again whenever the theme
- *  changes (retheme), and written into the uniforms every material shares: the glass's colours, and how glows blend (added,
- *  light on the dark; laid over, ink on the day). */
+ *  accent. html.space takes the page's dark block, so the kind colours are their dark values. Read once, on the first entry:
+ *  Cyberspace is always dark (decision space-gibson-look), so there is no scheme to follow. */
 const SPACE_TOKENS = { trace: "--space-trace", traceHalo: "--space-trace-halo", outHalo: "--space-trace-out-halo", void: "--space-void", skyZenith: "--space-sky-zenith", skyMid: "--space-sky-mid", skyHorizon: "--space-sky-horizon", skyBand: "--space-sky-band", fog: "--space-fog", floor: "--space-floor", floorSheen: "--space-floor-sheen", glassLow: "--space-glass-low", glassHigh: "--space-glass-high", glassGlow: "--space-glass-glow", textBright: "--space-text-bright", out: "--space-trace-out", plate: "--space-plate", hot: "--space-hot" };
 function spaceTheme() {
   const css = getComputedStyle(document.documentElement), read = (v) => css.getPropertyValue(v).trim();
-  const c = { ...Object.fromEntries(Object.entries(SPACE_TOKENS).map(([k, v]) => [k, read(v)])), kinds: Object.fromEntries([...Object.keys(KIND_ORDER), "knowledge"].map((k) => [k, read("--k-" + k)])), light: document.documentElement.dataset.theme !== "dark" };
-  SPACE_U.over.value = c.light ? 1 : 0;
-  SPACE_U.gain.value = c.light ? 1.2 : 1;
-  for (const m of RIBBON_MATERIALS) { m.blendEquation = c.light ? three.MinEquation : three.MaxEquation; m.needsUpdate = true; }
-  for (const k of ["glassLow", "glassHigh", "glassGlow"]) (SPACE_U[k].value ??= new three.Color()).setStyle(c[k]);
-  return c;
-}
-/** Repaints Cyberspace in the theme html[data-theme] now names, while it stands: the shared uniforms, the sky, the floor, the
- *  fog and every part. Nothing is built again, so the camera, the selection and the labels stay as they are. */
-function retheme() {
-  if (!stage || !theme) return;
-  theme = spaceTheme();
-  stage.repaint(theme);
+  return { ...Object.fromEntries(Object.entries(SPACE_TOKENS).map(([k, v]) => [k, read(v)])), kinds: Object.fromEntries([...Object.keys(KIND_ORDER), "knowledge"].map((k) => [k, read("--k-" + k)])) };
 }
 let theme = null;
 
 /** The spec's frame, left-handed (the default camera looks along +z, +x to its right), to three.js's. The one place it is converted. */
 const V = (x, y, z) => new three.Vector3(x, y, -z);
 /** What every material of the scene shares, set by the stage: the canvas's size in CSS px, which glow lines are measured in,
- *  where the fog starts and ends, in units from the eye (Glow and fog), and the theme's (spaceTheme): `over` 1 lays glows over
- *  what is behind them in light mode where 0 adds them in dark, `gain` thickens the glass on the day, and the glass's colours. */
-const SPACE_U = { view: { value: [1, 1] }, fogNear: { value: 90 }, fogFar: { value: 320 }, over: { value: 0 }, gain: { value: 1 }, glassLow: { value: null }, glassHigh: { value: null }, glassGlow: { value: null } };
+ *  and where the fog starts and ends, in units from the eye (Glow and fog). */
+const SPACE_U = { view: { value: [1, 1] }, fogNear: { value: 90 }, fogFar: { value: 320 } };
 const fogged = () => ({ fogNear: SPACE_U.fogNear, fogFar: SPACE_U.fogFar });
 /** Fog: 1 near the eye, 0 past the fog's far end. Everything fades by it into --space-fog; the floor mixes into it. */
 const FOG_GLSL = `uniform float fogNear, fogFar; float fogOf(vec3 w) { return 1.0 - smoothstep(fogNear, fogFar, distance(cameraPosition, w)); }`;
 
 /** The sky (Meshes and materials): a sphere round the eye (the stage keeps it there), unlit, by the elevation e of the view
  *  direction: --space-sky-horizon to -mid over e 0 to 0.12, to -zenith over 0.12 to 0.6, the fog's colour below the horizon
- *  (it shows only past the floor's end), and a thin band of light on the horizon, added in dark and laid over in light.
- *  Drawn first, behind everything. */
+ *  (it shows only past the floor's end), and a thin band of light on the horizon. Drawn first, behind everything. */
 function spaceSky(T, c) {
   const material = new T.ShaderMaterial({
     side: T.BackSide, depthWrite: false, depthTest: false,
-    uniforms: { zenith: { value: new T.Color(c.skyZenith) }, mid: { value: new T.Color(c.skyMid) }, horizon: { value: new T.Color(c.skyHorizon) }, band: { value: new T.Color(c.skyBand) }, fog: { value: new T.Color(c.fog) }, over: SPACE_U.over },
+    uniforms: { zenith: { value: new T.Color(c.skyZenith) }, mid: { value: new T.Color(c.skyMid) }, horizon: { value: new T.Color(c.skyHorizon) }, band: { value: new T.Color(c.skyBand) }, fog: { value: new T.Color(c.fog) } },
     vertexShader: `varying vec3 vDir;
       void main() { vec4 w = modelMatrix * vec4(position, 1.0); vDir = w.xyz - cameraPosition; gl_Position = projectionMatrix * viewMatrix * w; }`,
-    fragmentShader: `uniform vec3 zenith, mid, horizon, band, fog; uniform float over; varying vec3 vDir;
+    fragmentShader: `uniform vec3 zenith, mid, horizon, band, fog; varying vec3 vDir;
       void main() {
         float e = normalize(vDir).y, up = clamp(e, 0.0, 1.0);
         vec3 c = mix(horizon, mid, smoothstep(0.0, 0.12, up));
         c = mix(c, zenith, smoothstep(0.12, 0.6, up));
         c = mix(fog, c, smoothstep(-0.02, 0.0, e));
-        float b = 0.5 * exp(-pow(e / 0.0035, 2.0)) + 0.12 * exp(-pow(e / 0.03, 2.0));
-        c = mix(c + band * b, mix(c, band, min(b, 1.0) * 0.6), over);
+        c += band * (0.5 * exp(-pow(e / 0.0035, 2.0)) + 0.12 * exp(-pow(e / 0.03, 2.0)));
         gl_FragColor = vec4(c, 1.0);
         #include <colorspace_fragment>
       }`,
@@ -3364,7 +3344,7 @@ function spaceSky(T, c) {
   Object.assign(mesh, { renderOrder: -3, frustumCulled: false });
   return mesh;
 }
-/** The floor: one plane at y = 0, --space-floor near the eye (black by night, near white by day), with a gloss where the eye grazes it (--space-floor-sheen × (1 −
+/** The floor: one plane at y = 0, black near the eye, with a gloss where the eye grazes it (--space-floor-sheen × (1 −
  *  |v·up|)⁴, v the direction to the eye), mixed into the fog's colour far off. It writes no depth. */
 function spaceFloor(T, c) {
   const material = new T.ShaderMaterial({
@@ -3411,8 +3391,8 @@ function glass(T, rows, kind = "tower") {
     depthWrite: false,
     blending: T.CustomBlending, blendSrc: T.OneFactor, blendDst: T.OneMinusSrcAlphaFactor, blendSrcAlpha: T.OneFactor, blendDstAlpha: T.OneMinusSrcAlphaFactor,
     defines: { ROWS: rows.length, [kind.toUpperCase()]: 1 },
-    uniforms: { alphas: { value: rows.map(([a, b, c]) => new T.Vector3(a, b, c)) }, fade: { value: 1 }, gain: SPACE_U.gain, low: SPACE_U.glassLow, high: SPACE_U.glassHigh, glow: SPACE_U.glassGlow, ...fogged() },
-    vertexShader: `uniform vec3 alphas[ROWS]; uniform float fade, gain; attribute float aState; attribute float aSolid;
+    uniforms: { alphas: { value: rows.map(([a, b, c]) => new T.Vector3(a, b, c)) }, fade: { value: 1 }, low: { value: new T.Color(theme.glassLow) }, high: { value: new T.Color(theme.glassHigh) }, glow: { value: new T.Color(theme.glassGlow) }, ...fogged() },
+    vertexShader: `uniform vec3 alphas[ROWS]; uniform float fade; attribute float aState; attribute float aSolid;
       varying vec4 vColor; varying vec3 vWorld; varying float vUp, vY, vSide;
       void main() {
         vec3 a = alphas[int(aState + 0.5)];
@@ -3422,7 +3402,7 @@ function glass(T, rows, kind = "tower") {
         #else
         if (normal.y < -0.5) side = 0.0;
         #endif
-        vColor = vec4(instanceColor, min((normal.y > 0.5 ? max(a.x, aSolid) : side) * gain, 1.0) * fade);
+        vColor = vec4(instanceColor, (normal.y > 0.5 ? max(a.x, aSolid) : side) * fade);
         vUp = position.y; vY = position.y * length(instanceMatrix[1].xyz); vSide = abs(normal.y) < 0.5 ? 1.0 : 0.0;
         vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0);
         vWorld = w.xyz;
@@ -3456,8 +3436,7 @@ const GLOW = {
 /** Lines that glow (Glow and fog): one quad per segment, its two ends projected in the vertex shader and the quad widened
  *  across the segment on the screen by its halo; an end behind the near plane is moved along the segment to it first. The
  *  fragment draws a core of the segment's half-width in px (anti-aliased over ±0.4 px) and a halo e^−(d/0.42 h)² under it, and
- *  the whole is added in dark, light on the dark (premultiplied, alpha 0 under ONE, ONE_MINUS_SRC_ALPHA), and laid over what
- *  is behind it in light (alpha a), so a line shows on the day's pale floor. A halo's width and strength fall off with distance, × clamp(25 / d, 0.33,
+ *  the whole is added (ONE, ONE): light on the dark. A halo's width and strength fall off with distance, × clamp(25 / d, 0.33,
  *  1), so that far halos don't pile up. A box's edges run 0.6 of a halo past their ends (`joint`), so its corners close; a
  *  circle's segments don't, so it has no beads where they meet. A dashed segment drops 38% of every `dash` units along it.
  *  `segments`: [{ a, b, joint, dash }], their ends three.js vectors (V); colour and widths are written per run of them
@@ -3479,8 +3458,8 @@ function glowLines(T, segments, k = 1) {
   geometry.instanceCount = n;
   const material = new T.ShaderMaterial({
     transparent: true, depthWrite: false, depthTest: false,
-    blending: T.CustomBlending, blendSrc: T.OneFactor, blendDst: T.OneMinusSrcAlphaFactor, blendSrcAlpha: T.OneFactor, blendDstAlpha: T.OneMinusSrcAlphaFactor,
-    uniforms: { view: SPACE_U.view, k: { value: k }, fade: { value: 1 }, over: SPACE_U.over, ...fogged() },
+    blending: T.CustomBlending, blendSrc: T.OneFactor, blendDst: T.OneFactor, blendSrcAlpha: T.OneFactor, blendDstAlpha: T.OneFactor,
+    uniforms: { view: SPACE_U.view, k: { value: k }, fade: { value: 1 }, ...fogged() },
     vertexShader: `uniform vec2 view; uniform float k; attribute vec3 aA, aB; attribute vec4 aC, aW; attribute float aD;
       varying vec4 vC; varying vec3 vW, vWorld; varying float vD, vAlong, vDash;
       void main() {
@@ -3500,13 +3479,12 @@ function glowLines(T, segments, k = 1) {
         vC = aC; vW = vec3(aW.x * max(k, 0.8), halo, aW.z * mix(0.5, 1.0, far)); vD = position.y * halo;
         vWorld = mix(wa.xyz, wb.xyz, position.x); vAlong = position.x * length(aB - aA); vDash = aD;
       }`,
-    fragmentShader: `uniform float fade, over; ${FOG_GLSL} varying vec4 vC; varying vec3 vW, vWorld; varying float vD, vAlong, vDash;
+    fragmentShader: `uniform float fade; ${FOG_GLSL} varying vec4 vC; varying vec3 vW, vWorld; varying float vD, vAlong, vDash;
       void main() {
         if (vDash > 0.0 && fract(vAlong / vDash) > 0.62) discard;
         float d = abs(vD), core = 1.0 - smoothstep(vW.x - 0.4, vW.x + 0.4, d), halo = exp(-pow(d / max(vW.y * 0.42, 0.01), 2.0)) * vW.z;
-        float a = (core + halo) * vC.a;
-        a = mix(a, min(a, 1.0), over) * fade * fogOf(vWorld);
-        gl_FragColor = vec4(vC.rgb * a, a * over);
+        float a = (core + halo) * vC.a * fade * fogOf(vWorld);
+        gl_FragColor = vec4(vC.rgb * a, a);
         #include <colorspace_fragment>
       }`,
   });
@@ -3550,10 +3528,6 @@ const RIBBON = {
  *  in the wall, across it as the run before it lay. `list`: [{ points: [[x, y, z], …] (the spec's frame), dash }]; each
  *  ribbon's colours and look are written per vertex (style), so a selection restyles them in place. `k`: the scale the city
  *  stands at (the folder tower's drawer), whose px minimums are scaled by √k, at least 0.55. Null for no ribbons. */
-/** Every ribbon material standing, for spaceTheme to set how it blends: by night the brighter of it and what is under it
- *  (MaxEquation), by day the darker (MinEquation), its colour drawn as ink on white, so that on the pale floor a trace still
- *  shows and crossings still don't add up. */
-const RIBBON_MATERIALS = new Set();
 function ribbons(T, list, k = 1) {
   const runs = [];
   const at = list.map((r) => {
@@ -3593,8 +3567,8 @@ function ribbons(T, list, k = 1) {
   geometry.setIndex(idx);
   const material = new T.ShaderMaterial({
     transparent: true, depthWrite: false, depthTest: false, side: T.DoubleSide,
-    blending: T.CustomBlending, blendEquation: SPACE_U.over.value ? T.MinEquation : T.MaxEquation, blendSrc: T.OneFactor, blendDst: T.OneFactor,
-    uniforms: { view: SPACE_U.view, k: { value: k }, kPx: { value: Math.max(0.55, Math.sqrt(k)) }, fade: { value: 1 }, over: SPACE_U.over, ...fogged() },
+    blending: T.CustomBlending, blendEquation: T.MaxEquation, blendSrc: T.OneFactor, blendDst: T.OneFactor,
+    uniforms: { view: SPACE_U.view, k: { value: k }, kPx: { value: Math.max(0.55, Math.sqrt(k)) }, fade: { value: 1 }, ...fogged() },
     vertexShader: `uniform vec2 view; uniform float k, kPx; attribute vec3 aDir, aAcross, aRun; attribute vec2 aQuad; attribute vec4 aHalf, aCore, aHalo;
       varying vec4 vCore, vHalo; varying vec2 vAt; varying float vPx, vCorePx, vHaloPx, vL, vS, vDash; varying vec3 vWorld;
       void main() {
@@ -3610,20 +3584,18 @@ function ribbons(T, list, k = 1) {
         vWorld = w.xyz;
         gl_Position = projectionMatrix * viewMatrix * w;
       }`,
-    fragmentShader: `uniform float fade, over; ${FOG_GLSL} varying vec4 vCore, vHalo; varying vec2 vAt; varying float vPx, vCorePx, vHaloPx, vL, vS, vDash; varying vec3 vWorld;
+    fragmentShader: `uniform float fade; ${FOG_GLSL} varying vec4 vCore, vHalo; varying vec2 vAt; varying float vPx, vCorePx, vHaloPx, vL, vS, vDash; varying vec3 vWorld;
       void main() {
         if (vDash > 0.5 && fract((vS + clamp(vAt.y, 0.0, vL)) / 0.55) > 0.62) discard;
         float d = length(vec2(vAt.x, max(0.0, max(-vAt.y, vAt.y - vL)))) * vPx;
         float core = (1.0 - smoothstep(vCorePx - 0.55, vCorePx + 0.55, d)) * step(0.001, vCorePx), halo = exp(-pow(d / max(vHaloPx * 0.45, 0.8), 2.0)) * step(0.001, vHaloPx);
-        float f = fade * fogOf(vWorld), ac = core * vCore.a * f, ah = halo * vHalo.a * (1.0 - core) * f;
-        vec3 c = over > 0.5 ? vec3(1.0) - (vec3(1.0) - vCore.rgb) * ac - (vec3(1.0) - vHalo.rgb) * ah : vCore.rgb * ac + vHalo.rgb * ah;
-        gl_FragColor = vec4(c, 1.0);
+        vec3 c = vCore.rgb * core * vCore.a + vHalo.rgb * halo * vHalo.a * (1.0 - core);
+        gl_FragColor = vec4(c * fade * fogOf(vWorld), 1.0);
         #include <colorspace_fragment>
       }`,
   });
   const mesh = new T.Mesh(geometry, material), core = new T.Color(), halo = new T.Color();
   mesh.frustumCulled = false;
-  RIBBON_MATERIALS.add(material);
   return {
     mesh, material,
     /** Writes a ribbon's look (RIBBON's) and its colours, the core's and the halo's, as CSS colours. */
@@ -3637,7 +3609,7 @@ function ribbons(T, list, k = 1) {
       }
       h.needsUpdate = c.needsUpdate = g.needsUpdate = true;
     },
-    dispose() { RIBBON_MATERIALS.delete(material); geometry.dispose(); material.dispose(); },
+    dispose() { geometry.dispose(); material.dispose(); },
   };
 }
 
@@ -3780,7 +3752,8 @@ function buildCity(world, colours, k = 1) {
   let weight = 1, pickTube = null, pickLit = null;
   const coreMaterial = keep(new T.MeshBasicMaterial({ transparent: true, depthWrite: false }));
   const glowMaterial = keep(new T.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
-  // A glow adds light to the dark, and lies over the day (paint sets which).
+  // A glow adds light to the dark.
+  glowMaterial.blending = T.AdditiveBlending;
   const lit = { core: null, glow: null };
   const swap = (name, made, material, order) => {
     if (lit[name]) { group.remove(lit[name]); lit[name].geometry.dispose(); }
@@ -3859,8 +3832,6 @@ function buildCity(world, colours, k = 1) {
       for (const key of ringStrips.keys()) paintPads(key);
       if (floor) for (const { ring, dot } of starts) { floor.style(ring, c.textBright, c.textBright, RIBBON.start); floor.style(dot, c.textBright, c.textBright, RIBBON.dot); }
       if (lit.glow) for (const r of lit.glow.userData.runs) refill(lit.glow.geometry.attributes.color, r);
-      glowMaterial.blending = c.light ? T.NormalBlending : T.AdditiveBlending;
-      glowMaterial.needsUpdate = true;
       coreMaterial.color.setStyle(c.hot);
     },
     /** What a ray from the eye meets first: { key, beam }, beam true for a trace (or a lit beam), or null. A start point is never
@@ -5307,18 +5278,6 @@ function spaceStage(T, canvas) {
       resize();
       request();
     },
-    /** Repaints the sky, the floor, the clear colour, the fog and whatever stands or fades, in a new theme's colours. */
-    repaint(colours) {
-      if (ground) {
-        const u = ground.sky.material.uniforms, f = ground.floor.material.uniforms;
-        for (const [k, v] of [["zenith", "skyZenith"], ["mid", "skyMid"], ["horizon", "skyHorizon"], ["band", "skyBand"], ["fog", "fog"]]) u[k].value.setStyle(colours[v]);
-        f.floor.value.setStyle(colours.floor); f.sheen.value.setStyle(colours.floorSheen); f.fog.value.setStyle(colours.fog);
-        renderer.setClearColor(colours.void, 1);
-        scene.fog?.color.setStyle(colours.fog);
-      }
-      for (const thing of new Set([shown, ...fading.keys()])) thing?.paint(colours);
-      request();
-    },
     /** Stands a city scene (buildDistrict's), a tower (buildTower's) or the skyline (buildSkyline's) in place of what stands;
      *  null takes it away. `keep`: what stood is not let go of, but handed back, for it to fade (fade). */
     show(next, keep = false) {
@@ -5407,8 +5366,8 @@ function stageOn() {
     };
     pointer = spacePointer(stage, rig);
   }
-  // The theme is read on every entry: it may have changed while Flat showed.
-  stage.fill((theme = spaceTheme()));
+  // html.space is on by now, so the kind colours read are the dark block's.
+  stage.fill((theme ??= spaceTheme()));
   return true;
 }
 /** Where the fog starts and ends (Glow and fog): in a city from the label cut-off (90 units, or its far side as fitted) to
@@ -6966,11 +6925,13 @@ function spacePointer(stage, rig) {
   return { hit };
 }
 
-/** The switch shows which mode is on. It is offered only with WebGL. */
+/** The switch shows which mode is on. It is offered only with WebGL. The theme switch is Flat's: Cyberspace is always dark
+ *  (decision theme-switch), so it rests while Cyberspace shows. */
 function modeSwitch() {
   const el = $("modes");
   el.hidden = !(SPACE_SWITCH && webgl);
   for (const b of el.querySelectorAll("button")) b.setAttribute("aria-pressed", String((b.dataset.mode === "space") === space.on));
+  for (const b of $("themes").querySelectorAll("button")) Object.assign(b, { disabled: space.on, title: space.on ? "Cyberspace is always dark: the theme is Flat's" : b.getAttribute("aria-label") });
 }
 
 /** Shows Cyberspace at the place the address names. Returns false, having said why, when it can't run here: route() shows Flat. */
@@ -6987,7 +6948,8 @@ function showSpace(folder, focus, scene) {
     space.on = true;
     closeInspector();
     hideTip();
-    // Cyberspace follows the theme as Flat does (decision theme-switch); body.space lays the window out for the scene.
+    // Cyberspace is always dark: html.space takes the page's dark tokens, so the whole window is dark (decision space-gibson-look).
+    document.documentElement.classList.add("space");
     document.body.classList.add("space");
     $("space").hidden = false;
     modeSwitch();
@@ -7008,6 +6970,8 @@ function leaveSpace(asked) {
   const was = space.on;
   if (was) {
     space.on = false;
+    // Flat follows its theme again: the reader's choice, the system's setting or the host's.
+    document.documentElement.classList.remove("space");
     document.body.classList.remove("space");
     $("space").hidden = true;
     // A flight under way stops where it is: there is nothing left for it to land in.
@@ -7071,7 +7035,9 @@ document.addEventListener("keydown", (e) => { if (rig?.walkKey(e, true)) e.preve
 document.addEventListener("keyup", (e) => rig?.walkKey(e, false));
 addEventListener("blur", () => rig?.walk.keys.clear());
 
-// ── The theme: System, Light or Dark (decision theme-switch) ──
+// ── Flat's theme: System, Light or Dark (decision theme-switch) ──
+// Cyberspace is always dark: html.space takes the dark block whatever html[data-theme] says, so a choice made while it shows,
+// in another tab or by the system, holds for Flat on the way back.
 
 const THEME_KEY = "cyberspace-explorer:theme";
 const systemDark = matchMedia("(prefers-color-scheme: dark)");
@@ -7097,8 +7063,6 @@ $("themes").addEventListener("click", (e) => {
 systemDark.addEventListener("change", () => applyTheme());
 // Another tab's choice, or this one's own after a reload elsewhere.
 addEventListener("storage", (e) => { if (e.key === THEME_KEY) applyTheme(); });
-// Whoever sets html[data-theme] (the switch, the system or a host), Cyberspace repaints in the new colours; Flat's follow from CSS.
-new MutationObserver(retheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 applyTheme();
 
 // ── Start: the address comes from ?url=; the form is only for choosing one ──
