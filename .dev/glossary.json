@@ -169,6 +169,19 @@
       "summary": "The square ring on the floor round a part's base in a city, its footprint grown by 0.25 (a beacon's a 2 × 2 square under it), where its traces start and end at pins on the side facing their way; in the kind colour, brighter for a neighbour of the part selected, --space-hot for the selected part's, with a dashed ring round it. A final state's has a second ring; a trace reaching a plate ends on a small pad of its own on its top. In the skyline, each building has one."
     },
     {
+      "id": "face",
+      "title": "Face",
+      "summary": "A side of a tower in a city, carrying the part's own record as the inspector shows it, in small glowing monospace: its name framed, its kind, description and file on the front and back, its relationships on the other two. A short record repeats down its face, dimmed; a long one is cut with an ellipsis; far off the text thins to a haze. A folder tower's floor carries its view on its top, and a skyline's building its folder on its faces, the same way.",
+      "aliases": [
+        "Face text"
+      ]
+    },
+    {
+      "id": "reflection",
+      "title": "Reflection",
+      "summary": "What stands in Cyberspace, mirrored faintly in its glossy floor: a city's towers and glowing edges, a folder tower's floors and the city on its pulled-out floor, a skyline's buildings. It fades out within 3 units under the floor."
+    },
+    {
       "id": "folder-tower",
       "title": "Folder tower",
       "summary": "One folder in Cyberspace, where it opens: a stack of glass floors, one per .dev file, drawn views at the bottom, then written views, then knowledge, with one drawn floor pulled out and its city standing on it.",
@@ -182,12 +195,12 @@
     {
       "id": "floor",
       "title": "Floor",
-      "summary": "One .dev file in a folder tower: a thin glass slab in its kind's colour, labelled with its kind and title, showing on its top a drawn view's plan, a written view's cards as bars, or a knowledge file's records as lines."
+      "summary": "One .dev file in a folder tower: a thin glass slab in its kind's colour, labelled with its kind and title, carrying on its top its kind and title, its file and what it holds, in glowing monospace: a drawn view's parts, a written view's cards or a knowledge file's records."
     },
     {
       "id": "pulled-out-floor",
       "title": "Pulled-out floor",
-      "summary": "The drawn floor slid out of the stack to the side, at most one at a time, with its view's city standing on it, small, over a soft glow; a dashed outline marks its empty slot. Entering it flies down into that city.",
+      "summary": "The drawn floor slid out of the stack to the side, at most one at a time, with its view's city standing on it, small, mirrored in the floor below; a dashed outline marks its empty slot, and dashed drawer lines run from the slot to it. Entering it flies down into that city.",
       "aliases": [
         "Drawer"
       ]
