@@ -757,26 +757,30 @@
     {
       "id": "light-dark",
       "name": "Light and dark, wide and narrow",
-      "description": "The page follows the reader's system.",
+      "description": "The page is light or dark, as the reader chooses or as the system is set.",
       "sources": [
         {
           "path": "index.html",
-          "symbol": "prefers-color-scheme: dark"
+          "symbol": "applyTheme"
         },
         {
           "path": "index.html",
           "symbol": "max-width: 860px"
         }
       ],
-      "behavior": "Flat's colours follow the system's light or dark setting; Cyberspace is always dark, and the whole window with it while it shows. Under 860 px the folder column moves above the content and the bar drops the ref and shortens Choose another repository to Choose; under 560 px the brand keeps only its mark. With reduced motion the drill, pulses, flashes, ticking and fades are off and scrolling jumps.",
+      "behavior": "The switch at the right of the bar has three buttons: System follows the system's light or dark setting as it changes, Light and Dark fix one and are remembered by the browser. Flat and Cyberspace both follow it; Cyberspace repaints at once, keeping the camera and the selection. Under 860 px the folder column moves above the content and the bar drops the ref and shortens Choose another repository to Choose; under 560 px the brand keeps only its mark. With reduced motion the drill, pulses, flashes, ticking and fades are off and scrolling jumps.",
       "outcome": "The page reads well at night, in a narrowed window, and for readers who turn motion off.",
       "constraints": [
-        "There is no switch on the page for light or dark: the system decides."
+        "In the VS Code extension the editor's theme decides and the switch hides."
       ],
       "implementation": [
         {
           "path": "index.html",
-          "symbol": "prefers-color-scheme: dark"
+          "symbol": "applyTheme"
+        },
+        {
+          "path": "index.html",
+          "symbol": "retheme"
         },
         {
           "path": "index.html",
@@ -785,10 +789,6 @@
         {
           "path": "index.html",
           "symbol": "prefers-reduced-motion: reduce"
-        },
-        {
-          "path": "index.html",
-          "symbol": ":root.space"
         }
       ]
     }

@@ -1,0 +1,4 @@
+media/index.html
+*.vsix
+node_modules/
+LICENSE

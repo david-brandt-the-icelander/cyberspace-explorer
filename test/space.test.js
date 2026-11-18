@@ -988,35 +988,38 @@ test("traceAt finds the trace nearest a point within 0.3, and none further", () 
   assert.equal(traceAt({ traces: [] }, 0, 0), null);
 });
 
-// ── The token blocks and the labels' contrast (G1): Cyberspace is always dark ──
+// ── The token blocks and the labels' contrast: Flat and Cyberspace in light and dark (decision theme-switch) ──
 
-// index.html's style sheet: the light :root, the dark block under the media query, its copy under :root.space, and Cyberspace's
-// own tokens, which have no light value.
+// index.html's style sheet: the light :root, which holds Cyberspace's own tokens too, and the dark block under
+// :root[data-theme="dark"].
 const css = html.match(/<style>([\s\S]*?)<\/style>/)[1];
 const tokens = (body) => Object.fromEntries([...body.matchAll(/--([\w-]+):\s*(#[0-9a-fA-F]{6})/g)].map(([, k, v]) => [k, v]));
 const LIGHT = tokens(css.match(/\n {2}:root \{([^}]*)\}/)[1]);
-const DARK = tokens(css.match(/@media \(prefers-color-scheme: dark\) \{\s*:root \{([^}]*)\}/)[1]);
-const SPACE_DARK = tokens(css.match(/\n {2}:root\.space \{([^}]*)\}/)[1]);
-const SPACE_OWN = Object.assign({}, ...[...css.matchAll(/\n {2}:root \{([^}]*)\}/g)].slice(1).map((m) => tokens(m[1])));
-// The palette the spec names (Rendering, Palette): its table's tokens and values.
+const DARK = tokens(css.match(/\n {2}:root\[data-theme="dark"\] \{([^}]*)\}/)[1]);
+// The palette the spec names (Rendering, Palette): its table's tokens and their dark and light values.
 const spec = await readFile(new URL("../docs/cyberspace-mode-spec.md", import.meta.url), "utf8");
-const PALETTE = Object.fromEntries([...spec.matchAll(/^\| `--(space-[\w-]+)` \| `(#[0-9a-f]{6})` \|/gm)].map(([, k, v]) => [k, v]));
+const PALETTE = Object.fromEntries([...spec.matchAll(/^\| `--(space-[\w-]+)` \| `(#[0-9a-f]{6})` \| `(#[0-9a-f]{6})` \|/gm)].map(([, k, dark, light]) => [k, { dark, light }]));
 
-test("the dark block under :root.space is the one under prefers-color-scheme: dark", () => {
-  assert.ok(Object.keys(DARK).length >= 20);
-  assert.deepEqual(SPACE_DARK, DARK);
+test("every colour token has a light value and a dark one", () => {
+  assert.ok(Object.keys(DARK).length >= 40);
+  assert.deepEqual(Object.keys(DARK).sort(), Object.keys(LIGHT).sort());
+  // The old copies are gone: no media query and no :root.space block picks colours any more.
+  assert.ok(!/prefers-color-scheme/.test(css));
+  assert.ok(!/:root\.space/.test(css));
 });
 
-test("every --space-* token the spec's palette names is defined once, with no light value", () => {
+test("every --space-* token the spec's palette names is defined once in each theme, at the palette's values", () => {
   assert.equal(Object.keys(PALETTE).length, 23);
-  for (const [name, value] of Object.entries(PALETTE)) {
-    assert.equal(css.split(`--${name}:`).length - 1, 1, `--${name} is defined once`);
-    assert.equal(SPACE_OWN[name], value, `--${name} is the spec's ${value}`);
-    for (const block of [LIGHT, DARK, SPACE_DARK]) assert.ok(!(name in block), `--${name} has no light or dark value`);
+  for (const [name, { dark, light }] of Object.entries(PALETTE)) {
+    assert.equal(css.split(`--${name}:`).length - 1, 2, `--${name} is defined once in each theme`);
+    assert.equal(LIGHT[name], light, `--${name} is the spec's ${light} by day`);
+    assert.equal(DARK[name], dark, `--${name} is the spec's ${dark} by night`);
   }
-  // And Cyberspace defines nothing the palette doesn't name: the first look's sky and grid tokens are gone.
-  assert.deepEqual(Object.keys(SPACE_OWN).filter((k) => k.startsWith("space-") && !(k in PALETTE)), []);
+  // And Cyberspace defines nothing the palette doesn't name.
+  assert.deepEqual(Object.keys(LIGHT).filter((k) => k.startsWith("space-") && !(k in PALETTE)), []);
 });
+
+const THEMES = { light: LIGHT, dark: { ...LIGHT, ...DARK } };
 
 // Label text against its pill: the colours the rules give, mixed as the browser mixes them, in sRGB.
 const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
@@ -1032,9 +1035,8 @@ const colour = (value, t, under = null) => {
 /** A property of the rule for exactly `selector`. */
 const rule = (selector, prop) => css.match(new RegExp(`(?:^|[\\n{]) *${selector.replace(/[.]/g, "\\.")} \\{[^}]*?(?:^|[ ;{])${prop}: ([^;]+);`))?.[1];
 
-test("in Cyberspace label text stands 4.5:1 against its pill over every part of the sky, in its dark values alone", () => {
-  // What shows while Cyberspace does: the page's dark block and Cyberspace's own tokens, whatever the system's setting.
-  const t = { ...LIGHT, ...SPACE_DARK, ...SPACE_OWN };
+test("in Cyberspace label text stands 4.5:1 against its pill over every part of the sky, in light and dark", () => {
+  for (const [name, t] of Object.entries(THEMES)) {
   for (const sky of ["space-sky-horizon", "space-sky-mid", "space-sky-zenith", "space-sky-band", "space-fog"]) {
     const pill = colour(rule(".sl", "background"), t, rgb(t[sky]));
     const pairs = {
@@ -1043,18 +1045,19 @@ test("in Cyberspace label text stands 4.5:1 against its pill over every part of 
       "a beacon's label": colour(rule(".sl.beacon", "color"), t),
       "a building's folder segment": colour(rule(".sl .seg", "color"), t),
     };
-    for (const [what, text] of Object.entries(pairs)) assert.ok(contrast(text, pill) >= 4.5, `${sky}: ${what} is ${contrast(text, pill).toFixed(2)}:1`);
+    for (const [what, text] of Object.entries(pairs)) assert.ok(contrast(text, pill) >= 4.5, `${name}, ${sky}: ${what} is ${contrast(text, pill).toFixed(2)}:1`);
     const beamPill = colour(rule(".sbl", "background"), t, rgb(t[sky]));
-    assert.ok(contrast(colour(rule(".sbl", "color"), t), beamPill) >= 4.5, `${sky}: a beam's label`);
+    assert.ok(contrast(colour(rule(".sbl", "color"), t), beamPill) >= 4.5, `${name}, ${sky}: a beam's label`);
   }
   // Selected: --space-pill on a pill of --space-hot, and a selected building's folder segment at 70% of it.
   const hot = colour(rule(".sl.sel", "background"), t), text = colour(rule(".sl.sel", "color"), t);
-  assert.ok(contrast(text, hot) >= 4.5, "the selected label");
-  assert.ok(contrast(mix(text, 0.7, hot), hot) >= 4.5, "the selected building's segment");
+  assert.ok(contrast(text, hot) >= 4.5, `${name}: the selected label`);
+  assert.ok(contrast(mix(text, 0.7, hot), hot) >= 4.5, `${name}: the selected building's segment`);
+  }
 });
 
 test("Flat's labels stand 4.5:1 against what they are drawn on, in light and dark", () => {
-  for (const [name, t] of Object.entries({ light: LIGHT, dark: { ...LIGHT, ...DARK } })) {
+  for (const [name, t] of Object.entries(THEMES)) {
     // A part's name and its kind on its plate; a relationship's label on its tab.
     const plate = rgb(t.plate), tab = colour(rule(".elabel rect", "fill"), t);
     for (const [what, text, under] of [["a part's name", colour(rule(".dg text", "fill"), t), plate], ["a part's kind", colour(rule(".dg .sub", "fill"), t), plate], ["a relationship's label", colour(rule(".elabel text", "fill"), t), tab]]) {

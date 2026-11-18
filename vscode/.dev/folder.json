@@ -1,0 +1,40 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/folder.schema.json",
+  "kind": "folder",
+  "title": "The VS Code extension",
+  "folder": "vscode",
+  "entities": [
+    {
+      "id": "folder",
+      "title": "The VS Code extension",
+      "summary": "Cyberspace Explorer for VS Code: the explorer's page in a webview, reading a workspace folder's .dev files from disk.",
+      "purpose": "Lets a developer read and fly through the views of the code they have open, including views not yet committed, without leaving the editor or giving a token to anyone.",
+      "boundaries": [
+        "The page is ../index.html, copied into media/ when packaged; this folder adds only the host: the webview, the workspace's files, the theme and links back into the editor.",
+        "Plain JavaScript with no dependencies and no build; src/page.js has no vscode import, so test/page.test.js runs it in Node.",
+        "Not published to the Marketplace yet: npm run package builds a .vsix."
+      ],
+      "relationships": [
+        {
+          "relation": "part-of",
+          "path": ".dev/folder.json"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "vscode/src/extension.js",
+          "symbol": "activate"
+        },
+        {
+          "path": "vscode/src/page.js",
+          "symbol": "webviewHtml"
+        },
+        {
+          "path": "vscode/package.json",
+          "symbol": "contributes"
+        }
+      ]
+    }
+  ]
+}

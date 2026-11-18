@@ -217,23 +217,6 @@
       ]
     },
     {
-      "id": "system-theme-only",
-      "title": "No light or dark switch",
-      "summary": "Flat follows the system's setting; Cyberspace is always dark.",
-      "impact": "A reader can't choose dark on a light system or the other way round, in Flat; Cyberspace is dark on either, by design (decision space-gibson-look).",
-      "evidenceStatus": "source-verified",
-      "sources": [
-        {
-          "path": "index.html",
-          "symbol": "prefers-color-scheme: dark"
-        },
-        {
-          "path": "index.html",
-          "symbol": ":root.space"
-        }
-      ]
-    },
-    {
       "id": "needs-webgl",
       "title": "Cyberspace needs WebGL 2",
       "summary": "Without WebGL 2, or without jsDelivr, Cyberspace doesn't open.",

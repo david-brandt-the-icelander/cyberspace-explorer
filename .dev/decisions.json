@@ -107,7 +107,7 @@
           "symbol": "kind-component"
         }
       ],
-      "details": "In Cyberspace the kind colour is an accent (decision space-gibson-look): towers are cyan glass whatever their kind, and the kind colour marks their edges, pads, labels, plates' rims and names, the frames and headings on their faces, and the floors of the folder tower and the skyline. Cyberspace uses the dark values, being always dark.",
+      "details": "In Cyberspace the kind colour is an accent (decision space-gibson-look): towers are cyan glass whatever their kind, and the kind colour marks their edges, pads, labels, plates' rims and names, the frames and headings on their faces, and the floors of the folder tower and the skyline. Cyberspace uses the values of the theme it shows in (decision theme-switch).",
       "relationships": [
         {
           "relation": "amended-by",
@@ -708,7 +708,7 @@
     {
       "id": "space-gibson-look",
       "title": "Cyberspace looks like the Gibson in Hackers",
-      "summary": "Cyberspace is always dark: cyan glass towers whose faces carry their own record, relationships as circuit traces on a black glossy floor that rise as arcs when lit, the kind colour as an accent, as artboards 11 to 15 on the canvas draw it.",
+      "summary": "Cyberspace looks like the Gibson in Hackers by night: cyan glass towers whose faces carry their own record, relationships as circuit traces on a black glossy floor that rise as arcs when lit, the kind colour as an accent, as artboards 11 to 15 on the canvas draw it. Since 2026-11-18 it also has a day look, in light mode (decision theme-switch).",
       "status": "accepted",
       "context": "On 2026-11-15 the owner asked for Cyberspace to look like the Gibson in the film Hackers (1995), from four reference stills: tall translucent cyan-to-teal glass towers densely covered in small glowing monospace text, long straight streets fading into black, a black glossy floor with glowing circuit traces in violet, blue and magenta that turn at right angles and end in pads at the towers' bases, and a black-to-indigo sky. On the stills the owner chose: circuit traces on the floor with arcs only when lit; cyan glass with the kind colour as an accent; tower faces carrying their own data, standing still; and a design pass first. Until then Cyberspace followed the system's colour scheme (decision space-light-mode), drew relationships as arcs of light and its towers as glass in their kind's colour.",
       "options": [
@@ -721,7 +721,7 @@
           "consequences": "The spec and the plan follow the change before step G1."
         }
       ],
-      "decision": "Cyberspace is always dark: while it shows, the whole window takes the page's dark tokens, and Cyberspace's own tokens colour the scene and its panels; Flat keeps following the system. Towers are cyan-to-teal glass; the kind colour accents their edges, pads, labels, plates and the frames on their faces. Each tower's faces carry its own record as the inspector shows it, in glowing monospace: its name, kind, description and file on two faces, its relationships on the other two; a short record repeats down its face, dimmed, and a long one is cut with an ellipsis; at a distance the text thins into a haze; nothing moves unless the camera does. Every relationship is a glowing circuit trace on the floor, routed at right angles along the streets dagre's own route takes, between pins on the two parts' pads, parallel traces in lanes; a selected part's relationships also rise as arcs of light, and the quiet arcs go. Beacons are magenta, as are the traces that reach them. The glows are geometry with a falloff in its own shader: no post-processing, three.js core only.",
+      "decision": "In dark mode, Cyberspace's own tokens colour the scene and its panels as the stills do (always dark until decision theme-switch, 2026-11-18, gave it a light value for every token). Towers are cyan-to-teal glass; the kind colour accents their edges, pads, labels, plates and the frames on their faces. Each tower's faces carry its own record as the inspector shows it, in glowing monospace: its name, kind, description and file on two faces, its relationships on the other two; a short record repeats down its face, dimmed, and a long one is cut with an ellipsis; at a distance the text thins into a haze; nothing moves unless the camera does. Every relationship is a glowing circuit trace on the floor, routed at right angles along the streets dagre's own route takes, between pins on the two parts' pads, parallel traces in lanes; a selected part's relationships also rise as arcs of light, and the quiet arcs go. Beacons are magenta, as are the traces that reach them. The glows are geometry with a falloff in its own shader: no post-processing, three.js core only.",
       "rationale": "It is the look the owner chose, and a prototype drawn from this repository's data with three.js core alone shows it holds the budgets: 9 draw calls for a city of any size (10 with a selection), 7 for the skyline, and frames of 1.5 to 3.6 ms on an M1 Pro at up to 3440 × 1440 and device pixel ratio 2, without multisampling at that pixel ratio. Every word on a face is the part's own, and every relationship stays on the floor whether or not anything is selected.",
       "decidedBy": "owner",
       "decidedOn": "2026-11-15",
@@ -756,6 +756,11 @@
           "relation": "relates-to",
           "path": ".dev/plan.json",
           "entityId": "cyberspace-gibson"
+        },
+        {
+          "relation": "amended-by",
+          "path": ".dev/decisions.json",
+          "entityId": "theme-switch"
         }
       ],
       "links": [
@@ -822,6 +827,101 @@
         "date": "2026-11-13"
       },
       "evidenceStatus": "proposed"
+    },
+    {
+      "id": "theme-switch",
+      "title": "A light and dark switch, followed by Flat and Cyberspace",
+      "summary": "The bar has a System / Light / Dark switch, kept in the browser; Flat and Cyberspace both follow it, and a change repaints Cyberspace in place.",
+      "status": "accepted",
+      "context": "Flat followed the system's colour scheme with no way to choose (limitation system-theme-only), and Cyberspace was always dark (decision space-gibson-look). On 2026-11-18 the owner asked for the explorer to fully support dark and light mode, and for a VS Code extension, which has to follow the editor's theme.",
+      "decision": "html[data-theme] is light or dark and picks the token block: the light :root or :root[data-theme=\"dark\"]. The bar's switch sets it: System follows prefers-color-scheme, live; Light and Dark are kept in localStorage under cyberspace-explorer:theme, read by a script in the head before the first paint. A host that marks html data-theme-host (the VS Code extension) owns the attribute, and the switch hides. Cyberspace's own tokens have a light value: a pale sky with a lilac band, a near-white glossy floor, deeper teal glass, darker traces and an ink-dark --space-hot. Glow lines and the horizon band are added to what is behind them in dark and laid over it in light (a shared uniform), and the glass is thickened by day. A MutationObserver on data-theme calls retheme, which reads the tokens again and repaints the stage and the standing scene through their paint methods, building nothing again.",
+      "rationale": "A reader chooses what suits their room and screen, a host can match its own theme, and both modes stay one set of tokens and one scene.",
+      "decidedBy": "owner",
+      "decidedOn": "2026-11-18",
+      "origin": {
+        "kind": "request",
+        "by": "owner",
+        "date": "2026-11-18",
+        "description": "Make the cyberspace explorer fully support dark and light mode, then create a VS Code extension for it."
+      },
+      "relationships": [
+        {
+          "relation": "amends",
+          "path": ".dev/decisions.json",
+          "entityId": "space-gibson-look"
+        },
+        {
+          "relation": "amends",
+          "path": ".dev/quality-requirements.json",
+          "entityId": "light-dark"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/decisions.json",
+          "entityId": "vscode-extension"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "applyTheme"
+        },
+        {
+          "path": "index.html",
+          "symbol": "retheme"
+        },
+        {
+          "path": "index.html",
+          "symbol": "spaceTheme"
+        },
+        {
+          "path": "index.html",
+          "symbol": ":root[data-theme=\"dark\"]"
+        },
+        {
+          "path": "docs/cyberspace-mode-spec.md",
+          "symbol": "Palette"
+        }
+      ]
+    },
+    {
+      "id": "vscode-extension",
+      "title": "A VS Code extension that hosts the page",
+      "summary": "The extension in vscode/ shows index.html itself in a webview, reading the workspace folder's files through a local source, rather than a second implementation.",
+      "status": "accepted",
+      "context": "The owner asked for a VS Code extension for the explorer on 2026-11-18. The page reads repositories from GitHub and GitLab; in the editor the views are on disk, often uncommitted.",
+      "decision": "vscode/ holds a plain-JavaScript extension with no build. It reads index.html (copied into media/ when packaged), adds a content security policy and a nonce to every script, and puts a first script before the page's that hands it window.cyberspaceWorkspace (the folder's view paths and a webview URL to fetch them under), the theme from VS Code's colour theme, and the address it was at. The page's local source lists and reads those, with no token and no ?url=. Paths in the page open files in the editor through a command link. The panel reloads when a view file changes and comes back after a restart.",
+      "rationale": "One page to maintain: everything the website gains, the extension gains, and decision one-file holds.",
+      "decidedBy": "owner",
+      "decidedOn": "2026-11-18",
+      "origin": {
+        "kind": "request",
+        "by": "owner",
+        "date": "2026-11-18"
+      },
+      "relationships": [
+        {
+          "relation": "relates-to",
+          "path": ".dev/decisions.json",
+          "entityId": "one-file"
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "vscode/src/extension.js",
+          "symbol": "activate"
+        },
+        {
+          "path": "vscode/src/page.js",
+          "symbol": "webviewHtml"
+        },
+        {
+          "path": "index.html",
+          "symbol": "local"
+        }
+      ]
     }
   ]
 }

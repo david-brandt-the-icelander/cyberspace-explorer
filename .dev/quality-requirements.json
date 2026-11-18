@@ -100,20 +100,12 @@
     {
       "id": "light-dark",
       "title": "Light and dark",
-      "summary": "Every colour of Flat has a light and a dark value; Cyberspace is always dark.",
+      "summary": "Every colour has a light and a dark value, in Flat and in Cyberspace, chosen by the reader or the system.",
       "area": "Appearance",
-      "requirement": "Every colour is a token with a value for light and one for dark, chosen by the system's setting, in Flat. Cyberspace is always dark (decision space-gibson-look): while it shows, the window takes the dark values and Cyberspace's own tokens, which have no light value, read by spaceTheme; leaving it, Flat follows the system again. Label text stands at least 4.5:1 against its pill over every part of Cyberspace's sky.",
-      "measuredBy": "Reading the :root tokens and their dark block; opening the page in both. For Cyberspace, test/space.test.js reads the dark block, its copy under :root.space and Cyberspace's own tokens, checks that the copy holds the dark block's values, that every token of the spec's palette is defined once with no light value, and every pill against Cyberspace's dark values alone, and checks Flat's labels in both themes; in the browser, with the system in light mode and again in dark, Cyberspace and the whole window are dark, a change of setting while it shows changes nothing, and Flat follows the system before and after.",
+      "requirement": "Every colour is a token with a light value in :root and a dark one in :root[data-theme=\"dark\"]; html[data-theme] picks them, from the bar's switch (System, Light, Dark) or a host. Cyberspace's own tokens have both values too, read by spaceTheme, and a change of theme while it shows repaints it in place. Label text stands at least 4.5:1 against its pill over every part of Cyberspace's sky, in both themes.",
+      "measuredBy": "test/space.test.js reads both blocks, checks they define the same tokens, that every token of the spec's palette has its dark and light value, and every pill and Flat's labels in both themes; in the browser, the switch on each setting, and a change while Cyberspace shows.",
       "evidenceStatus": "source-verified",
       "sources": [
-        {
-          "path": "index.html",
-          "symbol": "prefers-color-scheme: dark"
-        },
-        {
-          "path": "index.html",
-          "symbol": ":root.space"
-        },
         {
           "path": "index.html",
           "symbol": "spaceTheme"
@@ -137,6 +129,14 @@
         {
           "path": "test/space.test.js",
           "symbol": "Flat's labels stand 4.5:1 against what they are drawn on, in light and dark"
+        },
+        {
+          "path": "index.html",
+          "symbol": "applyTheme"
+        },
+        {
+          "path": "index.html",
+          "symbol": "retheme"
         }
       ],
       "relationships": [
@@ -144,6 +144,11 @@
           "relation": "amended-by",
           "path": ".dev/decisions.json",
           "entityId": "space-gibson-look"
+        },
+        {
+          "relation": "amended-by",
+          "path": ".dev/decisions.json",
+          "entityId": "theme-switch"
         }
       ],
       "details": "Until decision space-gibson-look Cyberspace followed the system too: a city re-themed both ways kept its geometries (15 before and after, 2026-11-15), and artboards 4 to 6 drew it in light mode. Since step G1 of plan cyberspace-gibson (2026-11-15), checked in Chrome for Testing starting with the system in light and again in dark: in the tower and the city the body is #10181d and the bar #152128, the dark block's, with color-scheme dark; switching the system's setting while they show changes no pixel of the scene or its panels but one colour level in an 8 × 5 px patch of a button; leaving for Flat gives the system's colours back, and Flat in both settings is pixel for pixel as on main at every address of the regression list. The weakest pill stands 6.9:1 (a beacon's label on the deep indigo horizon); Flat's labels 4.5:1 or more in both themes."
