@@ -134,7 +134,7 @@
         {
           "id": "gibson-traces",
           "title": "G2 · Floor traces: dagre's points kept, routeTraces, skylineTraces and traceAt with their tests, traces and pads in place of the quiet beams, picking on the floor, the map's traces, cityCalls counted again",
-          "status": "todo"
+          "status": "done"
         },
         {
           "id": "gibson-faces",

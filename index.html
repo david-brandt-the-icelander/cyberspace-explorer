@@ -509,6 +509,9 @@
   #space-map .caps { font: 600 12px/1.2 var(--semi); letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
   #space-map svg { display: block; margin-top: 6px; overflow: hidden; cursor: crosshair; }
   #space-map .mp { fill: var(--space-plate); stroke: var(--k); stroke-opacity: .5; }
+  #space-map .ml { fill: none; stroke: var(--space-trace); stroke-opacity: .55; stroke-width: 1; }
+  #space-map .ml.out { stroke: var(--space-trace-out); }
+  #space-map .ml.lit { stroke: var(--space-hot); stroke-opacity: 1; }
   #space-map .mt { fill: var(--space-glass-high); }
   #space-map .mt.sel { fill: var(--space-hot); }
   #space-map .mb { fill: var(--space-trace-out); }
@@ -1624,7 +1627,8 @@ function layoutOne(model) {
     if (known.get(e.to).cluster) pts = leave(pts.reverse(), tb).reverse(); else if (pts.length > 1) pts[pts.length - 1] = meet(tb, pts[pts.length - 2]);
     if (e.reversed) pts.reverse();
     const lp = mv({ x: ge.x ?? 0, y: ge.y ?? 0 });
-    out.push({ ...e, d: basis(pts), lx: lp.x, ly: lp.y });
+    // dagre's own points are kept for Cyberspace's floor traces, which follow its route squared off.
+    out.push({ ...e, d: basis(pts), lx: lp.x, ly: lp.y, pts: pts.map((p) => ({ x: p.x, y: p.y })) });
   }
   return bounds(nodes, box, out);
 }
@@ -1637,7 +1641,7 @@ function bounds(nodes, box, edges, pad = 24) {
   for (const e of edges) { if (e.label) { const w = tw(e.label, F_LABEL) / 2 + 10; grow(e.lx - w, e.ly - 12); grow(e.lx + w, e.ly + 12); } for (const m of e.d.matchAll(/(-?[\d.]+),(-?[\d.]+)/g)) grow(+m[1], +m[2]); }
   const dx = pad - x0, dy = pad - y0;
   for (const b of box.values()) { b.x += dx; b.y += dy; }
-  for (const e of edges) { e.d = shift(e.d, dx, dy); e.lx += dx; e.ly += dy; }
+  for (const e of edges) { e.d = shift(e.d, dx, dy); e.lx += dx; e.ly += dy; e.pts = e.pts?.map((p) => ({ x: p.x + dx, y: p.y + dy })); }
   return { nodes, box, edges, w: x1 - x0 + pad * 2, h: y1 - y0 + pad * 2 };
 }
 const shift = (d, dx, dy) => d.replace(/(-?[\d.]+),(-?[\d.]+)/g, (_, x, y) => `${(+x + dx).toFixed(1)},${(+y + dy).toFixed(1)}`);
@@ -1666,7 +1670,7 @@ function layout(model, room = 1200) {
     const { x, y } = best ?? { x: 0, y: Math.max(0, ...placed.map((q) => q.y + q.h)) };
     placed.push({ x, y, w: p.w, h: p.h });
     for (const [k, b] of p.box) box.set(k, { ...b, x: b.x + x, y: b.y + y });
-    for (const e of p.edges) edges.push({ ...e, d: shift(e.d, x, y), lx: e.lx + x, ly: e.ly + y });
+    for (const e of p.edges) edges.push({ ...e, d: shift(e.d, x, y), lx: e.lx + x, ly: e.ly + y, pts: e.pts?.map((q) => ({ x: q.x + x, y: q.y + y })) });
   }
   return bounds(model.nodes, box, edges, 22);
 }
@@ -2509,7 +2513,8 @@ function gridSheet(nodes, isPlate) {
 }
 
 /** One drawn view as a city, in world units (docs/cyberspace-mode-spec.md, City world): groups are plates, parts are towers
- *  as tall as their beams make them, a component's or deployment's outside services are beacons, and every edge is a beam.
+ *  as tall as their beams make them, a component's or deployment's outside services are beacons, and every edge is a beam,
+ *  drawn as a trace on the floor (routeTraces) and risen as an arc while lit.
  *  `L` is the layout Flat draws the model with, and null without one: the parts then stand on a grid. */
 function cityWorldFrom(model, L, kind, dir) {
   const known = new Map(model.nodes.map((n) => [n.key, n]));
@@ -2524,7 +2529,7 @@ function cityWorldFrom(model, L, kind, dir) {
     if (!known.has(e.from) || !known.has(e.to)) continue;
     for (const k of new Set([e.from, e.to])) degree.set(k, (degree.get(k) ?? 0) + 1);
   }
-  const world = { kind, dir, title: null, file: null, plates: [], towers: [], beacons: [], markers: [], beams: [], parts: new Map(), bounds: null };
+  const world = { kind, dir, title: null, file: null, plates: [], towers: [], beacons: [], markers: [], beams: [], traces: [], pads: [], parts: new Map(), bounds: null };
   const plates = new Map(), stand = new Map();
   for (const n of model.nodes) {
     const b = sheet.box.get(n.key);
@@ -2601,7 +2606,317 @@ function cityWorldFrom(model, L, kind, dir) {
   world.bounds = x0 < x1 ? { x0, x1, z0, z1, top } : { x0: -1, x1: 1, z0: -1, z1: 1, top: 1 };
   // The boxes the city stands on, for its floor in the folder tower.
   world.sheet = sheet;
+  // Every beam a trace on the floor, along dagre's route (none on the grid), between pads at the parts' bases.
+  const paths = (L?.edges ?? []).map((e) => ({ key: e.key, pts: (e.pts ?? []).map((q) => { const { x, z } = at(q); return [x, z]; }) }));
+  Object.assign(world, routeTraces(world, paths, dir));
   return world;
+}
+
+/** A trace's numbers (Traces), in units: a tower's pad is its footprint grown by `pad`, a beacon's a square `beacon` each side
+ *  of the point under it; a trace reaches a plate `plateIn` inside its rim, at a pad `platePad` each side; pins stand `pin`
+ *  apart, and a trace leaves one straight for `stub`, or half the way to its next waypoint where that is nearer, at least
+ *  `stubMin`; runs within `street` of each other share a street, in lanes
+ *  `lane` apart; a run slides clear of towers in steps of `step`; a loop stands `loop` out from its pad, `loopHalf` each side of
+ *  its middle, each further loop `loopStep` further out and `loopWide` wider; the pointer finds a trace within `near`. In the
+ *  skyline, a building's pad is `skyPad` outside its footprint and siblings' lanes are `skyLane` apart. */
+const TRACE = { pad: 0.25, beacon: 1, plateIn: 0.5, platePad: 0.3, pin: 0.3, stub: 0.45, stubMin: 0.1, street: 0.6, lane: 0.3, step: 0.05, loop: 0.6, loopHalf: 0.18, loopStep: 0.3, loopWide: 0.12, near: 0.3, skyPad: 0.35, skyLane: 0.35 };
+
+/** A city's relationships as circuit traces on the floor (docs/cyberspace-mode-spec.md, Traces): one per beam, in the same
+ *  order, from a pin on the source's pad to a pin on the target's, along the route dagre gave the edge in the flat drawing,
+ *  squared off: along the flow inside a rank, across it in the avenue between two ranks. Parallel runs share a street in
+ *  lanes, a run that would pass through a tower slides clear of it, and a trace climbs a plate's wall where it crosses its rim.
+ *  `edges`: [{ key, pts: [[x, z], …] }], each edge's points from dagre in world units (none without a layout); `dir`: the
+ *  layout's direction. Returns the world's `traces` ([{ key, from, to, self, ext, dashed, points: [[x, y, z], …] }]) and `pads`
+ *  ([{ key, kind, x, y, z, half }]: every tower's and beacon's, and one where a trace reaches a plate). */
+function routeTraces(world, edges = [], dir = world.dir) {
+  const lr = dir !== "TB", T = TRACE;
+  // Flow and cross coordinates: f runs with the layout's flow, c across it.
+  const fc = (x, z) => (lr ? { f: x, c: z } : { f: -z, c: x });
+  const xz = ({ f, c }) => (lr ? [f, c] : [c, -f]);
+  const ptsOf = new Map(edges.map((e) => [e.key, (e.pts ?? []).map(([x, z]) => fc(x, z))]));
+  // 1. Ends: a tower's pad, a beacon's on the floor under it, a start point's disc; a plate is reached at its rim.
+  const ends = new Map();
+  for (const t of world.towers) ends.set(t.key, { key: t.key, ...fc(t.x, t.z), half: t.side / 2 + T.pad });
+  for (const b of world.beacons) ends.set(b.key, { key: b.key, ...fc(b.x, b.z), half: T.beacon });
+  for (const m of world.markers) ends.set(m.key, { key: m.key, ...fc(m.x, m.z), half: 0.5 });
+  for (const p of world.plates) {
+    const a = fc(p.x0, p.z0), b = fc(p.x1, p.z1);
+    ends.set(p.key, { key: p.key, plate: p, f0: Math.min(a.f, b.f), f1: Math.max(a.f, b.f), c0: Math.min(a.c, b.c), c1: Math.max(a.c, b.c), f: (a.f + b.f) / 2, c: (a.c + b.c) / 2 });
+  }
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  /** A point moved inside a plate, plateIn from its rim. */
+  const into = (E, p) => ({ f: clamp(p.f, E.f0 + T.plateIn, E.f1 - T.plateIn), c: clamp(p.c, E.c0 + T.plateIn, E.c1 - T.plateIn) });
+  const away = (p, E) => (E.plate ? Math.hypot(Math.max(E.f0 - p.f, 0, p.f - E.f1), Math.max(E.c0 - p.c, 0, p.c - E.c1)) : Math.hypot(p.f - E.f, p.c - E.c));
+  const inPad = (p, E) => !E.plate && Math.abs(p.f - E.f) < E.half + 0.2 && Math.abs(p.c - E.c) < E.half + 0.2;
+
+  // 2. Waypoints: the start, dagre's inner points (without any on either end's pad), the end; and the side of each pad the
+  //    trace leaves or reaches it by, facing its next waypoint along the flow.
+  const routes = [], pins = new Map();
+  for (const b of world.beams) {
+    const A = ends.get(b.from), B = ends.get(b.to);
+    if (!A || !B) continue;
+    if (b.from === b.to) { routes.push({ b, A, self: true }); continue; }
+    let p = ptsOf.get(b.key) ?? [];
+    if (p.length > 1 && away(p[0], A) + away(p[p.length - 1], B) > away(p[0], B) + away(p[p.length - 1], A)) p = p.slice().reverse();
+    const a = A.plate ? into(A, p[0] ?? B) : { f: A.f, c: A.c }, z = B.plate ? into(B, p[p.length - 1] ?? A) : { f: B.f, c: B.c };
+    const mid = p.slice(1, -1).filter((q) => !inPad(q, A) && !inPad(q, B));
+    const r = { i: routes.length, b, A, B, a, z, mid, laid: p.length > 1 };
+    r.sideA = A.plate ? 0 : (mid[0] ?? z).f >= A.f ? 1 : -1;
+    r.sideB = B.plate ? 0 : (mid[mid.length - 1] ?? a).f >= B.f ? 1 : -1;
+    routes.push(r);
+    for (const [E, side, at, toward] of [[A, r.sideA, "a", (mid[0] ?? z).c], [B, r.sideB, "z", (mid[mid.length - 1] ?? a).c]]) {
+      if (!side) continue;
+      const k = E.key + "\u0000" + side;
+      if (!pins.has(k)) pins.set(k, []);
+      pins.get(k).push({ r, at, E, side, toward });
+    }
+  }
+  // 3. Pins: the traces on one side of a pad, ordered by where they head across the flow, pin apart round the side's middle
+  //    (closer where the side is short), so that they leave in order without crossing.
+  for (const list of pins.values()) {
+    list.sort((p, q) => p.toward - q.toward || p.r.i - q.r.i);
+    const { E, side } = list[0], n = list.length, span = n > 1 ? Math.min(T.pin, (2 * E.half - 0.3) / (n - 1)) : 0;
+    list.forEach((p, i) => { p.r[p.at] = { f: E.f + side * E.half, c: E.c + (i - (n - 1) / 2) * span }; });
+  }
+  // 4. Squared off: between two waypoints, along the flow to the middle between them, across, along the flow into the next;
+  //    a pin is left and reached straight for at least `stub`, or half the way to the waypoint it heads for where that is
+  //    nearer: between two ranks of a top-to-bottom layout the avenue between their pads can be narrower than two stubs.
+  const reach = (pin, to, side) => (side * (to.f - pin.f) > 0 ? Math.max(T.stubMin, Math.min(T.stub, (side * (to.f - pin.f)) / 2)) : T.stub);
+  const square = (r, mid) => {
+    const way = [r.a, ...mid, r.z], v = [{ ...r.a }];
+    for (let i = 1; i < way.length; i++) {
+      const p = v[v.length - 1], q = way[i], first = i === 1 && r.sideA, last = i === way.length - 1 && r.sideB;
+      let f = (p.f + q.f) / 2;
+      if (first) f = r.sideA > 0 ? Math.max(f, p.f + reach(p, q, 1)) : Math.min(f, p.f - reach(p, q, -1));
+      if (last) f = r.sideB > 0 ? Math.max(f, q.f + reach(q, p, 1)) : Math.min(f, q.f - reach(q, p, -1));
+      if (Math.abs(p.c - q.c) < 1e-6 && !first && !last) { v.push({ ...q }); continue; }
+      v.push({ f, c: p.c }, { f, c: q.c }, { ...q });
+    }
+    return simplify(v);
+  };
+  // What a trace must not pass through: every tower's pad but its own ends' (`own`: theirs too, for a run off its pins).
+  const boxes = world.towers.map((t) => { const o = fc(t.x, t.z), h = t.side / 2 + T.pad; return { key: t.key, f0: o.f - h, f1: o.f + h, c0: o.c - h, c1: o.c + h }; });
+  const hit = (r, p, q, own = false) => boxes.some((x) => (own || (x.key !== r.b.from && x.key !== r.b.to)) && Math.max(p.f, q.f) > x.f0 && Math.min(p.f, q.f) < x.f1 && Math.max(p.c, q.c) > x.c0 && Math.min(p.c, q.c) < x.c1);
+  const hits = (r, v) => v.some((p, i) => i > 0 && hit(r, v[i - 1], p));
+  /** Without dagre's points a trace is one Z between its pins; where that passes through a tower, it goes round by the nearest
+   *  street across the flow that is clear of towers, along the flow between the avenues beside its two ends. */
+  const detour = (r) => {
+    const fa = r.a.f + r.sideA * 2 * T.stub, fz = r.z.f + r.sideB * 2 * T.stub, lo = Math.min(fa, fz), hi = Math.max(fa, fz), mid = (r.a.c + r.z.c) / 2;
+    const busy = boxes.filter((x) => x.key !== r.b.from && x.key !== r.b.to && x.f1 > lo && x.f0 < hi).map((x) => [x.c0, x.c1]).sort((m, n) => m[0] - n[0]);
+    const gaps = [];
+    let at = -Infinity;
+    for (const [c0, c1] of busy) { if (c0 > at) gaps.push([at, c0]); at = Math.max(at, c1); }
+    gaps.push([at, Infinity]);
+    const ways = gaps.filter(([g0, g1]) => g1 - g0 > 0.3).map(([g0, g1]) => clamp(mid, g0 + 0.15, g1 - 0.15)).sort((m, n) => Math.abs(m - mid) - Math.abs(n - mid));
+    for (const c of ways) {
+      const v = square(r, [{ f: fa, c }, { f: fz, c }]);
+      if (!hits(r, v)) return v;
+    }
+    return null;
+  };
+  for (const r of routes) {
+    if (r.self) continue;
+    r.v = square(r, r.mid);
+    if (!r.laid && hits(r, r.v)) r.v = detour(r) ?? r.v;
+  }
+  // 5. Lanes: runs across the flow that share an avenue between two pads share a street, each in the lowest lane free over
+  //    its span, the lanes `lane` apart round the street's middle (closer where the avenue is narrow); then runs along the
+  //    flow. A trace's first and last runs keep their pins.
+  const laid = routes.filter((r) => !r.self);
+  lanes(laid, "c", boxes);
+  lanes(laid, "f", boxes);
+  // 6. Clear of towers: a run (but a trace's first and last) that passes through a tower's pad, its own ends' among them,
+  //    slides sideways, in steps of `step`, to the nearest place where it and the runs either side of it pass none: between
+  //    its neighbours when it runs between them, else beyond them, and `stubMin` out from a pin on the side the pin faces.
+  for (const r of laid) {
+    const v = r.v;
+    for (let i = 1; i + 2 < v.length; i++) {
+      const p = v[i], q = v[i + 1];
+      if (!hit(r, p, q, true)) continue;
+      const k = Math.abs(p.f - q.f) < 1e-6 ? "f" : "c", was = p[k];
+      // It keeps to its side of each neighbour, 0.15 from it, and `stubMin` out from a pin on the side the pin faces.
+      const range = [-Infinity, Infinity];
+      for (const j of [i - 1, i + 2]) {
+        const at = v[j][k], side = k === "f" ? (j === 0 ? r.sideA : j === v.length - 1 ? r.sideB : 0) : 0;
+        if (side > 0 || (!side && at < was)) range[0] = Math.max(range[0], at + (side ? T.stubMin : 0.15));
+        else range[1] = Math.min(range[1], at - (side ? T.stubMin : 0.15));
+      }
+      let best = null;
+      for (let d = T.step; best === null && d < 40; d += T.step) {
+        for (const at of [was - d, was + d]) {
+          if (best !== null || at <= range[0] || at >= range[1]) continue;
+          const P = { ...p, [k]: at }, Q = { ...q, [k]: at };
+          if (!hit(r, P, Q, true) && !hit(r, v[i - 1], P, i > 1) && !hit(r, Q, v[i + 2], i + 2 < v.length - 1)) best = at;
+        }
+      }
+      if (best !== null) p[k] = q[k] = best;
+    }
+  }
+  // 7. On the ground: each point at the height of the innermost plate under it, and where a run crosses a plate's rim, a
+  //    climb or a drop up the wall's face there.
+  const plates = [...world.plates].sort((p, q) => q.depth - p.depth);
+  const ground = (x, z) => { for (const p of plates) if (x > p.x0 && x < p.x1 && z > p.z0 && z < p.z1) return p.base + PH; return 0; };
+  const lift = (flat) => {
+    const out = [];
+    flat.forEach(([x, z], i) => {
+      if (i) {
+        const [qx, qz] = flat[i - 1], cuts = [];
+        for (const pl of world.plates) for (const [axis, at] of [[0, pl.x0], [0, pl.x1], [1, pl.z0], [1, pl.z1]]) {
+          const a0 = axis ? qz : qx, a1 = axis ? z : x;
+          // A run that ends or starts on the rim crosses it there too.
+          if (a0 === a1 || (a0 - at) * (a1 - at) > 0) continue;
+          const t = (at - a0) / (a1 - a0), cx = qx + (x - qx) * t, cz = qz + (z - qz) * t, other = axis ? cx : cz, [o0, o1] = axis ? [pl.x0, pl.x1] : [pl.z0, pl.z1];
+          if (other > o0 && other < o1) cuts.push({ t, cx, cz });
+        }
+        cuts.sort((m, n) => m.t - n.t);
+        const ex = Math.sign(x - qx) * 1e-4, ez = Math.sign(z - qz) * 1e-4;
+        for (const { cx, cz } of cuts) out.push([cx, ground(cx - ex, cz - ez), cz], [cx, ground(cx + ex, cz + ez), cz]);
+      }
+      out.push([x, ground(x, z), z]);
+    });
+    return out.filter((p, i) => !i || Math.abs(p[0] - out[i - 1][0]) + Math.abs(p[1] - out[i - 1][1]) + Math.abs(p[2] - out[i - 1][2]) > 1e-6);
+  };
+  const loops = new Map();
+  const traces = routes.map((r) => {
+    let flat;
+    if (r.self) {
+      // A hairpin on the pad's downstream side; a second and later loop on the same part further out and wider.
+      const k = loops.get(r.A.key) ?? 0, w = T.loopHalf + T.loopWide * k, out = r.A.half + T.loop + T.loopStep * k;
+      loops.set(r.A.key, k + 1);
+      flat = [[r.A.half, w], [out, w], [out, -w], [r.A.half, -w]].map(([f, c]) => xz({ f: r.A.f + f, c: r.A.c + c }));
+    } else flat = r.v.map(xz);
+    const b = r.b;
+    return { key: b.key, from: b.from, to: b.to, self: !!r.self, ext: !!b.ext, dashed: !!b.dashed, points: lift(flat) };
+  });
+  // Pads: every tower's and beacon's, on the ground under it, and one where a trace reaches a plate.
+  const pads = [
+    ...world.towers.map((t) => ({ key: t.key, kind: "tower", x: t.x, y: t.base, z: t.z, half: t.side / 2 + T.pad })),
+    ...world.beacons.map((b) => ({ key: b.key, kind: "beacon", x: b.x, y: ground(b.x, b.z), z: b.z, half: T.beacon })),
+  ];
+  for (const r of routes) for (const [E, p] of [[r.A, r.a], [r.B, r.z]]) if (!r.self && E.plate) { const [x, z] = xz(p); pads.push({ key: E.key, kind: "plate", x, y: E.plate.base + PH, z, half: T.platePad }); }
+  return { traces, pads };
+}
+/** A trace's waypoints without repeats, and without the middle of three in a line. */
+function simplify(v) {
+  const out = [], line = (a, b, c) => (Math.abs(a.f - b.f) < 1e-6 && Math.abs(b.f - c.f) < 1e-6) || (Math.abs(a.c - b.c) < 1e-6 && Math.abs(b.c - c.c) < 1e-6);
+  for (const p of v) {
+    const q = out[out.length - 1];
+    if (q && Math.abs(q.f - p.f) < 1e-6 && Math.abs(q.c - p.c) < 1e-6) continue;
+    out.push(p);
+    while (out.length >= 3 && line(out[out.length - 3], out[out.length - 2], out[out.length - 1])) out.splice(out.length - 2, 1);
+  }
+  return out;
+}
+/** Runs that share a street (routeTraces, step 5), across the flow (`along` "c": runs along c, at one f) or along it ("f").
+ *  A run's avenue is the gap between the nearest pads either side of it (`boxes`, every tower's) over its span. The runs in
+ *  one avenue are a street; where no pad bounds the avenue on a side, the runs within TRACE.street of each other are. In a
+ *  street each run takes the lowest lane free over its span (a lane is free past the end of the last run in it, with a 0.25
+ *  gap); the lanes keep the order their runs stood in and stand TRACE.lane apart round the street's middle, closer where its
+ *  avenue is narrow, 0.15 clear of its pads. A trace's first and last runs, off its pins, keep their place, and the runs next
+ *  to them keep TRACE.stubMin from the pin. */
+function lanes(routes, along, boxes) {
+  const across = along === "c" ? "f" : "c", runs = [], k0 = across + "0", k1 = across + "1", s0 = along + "0", s1 = along + "1";
+  for (const r of routes) for (let i = 1; i + 2 < r.v.length; i++) {
+    const p = r.v[i], q = r.v[i + 1];
+    if (Math.abs(p[across] - q[across]) > 1e-6) continue;
+    const run = { r, i, at: p[across], lo: Math.min(p[along], q[along]), hi: Math.max(p[along], q[along]), floor: -Infinity, ceil: Infinity };
+    for (const b of boxes) {
+      if (b[s1] <= run.lo || b[s0] >= run.hi) continue;
+      if (b[k1] <= run.at + 1e-9) run.floor = Math.max(run.floor, b[k1]);
+      else if (b[k0] >= run.at - 1e-9) run.ceil = Math.min(run.ceil, b[k0]);
+    }
+    runs.push(run);
+  }
+  const avenues = new Map();
+  for (const run of runs) {
+    const key = `${run.floor}|${run.ceil}`;
+    if (!avenues.has(key)) avenues.set(key, []);
+    avenues.get(key).push(run);
+  }
+  const streets = [];
+  for (const list of avenues.values()) {
+    if (Number.isFinite(list[0].floor) && Number.isFinite(list[0].ceil)) { streets.push(list); continue; }
+    list.sort((a, b) => a.at - b.at || a.lo - b.lo);
+    for (const run of list) {
+      const s = streets[streets.length - 1];
+      if (s && s[0].floor === run.floor && s[0].ceil === run.ceil && run.at - s[0].at < TRACE.street) s.push(run); else streets.push([run]);
+    }
+  }
+  for (const s of streets) {
+    if (s.length < 2) continue;
+    s.sort((a, b) => a.lo - b.lo || a.hi - b.hi || a.at - b.at);
+    const ends = [], sums = [];
+    for (const run of s) {
+      let lane = ends.findIndex((e) => e < run.lo - 0.25);
+      if (lane < 0) { lane = ends.length; ends.push(run.hi); sums.push([0, 0]); } else ends[lane] = run.hi;
+      run.lane = lane;
+      sums[lane][0] += run.at; sums[lane][1]++;
+    }
+    // The lanes in the order their runs stood in, so that the street keeps dagre's order across it.
+    const order = sums.map(([sum, n], lane) => ({ lane, at: sum / n })).sort((a, b) => a.at - b.at || a.lane - b.lane), rank = new Map(order.map((o, i) => [o.lane, i]));
+    const n = ends.length, { floor, ceil } = s[0], room = ceil - floor - 0.3;
+    const gap = n > 1 ? Math.max(0, Math.min(TRACE.lane, Number.isFinite(room) ? room / (n - 1) : TRACE.lane)) : 0, half = (gap * (n - 1)) / 2;
+    let mid = s.reduce((m, run) => m + run.at, 0) / s.length;
+    if (room >= 0) mid = Math.max(floor + 0.15 + half, Math.min(ceil - 0.15 - half, mid));
+    else if (Number.isFinite(room)) mid = (floor + ceil) / 2;
+    for (const run of s) {
+      const { r, i } = run, v = r.v, last = v.length - 1;
+      let at = mid + (rank.get(run.lane) - (n - 1) / 2) * gap;
+      // A run next to a pin's stub stays stubMin out from the pin, on the side it faces.
+      if (across === "f" && i === 1 && r.sideA) at = r.sideA > 0 ? Math.max(at, v[0].f + TRACE.stubMin) : Math.min(at, v[0].f - TRACE.stubMin);
+      if (across === "f" && i + 1 === last - 1 && r.sideB) at = r.sideB > 0 ? Math.max(at, v[last].f + TRACE.stubMin) : Math.min(at, v[last].f - TRACE.stubMin);
+      v[i][across] = v[i + 1][across] = at;
+    }
+  }
+}
+/** The trace under a point of the floor (or a plate's top): the one with a run nearest it, within TRACE.near; else null. */
+function traceAt(world, x, z) {
+  let best = null, least = TRACE.near;
+  for (const t of world.traces ?? []) {
+    const p = t.points;
+    for (let i = 0; i + 1 < p.length; i++) {
+      const ax = p[i][0], az = p[i][2], dx = p[i + 1][0] - ax, dz = p[i + 1][2] - az, L2 = dx * dx + dz * dz;
+      const s = L2 ? Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2)) : 0, d = Math.hypot(x - ax - s * dx, z - az - s * dz);
+      if (best === null ? d <= least : d < least) { best = t; least = d; }
+    }
+  }
+  return best;
+}
+/** The skyline's lines to parent folders as traces on the ground, square to the rings (The skyline): from the side of the
+ *  folder's pad facing the centre, in along its radius to the street halfway between its ring and its parent's, round that
+ *  street to the parent's angle, and in to the parent's pad. A folder of the first ring goes straight in to the root's pad.
+ *  The children of one folder share the street, the one furthest round from its parent on the innermost lane, so that no run
+ *  in crosses another's run round; the lanes stand TRACE.skyLane apart (closer, where the street is narrow). `w`:
+ *  skylineWorldFrom's world. Returns [{ key, from, to, points: [[x, y, z], …] }], a folder's key being its path. */
+function skylineTraces(w) {
+  const by = new Map(w.buildings.map((b) => [b.folder, b])), kids = new Map(), out = [];
+  for (const b of w.buildings) if (b.parent !== null && by.has(b.parent)) { if (!kids.has(b.parent)) kids.set(b.parent, []); kids.get(b.parent).push(b); }
+  const at = (r, a) => [round6(r * Math.sin(a)), 0, round6(r * Math.cos(a))];
+  const turn = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+  // From a building's centre to its pad's side along its radius, and across it.
+  const deep = BUILDING.d / 2 + TRACE.skyPad, wide = BUILDING.w / 2 + TRACE.skyPad;
+  for (const [pf, list] of kids) {
+    const p = by.get(pf), rp = w.ring * p.depth;
+    if (!p.depth) {
+      // The root stands at the centre, its depth along z: in to where the radius meets its pad.
+      for (const b of list) {
+        const s = Math.abs(Math.sin(b.angle)), c = Math.abs(Math.cos(b.angle)), edge = Math.min(s > 1e-9 ? wide / s : Infinity, c > 1e-9 ? deep / c : Infinity);
+        out.push({ key: b.folder, from: b.folder, to: pf, points: [at(w.ring * b.depth - deep, b.angle), at(edge, b.angle)] });
+      }
+      continue;
+    }
+    const round = list.map((b) => ({ b, sweep: turn(p.angle - b.angle) })).sort((m, n) => Math.abs(n.sweep) - Math.abs(m.sweep) || m.b.angle - n.b.angle);
+    const n = round.length, lane = n > 1 ? Math.min(TRACE.skyLane, (w.ring - 2 * deep - 0.6) / (n - 1)) : 0, mid = rp + w.ring / 2;
+    round.forEach(({ b, sweep }, i) => {
+      const r = mid + (i - (n - 1) / 2) * lane, points = [at(w.ring * b.depth - deep, b.angle), at(r, b.angle)];
+      // Round the street in steps of about a unit, so that it stays square to the rings.
+      const steps = Math.ceil((Math.abs(sweep) * r) / 1);
+      for (let k = 1; k <= steps; k++) points.push(at(r, b.angle + (sweep * k) / steps));
+      points.push(at(rp + deep, p.angle));
+      out.push({ key: b.folder, from: b.folder, to: pf, points });
+    });
+  }
+  return out;
 }
 
 /** What selecting a part of a city lights: the beams that touch it, in the order of the edges, and the parts at their other
@@ -2639,15 +2954,16 @@ function partOrder(world) {
   return at.sort((a, b) => (lr ? rank(a.x) - rank(b.x) || b.z - a.z : rank(b.z) - rank(a.z) || a.x - b.x) || a.plate - b.plate).map((p) => p.key);
 }
 /** The draw calls a city takes as buildCity stands it with nothing selected: the glass of its plates, towers and beacons; its
- *  edges, one set of glow lines; the discs under beacons and at start points; the beams, and the dots where they arrive. */
+ *  edges, one set of glow lines; and its ribbons, one geometry of every trace, pad and ring on its floor. */
 function cityCalls(w) {
   const one = (x) => (x ? 1 : 0);
   return one(w.plates.length) + one(w.towers.length) + one(w.beacons.length) + one(w.plates.length || w.towers.length || w.beacons.length)
-    + one(w.beacons.length) + one(w.markers.length) + one(w.beams.length) + one(w.beams.some((b) => b.from !== b.to));
+    + one(w.towers.length || w.beacons.length || w.markers.length || w.traces?.length);
 }
-/** A city scene draws in at most 40 calls (Performance budgets): the sky and the floor take 2, and a selection may take 6
- *  more, its rings (3), the lit beams' core and glow, and the beam under the pointer. */
-const DRAW_BUDGET = 40, MARKED_CALLS = 2 + 6;
+/** A city scene draws in at most 40 calls (Performance budgets): the sky and the floor take 2, and a selection 2 more, the lit
+ *  beams' core and glow (until step G4 makes them arcs). A lit trace, a selection's pads and rings and a trace under the
+ *  pointer are its city's ribbons recoloured, and take none. */
+const DRAW_BUDGET = 40, MARKED_CALLS = 2 + 2;
 /** Whether another city may stand in the scene: beside those standing (`calls`, each one's cityCalls), or in the place of one
  *  of them that takes `instead`. The Layers panel disables a tick box that would pass the budget (Scene 2). */
 const layerFits = (calls, add, instead = 0) => calls.reduce((s, c) => s + c, 0) - instead + add + MARKED_CALLS <= DRAW_BUDGET;
@@ -2662,12 +2978,12 @@ function layerOffsets(bounds) {
   bounds.forEach((b, i) => { dx.push(i ? right + LAYER_GAP - b.x0 : 0); right = b.x1 + dx[i]; });
   return dx;
 }
-/** The cities standing side by side as one world to walk in and map (Scene 3): each one's plates, towers, beacons and start
- *  points moved by its offset and marked with its view (and each part with the name of the plate it stands in), and the
+/** The cities standing side by side as one world to walk in and map (Scene 3): each one's plates, towers, beacons, start
+ *  points and traces moved by its offset and marked with its view (and each part with the name of the plate it stands in), and the
  *  bounds round them all. The city in the address (`lead`) gives the kind and the direction. `stands`: [{ key, world, dx }]. */
 function districtWorld(stands, lead = stands[0]?.key) {
   const first = stands.find((s) => s.key === lead) ?? stands[0];
-  const w = { kind: first.world.kind, dir: first.world.dir, plates: [], towers: [], beacons: [], markers: [], bounds: null };
+  const w = { kind: first.world.kind, dir: first.world.dir, plates: [], towers: [], beacons: [], markers: [], traces: [], bounds: null };
   let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity, top = 0;
   for (const { key: view, world, dx } of stands) {
     const plateName = (k) => cityPlateOf(world, k)?.name ?? null;
@@ -2675,6 +2991,7 @@ function districtWorld(stands, lead = stands[0]?.key) {
     for (const t of world.towers) w.towers.push({ ...t, x: t.x + dx, view, plateName: plateName(t.key) });
     for (const b of world.beacons) w.beacons.push({ ...b, x: b.x + dx, view, plateName: plateName(b.key) });
     for (const m of world.markers) w.markers.push({ ...m, x: m.x + dx, view });
+    for (const t of world.traces ?? []) w.traces.push({ ...t, points: t.points.map(([x, y, z]) => [x + dx, y, z]), view });
     const b = world.bounds;
     x0 = Math.min(x0, b.x0 + dx); x1 = Math.max(x1, b.x1 + dx); z0 = Math.min(z0, b.z0); z1 = Math.max(z1, b.z1); top = Math.max(top, b.top);
   }
@@ -2741,7 +3058,8 @@ function buildingCorners(b, inset = 0) {
  *  proportion to their needs, in folder order, from +z (behind the centre) clockwise seen from above, and every folder shares
  *  its span among its children the same way, standing in the middle of its own. `ring` grows from 14 by 0.5 until the first
  *  ring needs no more than 94% of the circle. With no root folder the folders without a parent are the first ring, and the
- *  centre is empty. `folders`: [{ folder, floors: [kind, …] }], the floors in the order of the folder's tower. */
+ *  centre is empty. Each folder's line to its parent is a trace on the ground (skylineTraces). `folders`: [{ folder, floors:
+ *  [kind, …] }], the floors in the order of the folder's tower. */
 function skylineWorldFrom(folders) {
   const all = folders.map((f) => ({ folder: f.folder, floors: [...f.floors] })).sort((a, b) => a.folder.localeCompare(b.folder));
   const has = new Set(all.map((f) => f.folder));
@@ -2769,7 +3087,9 @@ function skylineWorldFrom(folders) {
     top = Math.max(top, b.h);
   }
   const bounds = buildings.length ? { x0, x1, z0, z1, top } : { x0: -1, x1: 1, z0: -1, z1: 1, top: 1 };
-  return { ring, buildings, lines: all.filter((f) => f.parent !== null).map((f) => [f.folder, f.parent]), bounds };
+  const world = { ring, buildings, lines: all.filter((f) => f.parent !== null).map((f) => [f.folder, f.parent]), bounds };
+  world.traces = skylineTraces(world);
+  return world;
 }
 
 /** What a drawn floor shows on its top face: its city's flat layout, scaled to fit 13 × 9 units round the floor's centre: each
@@ -2957,7 +3277,7 @@ function loadThree() {
 /** The colours the scene draws with, as CSS colours: Cyberspace's own tokens (the spec's Palette) and the kind colours, which
  *  accent. html.space takes the page's dark block, so the kind colours are their dark values. Read once, on the first entry:
  *  Cyberspace is always dark (decision space-gibson-look), so there is no scheme to follow. */
-const SPACE_TOKENS = { void: "--space-void", skyZenith: "--space-sky-zenith", skyMid: "--space-sky-mid", skyHorizon: "--space-sky-horizon", skyBand: "--space-sky-band", fog: "--space-fog", floor: "--space-floor", floorSheen: "--space-floor-sheen", glassLow: "--space-glass-low", glassHigh: "--space-glass-high", glassGlow: "--space-glass-glow", textBright: "--space-text-bright", out: "--space-trace-out", plate: "--space-plate", hot: "--space-hot" };
+const SPACE_TOKENS = { trace: "--space-trace", traceHalo: "--space-trace-halo", outHalo: "--space-trace-out-halo", void: "--space-void", skyZenith: "--space-sky-zenith", skyMid: "--space-sky-mid", skyHorizon: "--space-sky-horizon", skyBand: "--space-sky-band", fog: "--space-fog", floor: "--space-floor", floorSheen: "--space-floor-sheen", glassLow: "--space-glass-low", glassHigh: "--space-glass-high", glassGlow: "--space-glass-glow", textBright: "--space-text-bright", out: "--space-trace-out", plate: "--space-plate", hot: "--space-hot" };
 function spaceTheme() {
   const css = getComputedStyle(document.documentElement), read = (v) => css.getPropertyValue(v).trim();
   return { ...Object.fromEntries(Object.entries(SPACE_TOKENS).map(([k, v]) => [k, read(v)])), kinds: Object.fromEntries([...Object.keys(KIND_ORDER), "knowledge"].map((k) => [k, read("--k-" + k)])) };
@@ -3084,7 +3404,7 @@ function glass(T, rows, kind = "tower") {
  *  strength. `hot`: what is selected or under the pointer. */
 const GLOW = {
   tower: [0.35, 3, 0.2], hot: [0.55, 4.5, 0.35], plate: [0.3, 2.5, 0.15], beacon: [0.35, 3, 0.22], uplink: [0.35, 3.5, 0.25],
-  ring: [0.3, 2.5, 0.15], floor: [0.3, 2.5, 0.18], rail: [0.3, 2.5, 0.15], building: [0.5, 4.5, 0.2], slab: [0.45, 1.2, 0], line: [0.3, 2, 0.15],
+  floor: [0.3, 2.5, 0.18], rail: [0.3, 2.5, 0.15], building: [0.5, 4.5, 0.2], slab: [0.45, 1.2, 0],
 };
 /** Lines that glow (Glow and fog): one quad per segment, its two ends projected in the vertex shader and the quad widened
  *  across the segment on the screen by its halo; an end behind the near plane is moved along the segment to it first. The
@@ -3156,6 +3476,116 @@ function glowLines(T, segments, k = 1) {
   };
 }
 
+/** Ribbons' looks (Traces): the core's and the halo's half-widths in units, the least each is drawn at in px, and their
+ *  strengths. A trace, lit or not; the bright run where a trace arrives; a pad, a neighbour's and the selected one's; the
+ *  selection's dashed ring, a final state's second ring, a start point's ring and its dot; and nothing, for a ring not shown. */
+const RIBBON = {
+  trace: { core: 0.035, halo: 0.45, px: [0.7, 5], a: [0.9, 0.5] },
+  lit: { core: 0.05, halo: 0.6, px: [1.1, 8], a: [1, 0.8] },
+  arrive: { core: 0.09, halo: 0.3, px: [1.2, 3], a: [1, 0.5] },
+  pad: { core: 0.03, halo: 0.3, px: [0.6, 3], a: [0.85, 0.3] },
+  near: { core: 0.03, halo: 0.3, px: [0.6, 3], a: [1, 0.5] },
+  sel: { core: 0.045, halo: 0.45, px: [0.6, 3], a: [1, 0.7] },
+  ring: { core: 0.025, halo: 0.35, px: [0.55, 3], a: [0.75, 0.35] },
+  final: { core: 0.03, halo: 0.3, px: [0.6, 3], a: [0.9, 0.3] },
+  start: { core: 0.05, halo: 0.35, px: [0.7, 3], a: [0.9, 0.4] },
+  dot: { core: 0.16, halo: 0.3, px: [1, 3], a: [0.9, 0.3] },
+  none: { core: 0, halo: 0, px: [0, 0], a: [0, 0] },
+};
+/** Strips flat on the floor (Traces): traces, pads, pins and rings, one geometry and one draw call however many. Each run of a
+ *  ribbon is a quad along it, widened in the vertex shader to its halo, with at least the look's px where the eye is far, and
+ *  run past both its ends by as much, so that the fragment can round them and corners close without spikes. The fragment
+ *  draws the core (its own smoothstep anti-aliasing) and under it the halo, e^−(d/0.45 w)², where d is the distance to the
+ *  run, and blends by MaxEquation, so that crossing traces and a trace's corners don't add up. Depth is off: it draws after
+ *  the plates and before the towers. A dashed ribbon drops 38% of every 0.55 along it. A run going up (a plate's wall) lies
+ *  in the wall, across it as the run before it lay. `list`: [{ points: [[x, y, z], …] (the spec's frame), dash }]; each
+ *  ribbon's colours and look are written per vertex (style), so a selection restyles them in place. `k`: the scale the city
+ *  stands at (the folder tower's drawer), whose px minimums are scaled by √k, at least 0.55. Null for no ribbons. */
+function ribbons(T, list, k = 1) {
+  const runs = [];
+  const at = list.map((r) => {
+    const start = runs.length * 4, pts = r.points.map((p) => V(...p));
+    let s = 0;
+    for (let i = 0; i + 1 < pts.length || (pts.length === 1 && i === 0); i++) {
+      const a = pts[i], b = pts[i + 1] ?? a, d = b.clone().sub(a), L = d.length();
+      if (L < 1e-6 && pts.length > 1) continue;
+      runs.push({ a, b, d: L ? d.divideScalar(L) : new T.Vector3(1, 0, 0), L, s, dash: r.dash ? 1 : 0 });
+      s += L;
+    }
+    // Across a run: flat on the floor, square to it; up a wall, as the nearest run on the floor lay.
+    const mine = runs.slice(start / 4), flat = mine.map((x) => (Math.abs(x.d.y) < 0.9 ? new T.Vector3(-x.d.z, 0, x.d.x).normalize() : null));
+    mine.forEach((x, i) => { x.w = flat[i] ?? flat.slice(0, i).reverse().find(Boolean) ?? flat.find(Boolean) ?? new T.Vector3(1, 0, 0); });
+    return { start, count: runs.length * 4 - start };
+  });
+  const n = runs.length * 4;
+  if (!n) return null;
+  const pos = new Float32Array(n * 3), dir = new Float32Array(n * 3), across = new Float32Array(n * 3), quad = new Float32Array(n * 2), run = new Float32Array(n * 3), idx = [];
+  runs.forEach((x, i) => {
+    [[x.a, -1, -1], [x.a, -1, 1], [x.b, 1, -1], [x.b, 1, 1]].forEach(([p, e, side], j) => {
+      const v = i * 4 + j;
+      p.toArray(pos, v * 3); x.d.toArray(dir, v * 3); x.w.toArray(across, v * 3);
+      quad.set([e, side], v * 2); run.set([x.s, x.L, x.dash], v * 3);
+    });
+    idx.push(i * 4, i * 4 + 2, i * 4 + 1, i * 4 + 1, i * 4 + 2, i * 4 + 3);
+  });
+  const geometry = new T.BufferGeometry();
+  geometry.setAttribute("position", new T.BufferAttribute(pos, 3));
+  geometry.setAttribute("aDir", new T.BufferAttribute(dir, 3));
+  geometry.setAttribute("aAcross", new T.BufferAttribute(across, 3));
+  geometry.setAttribute("aQuad", new T.BufferAttribute(quad, 2));
+  geometry.setAttribute("aRun", new T.BufferAttribute(run, 3));
+  geometry.setAttribute("aHalf", new T.BufferAttribute(new Float32Array(n * 4), 4));
+  geometry.setAttribute("aCore", new T.BufferAttribute(new Float32Array(n * 4), 4));
+  geometry.setAttribute("aHalo", new T.BufferAttribute(new Float32Array(n * 4), 4));
+  geometry.setIndex(idx);
+  const material = new T.ShaderMaterial({
+    transparent: true, depthWrite: false, depthTest: false, side: T.DoubleSide,
+    blending: T.CustomBlending, blendEquation: T.MaxEquation, blendSrc: T.OneFactor, blendDst: T.OneFactor,
+    uniforms: { view: SPACE_U.view, k: { value: k }, kPx: { value: Math.max(0.55, Math.sqrt(k)) }, fade: { value: 1 }, ...fogged() },
+    vertexShader: `uniform vec2 view; uniform float k, kPx; attribute vec3 aDir, aAcross, aRun; attribute vec2 aQuad; attribute vec4 aHalf, aCore, aHalo;
+      varying vec4 vCore, vHalo; varying vec2 vAt; varying float vPx, vCorePx, vHaloPx, vL, vS, vDash; varying vec3 vWorld;
+      void main() {
+        vec4 c = modelViewMatrix * vec4(position, 1.0);
+        // Units of the ribbon's own frame per px here.
+        float upp = 2.0 * max(-c.z, 0.6) / (projectionMatrix[1][1] * view.y) / k;
+        float core = max(aHalf.x, aHalf.z * kPx * upp), halo = max(aHalf.y, aHalf.w * kPx * upp), reach = max(core, halo);
+        vec3 p = position + aAcross * aQuad.y * reach + aDir * aQuad.x * reach;
+        vAt = vec2(aQuad.y * reach, aQuad.x < 0.0 ? -reach : aRun.y + reach);
+        vPx = 1.0 / upp; vCorePx = core / upp; vHaloPx = halo / upp; vS = aRun.x; vL = aRun.y; vDash = aRun.z;
+        vCore = aCore; vHalo = aHalo;
+        vec4 w = modelMatrix * vec4(p, 1.0);
+        vWorld = w.xyz;
+        gl_Position = projectionMatrix * viewMatrix * w;
+      }`,
+    fragmentShader: `uniform float fade; ${FOG_GLSL} varying vec4 vCore, vHalo; varying vec2 vAt; varying float vPx, vCorePx, vHaloPx, vL, vS, vDash; varying vec3 vWorld;
+      void main() {
+        if (vDash > 0.5 && fract((vS + clamp(vAt.y, 0.0, vL)) / 0.55) > 0.62) discard;
+        float d = length(vec2(vAt.x, max(0.0, max(-vAt.y, vAt.y - vL)))) * vPx;
+        float core = (1.0 - smoothstep(vCorePx - 0.55, vCorePx + 0.55, d)) * step(0.001, vCorePx), halo = exp(-pow(d / max(vHaloPx * 0.45, 0.8), 2.0)) * step(0.001, vHaloPx);
+        vec3 c = vCore.rgb * core * vCore.a + vHalo.rgb * halo * vHalo.a * (1.0 - core);
+        gl_FragColor = vec4(c * fade * fogOf(vWorld), 1.0);
+        #include <colorspace_fragment>
+      }`,
+  });
+  const mesh = new T.Mesh(geometry, material), core = new T.Color(), halo = new T.Color();
+  mesh.frustumCulled = false;
+  return {
+    mesh, material,
+    /** Writes a ribbon's look (RIBBON's) and its colours, the core's and the halo's, as CSS colours. */
+    style(i, coreCss, haloCss, look) {
+      const { start, count } = at[i], h = geometry.attributes.aHalf, c = geometry.attributes.aCore, g = geometry.attributes.aHalo;
+      core.setStyle(coreCss); halo.setStyle(haloCss);
+      for (let v = start; v < start + count; v++) {
+        h.setXYZW(v, look.core, look.halo, look.px[0], look.px[1]);
+        c.setXYZW(v, core.r, core.g, core.b, look.a[0]);
+        g.setXYZW(v, halo.r, halo.g, halo.b, look.a[1]);
+      }
+      h.needsUpdate = c.needsUpdate = g.needsUpdate = true;
+    },
+    dispose() { geometry.dispose(); material.dispose(); },
+  };
+}
+
 /** The width a drawing has in Flat, worked out while #view is hidden: #layout's last column, less #view's padding and the canvas's border. */
 function flatRoom() {
   const cols = getComputedStyle($("layout")).gridTemplateColumns.split(" "), pad = getComputedStyle($("view"));
@@ -3172,16 +3602,17 @@ function cityWorld(doc, folder) {
 }
 
 /** One world's meshes, with three.js core alone: plates, towers and beacons as instanced glass, every edge one set of glow
- *  lines (beacons' uplinks and ground rings and final states' rings among them), start points, and the beams in their quiet
- *  state. `k`: the scale the city stands at (the folder tower's drawer), which its glow lines' widths follow. */
+ *  lines (beacons' uplinks among them), and the floor's traces, pads and rings one geometry of ribbons; the lit beams are
+ *  made as the selection asks for them. `k`: the scale the city stands at (the folder tower's drawer), which the widths of
+ *  its glow lines and the px minimums of its ribbons follow. */
 function buildCity(world, colours, k = 1) {
   const T = three, group = new T.Group(), owned = [], kind = world.kind;
   const keep = (x) => (owned.push(x), x);
   const put = (obj, order) => { obj.renderOrder = order; obj.frustumCulled = false; group.add(obj); return obj; };
-  /** A role's colour: a beacon's and what reaches it ("out", magenta), a start point's, a plate's, what is lit, else the kind
-   *  colour (a tower's tint, which its cyan glass doesn't use). */
-  const roleColour = (c, role) => (role === "out" ? c.out : role === "start" ? c.textBright : role === "plate" ? c.plate : role === "hot" ? c.hot : c.kinds[kind]);
-  const m4 = new T.Matrix4(), q = new T.Quaternion(), one = new T.Vector3(1, 1, 1);
+  /** A role's colour: a beacon's and what reaches it ("out", magenta), a plate's, what is lit, else the kind colour (a tower's
+   *  tint, which its cyan glass doesn't use). */
+  const roleColour = (c, role) => (role === "out" ? c.out : role === "plate" ? c.plate : role === "hot" ? c.hot : c.kinds[kind]);
+  const m4 = new T.Matrix4(), q = new T.Quaternion();
 
   // Glass, one instanced mesh per shape: unit boxes standing on their base for plates and towers, octahedra for beacons.
   const glassMesh = (geometry, rows, glassKind, list, place, role, order) => {
@@ -3217,7 +3648,6 @@ function buildCity(world, colours, k = 1) {
   const run = (role, alpha, w, draw, shape = {}) => { how = shape; const start = segs.length; draw(); const r = { start, count: segs.length - start, role, alpha, w, base: w }; lines.push(r); return r; };
   const ring4 = (x0, x1, z0, z1, y) => { const c = [V(x0, y, z0), V(x1, y, z0), V(x1, y, z1), V(x0, y, z1)]; for (let i = 0; i < 4; i++) seg(c[i], c[(i + 1) % 4]); };
   const boxEdges = (x0, x1, z0, z1, y0, y1) => { ring4(x0, x1, z0, z1, y0); ring4(x0, x1, z0, z1, y1); for (const [x, z] of [[x0, z0], [x1, z0], [x1, z1], [x0, z1]]) seg(V(x, y0, z), V(x, y1, z)); };
-  const circle = (x, y, z, r, n = 48) => { for (let i = 0; i < n; i++) { const a = (2 * Math.PI * i) / n, b = (2 * Math.PI * (i + 1)) / n; seg(V(x + r * Math.cos(a), y, z + r * Math.sin(a)), V(x + r * Math.cos(b), y, z + r * Math.sin(b))); } };
   const round = { joint: 0 };
   // A plate's and a beacon's edges, which selection lights as it lights a tower's.
   const plateRuns = world.plates.map((p) => ({ edges: run("kind", 0.6, GLOW.plate, () => boxEdges(p.x0, p.x1, p.z0, p.z1, p.base, p.base + PH)) }));
@@ -3225,35 +3655,44 @@ function buildCity(world, colours, k = 1) {
   const towerRuns = world.towers.map((t) => {
     const s = t.side / 2;
     const edges = run("kind", 0.8, GLOW.tower, () => boxEdges(t.x - s, t.x + s, t.z - s, t.z + s, t.base, t.base + t.h), t.alt ? { dash: 0.55 } : {});
-    if (t.final) run("kind", 0.9, GLOW.ring, () => { circle(t.x, t.base, t.z, 0.8 * t.side); circle(t.x, t.base, t.z, 0.8 * t.side + 0.45); }, round);
     return { edges };
   });
-  // A beacon's edges, its rings on the ground and its uplink from the ground to its lower point.
+  // A beacon's edges and its uplink from its pad on the floor to its lower point.
   const beaconRuns = world.beacons.map((b) => {
     const top = V(b.x, b.y + 1.3, b.z), low = V(b.x, b.y - 1.3, b.z), eq = [[1.25, 0], [0, 1.25], [-1.25, 0], [0, -1.25]].map(([dx, dz]) => V(b.x + dx, b.y, b.z + dz));
     const edges = run("out", 0.9, GLOW.beacon, () => eq.forEach((p, i) => { seg(p, eq[(i + 1) % 4]); seg(p, top); seg(p, low); }));
-    run("out", 0.6, GLOW.ring, () => circle(b.x, 0.02, b.z, 1.6), round);
-    run("out", 0.25, GLOW.ring, () => circle(b.x, 0.02, b.z, 2.6, 64), round);
-    run("out", 0.55, GLOW.uplink, () => seg(V(b.x, 0.02, b.z), low), round);
+    run("out", 0.55, GLOW.uplink, () => seg(V(b.x, groundAt(world, b.x, b.z) + 0.02, b.z), low), round);
     return { edges };
   });
   const edges = glowLines(T, segs, k);
   if (edges) { put(edges.mesh, 5); owned.push(edges); }
 
-  // Flat discs: the ground rings' fill under beacons, and start points.
-  const discMesh = (list, at, r, role, alpha, order) => {
-    if (!list.length) return null;
-    const material = keep(new T.MeshBasicMaterial({ transparent: true, opacity: alpha, depthWrite: false }));
-    const mesh = put(new T.InstancedMesh(keep(new T.CircleGeometry(r, 40).rotateX(-Math.PI / 2)), material, list.length), order);
-    list.forEach((x, i) => mesh.setMatrixAt(i, m4.compose(at(x), q, one)));
-    mesh.userData.role = role;
-    return mesh;
-  };
-  const discs = [discMesh(world.beacons, (b) => V(b.x, 0, b.z), 1.6, "out", 0.06, 2), discMesh(world.markers, (m) => V(m.x, m.base, m.z), 0.5, "start", 0.6, 2)].filter(Boolean);
+  // The floor (Traces): every trace with the bright run where it arrives, every pad, a final state's second pad ring, the
+  // dashed ring round a tower's or beacon's pad (drawn as nothing until it is selected), and each start point's ring and dot;
+  // one geometry of ribbons, restyled in place as the selection and the pointer change.
+  const strips = [], strip = (points, dash = false) => strips.push({ points, dash }) - 1;
+  const square = (x, y, z, h) => [[x - h, y, z - h], [x + h, y, z - h], [x + h, y, z + h], [x - h, y, z + h], [x - h, y, z - h]];
+  const traceStrips = world.traces.map((t) => {
+    const line = strip(t.points, t.dashed), p = t.points[t.points.length - 1];
+    // The run it arrives by, flat: the last point before the end that stands apart from it on the floor.
+    const o = t.self ? null : t.points.slice(0, -1).reverse().find((q) => Math.hypot(q[0] - p[0], q[2] - p[2]) > 1e-6);
+    const L = o && Math.hypot(p[0] - o[0], p[2] - o[2]);
+    return { line, arrive: o ? strip([[p[0] - ((p[0] - o[0]) / L) * 0.12, p[1], p[2] - ((p[2] - o[2]) / L) * 0.12], p]) : null };
+  });
+  const padStrips = new Map(), ringStrips = new Map(), padOf = new Map(world.pads.map((p) => [p.key + "\u0000" + p.kind, p]));
+  for (const p of world.pads) { if (!padStrips.has(p.key)) padStrips.set(p.key, []); padStrips.get(p.key).push({ i: strip(square(p.x, p.y, p.z, p.half)), out: p.kind === "beacon" }); }
+  for (const t of world.towers) {
+    const p = padOf.get(t.key + "\u0000tower");
+    ringStrips.set(t.key, strip(square(p.x, p.y, p.z, p.half + 0.45), true));
+    if (t.final) padStrips.get(t.key).push({ i: strip(square(p.x, p.y, p.z, p.half + 0.32)), out: false, final: true });
+  }
+  for (const b of world.beacons) { const p = padOf.get(b.key + "\u0000beacon"); ringStrips.set(b.key, strip(square(p.x, p.y, p.z, p.half + 0.45), true)); }
+  const starts = world.markers.map((m) => ({ ring: strip(Array.from({ length: 33 }, (_, i) => [m.x + 0.5 * Math.cos((i / 16) * Math.PI), m.base, m.z + 0.5 * Math.sin((i / 16) * Math.PI)])), dot: strip([[m.x, m.base, m.z]]) }));
+  const floor = ribbons(T, strips, k);
+  if (floor) { put(floor.mesh, 2); owned.push(floor); }
 
-  // Beams: tubes along each beam's curve, merged by hand into one geometry (core three.js has no merge). A dashed beam keeps
-  // every other segment. Each run of vertices and of triangles is remembered, so that a colour can change and a face hit by
-  // the pointer can be traced back to its beam. Each beam ends in a dot where it arrives.
+  // Lit beams, a core in --space-hot and a glow round it in the kind colour, rising over their lit traces (until step G4 makes
+  // them arcs), and a tube 0.6 thick round each, never drawn, that the pointer finds them by: made when the selection changes.
   const curves = world.beams.map((b) => {
     const p = b.points, mid = p[16];
     return b.from === b.to
@@ -3261,7 +3700,9 @@ function buildCity(world, colours, k = 1) {
       : new T.QuadraticBezierCurve3(V(...p[0]), V(2 * mid[0] - (p[0][0] + p[32][0]) / 2, 2 * mid[1] - (p[0][1] + p[32][1]) / 2, 2 * mid[2] - (p[0][2] + p[32][2]) / 2), V(...p[32]));
   });
   const roleOf = (b) => (b.ext ? "out" : "kind");
-  /** The tubes of some beams (indices into world.beams), radius r, as one geometry with a colour per vertex. */
+  /** The tubes of some beams (indices into world.beams), radius r, as one geometry with a colour per vertex. A dashed beam
+   *  keeps every other segment. Each run of vertices and of triangles is remembered, so that a colour can be set and a face
+   *  hit by the pointer traced back to its beam. */
   const tubes = (list, r, { along = 32, radial = 6, dashes = true } = {}) => {
     const pos = [], nor = [], idx = [], runs = [];
     for (const i of list) {
@@ -3269,7 +3710,7 @@ function buildCity(world, colours, k = 1) {
       pos.push(...tube.attributes.position.array);
       nor.push(...tube.attributes.normal.array);
       for (let k = 0; k < ix.length; k++) if (!dashes || !b.dashed || Math.floor(k / (radial * 6)) % 2 === 0) idx.push(ix[k] + base);
-      runs.push({ beam: i, start: base, count: pos.length / 3 - base, tri0: tri, role: roleOf(b), alpha: 0.42 });
+      runs.push({ beam: i, start: base, count: pos.length / 3 - base, tri0: tri, role: roleOf(b), alpha: 0.35 });
       tube.dispose();
     }
     if (!pos.length) return null;
@@ -3280,48 +3721,24 @@ function buildCity(world, colours, k = 1) {
     geometry.setIndex(idx);
     return { geometry, runs };
   };
-  // `weight` scales every beam's radius and its end dot's: 1 in the city, STREET_WEIGHT in the street (weigh, below).
-  let weight = 1;
-  const all = world.beams.map((_, i) => i), quiet = tubes(all, 0.035);
-  let beamRuns = quiet?.runs ?? [];
-  const ends = [];
-  for (const b of world.beams) if (b.from !== b.to) ends.push({ at: V(...b.points[32]), role: roleOf(b) });
-  const tubeMaterial = () => new T.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false });
-  const beams = quiet ? put(new T.Mesh(quiet.geometry, keep(tubeMaterial())), 4) : null;
-  const dots = ends.length ? put(new T.InstancedMesh(keep(new T.SphereGeometry(0.12, 10, 8)), keep(new T.MeshBasicMaterial({ transparent: true, opacity: 0.9, depthWrite: false })), ends.length), 4) : null;
-  const placeDots = () => { const s = new T.Vector3(weight, weight, weight); ends.forEach((e, i) => dots.setMatrixAt(i, m4.compose(e.at, q, s))); if (dots) dots.instanceMatrix.needsUpdate = true; };
-  ends.forEach((_, i) => dots.setColorAt(i, new T.Color()));
-  placeDots();
-  // What the pointer finds a beam by: a tube 0.6 thick round each, never drawn.
-  const pickTube = tubes(all, 0.3, { along: 16, radial: 4, dashes: false });
-  const pickBeams = pickTube ? new T.Mesh(keep(pickTube.geometry), keep(new T.MeshBasicMaterial())) : null;
-  pickBeams?.updateMatrixWorld();
-  // Lit beams, a core in --space-hot and a glow round it in the kind colour, and the beam under the pointer: made when they change.
+  // `weight` scales the lit beams' radii: 1 in the city, STREET_WEIGHT in the street (weigh, below).
+  let weight = 1, pickTube = null, pickLit = null;
   const coreMaterial = keep(new T.MeshBasicMaterial({ transparent: true, depthWrite: false }));
-  const glowMaterial = keep(tubeMaterial()), hoverMaterial = keep(tubeMaterial());
+  const glowMaterial = keep(new T.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
   // A glow adds light to the dark.
   glowMaterial.blending = T.AdditiveBlending;
-  const lit = { core: null, glow: null, hover: null };
+  const lit = { core: null, glow: null };
   const swap = (name, made, material, order) => {
     if (lit[name]) { group.remove(lit[name]); lit[name].geometry.dispose(); }
     lit[name] = made ? put(new T.Mesh(made.geometry, material), order) : null;
     if (lit[name]) lit[name].userData.runs = made.runs;
   };
-
-  // Selection rings round the selected tower's base: r 2.0 filled and stroked in --space-hot, r 3.0 dashed in the kind colour.
-  const ringAt = (r, n) => new T.BufferGeometry().setFromPoints(Array.from({ length: n }, (_, i) => V(r * Math.cos((2 * Math.PI * i) / n), 0, r * Math.sin((2 * Math.PI * i) / n))));
-  const rings = new T.Group(), ringFill = keep(new T.MeshBasicMaterial({ transparent: true, opacity: 0.08, depthWrite: false }));
-  const ringLine = keep(new T.LineBasicMaterial({ transparent: true, opacity: 0.8, depthWrite: false }));
-  const ringDash = keep(new T.LineDashedMaterial({ transparent: true, opacity: 0.5, depthWrite: false, dashSize: 0.12, gapSize: 0.2 }));
-  rings.add(new T.Mesh(keep(new T.CircleGeometry(2, 64).rotateX(-Math.PI / 2)), ringFill), new T.LineLoop(keep(ringAt(2, 96)), ringLine), new T.LineLoop(keep(ringAt(3, 128)), ringDash).computeLineDistances());
-  for (const o of rings.children) { o.renderOrder = 1; o.frustumCulled = false; }
-  rings.visible = false;
-  group.add(rings);
+  const pickMaterial = keep(new T.MeshBasicMaterial());
 
   // What selection and the pointer mark: the selected part, its neighbours, the part under the pointer, the lit beams and the
-  // beam under the pointer. A part's look is a row of the state table, and its edges are drawn as that row says.
+  // trace under the pointer. A part's look is a row of the state table, and its edges are drawn as that row says.
   const index = new Map([...world.towers.map((t, i) => [t.key, ["tower", i]]), ...world.plates.map((p, i) => [p.key, ["plate", i]]), ...world.beacons.map((b, i) => [b.key, ["beacon", i]])]);
-  const beamIndex = new Map(world.beams.map((b, i) => [b.key, i]));
+  const beamIndex = new Map(world.beams.map((b, i) => [b.key, i])), traceIndex = new Map(world.traces.map((t, i) => [t.key, i]));
   const edgeAlpha = { tower: 0.8, plate: 0.6, beacon: 0.9 };
   let marks = { sel: null, near: new Set(), hover: null, lit: new Set(), beam: null }, painted = colours;
   const lookOf = (key) => (key === marks.sel ? "sel" : key === marks.hover ? "hover" : marks.near.has(key) ? "near" : "norm");
@@ -3333,9 +3750,32 @@ function buildCity(world, colours, k = 1) {
   };
   /** Restyles a run of edges as it now is. */
   const restyle = (r) => edges.style(r.start, r.count, roleColour(painted, r.role), r.alpha, r.w);
+  /** Writes a trace's ribbons as it now is: lit (selected's, or under the pointer), its core --space-hot and wider; else violet,
+   *  magenta where it reaches a beacon. */
+  const paintTrace = (i) => {
+    if (!floor || i === undefined) return;
+    const t = world.traces[i], s = traceStrips[i], on = marks.lit.has(t.key) || t.key === marks.beam, c = painted;
+    const colour = t.ext ? c.out : c.trace, halo = t.ext ? c.outHalo : c.traceHalo;
+    floor.style(s.line, on ? c.hot : colour, halo, on ? RIBBON.lit : RIBBON.trace);
+    if (s.arrive !== null) floor.style(s.arrive, on ? c.hot : colour, colour, RIBBON.arrive);
+  };
+  /** Writes a part's pads as it now is: the kind colour (a beacon's magenta) at 85%, a neighbour's or the one under the pointer
+   *  at 100%, the selected one's --space-hot with the dashed ring round it; a final state's second ring stays as it is. */
+  const paintPads = (key) => {
+    if (!floor) return;
+    const l = lookOf(key), c = painted;
+    for (const p of padStrips.get(key) ?? []) {
+      const colour = p.out ? c.out : c.kinds[kind];
+      if (p.final) floor.style(p.i, colour, colour, RIBBON.final);
+      else floor.style(p.i, l === "sel" ? c.hot : colour, colour, l === "sel" ? RIBBON.sel : l === "norm" ? RIBBON.pad : RIBBON.near);
+    }
+    const ring = ringStrips.get(key), colour = index.get(key)?.[0] === "beacon" ? c.out : c.kinds[kind];
+    if (ring !== undefined) floor.style(ring, colour, colour, l === "sel" ? RIBBON.ring : RIBBON.none);
+  };
   /** Draws a part as it now looks: a tower's glass takes its row, and its edges their colour: --space-hot, and wider, while it
-   *  is selected or under the pointer. */
+   *  is selected or under the pointer; and its pads. */
   const look = (key) => {
+    paintPads(key);
     const [what, i] = index.get(key) ?? [];
     if (!what) return;
     const l = lookOf(key), hot = l === "sel" || l === "hover";
@@ -3347,7 +3787,7 @@ function buildCity(world, colours, k = 1) {
   const self = {
     kind: "city", group, world, towerRuns,
     /** What ?spacestats says the city holds. */
-    stats: () => `${world.plates.length} plates · ${world.towers.length} towers · ${world.beacons.length} beacons · ${world.beams.length} beams`,
+    stats: () => `${world.plates.length} plates · ${world.towers.length} towers · ${world.beacons.length} beacons · ${world.traces.length} traces`,
     /** The tower an instance of the towers' mesh draws. */
     towerOf: (instance) => slot[instance],
     /** Colours from the theme, into uniforms and colour attributes. */
@@ -3359,20 +3799,17 @@ function buildCity(world, colours, k = 1) {
         for (let i = 0; i < mesh.count; i++) mesh.setColorAt(i, tint);
         mesh.instanceColor.needsUpdate = true;
       }
-      for (const d of discs) d.material.color.setStyle(roleColour(c, d.userData.role));
-      const fill = (attr, runs) => { for (const r of runs) refill(attr, r); };
       for (const r of lines) restyle(r);
-      if (beams) fill(beams.geometry.attributes.color, beamRuns);
-      for (const name of ["glow", "hover"]) if (lit[name]) fill(lit[name].geometry.attributes.color, lit[name].userData.runs);
-      ends.forEach((e, i) => dots.setColorAt(i, tint.setStyle(roleColour(c, e.role))));
-      if (dots) dots.instanceColor.needsUpdate = true;
+      world.traces.forEach((_, i) => paintTrace(i));
+      for (const key of padStrips.keys()) paintPads(key);
+      for (const key of ringStrips.keys()) paintPads(key);
+      if (floor) for (const { ring, dot } of starts) { floor.style(ring, c.textBright, c.textBright, RIBBON.start); floor.style(dot, c.textBright, c.textBright, RIBBON.dot); }
+      if (lit.glow) for (const r of lit.glow.userData.runs) refill(lit.glow.geometry.attributes.color, r);
       coreMaterial.color.setStyle(c.hot);
-      ringFill.color.setStyle(c.hot);
-      ringLine.color.setStyle(c.hot);
-      ringDash.color.setStyle(c.kinds[kind]);
     },
-    /** What a ray from the eye meets first: { key, beam }, beam true for a beam, or null. A start point is never met. `beams`
-     *  false looks for parts alone, which is quicker (the street's crosshair, every frame the eye moves). */
+    /** What a ray from the eye meets first: { key, beam }, beam true for a trace (or a lit beam), or null. A start point is never
+     *  met. A trace is found where the ray meets the floor or a plate's top (traceAt); a lit beam by its tube. `beams` false
+     *  looks for parts alone, which is quicker (the street's crosshair, every frame the eye moves). */
     pick(ray, beams = true) {
       let best = null;
       const meet = (hit, key, beam) => { if (hit && (!best || hit.distance < best.distance)) best = { key, beam, distance: hit.distance }; };
@@ -3380,16 +3817,28 @@ function buildCity(world, colours, k = 1) {
       if (towers && (h = ray.intersectObject(towers, false)[0])) meet(h, world.towers[slot[h.instanceId]].key, false);
       if (plates && (h = ray.intersectObject(plates, false)[0])) meet(h, world.plates[h.instanceId].key, false);
       if (beacons && (h = ray.intersectObject(beacons, false)[0])) meet(h, world.beacons[h.instanceId].key, false);
-      if (beams && pickBeams && (h = ray.intersectObject(pickBeams, false)[0])) {
+      if (!beams) return best;
+      if (pickLit && (h = ray.intersectObject(pickLit, false)[0])) {
         const runs = pickTube.runs;
         let lo = 0, hi = runs.length - 1;
         while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (runs[mid].tri0 <= h.faceIndex) lo = mid; else hi = mid - 1; }
         meet(h, world.beams[runs[lo].beam].key, true);
       }
+      // The floor and each plate's top, where the ray meets them: a trace there is under the pointer, ahead of the plate it lies on.
+      const o = ray.ray.origin, d = ray.ray.direction;
+      for (const y of tops) {
+        const t = Math.abs(d.y) > 1e-9 ? (y - o.y) / d.y : -1;
+        if (!(t > 0) || (best && t - 0.05 >= best.distance)) continue;
+        const x = o.x + t * d.x - self.dx, z = -(o.z + t * d.z);
+        if (Math.abs(groundAt(world, x, z) - y) > 1e-6) continue;
+        const tr = traceAt(world, x, z);
+        if (tr) meet({ distance: t - 0.05 }, tr.key, true);
+      }
       return best;
     },
     /** Marks the selection and its neighbourhood (sel, near, lit: cityNeighbours's) and what is under the pointer (hover, a
-     *  part; beam, a beam). What is left out stays as it was, and only what changed is drawn again. */
+     *  part; beam, a trace or a lit beam). What is left out stays as it was, and only what changed is drawn again: a part's
+     *  glass, edges and pads, and the ribbons of a trace that lit or went out. */
     mark(next) {
       const was = marks;
       marks = { ...was, ...next, near: new Set(next.near ?? was.near), lit: new Set(next.lit ?? was.lit) };
@@ -3397,46 +3846,15 @@ function buildCity(world, colours, k = 1) {
       for (const k of keys) look(k);
       if (towers && keys.size) writeTowers();
       const litChanged = was.lit.size !== marks.lit.size || [...marks.lit].some((k) => !was.lit.has(k));
-      if (!litChanged && was.beam === marks.beam) return self.ring();
-      // A lit beam's quiet tube, and that of the beam under the pointer, give way to the thicker one drawn in its place.
-      if (beams) {
-        for (const k of new Set([...was.lit, ...marks.lit, was.beam, marks.beam])) {
-          const i = beamIndex.get(k);
-          if (i === undefined) continue;
-          beamRuns[i].alpha = marks.lit.has(k) || k === marks.beam ? 0 : 0.42;
-          refill(beams.geometry.attributes.color, beamRuns[i]);
-        }
-      }
+      for (const k of new Set([...was.lit, ...marks.lit, was.beam, marks.beam])) if (k != null && (was.lit.has(k) || k === was.beam) !== (marks.lit.has(k) || k === marks.beam)) paintTrace(traceIndex.get(k));
       if (litChanged) light();
-      hoverBeam();
-      self.ring();
     },
-    /** Draws every beam `k` times as thick as the city does, and its end dot `k` times as large: the street's weight, where
-     *  the eye is a few units from them, or the city's (1). Only the drawn tubes are made again; the pointer finds a beam by
-     *  the same fat tube as in the city. */
+    /** Draws the lit beams `k` times as thick as the city does: the street's weight, where the eye is a few units from them, or
+     *  the city's (1). The pointer finds them by the same tube as in the city; the traces keep their widths. */
     weigh(k) {
       if (k === weight) return;
       weight = k;
-      if (beams) {
-        const made = tubes(all, 0.035 * weight);
-        beams.geometry.dispose();
-        beams.geometry = made.geometry;
-        beamRuns = made.runs;
-        for (const r of beamRuns) {
-          const key = world.beams[r.beam].key;
-          r.alpha = marks.lit.has(key) || key === marks.beam ? 0 : 0.42;
-          refill(made.geometry.attributes.color, r);
-        }
-      }
-      if (dots) placeDots();
       light();
-      hoverBeam();
-    },
-    /** Stands the selection rings round the selected tower's base; a plate or a beacon has none. */
-    ring() {
-      const [what, i] = index.get(marks.sel) ?? [];
-      rings.visible = what === "tower";
-      if (rings.visible) { const t = world.towers[i]; rings.position.copy(V(t.x, t.base + 0.02, t.z)); }
     },
     /** Puts the towers' instances in order, furthest from the eye first, since three.js doesn't sort the instances of one mesh. */
     sort(eye) {
@@ -3450,7 +3868,7 @@ function buildCity(world, colours, k = 1) {
       self.dx = dx;
       group.position.copy(V(dx, 0, 0));
       group.updateMatrixWorld(true);
-      if (pickBeams) { pickBeams.position.copy(group.position); pickBeams.updateMatrixWorld(); }
+      if (pickLit) { pickLit.position.copy(group.position); pickLit.updateMatrixWorld(); }
     },
     /** Fades the city towards the dim state, `k` from 0 (as it stands) to 1 (dim: about 0.4 of every alpha), as a layer
      *  being unticked does before it goes. */
@@ -3465,24 +3883,25 @@ function buildCity(world, colours, k = 1) {
     },
     dispose() {
       for (const name of Object.keys(lit)) swap(name, null);
-      beams?.geometry.dispose();
+      pickLit?.geometry.dispose();
       for (const x of owned) x.dispose();
-      for (const m of [plates, towers, beacons, dots, ...discs]) m?.dispose();
+      for (const m of [plates, towers, beacons]) m?.dispose();
     },
   };
-  /** The lit beams: a core in --space-hot and a glow round it in the kind colour, as thick as the weight makes them. */
+  // The heights a trace can lie at: the floor and every plate's top.
+  const tops = [0, ...new Set(world.plates.map((p) => p.base + PH))];
+  /** The lit beams: a core in --space-hot and a glow round it in the kind colour, as thick as the weight makes them, and their
+   *  pick tube. */
   function light() {
     const list = [...marks.lit].map((k) => beamIndex.get(k)).filter((i) => i !== undefined);
     swap("core", tubes(list, 0.06 * weight), coreMaterial, 4);
     const glow = tubes(list, 0.25 * weight, { dashes: false });
-    glow?.runs.forEach((r) => { r.alpha = 0.35; refill(glow.geometry.attributes.color, r); });
+    glow?.runs.forEach((r) => refill(glow.geometry.attributes.color, r));
     swap("glow", glow, glowMaterial, 5);
-  }
-  /** A beam under the pointer thickens to the lit core's radius; a lit one already has it. */
-  function hoverBeam() {
-    const i = beamIndex.get(marks.beam), made = i !== undefined && !marks.lit.has(marks.beam) ? tubes([i], 0.06 * weight) : null;
-    made?.runs.forEach((r) => refill(made.geometry.attributes.color, r));
-    swap("hover", made, hoverMaterial, 4);
+    pickLit?.geometry.dispose();
+    pickTube = tubes(list, 0.3, { along: 16, radial: 4, dashes: false });
+    pickLit = pickTube ? new T.Mesh(pickTube.geometry, pickMaterial) : null;
+    if (pickLit) { pickLit.position.copy(group.position); pickLit.updateMatrixWorld(); }
   }
   self.paint(colours);
   return self;
@@ -5598,17 +6017,16 @@ const repoName = () => repo.repo ?? repo.project.split("/").pop();
 const skylineTitle = (folder) => { const { title } = folderNames(folder); return folder === "" && title === "/" ? repoName() : title; };
 
 /** The skyline's meshes (The skyline, How a building looks): every floor slab one instanced mesh of glass in its kind's colour,
- *  every shell another of cyan glass; the shells' edges, each slab's top outline and the dashed ground lines one set of glow
- *  lines; and the address folder's rings, r 4.3 filled and stroked in --space-hot and r 5.2 dashed. Seven draw calls with the
- *  sky and the floor, however many folders. Dashes are 4 px long and the gaps 5 px (the rings' 6) seen from the opening
- *  distance, as artboard 7 draws them. */
+ *  every shell another of cyan glass; the shells' edges and each slab's top outline one set of glow lines; and the lines to
+ *  parent folders as traces and every building's pad, the address folder's lit and ringed, one geometry of ribbons. Six draw
+ *  calls with the sky and the floor, however many folders. */
 function buildSkyline(world, colours) {
   const T = three, group = new T.Group(), owned = [], B = world.buildings, n = B.length;
   const keep = (x) => (owned.push(x), x);
   const put = (obj, order, into = group) => { obj.renderOrder = order; obj.frustumCulled = false; into.add(obj); return obj; };
   const m4 = new T.Matrix4(), q = new T.Quaternion(), Y = new T.Vector3(0, 1, 0), tint = new T.Color();
   const turn = (b) => q.setFromAxisAngle(Y, Math.PI - b.angle);
-  const dash = 0.0284 * world.ring, gap = 0.0355 * world.ring, inset = 0.175;
+  const inset = 0.175;
   let painted = colours, fade = 1;
   const colourOf = (c, role) => (role === "hot" ? c.hot : c.kinds[role] ?? c.kinds.knowledge);
   const glassBoxes = (count, rows, kind, order) => {
@@ -5635,50 +6053,36 @@ function buildSkyline(world, colours) {
     plates.instanceColor.needsUpdate = true;
   };
 
-  // Glow lines: each shell's edges, each slab's top outline (no halo: halos 0.5 units apart pile up at the skyline's
-  // distances), and the dashed ground lines to parent folders, each run with its role, alpha and widths.
+  // Glow lines: each shell's edges and each slab's top outline (no halo: halos 0.5 units apart pile up at the skyline's
+  // distances), each run with its role, alpha and widths.
   const segs = [], runs = [];
-  let how = {};
-  const seg = (a, b) => segs.push({ a, b, ...how });
-  const run = (role, alpha, w, draw, shape = {}) => { how = shape; const start = segs.length; draw(); const r = { start, count: segs.length - start, role, alpha, w }; runs.push(r); return r; };
+  const seg = (a, b) => segs.push({ a, b });
+  const run = (role, alpha, w, draw) => { const start = segs.length; draw(); const r = { start, count: segs.length - start, role, alpha, w }; runs.push(r); return r; };
   const rect = (c, y) => { for (let i = 0; i < 4; i++) seg(V(c[i][0], y, c[i][1]), V(c[(i + 1) % 4][0], y, c[(i + 1) % 4][1])); };
-  const dashes = (x0, z0, x1, z1, y) => {
-    const len = Math.hypot(x1 - x0, z1 - z0), ux = (x1 - x0) / (len || 1), uz = (z1 - z0) / (len || 1);
-    for (let s = 0; s < len; s += dash + gap) { const e = Math.min(len, s + dash); seg(V(x0 + ux * s, y, z0 + uz * s), V(x0 + ux * e, y, z0 + uz * e)); }
-  };
   const edgeRuns = B.map((b) => {
     const c = buildingCorners(b);
     return run("component", 0.55, GLOW.building, () => { rect(c, 0); rect(c, b.h); for (const [x, z] of c) seg(V(x, 0, z), V(x, b.h, z)); });
   });
   for (const f of floors) run(f.kind, 0.6, GLOW.slab, () => rect(buildingCorners(f.b, inset), f.y + BUILDING.plate));
-  const at = new Map(B.map((b) => [b.folder, b]));
-  run("component", 0.55, GLOW.line, () => { for (const [f, p] of world.lines) { const a = at.get(f), b = at.get(p); if (a && b) dashes(a.x, a.z, b.x, b.z, 0.02); } }, { joint: 0 });
   const lines = glowLines(T, segs);
   put(lines.mesh, 5);
   owned.push(lines);
   const refill = (r, role = r.role, alpha = r.alpha, w = r.w) => lines.style(r.start, r.count, colourOf(painted, role), alpha, w);
 
-  // The address folder's rings, as a selected tower's: r 4.3 filled --space-hot 8% and stroked 80%, r 5.2 dashed in the kind colour 50%.
-  const rings = new T.Group(), ringPos = [], ringCol = [];
-  // An arc of radius r from angle a to angle b, as one segment.
-  const arc = (r, a, b) => ringPos.push(...V(r * Math.sin(a), 0, r * Math.cos(a)).toArray(), ...V(r * Math.sin(b), 0, r * Math.cos(b)).toArray());
-  for (let i = 0; i < 96; i++) arc(4.3, (2 * Math.PI * i) / 96, (2 * Math.PI * (i + 1)) / 96);
-  const innerCount = ringPos.length / 3, outer = 2 * Math.PI * 5.2, ringDash = 0.0284 * world.ring, ringGap = 0.0426 * world.ring;
-  for (let s = 0; s < outer; s += ringDash + ringGap) arc(5.2, s / 5.2, Math.min(outer, s + ringDash) / 5.2);
-  const ringGeometry = keep(new T.BufferGeometry());
-  ringGeometry.setAttribute("position", new T.Float32BufferAttribute(ringPos, 3));
-  ringGeometry.setAttribute("color", new T.Float32BufferAttribute(new Float32Array((ringPos.length / 3) * 4), 4));
-  const ringLines = keep(new T.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
-  const ringFill = keep(new T.MeshBasicMaterial({ transparent: true, opacity: 0.08, depthWrite: false }));
-  put(new T.Mesh(keep(new T.CircleGeometry(4.3, 64).rotateX(-Math.PI / 2)), ringFill), 1, rings);
-  put(new T.LineSegments(ringGeometry, ringLines), 3, rings);
-  rings.visible = false;
-  group.add(rings);
-  const paintRings = () => {
-    const attr = ringGeometry.attributes.color, hot = new T.Color().setStyle(painted.hot), kind = new T.Color().setStyle(painted.kinds.component);
-    for (let v = 0; v < attr.count; v++) { const c = v < innerCount ? hot : kind; attr.setXYZW(v, c.r, c.g, c.b, v < innerCount ? 0.8 : 0.5); }
-    attr.needsUpdate = true;
-    ringFill.color.setStyle(painted.hot);
+  // The floor (The skyline, How a building looks): each folder's line to the folder it is in, a trace (skylineTraces); each
+  // building's pad, a ring 0.35 outside its footprint, lit for the address folder with a dashed ring 0.8 outside; one geometry
+  // of ribbons.
+  const strips = [], strip = (points, dash = false) => strips.push({ points, dash }) - 1;
+  const outline = (b, out) => { const c = buildingCorners(b, -out); return [...c, c[0]].map(([x, z]) => [x, 0, z]); };
+  const traceStrips = (world.traces ?? []).map((t) => strip(t.points));
+  const pads = B.map((b) => ({ pad: strip(outline(b, TRACE.skyPad)), ring: strip(outline(b, TRACE.skyPad + 0.8), true) }));
+  const floor = ribbons(T, strips);
+  if (floor) { put(floor.mesh, 2); owned.push(floor); }
+  /** Writes a building's pad as it now is: --k-component, and the address folder's lit, with its dashed ring. */
+  const paintPad = (i) => {
+    const c = painted, sel = B[i].folder === marks.sel;
+    floor?.style(pads[i].pad, sel ? c.hot : c.kinds.component, c.kinds.component, sel ? RIBBON.sel : RIBBON.pad);
+    floor?.style(pads[i].ring, c.kinds.component, c.kinds.component, sel ? RIBBON.ring : RIBBON.none);
   };
 
   let marks = { sel: null, hover: null };
@@ -5700,9 +6104,7 @@ function buildSkyline(world, colours) {
       marks = { ...was, ...next };
       for (const f of new Set([was.sel, was.hover, marks.sel, marks.hover])) if (f != null) look(f);
       writeShells();
-      const b = at.get(marks.sel);
-      rings.visible = !!b;
-      if (b) rings.position.copy(V(b.x, 0.02, b.z));
+      for (const f of new Set([was.sel, marks.sel])) if (index.has(f)) paintPad(index.get(f));
     },
     /** The building a ray meets first: { folder, distance }, or null. */
     pick(ray) {
@@ -5722,15 +6124,15 @@ function buildSkyline(world, colours) {
     fade(f) {
       fade = f;
       plates.material.uniforms.fade.value = shells.material.uniforms.fade.value = lines.material.uniforms.fade.value = f;
-      ringLines.opacity = f;
-      ringFill.opacity = 0.08 * f;
+      if (floor) floor.material.uniforms.fade.value = f;
     },
     paint(c) {
       painted = c;
       writePlates();
       for (const r of runs) refill(r);
       for (const f of index.keys()) look(f);
-      paintRings();
+      B.forEach((_, i) => paintPad(i));
+      for (const i of traceStrips) floor.style(i, c.trace, c.traceHalo, RIBBON.trace);
       self.fade(fade);
     },
     dispose() { for (const x of owned) x.dispose(); plates.dispose(); shells.dispose(); },
@@ -6020,8 +6422,9 @@ function streetHud(world) {
   hoverCard().hidden = true;
   if (world) { $("space-crumbs").textContent = ""; streetMap(world); }
 }
-/** The map: the world's bounds in plan, the top of the sheet up, as Flat draws it: plates as rounded rectangles, towers as
- *  5 px squares, beacons as magenta diamonds, and the eye, a dot with its view cone of ±24° reaching 36 units. 232 px wide, or
+/** The map: the world's bounds in plan, the top of the sheet up, as Flat draws it: plates as rounded rectangles, the traces
+ *  as hairlines (violet, magenta where they reach a beacon; the selection's --space-hot), towers as 5 px squares, beacons as
+ *  magenta diamonds, and the eye, a dot with its view cone of ±24° reaching 36 units. 232 px wide, or
  *  152 below 900 px tall, and at most 180 px of plan high. */
 function streetMap(world) {
   const el = $("space-map"), svg = el.querySelector("svg"), B = world.bounds, inner = innerHeight < 900 ? 152 : 232, tall = (180 * inner) / 232;
@@ -6030,6 +6433,7 @@ function streetMap(world) {
   el.className = `hud kind-${world.kind}`;
   svg.setAttribute("width", inner); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${inner} ${H}`);
   svg.innerHTML = world.plates.slice().sort((a, b) => a.depth - b.depth).map((p) => `<rect class="mp" x="${X(p.x0)}" y="${Y(p.z1)}" width="${+((p.x1 - p.x0) * s).toFixed(1)}" height="${+((p.z1 - p.z0) * s).toFixed(1)}" rx="2"/>`).join("")
+    + world.traces.map((t) => `<path class="ml${t.ext ? " out" : ""}" data-from="${esc(t.from)}" data-to="${esc(t.to)}" data-view="${esc(t.view ?? "")}" d="M${t.points.map(([x, , z]) => `${X(x)} ${Y(z)}`).join("L")}"${t.dashed ? ` stroke-dasharray="2 2"` : ""}/>`).join("")
     + world.towers.map((t) => `<rect class="mt" data-key="${esc(t.key)}" data-view="${esc(t.view ?? "")}" x="${X(t.x) - 2.5}" y="${Y(t.z) - 2.5}" width="5" height="5"/>`).join("")
     + world.beacons.map((b) => `<path class="mb" d="M${X(b.x)} ${Y(b.z) - 3.5}l3.5 3.5-3.5 3.5-3.5-3.5z"/>`).join("")
     + `<path class="mc"/><circle class="me" r="4.5"/>`;
@@ -6082,8 +6486,13 @@ function streetFrame() {
     dot.setAttribute("cy", ey);
   }
   if (m.sel !== sel) {
-    for (const r of $("space-map").querySelectorAll(".mt.sel")) r.classList.remove("sel");
-    if (sel != null) $("space-map").querySelector(`.mt[data-key="${CSS.escape(sel)}"][data-view="${CSS.escape(standing.key)}"]`)?.classList.add("sel");
+    for (const r of $("space-map").querySelectorAll(".mt.sel, .ml.lit")) r.classList.remove("sel", "lit");
+    if (sel != null) {
+      const k = CSS.escape(sel), v = CSS.escape(standing.key), map = $("space-map");
+      map.querySelector(`.mt[data-key="${k}"][data-view="${v}"]`)?.classList.add("sel");
+      // The selection's traces, lit; drawn again last among the traces, so they lie over the rest.
+      for (const l of map.querySelectorAll(`.ml[data-view="${v}"]:is([data-from="${k}"], [data-to="${k}"])`)) { l.classList.add("lit"); l.parentNode.insertBefore(l, map.querySelector(".mt, .mb, .mc")); }
+    }
     m.sel = sel;
   }
   // The breadcrumb: the folder's tower, the city, the plate, and the part selected, else the one under the crosshair.
@@ -6182,7 +6591,7 @@ function spaceFocus(now = false) {
 }
 
 /** Selects a part of the city standing (a tower, a plate or a beacon): it lights, its neighbours brighten, the beams between
- *  them light, rings stand round a tower's base, the inspector opens with what Flat shows for it, the address names it (the
+ *  them light, its pad lights with a dashed ring round it, the inspector opens with what Flat shows for it, the address names it (the
  *  history entry is replaced), and the view turns toward it (spaceLook). `quiet`: the address already does. `now`: the city
  *  was just stood, so the camera goes there at once. `look` false: the part is ahead already (Enter at the street's
  *  crosshair). A part of a city standing beside the one in the address (`view`) makes that city's view the address's first
@@ -6403,7 +6812,7 @@ $("space-parts").addEventListener("focusout", (e) => { if (!$("space-parts").con
 $("space-parts").addEventListener("click", (e) => { const at = spaceItems[+e.target.closest("button")?.dataset.part]?.at; if (at) spaceAct(at); });
 
 /** Hover and click in a city, the street, the tower and the skyline. What is under the pointer is found at most once a frame.
- *  In a city a tower or beacon gets state hover and a beam thickens, each showing its tooltip as Flat places it (in the street
+ *  In a city a tower or beacon gets state hover and a trace on the floor (or a lit beam) lights, each showing its tooltip as Flat places it (in the street
  *  a tower or beacon shows the hover card instead), and the cursor says it can be selected; a click selects it (in whichever
  *  city stands it), and a click on empty ground clears the selection. In the street Enter selects what is under the
  *  crosshair. In the tower a floor under the pointer lights its edges and its label; a click is towerClick's, and a
