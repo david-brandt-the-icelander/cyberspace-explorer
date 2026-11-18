@@ -809,24 +809,183 @@ test("Tab walks a city's parts along its flow, a rank at a time, a plate before 
 
 test("a city's draw calls are counted from its world, as buildCity draws it", () => {
   const beam = (from, to) => ({ from, to });
-  // The component city of this repository: plates, towers, beacons, their edges, the discs under beacons, the beams and their dots.
-  const component = { plates: [{}], towers: [{ alt: false }], beacons: [{}], markers: [], beams: [beam("a", "b")] };
-  assert.equal(cityCalls(component), 7);
-  // A state machine: towers, their edges, the start point, the beams and their dots.
-  assert.equal(cityCalls({ plates: [], towers: [{ alt: false }], beacons: [], markers: [{}], beams: [beam("s", "a"), beam("a", "a")] }), 5);
-  // A use case: an alternative outcome's dashed edges are glow lines like the rest, and no dots where every beam is a loop.
-  assert.equal(cityCalls({ plates: [], towers: [{ alt: false }, { alt: true }], beacons: [], markers: [], beams: [beam("a", "a")] }), 3);
+  // The component city of this repository: the glass of its plates, towers and beacons, their edges, and its ribbons.
+  const component = { plates: [{}], towers: [{ alt: false }], beacons: [{}], markers: [], beams: [beam("a", "b")], traces: [beam("a", "b")] };
+  assert.equal(cityCalls(component), 5);
+  // A state machine: towers, their edges, and the ribbons (traces, pads, the start point).
+  assert.equal(cityCalls({ plates: [], towers: [{ alt: false }], beacons: [], markers: [{}], beams: [beam("s", "a"), beam("a", "a")], traces: [beam("s", "a"), beam("a", "a")] }), 3);
+  // A use case: an alternative outcome's dashed edges are glow lines like the rest; a city of towers alone still has their pads.
+  assert.equal(cityCalls({ plates: [], towers: [{ alt: false }, { alt: true }], beacons: [], markers: [], beams: [], traces: [] }), 3);
 });
 
-test("the Layers panel keeps a city scene within 40 draw calls, with a selection and a beam under the pointer", () => {
+test("the Layers panel keeps a city scene within 40 draw calls, with a selection and a trace under the pointer", () => {
   assert.equal(DRAW_BUDGET, 40);
-  // This repository's views of 2026-11-15: component 7, deployment 7, four state machines 5 each; the sky and the floor 2.
-  const standing = [7, 7, 5, 5];
-  assert.ok(layerFits(standing, 5), "the fifth fits: 29 standing, 37 at most");
-  assert.ok(!layerFits([...standing, 5], 5), "the sixth would pass 40 with a part selected");
+  // This repository's drawn views of 2026-11-16: component 5, deployment 5, four state machines 3 each, a use case and a user
+  // journey 3 each; the scene keeps 4, the sky, the floor and the lit beams' core and glow. All of them stand in 32.
+  const standing = [5, 5, 3, 3, 3, 3, 3];
+  assert.ok(layerFits(standing, 3), "the last one fits: 28 standing, 32 with a part selected");
+  assert.ok(layerFits([5, 5, 5, 5, 5, 5, 3], 3));
+  assert.ok(!layerFits([5, 5, 5, 5, 5, 5, 3], 5), "one more component city would pass 40 with a part selected");
   // A view standing in the place of another counts only the difference.
-  assert.ok(layerFits([...standing, 5], 5, 5));
-  assert.ok(!layerFits([31], 2));
+  assert.ok(layerFits([5, 5, 5, 5, 5, 5, 3], 5, 3));
+  assert.ok(!layerFits([33], 4));
+});
+
+// ── Traces on the floor (G2) ─────────────────────────────────────────────
+
+const { traceAt, TRACE } = vm.runInContext("({ traceAt, TRACE })", context);
+const COMPONENT = JSON.parse(await readFile(new URL("./fixtures/space/component-city.json", import.meta.url), "utf8"));
+/** The fixture's layout as layout() returns it: boxes by key and dagre's points on each edge, in sheet px. */
+const fixtureSheet = (F) => ({ w: F.L.w, h: F.L.h, box: new Map(Object.entries(F.L.box).map(([k, [x, y, w, h]]) => [k, { x, y, w, h }])), edges: F.L.edges.map((e) => ({ key: e.key, pts: e.pts.map(([x, y]) => ({ x, y })) })) });
+/** A trace's runs: each pair of its points, flat ones (along x or z) and climbs (a wall's vertical). */
+const runsOf = (t) => [...t.points].slice(1).map((q, i) => [t.points[i], q]);
+const axis = ([p, q]) => [0, 1, 2].filter((k) => Math.abs(p[k] - q[k]) > 1e-9);
+/** Runs of a trace through a tower's footprint, other than its own ends'. */
+const through = (w, t) => [...w.towers].filter((o) => o.key !== t.from && o.key !== t.to && runsOf(t).some(([p, q]) => {
+  const s = o.side / 2;
+  return Math.max(p[0], q[0]) > o.x - s && Math.min(p[0], q[0]) < o.x + s && Math.max(p[2], q[2]) > o.z - s && Math.min(p[2], q[2]) < o.z + s;
+})).map((o) => o.key);
+/** Whether a point stands on a square pad's ring. */
+const onPad = (p, pad) => near(Math.max(Math.abs(p[0] - pad.x), Math.abs(p[2] - pad.z)), pad.half, 1e-6) && near(p[1], pad.y, 1e-6);
+
+test("this repository's component city routes a trace per beam along dagre's points, every run square, clear of towers, pad to pad", () => {
+  const w = cityWorldFrom({ nodes: COMPONENT.nodes, edges: COMPONENT.edges, dir: COMPONENT.dir }, fixtureSheet(COMPONENT), COMPONENT.kind, COMPONENT.dir);
+  assert.deepEqual(w.traces.map((t) => t.key), w.beams.map((b) => b.key));
+  assert.equal(w.traces.length, 40);
+  const pad = (key) => w.pads.find((p) => p.key === key && p.kind !== "plate"), plates = new Set(w.plates.map((p) => p.key));
+  for (const t of w.traces) {
+    // Along x, along z, or up a plate's wall: one axis a run.
+    for (const r of runsOf(t)) assert.equal(axis(r).length, 1, `${t.key}: ${JSON.stringify(r)}`);
+    assert.deepEqual(through(w, t), [], t.key);
+    // From a pin on the source's pad to a pin on the target's; a plate is reached at a pad of its own on its top.
+    for (const [key, p] of [[t.from, t.points[0]], [t.to, t.points[t.points.length - 1]]]) {
+      if (plates.has(key)) assert.ok(w.pads.some((q) => q.key === key && q.kind === "plate" && near(q.x, p[0]) && near(q.z, p[2]) && near(q.y, p[1])), `${t.key} at ${key}`);
+      else assert.ok(onPad(p, pad(key)), `${t.key} at ${key}`);
+    }
+  }
+  // A pad per tower, its footprint grown by 0.25, and a 2 × 2 one under each beacon.
+  for (const t of w.towers) assert.ok(near(pad(t.key).half, t.side / 2 + 0.25) && near(pad(t.key).y, t.base));
+  for (const b of w.beacons) assert.ok(near(pad(b.key).half, 1) && pad(b.key).y === 0);
+  // Loader's five outgoing traces leave its downstream side (+x, the layout running left to right), 0.3 apart, ordered by where
+  // they head: the one heading furthest back (+z) from the back of the side.
+  const loader = pad("loader"), out = w.traces.filter((t) => t.from === "loader");
+  assert.equal(out.length, 5);
+  for (const t of out) assert.ok(near(t.points[0][0], loader.x + loader.half), t.key);
+  const pins = out.map((t) => t.points[0][2]), heads = out.map((t) => (t.points[2] ?? t.points[t.points.length - 1])[2]);
+  const byPin = out.map((_, i) => i).sort((a, b) => pins[b] - pins[a]), byHead = out.map((_, i) => i).sort((a, b) => heads[b] - heads[a]);
+  assert.deepEqual(byPin, byHead);
+  const sorted = pins.slice().sort((a, b) => a - b);
+  for (let i = 1; i < sorted.length; i++) assert.ok(near(sorted[i] - sorted[i - 1], 0.3, 1e-9));
+  assert.ok(near((sorted[0] + sorted[4]) / 2, loader.z, 1e-9), "round the side's middle");
+});
+
+// A part on a plate nested in a plate; two parts on the ground, one with a loop and one with two; a beacon; three edges
+// between the same two parts, with dagre's points alike.
+const ROUTED = {
+  dir: "LR",
+  nodes: [
+    { key: "outer", cluster: true, label: "Outer", info: {} },
+    { key: "inner", cluster: true, label: "Inner", parent: "outer", info: {} },
+    leaf("n", { parent: "inner" }), leaf("a"), leaf("b"), leaf("x", { ext: true }),
+  ],
+  edges: [edge("l1", "a", "a"), edge("l2", "b", "b"), edge("l3", "b", "b"), edge("e1", "a", "x"), edge("e2", "n", "a"), edge("p1", "a", "b"), edge("p2", "a", "b"), edge("p3", "a", "b")],
+};
+const ROUTED_L = {
+  ...sheet({ outer: [250, 400, 360, 360], inner: [250, 400, 220, 220], n: [250, 400, 100, 48], a: [640, 400, 100, 48], b: [1000, 400, 100, 48], x: [1000, 120, 100, 48] }, 1200, 800),
+  edges: [
+    { key: "e1", pts: [{ x: 690, y: 390 }, { x: 820, y: 200 }, { x: 950, y: 130 }] },
+    { key: "e2", pts: [{ x: 300, y: 400 }, { x: 590, y: 400 }] },
+    ...["p1", "p2", "p3"].map((key) => ({ key, pts: [{ x: 690, y: 400 }, { x: 820, y: 480 }, { x: 950, y: 400 }] })),
+  ],
+};
+
+test("loops are hairpins downstream, a beacon is reached at its pad, a nested part climbs both walls, parallel traces take lanes", () => {
+  const w = cityWorldFrom(ROUTED, ROUTED_L, "component", "LR"), tr = (k) => w.traces.find((t) => t.key === k), pad = (k) => w.pads.find((p) => p.key === k);
+  assert.equal(w.traces.length, 8);
+  // A loop leaves the pad's downstream side 0.18 above its middle, runs 0.6 out, across, and back in 0.18 below; a second loop
+  // on the same part stands 0.3 further out and 0.12 wider.
+  const a = pad("a"), b = pad("b"), l1 = tr("l1"), l2 = tr("l2"), l3 = tr("l3");
+  assert.equal(l1.self, true);
+  assert.deepEqual([...l1.points].map((p) => [+(p[0] - a.x).toFixed(6), +(p[2] - a.z).toFixed(6)]), [[a.half, 0.18], [a.half + 0.6, 0.18], [a.half + 0.6, -0.18], [a.half, -0.18]].map(([x, z]) => [+x.toFixed(6), +z.toFixed(6)]));
+  const outOf = (t) => Math.max(...t.points.map((p) => p[0])) - b.x, wide = (t) => Math.max(...t.points.map((p) => p[2])) - b.z;
+  assert.ok(near(outOf(l3) - outOf(l2), 0.3) && near(wide(l3) - wide(l2), 0.12));
+  // The beacon's trace ends on the 2 × 2 pad on the floor under it, and is magenta.
+  const e1 = tr("e1"), x = pad("x");
+  assert.equal(x.half, 1);
+  assert.ok(onPad(e1.points[e1.points.length - 1], x) && e1.ext);
+  // The part on the nested plate: its trace drops down the inner plate's wall, then the outer one's, and reaches a on the ground.
+  const e2 = tr("e2"), climbs = runsOf(e2).filter((r) => axis(r)[0] === 1 && axis(r).length === 1);
+  assert.deepEqual(climbs.map(([p, q]) => [p[1], q[1]]), [[1, 0.5], [0.5, 0]]);
+  assert.equal(e2.points[0][1], 1);
+  // The three parallel traces take three lanes 0.3 apart where they run together along the flow.
+  const middle = ["p1", "p2", "p3"].map((k) => runsOf(tr(k)).slice(1, -1).filter((r) => axis(r)[0] === 0).sort((r, s) => Math.abs(s[1][0] - s[0][0]) - Math.abs(r[1][0] - r[0][0]))[0][0][2]).sort((m, n) => m - n);
+  assert.ok(near(middle[1] - middle[0], 0.3, 1e-9) && near(middle[2] - middle[1], 0.3, 1e-9), JSON.stringify(middle));
+  for (const t of w.traces) assert.deepEqual(through(w, t), [], t.key);
+});
+
+test("without a layout each trace is one Z between its pins, or where that crosses a tower two by a street clear of towers", () => {
+  // Nine parts in rows of three, 5 units apart: a0 a1 a2 / b0 b1 b2 / c0 c1 c2.
+  const keys = ["a0", "a1", "a2", "b0", "b1", "b2", "c0", "c1", "c2"];
+  const model = { dir: "LR", nodes: keys.map((k) => leaf(k)), edges: [edge("next", "a0", "a1"), edge("far", "a0", "a2"), edge("down", "a0", "c2"), edge("back", "c2", "a0"), edge("col", "a1", "c1")] };
+  const w = cityWorldFrom(model, null, "component", "LR"), tr = (k) => w.traces.find((t) => t.key === k);
+  for (const t of w.traces) {
+    assert.deepEqual(through(w, t), [], t.key);
+    for (const r of runsOf(t)) assert.equal(axis(r).length, 1, t.key);
+  }
+  // Next door: one Z (here a straight line, the two pins facing each other in one row).
+  assert.ok(runsOf(tr("next")).length <= 3);
+  // Two along, in the same row: the Z would run through a1, so it goes round by the street beside the row.
+  assert.equal(runsOf(tr("far")).length, 5);
+  assert.ok(runsOf(tr("col")).length <= 3);
+});
+
+test("the skyline's lines to parent folders are traces square to the rings, siblings in lanes 0.35 apart that never cross", () => {
+  const w = skyline(RETRO.folders), by = new Map(w.buildings.map((b) => [b.folder, b]));
+  assert.equal(w.traces.length, 92);
+  assert.deepEqual(new Set(w.traces.map((t) => t.key)), new Set(w.buildings.filter((b) => b.parent !== null).map((b) => b.folder)));
+  const radius = (p) => Math.hypot(p[0], p[2]), turn = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+  const lanes = new Map();
+  for (const t of w.traces) {
+    const b = by.get(t.from), p = by.get(t.to);
+    assert.equal(p.folder, b.parent);
+    // Each run along a radius (both ends on one line through the centre) or round a ring (both ends as far from it).
+    for (const [s, e] of runsOf(t)) {
+      const radial = Math.abs(s[0] * e[2] - s[2] * e[0]) < 1e-4 && s[0] * e[0] + s[2] * e[2] >= 0, round = Math.abs(radius(s) - radius(e)) < 1e-4;
+      assert.ok(radial || round, `${t.key}: ${JSON.stringify([s, e])}`);
+    }
+    // It starts at the side of the folder's pad facing the centre, and ends at its parent's pad.
+    assert.ok(near(radius(t.points[0]), 20 * b.depth - 3.35, 1e-5), t.key);
+    if (p.depth) {
+      assert.ok(near(radius(t.points[t.points.length - 1]), 20 * p.depth + 3.35, 1e-5), t.key);
+      const lane = radius(t.points[1]);
+      if (!lanes.has(p.folder)) lanes.set(p.folder, []);
+      lanes.get(p.folder).push({ b, lane, sweep: turn(p.angle - b.angle) });
+    }
+  }
+  let shared = 0;
+  for (const kids of lanes.values()) {
+    if (kids.length < 2) continue;
+    shared++;
+    const rs = kids.map((k) => k.lane).sort((m, n) => m - n);
+    for (let i = 1; i < rs.length; i++) assert.ok(near(rs[i] - rs[i - 1], 0.35, 1e-5));
+    // No sibling's run in crosses another's run round: a run round that spans a sibling's angle is on a lane inside its.
+    for (const i of kids) for (const j of kids) if (i !== j && Math.abs(turn(i.b.angle - (j.b.angle))) < Math.abs(j.sweep) && Math.sign(turn(i.b.angle - j.b.angle)) === Math.sign(j.sweep)) assert.ok(j.lane < i.lane, `${j.b.folder} round past ${i.b.folder}`);
+  }
+  assert.ok(shared > 5);
+  // A folder of the first ring goes straight in to the root's pad.
+  const games = w.traces.find((t) => t.key === "games");
+  assert.equal(games.points.length, 2);
+});
+
+test("traceAt finds the trace nearest a point within 0.3, and none further", () => {
+  const w = { traces: [{ key: "a", points: [[0, 0, 0], [4, 0, 0], [4, 0, 3]] }, { key: "b", points: [[0, 0.5, 1], [4, 0.5, 1]] }] };
+  assert.equal(TRACE.near, 0.3);
+  assert.equal(traceAt(w, 2, 0.2).key, "a");
+  assert.equal(traceAt(w, 2, 0.75).key, "b");
+  assert.equal(traceAt(w, 4.25, 2).key, "a");
+  assert.equal(traceAt(w, 2, 0.5), null);
+  assert.equal(traceAt(w, 4.4, 0), null);
+  assert.equal(traceAt({ traces: [] }, 0, 0), null);
 });
 
 // ── The token blocks and the labels' contrast: Flat and Cyberspace in light and dark (decision theme-switch) ──

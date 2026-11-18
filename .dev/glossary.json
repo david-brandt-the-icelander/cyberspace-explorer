@@ -123,7 +123,7 @@
     {
       "id": "city",
       "title": "City",
-      "summary": "One drawn view in Cyberspace, standing on the ground where the flat drawing lays it out: groups are plates, parts are towers, outside services are beacons and the lines between parts are beams."
+      "summary": "One drawn view in Cyberspace, standing on the ground where the flat drawing lays it out: groups are plates, parts are towers, outside services are beacons and the lines between parts are traces on the floor, which rise as beams while their part is selected."
     },
     {
       "id": "city-plate",
@@ -136,7 +136,7 @@
     {
       "id": "tower",
       "title": "Tower",
-      "summary": "A part in a city, as a glass tower on its plate: the more beams it has, the taller it stands.",
+      "summary": "A part in a city, as a glass tower on its plate, on a pad: the more relationships it has, the taller it stands.",
       "notToBeConfusedWith": [
         "Folder tower"
       ]
@@ -144,12 +144,29 @@
     {
       "id": "beacon",
       "title": "Beacon",
-      "summary": "An outside service in a city of a component or deployment diagram: a magenta glass diamond floating over the floor, a glowing uplink under it."
+      "summary": "An outside service in a city of a component or deployment diagram: a magenta glass diamond floating over the floor, a glowing uplink under it from its 2 × 2 pad, where its traces end."
     },
     {
       "id": "beam",
       "title": "Beam",
-      "summary": "A line between two parts in a city, as an arc of light from one to the other; a part's own transition is a ring on its top."
+      "summary": "A relationship between two parts in a city, risen as an arc of light from one to the other while one of them is selected (its trace lit on the floor under it); a part's own transition is a ring on its top. On the floor every relationship is a trace."
+    },
+    {
+      "id": "trace",
+      "title": "Trace",
+      "summary": "A relationship between two parts in a city, drawn as a glowing circuit trace on the floor, from a pin on one part's pad to a pin on the other's: square turns along the route the flat drawing gives the line, in lanes where several share a street, up and down plates' walls. Violet between two parts, magenta where one end is a beacon, dashed where the relationship is; --space-hot while lit, when its part is selected or the pointer is over it. In the skyline, each folder's line to the folder it is in.",
+      "aliases": [
+        "Floor trace",
+        "Circuit trace"
+      ],
+      "notToBeConfusedWith": [
+        "Beam"
+      ]
+    },
+    {
+      "id": "pad",
+      "title": "Pad",
+      "summary": "The square ring on the floor round a part's base in a city, its footprint grown by 0.25 (a beacon's a 2 × 2 square under it), where its traces start and end at pins on the side facing their way; in the kind colour, brighter for a neighbour of the part selected, --space-hot for the selected part's, with a dashed ring round it. A final state's has a second ring; a trace reaching a plate ends on a small pad of its own on its top. In the skyline, each building has one."
     },
     {
       "id": "folder-tower",
