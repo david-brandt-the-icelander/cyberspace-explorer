@@ -311,6 +311,22 @@
     {
       "path": "index.html",
       "symbol": "spaceFog"
+    },
+    {
+      "path": "index.html",
+      "symbol": "applyTheme"
+    },
+    {
+      "path": "index.html",
+      "symbol": "retheme"
+    },
+    {
+      "path": "index.html",
+      "symbol": "local"
+    },
+    {
+      "path": "vscode/src/extension.js",
+      "symbol": "activate"
     }
   ],
   "components": [
@@ -393,6 +409,12 @@
       "folder": "."
     },
     {
+      "id": "workspace-adapter",
+      "name": "Workspace adapter",
+      "responsibility": "Lists and reads the views a host page hands over in window.cyberspaceWorkspace (the VS Code extension's workspace folder), with no token and no ?url=.",
+      "folder": "."
+    },
+    {
       "id": "loader",
       "name": "Loader",
       "responsibility": "Finds the .dev/*.json files under the folder asked for (or, where the root has a .cyberspace-explorer folder, the files in it, and nothing else), reads twelve at a time, keeps the views and knowledge files it knows and sorts each folder's files by kind.",
@@ -461,7 +483,7 @@
     {
       "id": "cyberspace",
       "name": "Cyberspace",
-      "responsibility": "The second way in: the repository in 3D, under a black-to-indigo sky on a glossy black floor, in place of the folder column and view; always dark, whatever the system's setting, with the whole window in the page's dark colours while it shows. A folder opens as a tower of glass floors, one per .dev file, with a drawn view pulled out and its city small on it; entering that floor flies down into the city, and Esc flies back up. A drawn view stands as a city of cyan glass towers with glowing edges in its kind's colour and magenta beacons on the flat layout's ground plan; clicking a tower, plate or beacon selects it, lights its beams and neighbours, opens the inspector on it and puts it in the address. Above the towers, a repository with several folders is a skyline of buildings, one per folder, that the reader rises to and flies into. A city can stand other drawn views of its folder beside it. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
+      "responsibility": "The second way in: the repository in 3D, under a black-to-indigo sky on a glossy black floor by night, or a pale sky on a near-white floor by day, in place of the folder column and view; it follows the theme and repaints in place when it changes. A folder opens as a tower of glass floors, one per .dev file, with a drawn view pulled out and its city small on it; entering that floor flies down into the city, and Esc flies back up. A drawn view stands as a city of cyan glass towers with glowing edges in its kind's colour and magenta beacons on the flat layout's ground plan; clicking a tower, plate or beacon selects it, lights its beams and neighbours, opens the inspector on it and puts it in the address. Above the towers, a repository with several folders is a skyline of buildings, one per folder, that the reader rises to and flies into. A city can stand other drawn views of its folder beside it. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
       "folder": "."
     },
     {
@@ -491,7 +513,13 @@
     {
       "id": "hud",
       "name": "HUD",
-      "responsibility": "The panels over the scene, in Cyberspace's own colours (--space-panel, --space-rule, --space-pill, --space-hot) over the page's dark ones: over a city, the camera controls (orbit, pan, walk, zoom in and out, fit everything) and the legend, worded for the kind of view; over the tower, the folder's card (its name, path, purpose, counts of drawn, written and knowledge files, and the folders inside it) and the pulled-out floor's (its view, what its city holds, Enter the city and Slide back); in the street, in place of the city's, the breadcrumb (folder, view, plate and the part selected or ahead), the key hints, the map (plates, towers, beacons and the eye with its view cone; a click flies the eye there), the hover card by the part under the pointer (never under the inspector), a crosshair and a vignette. Over a city, the Layers panel on the left: the folder's views by kind, a tick box for a drawn view with a city of its own, radio buttons for a file's use cases or journeys, written and knowledge views listed but disabled. Over the tower, See the skyline, and the folders inside folded into a chip that opens it. Over the skyline, the address folder's card with what the repository holds and Enter <its title>, the camera controls with Walk off, the legend, and the street's hover card by a building, clear of the folder card. From the keyboard: a visually hidden list after the canvas, a button per part, floor or building, named after it, which Tab walks in the order of the flow and which lights what it names and does what a click does on Enter; and, per scene, what the scene shows and how to move in it, for screen readers. The Layers panel disables a view whose city would take the scene past 40 draw calls; below 1280 px wide it folds into a 40 px button that opens it as a popover, and the legend shows its icons alone.",
+      "responsibility": "The panels over the scene, in Cyberspace's own colours (--space-panel, --space-rule, --space-pill, --space-hot): over a city, the camera controls (orbit, pan, walk, zoom in and out, fit everything) and the legend, worded for the kind of view; over the tower, the folder's card (its name, path, purpose, counts of drawn, written and knowledge files, and the folders inside it) and the pulled-out floor's (its view, what its city holds, Enter the city and Slide back); in the street, in place of the city's, the breadcrumb (folder, view, plate and the part selected or ahead), the key hints, the map (plates, towers, beacons and the eye with its view cone; a click flies the eye there), the hover card by the part under the pointer (never under the inspector), a crosshair and a vignette. Over a city, the Layers panel on the left: the folder's views by kind, a tick box for a drawn view with a city of its own, radio buttons for a file's use cases or journeys, written and knowledge views listed but disabled. Over the tower, See the skyline, and the folders inside folded into a chip that opens it. Over the skyline, the address folder's card with what the repository holds and Enter <its title>, the camera controls with Walk off, the legend, and the street's hover card by a building, clear of the folder card. From the keyboard: a visually hidden list after the canvas, a button per part, floor or building, named after it, which Tab walks in the order of the flow and which lights what it names and does what a click does on Enter; and, per scene, what the scene shows and how to move in it, for screen readers. The Layers panel disables a view whose city would take the scene past 40 draw calls; below 1280 px wide it folds into a 40 px button that opens it as a popover, and the legend shows its icons alone.",
+      "folder": "."
+    },
+    {
+      "id": "theme",
+      "name": "Theme switch",
+      "responsibility": "System, Light or Dark in the bar: sets html[data-theme] before the first paint and whenever the choice or the system changes, keeps a choice in localStorage, and hides when a host owns the theme; Cyberspace repaints when it changes.",
       "folder": "."
     },
     {
@@ -512,6 +540,13 @@
       "responsibility": "Serves the page at cyberspace-explorer.com, signs readers in with GitHub and reads GitHub for them with their token, which never reaches the page.",
       "folder": "worker",
       "diagram": "worker/.dev/component-diagram.json"
+    },
+    {
+      "id": "vscode",
+      "name": "VS Code extension",
+      "responsibility": "Shows this page in a VS Code webview for a workspace folder, hands it the folder's views and the editor's theme, and opens the files it links to.",
+      "folder": "vscode",
+      "diagram": "vscode/.dev/component-diagram.json"
     },
     {
       "id": "dagre",
@@ -934,6 +969,42 @@
       "to": "github",
       "kind": "depends-on",
       "description": "Signs readers in at github.com and reads api.github.com with their token."
+    },
+    {
+      "from": "bar",
+      "to": "theme",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "theme",
+      "to": "storage",
+      "kind": "depends-on",
+      "description": "Keeps a Light or Dark choice."
+    },
+    {
+      "from": "theme",
+      "to": "cyberspace",
+      "kind": "depends-on",
+      "description": "Has it repaint in the new theme."
+    },
+    {
+      "from": "reading",
+      "to": "workspace-adapter",
+      "kind": "contains",
+      "description": "Part of it."
+    },
+    {
+      "from": "loader",
+      "to": "workspace-adapter",
+      "kind": "depends-on",
+      "description": "Lists and reads a workspace a host serves."
+    },
+    {
+      "from": "vscode",
+      "to": "screen",
+      "kind": "depends-on",
+      "description": "Shows the page in a webview, with the workspace and the theme."
     }
   ],
   "folder": "."

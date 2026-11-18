@@ -4,7 +4,7 @@ The design that [the Cyberspace spec](../cyberspace-mode-spec.md) implements. Th
 
 ## The Gibson look: artboards 11 to 15
 
-On 2026-11-15 the owner chose a new look for Cyberspace, after the Gibson in *Hackers* (1995): always dark; cyan glass towers whose faces carry their own record; relationships as glowing circuit traces on a black, glossy floor, rising as arcs when their part is selected; the kind colour as an accent. Decision `space-gibson-look` in [.dev/decisions.json](../../.dev/decisions.json) records it (the owner accepted these artboards on 2026-11-15, after asking for thinner lines at the buildings' edges), the spec's *Rendering* says how it is drawn, and plan `cyberspace-gibson` in [.dev/plan.json](../../.dev/plan.json) builds it.
+On 2026-11-15 the owner chose a new look for Cyberspace, after the Gibson in *Hackers* (1995): dark (and, since 2026-11-18, a day version in light mode); cyan glass towers whose faces carry their own record; relationships as glowing circuit traces on a black, glossy floor, rising as arcs when their part is selected; the kind colour as an accent. Decision `space-gibson-look` in [.dev/decisions.json](../../.dev/decisions.json) records it (the owner accepted these artboards on 2026-11-15, after asking for thinner lines at the buildings' edges), the spec's *Rendering* says how it is drawn, and plan `cyberspace-gibson` in [.dev/plan.json](../../.dev/plan.json) builds it.
 
 | Scene | Artboard | Render |
 | --- | --- | --- |
@@ -28,7 +28,7 @@ The prototype also measured the look's cost; the numbers are in the spec's *Perf
 
 ## The first look: artboards 1 to 10
 
-The scenes as they were designed on 2026-11-13 and built in steps 1 to 7. Their geometry, cameras and panels still hold where artboards 11 to 15 don't say otherwise; their colours are history. Artboards 4 to 6, light mode, are superseded: Cyberspace is always dark.
+The scenes as they were designed on 2026-11-13 and built in steps 1 to 7. Their geometry, cameras and panels still hold where artboards 11 to 15 don't say otherwise; their colours are history. Artboards 4 to 6, light mode, are superseded. Since 2026-11-18 Cyberspace has a light mode again, the Gibson look by day (decision `theme-switch`); no artboard draws it yet, and the spec's *Palette* gives its colours.
 
 | Scene | Artboard | Render |
 | --- | --- | --- |

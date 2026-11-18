@@ -1,0 +1,44 @@
+{
+  "name": "cyberspace-explorer",
+  "displayName": "Cyberspace Explorer",
+  "description": "Browse the workspace's .dev architecture views, flat or as a 3D city, inside VS Code.",
+  "version": "0.1.0",
+  "publisher": "icelander",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": { "type": "git", "url": "https://github.com/david-brandt-the-icelander/cyberspace-explorer", "directory": "vscode" },
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Visualization", "Other"],
+  "keywords": ["architecture", "diagrams", "c4", ".dev", "3d"],
+  "icon": "media/icon.png",
+  "main": "./src/extension.js",
+  "activationEvents": ["onWebviewPanel:cyberspaceExplorer"],
+  "contributes": {
+    "commands": [
+      { "command": "cyberspaceExplorer.open", "title": "Open", "category": "Cyberspace Explorer" },
+      { "command": "cyberspaceExplorer.openSpace", "title": "Open in Cyberspace (3D)", "category": "Cyberspace Explorer" },
+      { "command": "cyberspaceExplorer.openFolder", "title": "Open in Cyberspace Explorer" },
+      { "command": "cyberspaceExplorer.reload", "title": "Reload", "category": "Cyberspace Explorer" }
+    ],
+    "menus": {
+      "explorer/context": [{ "command": "cyberspaceExplorer.openFolder", "when": "explorerResourceIsFolder", "group": "navigation@90" }],
+      "commandPalette": [{ "command": "cyberspaceExplorer.openFolder", "when": "false" }]
+    },
+    "configuration": {
+      "title": "Cyberspace Explorer",
+      "properties": {
+        "cyberspaceExplorer.theme": {
+          "type": "string",
+          "enum": ["auto", "light", "dark"],
+          "enumDescriptions": ["Follow VS Code's colour theme.", "Always light.", "Always dark."],
+          "default": "auto",
+          "description": "The explorer's colour theme, in Flat and in Cyberspace."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "node scripts/copy-page.js",
+    "test": "node --test test/*.test.js",
+    "package": "npx --yes @vscode/vsce@3 package"
+  }
+}

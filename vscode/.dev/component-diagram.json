@@ -1,0 +1,118 @@
+{
+  "$schema": "../../Meta/Agents/Skills/describe-component-diagram/schema.json",
+  "kind": "component",
+  "title": "Cyberspace Explorer for VS Code",
+  "folder": "vscode",
+  "description": "The extension's parts: its commands, the panel per workspace folder, the page builder that turns index.html into a webview page, and what they use in VS Code and on disk.",
+  "sources": [
+    {
+      "path": "vscode/src/extension.js",
+      "symbol": "activate"
+    },
+    {
+      "path": "vscode/src/extension.js",
+      "symbol": "open"
+    },
+    {
+      "path": "vscode/src/extension.js",
+      "symbol": "adopt"
+    },
+    {
+      "path": "vscode/src/extension.js",
+      "symbol": "render"
+    },
+    {
+      "path": "vscode/src/extension.js",
+      "symbol": "openFile"
+    },
+    {
+      "path": "vscode/src/page.js",
+      "symbol": "webviewHtml"
+    },
+    {
+      "path": "vscode/src/page.js",
+      "symbol": "bootstrap"
+    },
+    {
+      "path": "vscode/src/page.js",
+      "symbol": "themeFor"
+    }
+  ],
+  "components": [
+    {
+      "id": "commands",
+      "name": "Commands",
+      "responsibility": "Open, Open in Cyberspace (3D), Open in Cyberspace Explorer on a folder, Reload, and the openFile command the page's links run.",
+      "folder": "vscode"
+    },
+    {
+      "id": "panels",
+      "name": "Panels",
+      "responsibility": "One webview panel per workspace folder: lists its view files, renders the page, keeps the address it is at, reloads when a view file changes, sends a new theme, and comes back after a restart.",
+      "folder": "vscode"
+    },
+    {
+      "id": "page-builder",
+      "name": "Page builder",
+      "responsibility": "Turns index.html into the webview's page: a content security policy, a nonce on every script, and a first script that hands it the workspace, the theme and the address.",
+      "folder": "vscode"
+    },
+    {
+      "id": "page",
+      "name": "Cyberspace explorer page",
+      "responsibility": "The explorer itself, reading the workspace through its workspace adapter.",
+      "folder": ".",
+      "diagram": ".dev/component-diagram.json"
+    },
+    {
+      "id": "vscode-api",
+      "name": "VS Code",
+      "responsibility": "The editor: webviews, the workspace's files and watchers, the colour theme and settings, and editors to open files in.",
+      "external": true
+    },
+    {
+      "id": "jsdelivr",
+      "name": "jsDelivr",
+      "responsibility": "Serves the page's typefaces, dagre and three.js.",
+      "external": true
+    }
+  ],
+  "relationships": [
+    {
+      "from": "commands",
+      "to": "panels",
+      "kind": "depends-on",
+      "description": "Opens or reveals the panel for a folder, at an address."
+    },
+    {
+      "from": "panels",
+      "to": "page-builder",
+      "kind": "depends-on",
+      "description": "Builds the page for the folder's views and the theme."
+    },
+    {
+      "from": "page-builder",
+      "to": "page",
+      "kind": "depends-on",
+      "description": "Wraps index.html."
+    },
+    {
+      "from": "panels",
+      "to": "vscode-api",
+      "kind": "depends-on",
+      "description": "Finds and watches view files, follows the colour theme, shows the webview."
+    },
+    {
+      "from": "page",
+      "to": "commands",
+      "kind": "depends-on",
+      "description": "Opens a file through a command link."
+    },
+    {
+      "from": "page",
+      "to": "jsdelivr",
+      "kind": "depends-on",
+      "description": "Loads the typefaces, dagre and three.js."
+    }
+  ]
+}

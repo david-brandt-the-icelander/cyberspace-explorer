@@ -1,0 +1,94 @@
+{
+  "$schema": "../../Meta/Agents/Skills/describe-deployment-diagram/schema.json",
+  "kind": "deployment",
+  "title": "Where the extension runs",
+  "folder": "vscode",
+  "description": "A .vsix installed in VS Code: the extension runs in the extension host and the page in a webview, which reads the workspace's files through VS Code and loads its libraries from jsDelivr.",
+  "sources": [
+    {
+      "path": "vscode/package.json",
+      "symbol": "vscode:prepublish"
+    },
+    {
+      "path": "vscode/src/extension.js",
+      "symbol": "adopt"
+    },
+    {
+      "path": "vscode/src/page.js",
+      "symbol": "csp"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "vscode",
+      "name": "VS Code",
+      "kind": "client",
+      "description": "VS Code 1.85 or later, desktop or web, with the extension installed from a .vsix."
+    },
+    {
+      "id": "host",
+      "name": "Extension host",
+      "kind": "process",
+      "description": "Runs src/extension.js."
+    },
+    {
+      "id": "webview",
+      "name": "Webview",
+      "kind": "process",
+      "description": "Runs the page, under the policy page.js writes."
+    },
+    {
+      "id": "files",
+      "name": "Workspace files",
+      "kind": "database",
+      "description": "The folder's .dev/*.json files, or those under .cyberspace-explorer/, on disk or in a remote workspace."
+    },
+    {
+      "id": "jsdelivr",
+      "name": "jsDelivr",
+      "kind": "external-service",
+      "description": "Serves dagre, three.js and the Barlow typefaces."
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "vsix",
+      "name": "cyberspace-explorer-<version>.vsix",
+      "source": "vscode/package.json",
+      "deployedTo": "vscode",
+      "description": "The extension with media/index.html and LICENSE copied in by vscode:prepublish, built by npm run package."
+    }
+  ],
+  "relationships": [
+    {
+      "from": "vscode",
+      "to": "host",
+      "kind": "hosts",
+      "description": "Runs the extension."
+    },
+    {
+      "from": "vscode",
+      "to": "webview",
+      "kind": "hosts",
+      "description": "Shows the panel."
+    },
+    {
+      "from": "host",
+      "to": "files",
+      "kind": "connects-to",
+      "description": "Lists and watches the view files."
+    },
+    {
+      "from": "webview",
+      "to": "files",
+      "kind": "connects-to",
+      "description": "Fetches each view file through its webview URL."
+    },
+    {
+      "from": "webview",
+      "to": "jsdelivr",
+      "kind": "connects-to",
+      "description": "Loads the typefaces, dagre and three.js."
+    }
+  ]
+}

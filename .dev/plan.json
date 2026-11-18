@@ -111,7 +111,7 @@
       "id": "cyberspace-gibson",
       "title": "Give Cyberspace the Gibson look",
       "summary": "Four pull requests after a design pass: the dark and the palette, the floor's traces, the towers' faces, then the arcs, labels and HUD.",
-      "goal": "Cyberspace looks as artboards 11 to 15 draw it and docs/cyberspace-mode-spec.md says, always dark, within the budgets of quality requirement space-frame-rate.",
+      "goal": "Cyberspace looks as artboards 11 to 15 draw it and docs/cyberspace-mode-spec.md says, in dark mode (and by day in light mode, decision theme-switch), within the budgets of quality requirement space-frame-rate.",
       "status": "in-progress",
       "scope": [
         {
