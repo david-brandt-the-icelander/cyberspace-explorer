@@ -198,8 +198,8 @@
     {
       "id": "colours-outside-tokens",
       "title": "Some colours are outside the tokens",
-      "summary": "The error red and the source-verified green are written into their rules, not tokens.",
-      "impact": "A change of palette has to find them: #b3261e and #ff8a80 for errors, #2c6e3a and #8fd39d for source-verified (each dark value twice, under the dark media query and under :root.space for Cyberspace), and the shadows, Cyberspace's at 55% black. Cyberspace's scene itself has none: every colour it draws is a --space-* token or a kind colour, read by spaceTheme.",
+      "summary": "A few shadows are written into their rules, not tokens.",
+      "impact": "A change of palette has to find them: Flat's shadows (the token panel's, the repository list's, the tooltip's and the inspector's), each a black or near-black at its own alpha. The error red and the source-verified green are tokens since decision theme-switch (--error, --verified), with one dark value in the dark block, which Cyberspace takes too; Cyberspace's shadow and vignette are --space-shadow. Cyberspace's scene itself has none: every colour it draws is a --space-* token or a kind colour, read by spaceTheme.",
       "evidenceStatus": "source-verified",
       "sources": [
         {

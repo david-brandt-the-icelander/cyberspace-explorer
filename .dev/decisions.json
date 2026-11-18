@@ -107,7 +107,7 @@
           "symbol": "kind-component"
         }
       ],
-      "details": "In Cyberspace the kind colour is an accent (decision space-gibson-look): towers are cyan glass whatever their kind, and the kind colour marks their edges, pads, labels, plates' rims and names, the frames and headings on their faces, and the floors of the folder tower and the skyline. Cyberspace uses the values of the theme it shows in (decision theme-switch).",
+      "details": "In Cyberspace the kind colour is an accent (decision space-gibson-look): towers are cyan glass whatever their kind, and the kind colour marks their edges, pads, labels, plates' rims and names, the frames and headings on their faces, and the floors of the folder tower and the skyline. Cyberspace uses the dark values, being always dark, whatever the theme switch says (decision theme-switch).",
       "relationships": [
         {
           "relation": "amended-by",
@@ -465,7 +465,7 @@
           "entityId": "works-without-webgl"
         }
       ],
-      "details": "Built (plan cyberspace-mode, done 2026-11-15): the address, the Flat / Cyberspace switch (shown in the bar since 2026-11-15) and the fallbacks; four scenes. The folder tower, a folder's .dev files as floors with a drawn view pulled out and its city small on it. The city: a drawn view standing on the flat layout's ground plan, with its labels, legend and camera controls; a tower, plate or beacon can be selected, which lights its beams, opens the inspector on it with the text Flat shows and puts it in the address. The street: eye level by a part, walking with the keys among towers that are solid and plates that are steps, with a map, a breadcrumb and a hover card. The skyline: a repository with several folders as a building per folder, which the reader rises to from a tower and flies into. A city can stand the folder's other drawn views beside it, ticked in its Layers panel, as many as keep the scene within 40 draw calls. Everything works from the keyboard, with reduced motion, and in light and dark.",
+      "details": "Built (plan cyberspace-mode, done 2026-11-15): the address, the Flat / Cyberspace switch (shown in the bar since 2026-11-15) and the fallbacks; four scenes. The folder tower, a folder's .dev files as floors with a drawn view pulled out and its city small on it. The city: a drawn view standing on the flat layout's ground plan, with its labels, legend and camera controls; a tower, plate or beacon can be selected, which lights its beams, opens the inspector on it with the text Flat shows and puts it in the address. The street: eye level by a part, walking with the keys among towers that are solid and plates that are steps, with a map, a breadcrumb and a hover card. The skyline: a repository with several folders as a building per folder, which the reader rises to from a tower and flies into. A city can stand the folder's other drawn views beside it, ticked in its Layers panel, as many as keep the scene within 40 draw calls. Everything works from the keyboard and with reduced motion.",
       "evidenceStatus": "source-verified",
       "sources": [
         {
@@ -708,7 +708,7 @@
     {
       "id": "space-gibson-look",
       "title": "Cyberspace looks like the Gibson in Hackers",
-      "summary": "Cyberspace looks like the Gibson in Hackers by night: cyan glass towers whose faces carry their own record, relationships as circuit traces on a black glossy floor that rise as arcs when lit, the kind colour as an accent, as artboards 11 to 15 on the canvas draw it. Since 2026-11-18 it also has a day look, in light mode (decision theme-switch).",
+      "summary": "Cyberspace is always dark: cyan glass towers whose faces carry their own record, relationships as circuit traces on a black glossy floor that rise as arcs when lit, the kind colour as an accent, as artboards 11 to 15 on the canvas draw it.",
       "status": "accepted",
       "context": "On 2026-11-15 the owner asked for Cyberspace to look like the Gibson in the film Hackers (1995), from four reference stills: tall translucent cyan-to-teal glass towers densely covered in small glowing monospace text, long straight streets fading into black, a black glossy floor with glowing circuit traces in violet, blue and magenta that turn at right angles and end in pads at the towers' bases, and a black-to-indigo sky. On the stills the owner chose: circuit traces on the floor with arcs only when lit; cyan glass with the kind colour as an accent; tower faces carrying their own data, standing still; and a design pass first. Until then Cyberspace followed the system's colour scheme (decision space-light-mode), drew relationships as arcs of light and its towers as glass in their kind's colour.",
       "options": [
@@ -721,7 +721,7 @@
           "consequences": "The spec and the plan follow the change before step G1."
         }
       ],
-      "decision": "In dark mode, Cyberspace's own tokens colour the scene and its panels as the stills do (always dark until decision theme-switch, 2026-11-18, gave it a light value for every token). Towers are cyan-to-teal glass; the kind colour accents their edges, pads, labels, plates and the frames on their faces. Each tower's faces carry its own record as the inspector shows it, in glowing monospace: its name, kind, description and file on two faces, its relationships on the other two; a short record repeats down its face, dimmed, and a long one is cut with an ellipsis; at a distance the text thins into a haze; nothing moves unless the camera does. Every relationship is a glowing circuit trace on the floor, routed at right angles along the streets dagre's own route takes, between pins on the two parts' pads, parallel traces in lanes; a selected part's relationships also rise as arcs of light, and the quiet arcs go. Beacons are magenta, as are the traces that reach them. The glows are geometry with a falloff in its own shader: no post-processing, three.js core only.",
+      "decision": "Cyberspace is always dark: while it shows, the whole window takes the page's dark tokens, and Cyberspace's own tokens colour the scene and its panels; Flat keeps its own theme (the system's setting, and since 2026-11-18 the bar's theme switch, decision theme-switch). Towers are cyan-to-teal glass; the kind colour accents their edges, pads, labels, plates and the frames on their faces. Each tower's faces carry its own record as the inspector shows it, in glowing monospace: its name, kind, description and file on two faces, its relationships on the other two; a short record repeats down its face, dimmed, and a long one is cut with an ellipsis; at a distance the text thins into a haze; nothing moves unless the camera does. Every relationship is a glowing circuit trace on the floor, routed at right angles along the streets dagre's own route takes, between pins on the two parts' pads, parallel traces in lanes; a selected part's relationships also rise as arcs of light, and the quiet arcs go. Beacons are magenta, as are the traces that reach them. The glows are geometry with a falloff in its own shader: no post-processing, three.js core only.",
       "rationale": "It is the look the owner chose, and a prototype drawn from this repository's data with three.js core alone shows it holds the budgets: 9 draw calls for a city of any size (10 with a selection), 7 for the skyline, and frames of 1.5 to 3.6 ms on an M1 Pro at up to 3440 × 1440 and device pixel ratio 2, without multisampling at that pixel ratio. Every word on a face is the part's own, and every relationship stays on the floor whether or not anything is selected.",
       "decidedBy": "owner",
       "decidedOn": "2026-11-15",
@@ -758,7 +758,7 @@
           "entityId": "cyberspace-gibson"
         },
         {
-          "relation": "amended-by",
+          "relation": "relates-to",
           "path": ".dev/decisions.json",
           "entityId": "theme-switch"
         }
@@ -830,12 +830,12 @@
     },
     {
       "id": "theme-switch",
-      "title": "A light and dark switch, followed by Flat and Cyberspace",
-      "summary": "The bar has a System / Light / Dark switch, kept in the browser; Flat and Cyberspace both follow it, and a change repaints Cyberspace in place.",
+      "title": "A light and dark switch for Flat; Cyberspace stays dark",
+      "summary": "The bar has a System / Light / Dark switch, kept in the browser, which picks Flat's theme. Cyberspace is always dark whatever it says, and the switch is disabled while Cyberspace shows.",
       "status": "accepted",
-      "context": "Flat followed the system's colour scheme with no way to choose (limitation system-theme-only), and Cyberspace was always dark (decision space-gibson-look). On 2026-11-18 the owner asked for the explorer to fully support dark and light mode, and for a VS Code extension, which has to follow the editor's theme.",
-      "decision": "html[data-theme] is light or dark and picks the token block: the light :root or :root[data-theme=\"dark\"]. The bar's switch sets it: System follows prefers-color-scheme, live; Light and Dark are kept in localStorage under cyberspace-explorer:theme, read by a script in the head before the first paint. A host that marks html data-theme-host (the VS Code extension) owns the attribute, and the switch hides. Cyberspace's own tokens have a light value: a pale sky with a lilac band, a near-white glossy floor, deeper teal glass, darker traces and an ink-dark --space-hot. Glow lines and the horizon band are added to what is behind them in dark and laid over it in light (a shared uniform), and the glass is thickened by day. A MutationObserver on data-theme calls retheme, which reads the tokens again and repaints the stage and the standing scene through their paint methods, building nothing again.",
-      "rationale": "A reader chooses what suits their room and screen, a host can match its own theme, and both modes stay one set of tokens and one scene.",
+      "context": "Flat followed the system's colour scheme with no way to choose (limitation system-theme-only), and Cyberspace was always dark (decision space-gibson-look). On 2026-11-18 the owner asked for the explorer to fully support dark and light mode, and for a VS Code extension, which has to follow the editor's theme. Pull request #27 (merged 2026-11-18) built the switch for Flat and Cyberspace both: every --space-* token got a light value, glows were laid over a pale floor by day, and a MutationObserver on data-theme repainted Cyberspace in place. The same day the owner ruled that Cyberspace stays always dark, which amends the decision as #27 merged it: the switch is Flat's alone.",
+      "decision": "html[data-theme] is light or dark and picks Flat's token block: the light :root, or the dark block, which is written once under :root[data-theme=\"dark\"], :root.space. The bar's switch sets it: System follows prefers-color-scheme, live; Light and Dark are kept in localStorage under cyberspace-explorer:theme, read by a script in the head before the first paint. A host that marks html data-theme-host (the VS Code extension) owns the attribute, and the switch hides. Cyberspace is always dark, by the owner's ruling of 2026-11-18 (decision space-gibson-look): while it shows, html.space takes the dark block whatever html[data-theme] says, Cyberspace's own tokens have only their dark value, and nothing in Cyberspace listens to the theme. The switch stays in the bar while Cyberspace shows, its buttons disabled with the title \"Cyberspace is always dark: the theme is Flat's\", and leaving Cyberspace enables them again. A choice made in another tab, or a change of the system's setting, while Cyberspace shows still sets html[data-theme], and Flat shows it on return.",
+      "rationale": "A reader chooses what suits their room and screen for Flat, and a host can match its own theme; Cyberspace stays the Gibson by night that the owner chose, one look to keep and to measure.",
       "decidedBy": "owner",
       "decidedOn": "2026-11-18",
       "origin": {
@@ -846,7 +846,7 @@
       },
       "relationships": [
         {
-          "relation": "amends",
+          "relation": "relates-to",
           "path": ".dev/decisions.json",
           "entityId": "space-gibson-look"
         },
@@ -869,21 +869,36 @@
         },
         {
           "path": "index.html",
-          "symbol": "retheme"
+          "symbol": "modeSwitch"
+        },
+        {
+          "path": "index.html",
+          "symbol": ":root[data-theme=\"dark\"], :root.space"
+        },
+        {
+          "path": "index.html",
+          "symbol": "showSpace"
         },
         {
           "path": "index.html",
           "symbol": "spaceTheme"
         },
         {
-          "path": "index.html",
-          "symbol": ":root[data-theme=\"dark\"]"
-        },
-        {
           "path": "docs/cyberspace-mode-spec.md",
           "symbol": "Palette"
         }
-      ]
+      ],
+      "options": [
+        {
+          "title": "Flat and Cyberspace both follow the switch (as pull request #27 built it)",
+          "consequences": "Cyberspace gets a day look of its own, a light value for every --space-* token, glows laid over the floor by day, and repaints in place on a change."
+        },
+        {
+          "title": "The switch is Flat's; Cyberspace stays always dark",
+          "consequences": "Cyberspace keeps the Gibson look of decision space-gibson-look and its tokens one value each; the switch rests while Cyberspace shows."
+        }
+      ],
+      "details": "As pull request #27 merged it (2026-11-18, merge 4daa9af), Cyberspace followed the switch too, with a light value for every --space-* token, retheme and stage.repaint, and the floor's traces blended by MinEquation by day. The owner's ruling of the same day undid that for Cyberspace only: its rendering is step G2's again (merge c51a6b5), and the switch, the head script, html[data-theme] and its two token blocks, the VS Code extension and its workspace source, --error and --verified stay."
     },
     {
       "id": "vscode-extension",

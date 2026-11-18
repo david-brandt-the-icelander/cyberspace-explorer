@@ -110,7 +110,7 @@ function activate(context) {
   });
   run("cyberspaceExplorer.reload", async () => { page = null; for (const e of panels.values()) await render(context, e); });
   run("cyberspaceExplorer.openFile", openFile);
-  // A new colour theme or setting reaches every panel without a reload: the page repaints, Cyberspace included.
+  // A new colour theme or setting reaches every panel without a reload: Flat takes it at once, Cyberspace stays dark.
   const retheme = () => { for (const e of panels.values()) e.panel.webview.postMessage({ type: "theme", theme: theme() }); };
   context.subscriptions.push(
     vscode.window.onDidChangeActiveColorTheme(retheme),

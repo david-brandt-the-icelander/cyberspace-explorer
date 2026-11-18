@@ -12,7 +12,7 @@ Browse the workspace's `.dev` views (diagrams, behavior views and knowledge file
 
 ## Light and dark
 
-The explorer follows VS Code's colour theme (light and high-contrast light themes are light, the rest dark), in Flat and in Cyberspace, and repaints as soon as the theme changes. Set `cyberspaceExplorer.theme` to `light` or `dark` to fix one.
+Flat follows VS Code's colour theme (light and high-contrast light themes are light, the rest dark), and changes as soon as the theme does. Set `cyberspaceExplorer.theme` to `light` or `dark` to fix one. Cyberspace is always dark, whatever the editor's theme or the setting: it is the Gibson of *Hackers*, by night.
 
 ## Network
 
