@@ -149,7 +149,22 @@
     {
       "id": "beam",
       "title": "Beam",
-      "summary": "A relationship between two parts in a city, risen as an arc of light from one to the other while one of them is selected (its trace lit on the floor under it); a part's own transition is a ring on its top. On the floor every relationship is a trace."
+      "summary": "The page's own word for a relationship between two parts of a city (world.beams), and the first look's: an arc of light from one part to the other. Since step G4 of plan cyberspace-gibson a reader no longer sees the word in Cyberspace: the relationship is a trace on the floor, and while one of its parts is selected also an arc.",
+      "notToBeConfusedWith": [
+        "Trace",
+        "Arc"
+      ]
+    },
+    {
+      "id": "arc",
+      "title": "Arc",
+      "summary": "A relationship of the selected part in a city, risen from one part's top to the other's while it is selected: a curve of light with a white core in its trace's halo colour (violet's, or magenta's where it reaches a beacon), over its trace lit on the floor; a part's own transition is a ring on its top, and several between the same two parts fan out. In a state machine or a deployment it carries its label at its crest. Gone as the selection is cleared.",
+      "aliases": [
+        "Lit arc"
+      ],
+      "notToBeConfusedWith": [
+        "Trace"
+      ]
     },
     {
       "id": "trace",
