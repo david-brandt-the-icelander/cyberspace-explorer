@@ -3110,10 +3110,11 @@ function partOrder(world) {
   return at.sort((a, b) => (lr ? rank(a.x) - rank(b.x) || b.z - a.z : rank(b.z) - rank(a.z) || a.x - b.x) || a.plate - b.plate).map((p) => p.key);
 }
 /** The draw calls a city takes as buildCity stands it with nothing selected: the glass of its plates, towers and beacons; its
- *  edges, one set of glow lines; and its ribbons, one geometry of every trace, pad and ring on its floor. */
+ *  edges, one set of glow lines; its ribbons, one geometry of every trace, pad and ring on its floor; and its two reflections,
+ *  the towers' glass and the edges mirrored in the floor. */
 function cityCalls(w) {
-  const one = (x) => (x ? 1 : 0);
-  return one(w.plates.length) + one(w.towers.length) + one(w.beacons.length) + one(w.plates.length || w.towers.length || w.beacons.length)
+  const one = (x) => (x ? 1 : 0), edges = one(w.plates.length || w.towers.length || w.beacons.length);
+  return one(w.plates.length) + 2 * one(w.towers.length) + one(w.beacons.length) + 2 * edges
     + one(w.towers.length || w.beacons.length || w.markers.length || w.traces?.length);
 }
 /** A city scene draws in at most 40 calls (Performance budgets): the sky and the floor take 2, and a selection 2 more, the lit
@@ -3155,6 +3156,152 @@ function districtWorld(stands, lead = stands[0]?.key) {
   return w;
 }
 
+/** A tower's face is a grid of monospace cells (The glass and the faces): 0.08 wide and 0.16 tall, inside a margin of 0.12
+ *  at the sides, from 0.25 below the roof to 0.2 above the base. A floor's top and a building's faces have the same grid with
+ *  every length × k (3.75 and 1.6). A section shorter than its face repeats down it at 36%, the echo. */
+const FACE = { w: 0.08, h: 0.16, side: 0.12, top: 0.25, foot: 0.2, echo: 0.36, floor: 3.75, building: 1.6 };
+const faceCols = (w, k = 1) => Math.max(1, Math.floor((w / k - 2 * FACE.side) / FACE.w + 1e-6));
+const faceRows = (h, k = 1) => Math.max(0, Math.floor((h / k - FACE.top - FACE.foot) / FACE.h + 1e-6));
+/** The glyphs a face can draw, one cell each: blank first, then ASCII, Latin-1 (without its soft hyphen), the box-drawing
+ *  glyphs of frames and rules, and the punctuation and arrows the repositories' records use. Their index is the cell's code. */
+const GLYPHS = [" ", ...Array.from({ length: 94 }, (_, i) => String.fromCharCode(33 + i)), ...Array.from({ length: 95 }, (_, i) => String.fromCharCode(0xa1 + i)).filter((c) => c !== "­"),
+  ..."─│┌┐└┘→←↑↓↔…–—‘’“”•›‹−≤≥≠≈√∞×⌘"].filter((c, i, all) => all.indexOf(c) === i);
+const GLYPH_AT = new Map(GLYPHS.map((g, i) => [g, i]));
+/** A character as a face draws it: itself, its letter without accents (NFD), else a middle dot. */
+const glyphOf = (ch) => {
+  if (GLYPH_AT.has(ch)) return ch;
+  if (/\s/.test(ch)) return " ";
+  const bare = ch.normalize("NFD").replace(/[̀-ͯ]/g, "");
+  return GLYPH_AT.has(bare) ? bare : "·";
+};
+/** A text as a face draws it, a glyph a cell. */
+const glyphsOf = (text) => [...String(text ?? "")].map(glyphOf).join("");
+/** A cell's style, one character a cell: 0 body, 1 bright (names), 2 accent (the kind colour: frames, headings, the kind
+ *  line), 3 quiet; 4 on, the colour of the tone at that place in the list a building is given (a view's kind). */
+const STYLE = { body: "0", bright: "1", accent: "2", quiet: "3" };
+/** A line of cells: its glyphs and a style per glyph, cut to `cols`. */
+const faceLine = (spans, cols = Infinity) => {
+  let t = "", s = "";
+  for (const [text, style] of spans) { const g = glyphsOf(text); t += g; s += style.repeat(g.length); }
+  return { t: t.slice(0, cols), s: s.slice(0, cols) };
+};
+const blankLine = () => ({ t: "", s: "" });
+/** A text in lines at most `cols` glyphs long, wrapped at spaces; a word longer than a line is broken after a slash, else where
+ *  the line ends. */
+function faceWrap(text, cols) {
+  const out = [];
+  let line = "";
+  for (let word of glyphsOf(text).split(" ").filter(Boolean)) {
+    while (word.length > cols - (line ? line.length + 1 : 0)) {
+      const room = cols - (line ? line.length + 1 : 0), slash = word.length > cols ? word.lastIndexOf("/", room - 1) : -1;
+      if (slash > 0) { out.push((line ? line + " " : "") + word.slice(0, slash + 1)); line = ""; word = word.slice(slash + 1); }
+      else if (line) { out.push(line); line = ""; }
+      else { out.push(word.slice(0, cols)); word = word.slice(cols); }
+    }
+    if (word) line = line ? line + " " + word : word;
+  }
+  if (line) out.push(line);
+  return out;
+}
+/** A name in uppercase, framed in box-drawing glyphs in the accent, the name bright; unframed where a face is too narrow. */
+function faceFrame(name, cols) {
+  const inner = cols - 4, text = String(name ?? "").toUpperCase();
+  if (inner < 2) return faceWrap(text, cols).map((l) => faceLine([[l, STYLE.bright]]));
+  return [
+    faceLine([["┌" + "─".repeat(cols - 2) + "┐", STYLE.accent]]),
+    ...faceWrap(text, inner).map((l) => faceLine([["│ ", STYLE.accent], [l.padEnd(inner), STYLE.bright], [" │", STYLE.accent]])),
+    faceLine([["└" + "─".repeat(cols - 2) + "┘", STYLE.accent]]),
+  ];
+}
+/** A heading and what follows it, in lines: the heading in the accent, the text quiet; the first paragraph on the heading's
+ *  line, and each further one on lines of its own. */
+function faceHeaded(head, paras, cols) {
+  const h = glyphsOf(String(head).toUpperCase()), out = [];
+  const [first = "", ...rest] = paras;
+  faceWrap(h + " " + first, cols).forEach((l, i) => out.push(i ? faceLine([[l, STYLE.quiet]]) : faceLine([[l.slice(0, h.length), STYLE.accent], [l.slice(h.length), STYLE.quiet]])));
+  for (const p of rest) for (const l of faceWrap(p, cols)) out.push(faceLine([[l, STYLE.quiet]]));
+  return out;
+}
+/** A list's heading with a rule to its count, in the accent: DEPENDS ON ───── 5. */
+function faceRule(head, count, cols) {
+  const n = String(count), lines = faceWrap(String(head).toUpperCase(), Math.max(1, cols - n.length - 3));
+  const last = lines.pop() ?? "";
+  return [...lines.map((l) => faceLine([[l, STYLE.accent]])), faceLine([[last + " " + "─".repeat(Math.max(1, cols - last.length - n.length - 2)) + " " + n, STYLE.accent]], cols)];
+}
+
+/** What a part's faces carry (The glass and the faces): its own record, as the inspector shows it, in lines of `cols` cells.
+ *  `record`, for the faces turned to ±z: its name framed; its title where it differs from the name; its kind and plate (`where`);
+ *  its description; each heading with a paragraph under it; the file it is declared in. `rels`, for the faces turned to ±x: the
+ *  name framed, then each list the inspector has, a heading with a rule and its count, and per item `› ` and the other part's
+ *  name, bright, with what the relationship says under it, quiet. A part with no relationships carries its record on all four
+ *  faces. `part`: { label, info: { title, sub, sections } }, the sections infoSections's: [{ h, p: [text], li: [{ name, kv, d }] }]. */
+function faceText(part, cols, { where = null, file = null } = {}) {
+  const info = part.info ?? {}, name = part.label ?? info.title ?? "", sections = info.sections ?? [];
+  const frame = faceFrame(name, cols), record = [...frame];
+  if (info.title && info.title !== name) for (const l of faceWrap(info.title, cols)) record.push(faceLine([[l, STYLE.quiet]]));
+  for (const l of faceWrap([info.sub, where].filter(Boolean).join(" · ").toUpperCase(), cols)) record.push(faceLine([[l, STYLE.accent]]));
+  for (const s of sections) {
+    if (!s.p.length) continue;
+    record.push(blankLine());
+    if (s.h) record.push(...faceHeaded(s.h, s.p, cols));
+    else for (const [i, p] of s.p.entries()) { if (i) record.push(blankLine()); for (const l of faceWrap(p, cols)) record.push(faceLine([[l, STYLE.body]])); }
+  }
+  if (file) record.push(blankLine(), ...faceHeaded("File", [file], cols));
+  const rels = [];
+  for (const s of sections) {
+    if (!s.li.length) continue;
+    rels.push(blankLine(), ...faceRule(s.h ?? "", s.li.length, cols));
+    for (const it of s.li) {
+      faceWrap(String(it.name).toUpperCase(), Math.max(1, cols - 2)).forEach((l, i) => rels.push(faceLine([[i ? "  " : "› ", STYLE.accent], [l, STYLE.bright]])));
+      const said = [it.kv, it.d].filter(Boolean).join(" · ");
+      for (const l of faceWrap(said, Math.max(1, cols - 2))) rels.push(faceLine([["  " + l, STYLE.quiet]]));
+    }
+  }
+  return { record, rels: rels.length ? [...frame, ...rels] : record };
+}
+/** A section cut to the rows its face has: where it is longer, its last line ends in an ellipsis, which says the inspector has
+ *  the rest. `cols`: the face's width, for the ellipsis to follow a line shorter than it. */
+function fitSection(lines, rows, cols = Infinity) {
+  if (lines.length <= rows) return lines;
+  const out = lines.slice(0, Math.max(0, rows));
+  if (!out.length) return out;
+  const l = out[out.length - 1], keep = l.t.length < cols ? l.t.length : l.t.length - 1;
+  out[out.length - 1] = { t: l.t.slice(0, keep) + "…", s: l.s.slice(0, keep) + STYLE.quiet };
+  return out;
+}
+/** What a floor of the folder tower carries on its top (Tower world, step 4): its kind and title framed; its file and how many
+ *  it holds; then what it holds, one name after another, `› ` before each, wrapped across the floor. `floor`: towerWorldFrom's. */
+function floorText(floor, cols) {
+  const out = [...faceFrame(`${floor.word} · ${floor.title}`, cols)];
+  out.push(faceLine([[`${floor.file} · ${floor.names.length} ${floor.noun}${floor.names.length === 1 ? "" : "s"}`, STYLE.quiet]], cols));
+  let line = null;
+  for (const name of floor.names) {
+    let g = glyphsOf(name);
+    if (g.length + 2 > cols) g = g.slice(0, Math.max(0, cols - 3)) + "…";
+    if (line && line.t.length + 3 + g.length + 2 > cols) { out.push(line); line = null; }
+    const add = [["› ", STYLE.accent], [g, STYLE.bright]], next = faceLine(line ? [["   ", STYLE.body], ...add] : add);
+    line = line ? { t: line.t + next.t, s: line.s + next.s } : next;
+  }
+  if (line) out.push(line);
+  return out;
+}
+/** What a skyline's building carries (The skyline, How a building looks): on the faces along its radius (`record`) the
+ *  folder's title framed, its path and number of files, its purpose; on the other two (`rels`) its views, each its kind in the
+ *  colour of its kind (`tones`: the list a cell's style 4 on indexes) and its title, bright. `f`: { title, path, purpose,
+ *  views: [{ word, tone, title }] }. */
+function buildingText(f, cols, tones) {
+  const frame = faceFrame(f.title, cols), record = [...frame];
+  for (const l of faceWrap(`${f.path} · ${f.views.length} file${f.views.length === 1 ? "" : "s"}`, cols)) record.push(faceLine([[l, STYLE.quiet]]));
+  if (f.purpose) { record.push(blankLine()); for (const l of faceWrap(f.purpose, cols)) record.push(faceLine([[l, STYLE.body]])); }
+  const rels = [...frame, blankLine(), ...faceRule("Views", f.views.length, cols)];
+  for (const v of f.views) {
+    const tone = String.fromCharCode(52 + Math.max(0, tones.indexOf(v.tone)));
+    rels.push(faceLine([["› ", tone], [String(v.word).toUpperCase(), tone]], cols));
+    for (const l of faceWrap(v.title, Math.max(1, cols - 2))) rels.push(faceLine([["  " + l, STYLE.bright]]));
+  }
+  return { record, rels };
+}
+
 /** A floor of the folder tower: 16 × 12 units and 0.14 thick, the floors 1.05 apart with 1.4 more between groups. */
 const FLOOR = { w: 16, d: 12, h: 0.14, step: 1.05, gap: 1.4 };
 /** Where the pulled-out floor stands, from its slot. */
@@ -3166,8 +3313,8 @@ const round6 = (v) => Math.round(v * 1e6) / 1e6;
 
 /** A folder as a tower of floors, one per file (docs/cyberspace-mode-spec.md, Tower world): drawn views at the bottom, then
  *  written ones, then knowledge, each group in the page's order of kinds. `kinds`: the drawn kinds, the page's KIND_ORDER and
- *  KNOWLEDGE. A written floor shows a bar per card (at most 4) and a knowledge floor a line per record (at most 6), each as
- *  long as its title; a drawn floor's plan comes from its city (floorPlan). `drawer` is the first drawn floor, -1 for none. */
+ *  KNOWLEDGE. Each floor knows what it holds (`names`, floorNames's, and the `noun` that counts them), which its top carries
+ *  (floorText). `drawer` is the first drawn floor, -1 for none. */
 function towerWorldFrom(docs, kinds) {
   const { knowledge } = kinds, listed = floorOrder(docs, kinds);
   const floors = [], groups = [];
@@ -3176,19 +3323,30 @@ function towerWorldFrom(docs, kinds) {
     const group = groups[groups.length - 1], path = d._path ?? d.path;
     group.count++;
     group.last = floors.length;
-    const records = (Array.isArray(d.entities) ? d.entities : []).filter((e) => e && typeof e === "object");
-    // A written view's cards are titled by their names, a knowledge file's records by their titles (cards(), recordCard()).
-    const titled = (e) => String((g === "written" ? e.name ?? e.title : e.title ?? e.name) ?? e.id ?? "").length;
     floors.push({
       index: floors.length, kind: d.kind, group: g, path, file: path.split("/").pop(),
       title: d.title ?? knowledge[d.kind]?.name ?? d.kind, word: d.kind.replace(/-/g, " "),
       y: round6(floors.length * FLOOR.step + (groups.length - 1) * FLOOR.gap),
-      bars: g === "written" ? records.slice(0, 4).map(titled) : [],
-      lines: g === "knowledge" ? records.slice(0, 6).map(titled) : [],
+      names: floorNames(d, g), noun: g === "written" ? "card" : g === "knowledge" ? "record" : d.kind === "use-case" ? "use case" : d.kind === "user-journey" ? "journey" : "part",
     });
   }
   const top = floors.length ? floors[floors.length - 1].y : 0;
   return { floors, groups, top, climb: Math.max(0, round6(top - TOWER_TOP)), drawer: floors.findIndex((f) => f.group === "drawn") };
+}
+/** What a floor holds, a name each (Tower world, step 4): a drawn view's parts (a component's name without the file it gives
+ *  in brackets, a deployment node's or a type's name, a state's id; a use case's or journey's entities), a written view's
+ *  cards by their names, a knowledge file's records by their titles (cards(), recordCard()). */
+function floorNames(d, g) {
+  const list = (x) => (Array.isArray(x) ? x : []).filter((e) => e && typeof e === "object");
+  const named = (e, ...keys) => String(keys.map((k) => e[k]).find((v) => v != null) ?? "");
+  if (g === "drawn") {
+    if (d.kind === "component") return list(d.components).map((c) => named(c, "name", "id").replace(/\s*\([^()]+\)$/, ""));
+    if (d.kind === "deployment") return list(d.nodes).map((n) => named(n, "name", "id"));
+    if (d.kind === "class") return list(d.types).map((t) => named(t, "name", "id"));
+    if (d.kind === "state") return list(d.states).map((x) => named(x, "id"));
+    return list(d.entities).map((e) => named(e, "name", "title", "id"));
+  }
+  return list(d.entities).map((e) => (g === "written" ? named(e, "name", "title", "id") : named(e, "title", "name", "id")));
 }
 /** A folder's files in the order its tower stacks them, each with its group (`g`): drawn views, then written ones, then
  *  knowledge, each group in the page's order of kinds. A file of no kind the page knows is left out. */
@@ -3246,27 +3404,6 @@ function skylineWorldFrom(folders) {
   const world = { ring, buildings, lines: all.filter((f) => f.parent !== null).map((f) => [f.folder, f.parent]), bounds };
   world.traces = skylineTraces(world);
   return world;
-}
-
-/** What a drawn floor shows on its top face: its city's flat layout, scaled to fit 13 × 9 units round the floor's centre: each
- *  part a tile, each plate an outline, and each beam a line from the centre of one part's box to the other's. */
-function floorPlan(world) {
-  const { box, w, h } = world.sheet, s = Math.min(13 / Math.max(w, 1), 9 / Math.max(h, 1));
-  const at = (b) => ({ x: (b.x - w / 2) * s, z: (h / 2 - b.y) * s });
-  const plates = new Set(world.plates.map((p) => p.key)), tiles = [], outlines = [], lines = [];
-  for (const key of new Set([...plates, ...world.parts.keys()])) {
-    const b = box.get(key);
-    if (!b) continue;
-    const { x, z } = at(b), hw = (b.w * s) / 2, hd = (b.h * s) / 2;
-    (plates.has(key) ? outlines : tiles).push({ x0: x - hw, x1: x + hw, z0: z - hd, z1: z + hd });
-  }
-  for (const b of world.beams) {
-    const p = box.get(b.from), q = box.get(b.to);
-    if (b.from === b.to || !p || !q) continue;
-    const A = at(p), B = at(q);
-    lines.push([A.x, A.z, B.x, B.z]);
-  }
-  return { tiles, outlines, lines };
 }
 
 /** How small a city stands on its pulled-out floor: at most 0.36, and small enough that it keeps to the 16 × 12 floor. */
@@ -3465,19 +3602,20 @@ function loadThree() {
 
 /** The colours the scene draws with, as CSS colours: Cyberspace's own tokens (the spec's Palette) and the kind colours, which
  *  accent. html.space takes the page's dark block, so the kind colours are their dark values. Read once, on the first entry:
- *  Cyberspace is always dark (decision space-gibson-look), so there is no scheme to follow. */
-const SPACE_TOKENS = { trace: "--space-trace", traceHalo: "--space-trace-halo", outHalo: "--space-trace-out-halo", void: "--space-void", skyZenith: "--space-sky-zenith", skyMid: "--space-sky-mid", skyHorizon: "--space-sky-horizon", skyBand: "--space-sky-band", fog: "--space-fog", floor: "--space-floor", floorSheen: "--space-floor-sheen", glassLow: "--space-glass-low", glassHigh: "--space-glass-high", glassGlow: "--space-glass-glow", textBright: "--space-text-bright", out: "--space-trace-out", plate: "--space-plate", hot: "--space-hot" };
+ *  Cyberspace is always dark (decision space-gibson-look), so there is no scheme to follow. `mono`: the page's --mono stack,
+ *  which the faces' atlas is drawn in. */
+const SPACE_TOKENS = { trace: "--space-trace", traceHalo: "--space-trace-halo", outHalo: "--space-trace-out-halo", void: "--space-void", skyZenith: "--space-sky-zenith", skyMid: "--space-sky-mid", skyHorizon: "--space-sky-horizon", skyBand: "--space-sky-band", fog: "--space-fog", floor: "--space-floor", floorSheen: "--space-floor-sheen", glassLow: "--space-glass-low", glassHigh: "--space-glass-high", glassGlow: "--space-glass-glow", text: "--space-text", textBright: "--space-text-bright", textQuiet: "--space-text-quiet", out: "--space-trace-out", plate: "--space-plate", hot: "--space-hot" };
 function spaceTheme() {
   const css = getComputedStyle(document.documentElement), read = (v) => css.getPropertyValue(v).trim();
-  return { ...Object.fromEntries(Object.entries(SPACE_TOKENS).map(([k, v]) => [k, read(v)])), kinds: Object.fromEntries([...Object.keys(KIND_ORDER), "knowledge"].map((k) => [k, read("--k-" + k)])) };
+  return { ...Object.fromEntries(Object.entries(SPACE_TOKENS).map(([k, v]) => [k, read(v)])), mono: read("--mono"), kinds: Object.fromEntries([...Object.keys(KIND_ORDER), "knowledge"].map((k) => [k, read("--k-" + k)])) };
 }
 let theme = null;
 
 /** The spec's frame, left-handed (the default camera looks along +z, +x to its right), to three.js's. The one place it is converted. */
 const V = (x, y, z) => new three.Vector3(x, y, -z);
 /** What every material of the scene shares, set by the stage: the canvas's size in CSS px, which glow lines are measured in,
- *  and where the fog starts and ends, in units from the eye (Glow and fog). */
-const SPACE_U = { view: { value: [1, 1] }, fogNear: { value: 90 }, fogFar: { value: 320 } };
+ *  where the fog starts and ends, in units from the eye (Glow and fog), and the faces' atlas (faceAtlas). */
+const SPACE_U = { view: { value: [1, 1] }, fogNear: { value: 90 }, fogFar: { value: 320 }, atlas: { value: null } };
 const fogged = () => ({ fogNear: SPACE_U.fogNear, fogFar: SPACE_U.fogFar });
 /** Fog: 1 near the eye, 0 past the fog's far end. Everything fades by it into --space-fog; the floor mixes into it. */
 const FOG_GLSL = `uniform float fogNear, fogFar; float fogOf(vec3 w) { return 1.0 - smoothstep(fogNear, fogFar, distance(cameraPosition, w)); }`;
@@ -3545,17 +3683,35 @@ const FLOOR_GLASS = [[0.09, 0.29, 0.29]];
  *  - "plate": glass of its tint's colour (plates, beacons, the skyline's floors);
  *  - "floor": the folder tower's floors, the two glass colours half and half; an underside takes the top's alpha, for floors
  *    the eye sees from below.
- *  Writes no depth; front faces only; fades into the fog. The uniform `fade` scales every alpha, for a scene fading out
- *  behind the next. */
-function glass(T, rows, kind = "tower") {
+ *  `text` (towers, the skyline's buildings and the folder tower's floors) draws the faces' text (The glass and the faces). Per
+ *  instance, `aText` says where its two sections start in the codes texture and how many rows each has, and `aGrid` gives its
+ *  columns along its ±z and ±x faces, its rows and its cells' scale (1 for a tower, k for a floor or a building, whose cells
+ *  are k times a tower's). A tower's and a building's sides carry them, the record on ±z and the relationships on ±x, from
+ *  the top down; a floor's top carries its record, read from the front, its first row along the far edge. Each cell adds
+ *  (glyph × 0.95 + its glow × 0.32) × its style's colour (the tint, for the accent) × the echo, for the repeats under a short
+ *  section, × the thinning: the atlas is read with textureGrad from the cell's own derivatives, so a glyph too small for its
+ *  pixels becomes its average brightness, and the text fades from full at `thin.x` units to `thin.z` at `thin.y`.
+ *  `mirror` draws the same instances mirrored in the floor (Meshes and materials, Reflections): × 0.20 × e^(y/1.4), gone 3
+ *  units under the floor. It shares the uniforms of the glass it mirrors (`share`), so painting one paints both, and draws
+ *  back faces, which are the near ones seen in the floor. Writes no depth; front faces only; fades into the fog. The uniform
+ *  `fade` scales every alpha, for a scene fading out behind the next. */
+function glass(T, rows, kind = "tower", { text = false, mirror = false, share = null } = {}) {
+  const uniforms = share?.uniforms ?? {
+    alphas: { value: rows.map(([a, b, c]) => new T.Vector3(a, b, c)) }, fade: { value: 1 }, mirror: { value: 0.2 }, low: { value: new T.Color(theme.glassLow) }, high: { value: new T.Color(theme.glassHigh) }, glow: { value: new T.Color(theme.glassGlow) }, ...fogged(),
+    ...(text ? { atlas: SPACE_U.atlas, codes: { value: null }, body: { value: new T.Color() }, bright: { value: new T.Color() }, quiet: { value: new T.Color() }, tones: { value: SPACE_TONES.map(() => new T.Color()) }, echo: { value: FACE.echo }, gain: { value: 1 }, thin: { value: new T.Vector3(22, 90, 0.35) } } : {}),
+  };
+  const defines = { ROWS: rows.length, [kind.toUpperCase()]: 1, ...(text ? { TEXT: 1, TONES: SPACE_TONES.length } : {}), ...(mirror ? { MIRROR: 1 } : {}) };
   return new T.ShaderMaterial({
     transparent: true,
     depthWrite: false,
+    side: mirror ? T.BackSide : T.FrontSide,
     blending: T.CustomBlending, blendSrc: T.OneFactor, blendDst: T.OneMinusSrcAlphaFactor, blendSrcAlpha: T.OneFactor, blendDstAlpha: T.OneMinusSrcAlphaFactor,
-    defines: { ROWS: rows.length, [kind.toUpperCase()]: 1 },
-    uniforms: { alphas: { value: rows.map(([a, b, c]) => new T.Vector3(a, b, c)) }, fade: { value: 1 }, low: { value: new T.Color(theme.glassLow) }, high: { value: new T.Color(theme.glassHigh) }, glow: { value: new T.Color(theme.glassGlow) }, ...fogged() },
+    defines, uniforms,
     vertexShader: `uniform vec3 alphas[ROWS]; uniform float fade; attribute float aState; attribute float aSolid;
       varying vec4 vColor; varying vec3 vWorld; varying float vUp, vY, vSide;
+      #ifdef TEXT
+      attribute vec4 aText, aGrid; varying vec4 vText; varying vec3 vGrid; varying vec2 vUV; varying float vFace;
+      #endif
       void main() {
         vec3 a = alphas[int(aState + 0.5)];
         float side = normal.x < -0.5 || normal.z > 0.5 ? a.y : a.z;
@@ -3566,11 +3722,32 @@ function glass(T, rows, kind = "tower") {
         #endif
         vColor = vec4(instanceColor, (normal.y > 0.5 ? max(a.x, aSolid) : side) * fade);
         vUp = position.y; vY = position.y * length(instanceMatrix[1].xyz); vSide = abs(normal.y) < 0.5 ? 1.0 : 0.0;
+        #ifdef TEXT
+        // Where on its face the point is, in units from the face's top left as seen from outside it.
+        vec3 size = vec3(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz), length(instanceMatrix[2].xyz));
+        #ifdef FLOOR
+        vUV = vec2((position.x + 0.5) * size.x, (position.z + 0.5) * size.z);
+        vFace = normal.y > 0.5 ? 0.0 : 3.0;
+        vGrid = aGrid.xzw;
+        #else
+        vUV = vec2(abs(normal.z) > 0.5 ? (normal.z > 0.0 ? position.x + 0.5 : 0.5 - position.x) * size.x : (normal.x > 0.0 ? 0.5 - position.z : position.z + 0.5) * size.z, (1.0 - position.y) * size.y);
+        vFace = abs(normal.z) > 0.5 ? 0.0 : abs(normal.x) > 0.5 ? 1.0 : 3.0;
+        vGrid = vec3(vFace < 0.5 ? aGrid.x : aGrid.y, aGrid.z, aGrid.w);
+        #endif
+        vText = aText;
+        #endif
         vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0);
+        #ifdef MIRROR
+        w.y = -w.y;
+        #endif
         vWorld = w.xyz;
         gl_Position = projectionMatrix * viewMatrix * w;
       }`,
-    fragmentShader: `uniform vec3 low, high, glow; uniform float fade; ${FOG_GLSL} varying vec4 vColor; varying vec3 vWorld; varying float vUp, vY, vSide;
+    fragmentShader: `uniform vec3 low, high, glow; uniform float fade, mirror; ${FOG_GLSL} varying vec4 vColor; varying vec3 vWorld; varying float vUp, vY, vSide;
+      #ifdef TEXT
+      uniform sampler2D atlas, codes; uniform vec3 body, bright, quiet, tones[TONES]; uniform float echo, gain; uniform vec3 thin;
+      varying vec4 vText; varying vec3 vGrid; varying vec2 vUV; varying float vFace;
+      #endif
       void main() {
         #if defined(TOWER)
         float a = vColor.a * (1.0 + 0.6 * exp(-vY / 0.9));
@@ -3582,11 +3759,116 @@ function glass(T, rows, kind = "tower") {
         float a = vColor.a;
         vec3 rgb = vColor.rgb * a;
         #endif
+        #ifdef TEXT
+        // The cell the point is in, and how fast that changes across the pixel, worked out before any branch.
+        vec2 cell = (vUV - vec2(${FACE.side.toFixed(3)}, ${FACE.top.toFixed(3)}) * vGrid.z) / (vec2(${FACE.w.toFixed(3)}, ${FACE.h.toFixed(3)}) * vGrid.z);
+        vec2 dx = dFdx(cell) / 16.0, dy = dFdy(cell) / 16.0;
+        vec2 sec = vFace < 0.5 ? vText.xy : vText.zw;
+        if (vFace < 1.5 && sec.y > 0.5 && cell.x >= 0.0 && cell.x < vGrid.x && cell.y >= 0.0 && cell.y < vGrid.y) {
+          // A section shorter than its face repeats down it, a blank row between, each repeat at the echo's strength.
+          float row = floor(cell.y), copy = floor(row / (sec.y + 1.0)), r = row - copy * (sec.y + 1.0), strength = copy > 0.5 ? echo : 1.0;
+          if (r < sec.y && strength > 0.0) {
+            float i = sec.x + r * vGrid.x + floor(cell.x), y = floor((i + 0.5) / ${CODE_W}.0);
+            vec2 code = floor(texelFetch(codes, ivec2(int(i - y * ${CODE_W}.0), int(y)), 0).rg * 255.0 + 0.5);
+            if (code.x > 0.5) {
+              vec2 t = textureGrad(atlas, (vec2(mod(code.x, 16.0), floor(code.x / 16.0)) + fract(cell)) / 16.0, dx, dy).rg;
+              vec3 c = code.y < 0.5 ? body : code.y < 1.5 ? bright : code.y < 2.5 ? vColor.rgb : code.y < 3.5 ? quiet : tones[int(code.y) - 4];
+              float far = mix(1.0, thin.z, smoothstep(thin.x, thin.y, distance(cameraPosition, vWorld)));
+              rgb += c * (t.x * 0.95 + t.y * 0.32) * strength * far * gain * fade;
+            }
+          }
+        }
+        #endif
         float f = fogOf(vWorld);
+        #ifdef MIRROR
+        f *= mirror * exp(vWorld.y / 1.4);
+        #endif
         gl_FragColor = vec4(rgb * f, a * f);
         #include <colorspace_fragment>
       }`,
   });
+}
+/** The colours a building's views are written in (buildingText's tones): every kind's, and knowledge's. */
+const SPACE_TONES = [...Object.keys(KIND_ORDER), "knowledge"];
+/** Writes the text's colours into a glass of `text`: body, bright and quiet from Cyberspace's tokens, and the tones. */
+function paintText(material, c) {
+  const u = material.uniforms;
+  u.body.value.setStyle(c.text);
+  u.bright.value.setStyle(c.textBright);
+  u.quiet.value.setStyle(c.textQuiet);
+  SPACE_TONES.forEach((k, i) => u.tones.value[i].setStyle(c.kinds[k]));
+}
+
+/** The face atlas (The glass and the faces): every glyph of GLYPHS once, 16 to a row in cells of 32 × 64 texels, in `500 40px`
+ *  of the page's --mono stack (`mono`); red the glyph, green the glyph blurred by about 3 texels, its glow. Box-drawing glyphs
+ *  are bars to their cell's edges, so frames join. Mipmapped, so that text far off becomes its own average brightness. Made
+ *  by the stage with the sky and the floor, kept while they are, and let go of with them. */
+function faceAtlas(T, mono) {
+  const cw = 32, ch = 64, W = cw * 16, H = ch * 16, m = 3;
+  const canvas = Object.assign(document.createElement("canvas"), { width: W, height: H }), g = canvas.getContext("2d", { willReadFrequently: true });
+  g.fillStyle = "#000";
+  g.fillRect(0, 0, W, H);
+  Object.assign(g, { fillStyle: "#fff", textAlign: "center", textBaseline: "middle", font: `500 40px ${mono}` });
+  GLYPHS.forEach((glyph, i) => {
+    const x0 = (i % 16) * cw, y0 = Math.floor(i / 16) * ch, x = x0 + cw / 2, y = y0 + ch / 2;
+    const across = [x0, y - m / 2, cw, m], down = [x - m / 2, y0, m, ch], right = [x - m / 2, y - m / 2, cw / 2 + m / 2, m], left = [x0, y - m / 2, cw / 2 + m / 2, m];
+    const under = [x - m / 2, y - m / 2, m, ch / 2 + m / 2], over = [x - m / 2, y0, m, ch / 2 + m / 2];
+    const bars = { "─": [across], "│": [down], "┌": [right, under], "┐": [left, under], "└": [right, over], "┘": [left, over] }[glyph];
+    if (bars) for (const r of bars) g.fillRect(...r);
+    else g.fillText(glyph, x, y + 2);
+  });
+  const sharp = g.getImageData(0, 0, W, H).data, out = new Uint8Array(W * H * 4);
+  // The glow: the glyphs blurred by a box 7 texels across, twice over, along x and then along y.
+  const a = new Float32Array(W * H), b = new Float32Array(W * H);
+  for (let i = 0; i < W * H; i++) a[i] = sharp[i * 4];
+  const box = (src, dst, step, len, lines, next) => {
+    for (let l = 0; l < lines; l++) {
+      const o = l * next;
+      let sum = 0;
+      for (let k = 0; k <= m && k < len; k++) sum += src[o + k * step];
+      for (let k = 0; k < len; k++) {
+        dst[o + k * step] = sum / (2 * m + 1);
+        if (k + m + 1 < len) sum += src[o + (k + m + 1) * step];
+        if (k - m >= 0) sum -= src[o + (k - m) * step];
+      }
+    }
+  };
+  for (let n = 0; n < 2; n++) { box(a, b, 1, W, H, W); box(b, a, W, H, W, 1); }
+  for (let i = 0; i < W * H; i++) { out[i * 4] = sharp[i * 4]; out[i * 4 + 1] = Math.min(255, a[i] * 1.6); out[i * 4 + 3] = 255; }
+  const tex = new T.DataTexture(out, W, H, T.RGBAFormat, T.UnsignedByteType);
+  Object.assign(tex, { generateMipmaps: true, minFilter: T.LinearMipmapLinearFilter, magFilter: T.LinearFilter, anisotropy: 8, flipY: false, needsUpdate: true });
+  return tex;
+}
+/** The codes (The glass and the faces): the cells of every section, one section after another, a glyph's index (GLYPHS) and a
+ *  style a cell, 1024 cells to a row, in a texture the glass reads with texelFetch. Each section ({ cols, lines }) is given
+ *  `base`, where its cells start; one handed in twice (a part's record on all four faces) is written once. Made with a city,
+ *  the folder tower's floors or the skyline's buildings, and let go of with them. */
+const CODE_W = 1024;
+function faceCodes(T, sections) {
+  const once = [...new Set(sections)];
+  let cells = 0;
+  for (const s of once) { s.base = cells; cells += s.cols * s.lines.length; }
+  const rows = Math.max(1, Math.ceil(cells / CODE_W)), data = new Uint8Array(CODE_W * rows * 2);
+  for (const s of once) s.lines.forEach((l, r) => {
+    for (let k = 0; k < l.t.length && k < s.cols; k++) { const i = (s.base + r * s.cols + k) * 2; data[i] = GLYPH_AT.get(l.t[k]) ?? 0; data[i + 1] = l.s.charCodeAt(k) - 48; }
+  });
+  const tex = new T.DataTexture(data, CODE_W, rows, T.RGFormat, T.UnsignedByteType);
+  Object.assign(tex, { minFilter: T.NearestFilter, magFilter: T.NearestFilter, generateMipmaps: false, needsUpdate: true });
+  tex.userData.cells = cells;
+  return tex;
+}
+/** Gives a glass of `text`'s geometry its per-instance faces, for `count` instances (glass): aText and aGrid. */
+function faceAttributes(T, geometry, count) {
+  geometry.setAttribute("aText", new T.InstancedBufferAttribute(new Float32Array(count * 4), 4));
+  geometry.setAttribute("aGrid", new T.InstancedBufferAttribute(new Float32Array(count * 4), 4));
+}
+/** Writes an instance's faces: its two sections (faceCodes's, with their `base`) and its grid ([cols along ±z, cols along ±x,
+ *  rows, scale]); null for none. */
+function writeFace(geometry, i, face) {
+  const t = geometry.attributes.aText, g = geometry.attributes.aGrid;
+  if (!face) { t.setXYZW(i, 0, 0, 0, 0); g.setXYZW(i, 1, 1, 0, 1); return; }
+  t.setXYZW(i, face.record.base, face.record.lines.length, face.rels.base, face.rels.lines.length);
+  g.setXYZW(i, ...face.grid);
 }
 
 /** Glow lines' widths (Meshes and materials, Edges): the core and the halo, in px each side of the line, and the halo's
@@ -3603,7 +3885,8 @@ const GLOW = {
  *  circle's segments don't, so it has no beads where they meet. A dashed segment drops 38% of every `dash` units along it.
  *  `segments`: [{ a, b, joint, dash }], their ends three.js vectors (V); colour and widths are written per run of them
  *  (style), so a change of state restyles them in place. `k` scales the widths for a city stood small (the folder tower's
- *  drawer): cores by k but at least 0.8, halos by k but at least 0.6. Null for no segments: an empty one would still be a draw. */
+ *  drawer): cores by k but at least 0.8, halos by k but at least 0.6. `mirror()` gives the lines again, mirrored in the floor,
+ *  and `shift` moves a run of them. Null for no segments: an empty one would still be a draw. */
 function glowLines(T, segments, k = 1) {
   const n = segments.length;
   if (!n) return null;
@@ -3612,20 +3895,26 @@ function glowLines(T, segments, k = 1) {
   geometry.setIndex([0, 1, 2, 0, 2, 3]);
   const A = new Float32Array(n * 3), B = new Float32Array(n * 3), D = new Float32Array(n), Wd = new Float32Array(n * 4);
   segments.forEach((s, i) => { s.a.toArray(A, i * 3); s.b.toArray(B, i * 3); D[i] = s.dash ?? 0; Wd[i * 4 + 3] = s.joint ?? 0.6; });
-  geometry.setAttribute("aA", new T.InstancedBufferAttribute(A, 3));
-  geometry.setAttribute("aB", new T.InstancedBufferAttribute(B, 3));
+  // The attributes hold copies: A and B keep the ends as they were made, which shift moves from.
+  geometry.setAttribute("aA", new T.InstancedBufferAttribute(A.slice(), 3));
+  geometry.setAttribute("aB", new T.InstancedBufferAttribute(B.slice(), 3));
   geometry.setAttribute("aD", new T.InstancedBufferAttribute(D, 1));
   geometry.setAttribute("aC", new T.InstancedBufferAttribute(new Float32Array(n * 4), 4));
   geometry.setAttribute("aW", new T.InstancedBufferAttribute(Wd, 4));
   geometry.instanceCount = n;
-  const material = new T.ShaderMaterial({
+  const uniforms = { view: SPACE_U.view, k: { value: k }, fade: { value: 1 }, mirror: { value: 0.2 }, ...fogged() };
+  const make = (mirror) => new T.ShaderMaterial({
     transparent: true, depthWrite: false, depthTest: false,
     blending: T.CustomBlending, blendSrc: T.OneFactor, blendDst: T.OneFactor, blendSrcAlpha: T.OneFactor, blendDstAlpha: T.OneFactor,
-    uniforms: { view: SPACE_U.view, k: { value: k }, fade: { value: 1 }, ...fogged() },
+    defines: mirror ? { MIRROR: 1 } : {}, uniforms,
     vertexShader: `uniform vec2 view; uniform float k; attribute vec3 aA, aB; attribute vec4 aC, aW; attribute float aD;
       varying vec4 vC; varying vec3 vW, vWorld; varying float vD, vAlong, vDash;
       void main() {
-        vec4 wa = modelMatrix * vec4(aA, 1.0), wb = modelMatrix * vec4(aB, 1.0), va = viewMatrix * wa, vb = viewMatrix * wb;
+        vec4 wa = modelMatrix * vec4(aA, 1.0), wb = modelMatrix * vec4(aB, 1.0);
+        #ifdef MIRROR
+        wa.y = -wa.y; wb.y = -wb.y;
+        #endif
+        vec4 va = viewMatrix * wa, vb = viewMatrix * wb;
         float nz = -0.61;
         if (va.z > nz && vb.z > nz) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); return; }
         if (va.z > nz) va = mix(va, vb, (nz - va.z) / (vb.z - va.z));
@@ -3641,18 +3930,22 @@ function glowLines(T, segments, k = 1) {
         vC = aC; vW = vec3(aW.x * max(k, 0.8), halo, aW.z * mix(0.5, 1.0, far)); vD = position.y * halo;
         vWorld = mix(wa.xyz, wb.xyz, position.x); vAlong = position.x * length(aB - aA); vDash = aD;
       }`,
-    fragmentShader: `uniform float fade; ${FOG_GLSL} varying vec4 vC; varying vec3 vW, vWorld; varying float vD, vAlong, vDash;
+    fragmentShader: `uniform float fade, mirror; ${FOG_GLSL} varying vec4 vC; varying vec3 vW, vWorld; varying float vD, vAlong, vDash;
       void main() {
         if (vDash > 0.0 && fract(vAlong / vDash) > 0.62) discard;
         float d = abs(vD), core = 1.0 - smoothstep(vW.x - 0.4, vW.x + 0.4, d), halo = exp(-pow(d / max(vW.y * 0.42, 0.01), 2.0)) * vW.z;
         float a = (core + halo) * vC.a * fade * fogOf(vWorld);
+        #ifdef MIRROR
+        a *= mirror * exp(vWorld.y / 1.4);
+        #endif
         gl_FragColor = vec4(vC.rgb * a, a);
         #include <colorspace_fragment>
       }`,
   });
-  const mesh = new T.Mesh(geometry, material), tint = new T.Color();
+  const material = make(false), mesh = new T.Mesh(geometry, material), tint = new T.Color();
   mesh.frustumCulled = false;
-  return {
+  let mirrored = null;
+  const self = {
     mesh, material,
     /** Colours `count` segments from `start` in a CSS colour at `alpha`, with widths [core, halo, halo strength]. */
     style(start, count, css, alpha, [core, halo, haloA]) {
@@ -3661,13 +3954,27 @@ function glowLines(T, segments, k = 1) {
       for (let i = start; i < start + count; i++) { c.setXYZW(i, tint.r, tint.g, tint.b, alpha); w.setXYZ(i, core, halo, haloA); }
       c.needsUpdate = w.needsUpdate = true;
     },
-    dispose() { geometry.dispose(); material.dispose(); },
+    /** Draws `count` segments from `start` moved by a three.js vector from where they were made: a floor sliding out. */
+    shift(start, count, by) {
+      const a = geometry.attributes.aA, b = geometry.attributes.aB;
+      for (let i = start; i < start + count; i++) { a.setXYZ(i, A[i * 3] + by.x, A[i * 3 + 1] + by.y, A[i * 3 + 2] + by.z); b.setXYZ(i, B[i * 3] + by.x, B[i * 3 + 1] + by.y, B[i * 3 + 2] + by.z); }
+      a.needsUpdate = b.needsUpdate = true;
+    },
+    /** The same lines mirrored in the floor (Meshes and materials, Reflections), sharing their geometry, colours and uniforms:
+     *  × 0.20 × e^(y/1.4), so that they are faint and gone 3 units under the floor. Made once. */
+    mirror() {
+      if (!mirrored) { mirrored = new T.Mesh(geometry, make(true)); mirrored.frustumCulled = false; }
+      return mirrored;
+    },
+    dispose() { geometry.dispose(); material.dispose(); mirrored?.material.dispose(); },
   };
+  return self;
 }
 
 /** Ribbons' looks (Traces): the core's and the halo's half-widths in units, the least each is drawn at in px, and their
  *  strengths. A trace, lit or not; the bright run where a trace arrives; a pad, a neighbour's and the selected one's; the
- *  selection's dashed ring, a final state's second ring, a start point's ring and its dot; and nothing, for a ring not shown. */
+ *  selection's dashed ring, a final state's second ring, a start point's ring and its dot; a pulled-out floor's dashed slot and
+ *  drawer lines (Scene 1); and nothing, for a ring not shown. */
 const RIBBON = {
   trace: { core: 0.035, halo: 0.45, px: [0.7, 5], a: [0.9, 0.5] },
   lit: { core: 0.05, halo: 0.6, px: [1.1, 8], a: [1, 0.8] },
@@ -3679,6 +3986,8 @@ const RIBBON = {
   final: { core: 0.03, halo: 0.3, px: [0.6, 3], a: [0.9, 0.3] },
   start: { core: 0.05, halo: 0.35, px: [0.7, 3], a: [0.9, 0.4] },
   dot: { core: 0.16, halo: 0.3, px: [1, 3], a: [0.9, 0.3] },
+  slot: { core: 0.02, halo: 0.2, px: [0.5, 2], a: [0.6, 0.2] },
+  drawer: { core: 0.02, halo: 0.2, px: [0.5, 2], a: [0.5, 0.2] },
   none: { core: 0, halo: 0, px: [0, 0], a: [0, 0] },
 };
 /** Strips flat on the floor (Traces): traces, pads, pins and rings, one geometry and one draw call however many. Each run of a
@@ -3790,10 +4099,55 @@ function cityWorld(doc, folder) {
   return { world, why };
 }
 
-/** One world's meshes, with three.js core alone: plates, towers and beacons as instanced glass, every edge one set of glow
- *  lines (beacons' uplinks among them), and the floor's traces, pads and rings one geometry of ribbons; the lit beams are
- *  made as the selection asks for them. `k`: the scale the city stands at (the folder tower's drawer), which the widths of
- *  its glow lines and the px minimums of its ribbons follow. */
+/** A part's inspector HTML (n.info.body, as showInfo shows it) read into plain sections for its faces (faceText), with a
+ *  <template>, so that nothing in it loads or runs: [{ h, p: [text], li: [{ name, kv, d }] }]. A heading starts a section; a
+ *  paragraph is its text, and so is each `code` of a block of them (a type's members); a list item, or a source under a
+ *  heading, is an item: its `.sel-link`, link or `code` text the name, its `.d` what it says and its `.kv` before that. Flat's
+ *  link into a folder is left out. */
+function infoSections(html) {
+  const t = document.createElement("template");
+  t.innerHTML = html ?? "";
+  // An element's text, with a space where a block or a part of an item starts, as the inspector sets them apart.
+  const text = (el) => [...el.childNodes].map((n) => (n.nodeType === 3 ? n.data : (n.matches?.(".d, .kv, br, p, div, li") ? " " : "") + text(n))).join("").replace(/\s+/g, " ").trim();
+  const item = (el) => {
+    const name = el.querySelector(".sel-link, a, code"), kv = el.querySelector(".kv"), d = el.querySelector(".d");
+    return {
+      name: name ? text(name) : kv ? text(kv) : text(el),
+      kv: name && kv && !kv.contains(name) ? text(kv) : null,
+      d: d && !(name && d.contains(name)) ? text(d) : null,
+    };
+  };
+  const out = [];
+  let at = { h: null, p: [], li: [] };
+  out.push(at);
+  for (const el of t.content.children) {
+    if (/^H[1-6]$/.test(el.tagName)) out.push((at = { h: text(el), p: [], li: [] }));
+    else if (el.matches("ul, ol")) for (const li of el.children) at.li.push(item(li));
+    else if (el.matches(".src")) at.li.push(item(el));
+    else if (el.matches("a.open")) continue;
+    else if (!el.matches("p") && el.children.length && [...el.children].every((c) => c.matches("code"))) for (const c of el.children) at.p.push(text(c));
+    else { const p = text(el); if (p) at.p.push(p); }
+  }
+  return out.filter((x) => x.h || x.p.length || x.li.length);
+}
+/** What each tower of a city carries on its faces (The glass and the faces): faceText's two sections of its own record, cut to
+ *  its rows, and its grid. Worked out once a world. */
+function cityFaces(world) {
+  return (world.faces ??= world.towers.map((t) => {
+    const n = world.parts.get(t.key), cols = faceCols(t.side), rows = faceRows(t.h);
+    const part = { label: t.name, info: n?.info ? { title: n.info.title, sub: n.info.sub, sections: infoSections(n.info.body) } : null };
+    const f = faceText(part, cols, { where: cityPlateOf(world, t.key)?.name ?? null, file: world.file });
+    const record = { cols, lines: fitSection(f.record, rows, cols) };
+    return { record, rels: f.rels === f.record ? record : { cols, lines: fitSection(f.rels, rows, cols) }, grid: [cols, cols, rows, 1] };
+  }));
+}
+
+/** One world's meshes, with three.js core alone: plates, towers and beacons as instanced glass, the towers' faces carrying
+ *  their own records (cityFaces, in a codes texture of the city's own); every edge one set of glow lines (beacons' uplinks
+ *  among them); the floor's traces, pads and rings one geometry of ribbons; and the towers and the edges again, mirrored in
+ *  the floor. The lit beams are made as the selection asks for them. `k`: the scale the city stands at (the folder tower's
+ *  drawer), which the widths of its glow lines and the px minimums of its ribbons follow; its faces' cells scale with the
+ *  whole city. */
 function buildCity(world, colours, k = 1) {
   const T = three, group = new T.Group(), owned = [], kind = world.kind;
   const keep = (x) => (owned.push(x), x);
@@ -3804,11 +4158,12 @@ function buildCity(world, colours, k = 1) {
   const m4 = new T.Matrix4(), q = new T.Quaternion();
 
   // Glass, one instanced mesh per shape: unit boxes standing on their base for plates and towers, octahedra for beacons.
-  const glassMesh = (geometry, rows, glassKind, list, place, role, order) => {
+  const glassMesh = (geometry, rows, glassKind, list, place, role, order, text = false) => {
     if (!list.length) return null;
     geometry.setAttribute("aState", new T.InstancedBufferAttribute(new Float32Array(list.length), 1));
     geometry.setAttribute("aSolid", new T.InstancedBufferAttribute(new Float32Array(list.length), 1));
-    const mesh = put(new T.InstancedMesh(keep(geometry), keep(glass(T, rows, glassKind)), list.length), order);
+    if (text) faceAttributes(T, geometry, list.length);
+    const mesh = put(new T.InstancedMesh(keep(geometry), keep(glass(T, rows, glassKind, { text })), list.length), order);
     list.forEach((x, i) => { mesh.setMatrixAt(i, place(x)); mesh.setColorAt(i, new T.Color()); });
     mesh.userData.role = role;
     return mesh;
@@ -3816,16 +4171,24 @@ function buildCity(world, colours, k = 1) {
   const unitBox = () => new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0);
   const plates = glassMesh(unitBox(), GLASS.plate, "plate", world.plates, (p) => m4.compose(V((p.x0 + p.x1) / 2, p.base, (p.z0 + p.z1) / 2), q, new T.Vector3(p.x1 - p.x0, PH, p.z1 - p.z0)), "plate", 1);
   const towerAt = (t) => m4.compose(V(t.x, t.base, t.z), q, new T.Vector3(t.side, t.h, t.side));
-  const towers = glassMesh(unitBox(), GLASS.tower, "tower", world.towers, towerAt, "kind", 3);
+  const towers = glassMesh(unitBox(), GLASS.tower, "tower", world.towers, towerAt, "kind", 3, true);
   const beacons = glassMesh(new T.OctahedronGeometry(1.25), GLASS.beacon, "plate", world.beacons, (b) => m4.compose(V(b.x, b.y, b.z), q, new T.Vector3(1, 1.04, 1)), "out", 4);
   // A tower's state and solid top, by tower; `slot` says which tower each instance draws, as they are sorted back to front.
   const state = world.towers.map(() => STATES.norm), solid = world.towers.map((t) => (t.final ? 0.75 : 0));
   let slot = world.towers.map((_, i) => i);
+  // The towers' faces, and their reflection: the same instances, with the same attributes, mirrored in the floor.
+  const faces = towers ? cityFaces(world) : [], codes = towers ? keep(faceCodes(T, faces.flatMap((f) => [f.record, f.rels]))) : null;
+  let mirror = null;
+  if (towers) {
+    towers.material.uniforms.codes.value = codes;
+    mirror = put(new T.InstancedMesh(towers.geometry, keep(glass(T, GLASS.tower, "tower", { text: true, mirror: true, share: towers.material })), world.towers.length), 0);
+    Object.assign(mirror, { instanceMatrix: towers.instanceMatrix, instanceColor: towers.instanceColor });
+  }
   const writeTowers = () => {
     if (!towers) return;
-    const st = towers.geometry.attributes.aState, so = towers.geometry.attributes.aSolid;
-    slot.forEach((t, i) => { towers.setMatrixAt(i, towerAt(world.towers[t])); st.array[i] = state[t]; so.array[i] = solid[t]; });
-    towers.instanceMatrix.needsUpdate = st.needsUpdate = so.needsUpdate = true;
+    const at = towers.geometry.attributes;
+    slot.forEach((t, i) => { towers.setMatrixAt(i, towerAt(world.towers[t])); at.aState.array[i] = state[t]; at.aSolid.array[i] = solid[t]; writeFace(towers.geometry, i, faces[t]); });
+    towers.instanceMatrix.needsUpdate = at.aState.needsUpdate = at.aSolid.needsUpdate = at.aText.needsUpdate = at.aGrid.needsUpdate = true;
   };
   writeTowers();
 
@@ -3854,7 +4217,7 @@ function buildCity(world, colours, k = 1) {
     return { edges };
   });
   const edges = glowLines(T, segs, k);
-  if (edges) { put(edges.mesh, 5); owned.push(edges); }
+  if (edges) { put(edges.mesh, 5); put(edges.mirror(), 0.5); owned.push(edges); }
 
   // The floor (Traces): every trace with the bright run where it arrives, every pad, a final state's second pad ring, the
   // dashed ring round a tower's or beacon's pad (drawn as nothing until it is selected), and each start point's ring and dot;
@@ -3988,6 +4351,7 @@ function buildCity(world, colours, k = 1) {
         for (let i = 0; i < mesh.count; i++) mesh.setColorAt(i, tint);
         mesh.instanceColor.needsUpdate = true;
       }
+      if (towers) paintText(towers.material, c);
       for (const r of lines) restyle(r);
       world.traces.forEach((_, i) => paintTrace(i));
       for (const key of padStrips.keys()) paintPads(key);
@@ -4074,7 +4438,7 @@ function buildCity(world, colours, k = 1) {
       for (const name of Object.keys(lit)) swap(name, null);
       pickLit?.geometry.dispose();
       for (const x of owned) x.dispose();
-      for (const m of [plates, towers, beacons]) m?.dispose();
+      for (const m of [plates, towers, mirror, beacons]) m?.dispose();
     },
   };
   // The heights a trace can lie at: the floor and every plate's top.
@@ -4187,177 +4551,108 @@ function buildDistrict(first, colours) {
   return self;
 }
 
-/** The soft glow under a pulled-out floor: a rounded square fading out to its edges, made once on a 64 × 64 canvas and used as
- *  an alpha map, so its colour is the material's. */
-let glowCanvas = null;
-function glowTexture(T) {
-  if (!glowCanvas) {
-    glowCanvas = Object.assign(document.createElement("canvas"), { width: 64, height: 64 });
-    const g = glowCanvas.getContext("2d"), img = g.createImageData(64, 64);
-    for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) {
-      const r = (Math.abs(x - 31.5) ** 4 + Math.abs(y - 31.5) ** 4) ** 0.25 / 32, a = Math.round(255 * Math.min(1, Math.max(0, (1 - r) / 0.3)) ** 1.6), i = (y * 64 + x) * 4;
-      img.data[i] = img.data[i + 1] = img.data[i + 2] = a;
-      img.data[i + 3] = 255;
-    }
-    g.putImageData(img, 0, 0);
-  }
-  return new T.CanvasTexture(glowCanvas);
-}
-
-/** A folder tower's meshes (docs/cyberspace-mode-spec.md, Scene 1): the floors in their slots as one instanced glass mesh, sorted
- *  so that the nearer slab paints last; their rims and the four rails as one set of glow lines; what each shows on its top face
- *  (a drawn view's plan, a written view's bars, a knowledge file's lines) as one set of lines and one of tiles. A floor out of
- *  the stack (pulled out, or sliding) is a drawer of its own: its slab, rims and glow, the city standing on it scaled by k, and
- *  its dashed ghost slot and drawer lines. `request` asks the stage for a frame while a drawer slides; `moved` is called on each step. */
+/** A folder tower's meshes (docs/cyberspace-mode-spec.md, Scene 1): the floors as one instanced glass mesh, sorted so that the
+ *  nearer slab paints last, each floor's top carrying its view (floorText) in a codes texture of the tower's own; their rims
+ *  and the four rails as one set of glow lines; and the slabs and the lines again, mirrored in the floor. A floor out of the
+ *  stack (pulled out, or sliding) takes its slab and rims with it, carries no text, and has a drawer: the city standing on it,
+ *  scaled by k, and the dashed ghost of its slot and the drawer lines, ribbons made again as it slides. `request` asks the
+ *  stage for a frame while a drawer slides; `moved` is called on each step. */
 function buildTower(world, colours, request) {
   const T = three, group = new T.Group(), owned = [], floors = world.floors, n = floors.length;
   const keep = (x) => (owned.push(x), x);
   const put = (obj, order, into = group) => { obj.renderOrder = order; obj.frustumCulled = false; into.add(obj); return obj; };
   const { w, d, h } = FLOOR, hw = w / 2, hd = d / 2, m4 = new T.Matrix4(), q = new T.Quaternion(), tint = new T.Color();
-  const zero = new T.Matrix4().makeScale(0, 0, 0), slabSize = new T.Vector3(w, h, d);
+  const slabSize = new T.Vector3(w, h, d);
   const tone = (f) => (f.group === "knowledge" ? "knowledge" : f.kind);
   const colourOf = (c, role) => (role === "hot" ? c.hot : c.kinds[role]);
-  let painted = colours;
-  const slabMaterial = keep(glass(T, FLOOR_GLASS, "floor"));
-  const slabMesh = (count, into) => {
-    const geometry = keep(new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0));
-    geometry.setAttribute("aState", new T.InstancedBufferAttribute(new Float32Array(count), 1));
-    geometry.setAttribute("aSolid", new T.InstancedBufferAttribute(new Float32Array(count), 1));
-    const mesh = put(new T.InstancedMesh(geometry, slabMaterial, count), 1, into);
-    for (let i = 0; i < count; i++) mesh.setColorAt(i, tint);
-    return mesh;
-  };
+  let painted = colours, fade = 1, moving = 0;
   const out = new Map();        // floor → its drawer, while it is out of the stack
   let slot = floors.map((_, i) => i), marks = { hover: -1, sel: -1, focus: -1 };
+  /** How far a floor has slid out of its slot, as a three.js vector. */
+  const away = (i) => { const t = out.get(i)?.t ?? 0; return V(PULL[0] * t, 0, PULL[2] * t); };
 
-  // The stack: an instance per floor, in its slot, put in paint order on rest (sort).
-  const slabs = n ? slabMesh(n, group) : null;
+  // The stack: an instance per floor, put in paint order on rest (sort), a floor out of it where it has slid to. Each floor's
+  // top carries its view in cells 3.75 times a tower's, from the far edge, with no echo: the floor ends where its text does.
+  const cols = faceCols(w, FACE.floor), rows = faceRows(d, FACE.floor);
+  const faces = floors.map((f) => { const record = { cols, lines: fitSection(floorText(f, cols), rows, cols) }; return { record, rels: record, grid: [cols, cols, rows, FACE.floor] }; });
+  let slabs = null, mirror = null;
+  if (n) {
+    const geometry = keep(new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0)), material = keep(glass(T, FLOOR_GLASS, "floor", { text: true }));
+    geometry.setAttribute("aState", new T.InstancedBufferAttribute(new Float32Array(n), 1));
+    geometry.setAttribute("aSolid", new T.InstancedBufferAttribute(new Float32Array(n), 1));
+    faceAttributes(T, geometry, n);
+    // Cells 3.75 times a tower's thin out as far 3.75 times further off.
+    Object.assign(material.uniforms, { codes: { value: keep(faceCodes(T, faces.map((f) => f.record))) }, echo: { value: 0 } });
+    material.uniforms.thin.value.multiplyScalar(FACE.floor).setZ(0.35);
+    slabs = put(new T.InstancedMesh(geometry, material, n), 1);
+    for (let i = 0; i < n; i++) slabs.setColorAt(i, tint);
+    mirror = put(new T.InstancedMesh(geometry, keep(glass(T, FLOOR_GLASS, "floor", { text: true, mirror: true, share: material })), n), 0);
+    Object.assign(mirror, { instanceMatrix: slabs.instanceMatrix, instanceColor: slabs.instanceColor });
+  }
   const writeSlabs = () => {
     if (!slabs) return;
     slot.forEach((f, i) => {
-      slabs.setMatrixAt(i, out.has(f) ? zero : m4.compose(V(0, floors[f].y, 0), q, slabSize));
+      slabs.setMatrixAt(i, m4.compose(V(0, floors[f].y, 0).add(away(f)), q, slabSize));
       slabs.setColorAt(i, tint.setStyle(colourOf(painted, tone(floors[f]))));
+      // A floor out of the stack carries its city, not its text.
+      writeFace(slabs.geometry, i, out.has(f) ? null : faces[f]);
     });
-    slabs.instanceMatrix.needsUpdate = slabs.instanceColor.needsUpdate = true;
+    const at = slabs.geometry.attributes;
+    slabs.instanceMatrix.needsUpdate = slabs.instanceColor.needsUpdate = at.aText.needsUpdate = at.aGrid.needsUpdate = true;
   };
 
   // A floor's rims and the four rails are glow lines (Scene 1, Floors), each run of segments remembering its role (a kind, or
-  // hot) and its alpha; what a floor's top shows is lines coloured per vertex (RGBA) and tiles.
-  const segs = [], edgeLines = [], pos = [], runs = [];
-  let into = null;
-  const seg = (a, b) => (into ? into.push({ a, b }) : pos.push(a.x, a.y, a.z, b.x, b.y, b.z));
-  const run = (role, alpha, draw) => { const start = pos.length / 3; into = null; draw(); const r = { start, count: pos.length / 3 - start, role, alpha, base: alpha }; runs.push(r); return r; };
-  const glowRun = (role, alpha, w, draw) => { const start = segs.length; into = segs; draw(); into = null; const r = { start, count: segs.length - start, role, alpha, base: alpha, w }; edgeLines.push(r); return r; };
+  // hot), its alpha and its widths.
+  const segs = [], edgeLines = [];
+  const seg = (a, b) => segs.push({ a, b });
+  const glowRun = (role, alpha, wd, draw) => { const start = segs.length; draw(); const r = { start, count: segs.length - start, role, alpha, base: alpha, w: wd }; edgeLines.push(r); return r; };
   const ring4 = (x0, x1, z0, z1, y) => { const c = [V(x0, y, z0), V(x1, y, z0), V(x1, y, z1), V(x0, y, z1)]; for (let i = 0; i < 4; i++) seg(c[i], c[(i + 1) % 4]); };
   const slabEdges = (y) => { ring4(-hw, hw, -hd, hd, y); ring4(-hw, hw, -hd, hd, y + h); for (const [x, z] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]]) seg(V(x, y, z), V(x, y + h, z)); };
-  // Tiles: flat quads on a floor's top, one instanced mesh; per floor the run of its instances.
-  const tilePlaces = [], tileRuns = [];
-  const tile = (f, x0, x1, z0, z1) => tilePlaces.push({ f, m: new T.Matrix4().compose(V((x0 + x1) / 2, f.y + h + 0.01, (z0 + z1) / 2), q, new T.Vector3(Math.max(0.05, x1 - x0), 1, Math.max(0.05, z1 - z0))) });
-  const edgeRuns = floors.map((f) => {
-    const top = f.y + h + 0.01, start = tilePlaces.length;
-    const edges = glowRun(tone(f), f.group === "knowledge" ? 0.7 : 0.9, GLOW.floor, () => slabEdges(f.y));
-    const face = [];
-    if (f.plan) {
-      face.push(run(tone(f), 0.35, () => { for (const [x0, z0, x1, z1] of f.plan.lines) seg(V(x0, top, z0), V(x1, top, z1)); }));
-      face.push(run(tone(f), 0.45, () => { for (const o of f.plan.outlines) ring4(o.x0, o.x1, o.z0, o.z1, top); }));
-      for (const t of f.plan.tiles) tile(f, t.x0, t.x1, t.z0, t.z1);
-    }
-    // A written view's cards as bars, a knowledge file's records as lines, from the back of the floor forwards.
-    f.bars.forEach((chars, i) => tile(f, -6.5, -6.5 + Math.min(13, 0.3 * chars), 2.6 - i * 1.7, 3.15 - i * 1.7));
-    if (f.lines.length) face.push(run(tone(f), 0.75, () => f.lines.forEach((chars, i) => seg(V(-6.5, top, 3.5 - i * 1.1), V(-6.5 + Math.min(13, 0.25 * chars), top, 3.5 - i * 1.1)))));
-    tileRuns.push({ start, count: tilePlaces.length - start });
-    return { edges, face };
-  });
+  const edgeRuns = floors.map((f) => glowRun(tone(f), f.group === "knowledge" ? 0.7 : 0.9, GLOW.floor, () => slabEdges(f.y)));
   const top = n ? floors[n - 1].y : 0;
   glowRun("component", 0.3, GLOW.rail, () => { for (const [x, z] of [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]]) seg(V(x, -0.2, z), V(x, top + 1.2, z)); });
   const rims = glowLines(T, segs);
-  if (rims) { put(rims.mesh, 5); owned.push(rims); }
+  if (rims) { put(rims.mesh, 5); put(rims.mirror(), 0.5); owned.push(rims); }
   const restyle = (r) => rims.style(r.start, r.count, colourOf(painted, r.role), r.alpha, r.w);
-  const lineGeometry = keep(new T.BufferGeometry());
-  lineGeometry.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
-  lineGeometry.setAttribute("color", new T.Float32BufferAttribute(new Float32Array((pos.length / 3) * 4), 4));
-  const lineMaterial = keep(new T.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
-  put(new T.LineSegments(lineGeometry, lineMaterial), 3);
-  const refill = (r) => {
-    const attr = lineGeometry.attributes.color;
-    tint.setStyle(colourOf(painted, r.role));
-    for (let v = r.start; v < r.start + r.count; v++) attr.setXYZW(v, tint.r, tint.g, tint.b, r.alpha);
-    attr.needsUpdate = true;
-  };
-  const tileMaterial = keep(new T.MeshBasicMaterial({ transparent: true, opacity: 0.42, depthWrite: false, side: T.DoubleSide }));
-  const tiles = tilePlaces.length ? put(new T.InstancedMesh(keep(new T.PlaneGeometry(1, 1).rotateX(-Math.PI / 2)), tileMaterial, tilePlaces.length), 2) : null;
-  const writeTiles = (i) => {
-    if (!tiles) return;
-    const r = tileRuns[i];
-    for (let k = r.start; k < r.start + r.count; k++) { tiles.setMatrixAt(k, out.has(i) ? zero : tilePlaces[k].m); tiles.setColorAt(k, tint.setStyle(colourOf(painted, tone(floors[i])))); }
-    tiles.instanceMatrix.needsUpdate = true;
-    if (tiles.instanceColor) tiles.instanceColor.needsUpdate = true;
-  };
-  /** Draws a floor in the stack as it now is: hidden while it is out, its edges lit while under the pointer, selected or
-   *  focused, and in --space-hot while selected or focused. */
+  /** Draws a floor's edges as they now are: at full strength while under the pointer, selected or focused, and in --space-hot
+   *  while selected or focused. */
   const look = (i) => {
-    const r = edgeRuns[i], gone = out.has(i), hot = i === marks.sel || i === marks.focus, lit = hot || i === marks.hover;
-    Object.assign(r.edges, { role: hot ? "hot" : tone(floors[i]), alpha: gone ? 0 : lit ? 1 : r.edges.base });
-    restyle(r.edges);
-    for (const x of r.face) { x.alpha = gone ? 0 : x.base; refill(x); }
-    writeTiles(i);
-    out.get(i)?.edges.style(0, 12, colourOf(painted, hot ? "hot" : tone(floors[i])), lit ? 1 : r.edges.base, GLOW.floor);
+    const r = edgeRuns[i], hot = i === marks.sel || i === marks.focus;
+    Object.assign(r, { role: hot ? "hot" : tone(floors[i]), alpha: hot || i === marks.hover ? 1 : r.base });
+    restyle(r);
   };
 
-  // The ghost slot and drawer lines of each floor out of the stack: dashed, rewritten as drawers slide.
-  const dashPos = new Float32Array(2 * 14 * 3), dashCol = new Float32Array(2 * 14 * 4);
-  const dashGeometry = keep(new T.BufferGeometry());
-  dashGeometry.setAttribute("position", new T.BufferAttribute(dashPos, 3));
-  dashGeometry.setAttribute("color", new T.BufferAttribute(dashCol, 4));
-  const dashMaterial = keep(new T.LineDashedMaterial({ vertexColors: true, transparent: true, depthWrite: false, dashSize: 0.12, gapSize: 0.2 }));
-  const dashes = put(new T.LineSegments(dashGeometry, dashMaterial), 3);
+  // The ghost of each slot a floor is out of, and the drawer lines from its front-left, front-right and back-right corners to
+  // the floor's: dashed ribbons in the floor's kind colour, made again as drawers slide.
+  let dashes = null;
   const writeDashes = () => {
-    let v = 0;
-    const put2 = (a, b, alpha, colour) => { for (const p of [a, b]) { dashPos.set([p.x, p.y, p.z], v * 3); dashCol.set([colour.r, colour.g, colour.b, alpha], v * 4); v++; } };
+    if (dashes) { dashes.mesh.removeFromParent(); dashes.dispose(); }
+    const list = [], looks = [], corners = [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]];
     for (const [i, dr] of out) {
-      if (dr.t <= 0.001 || v >= 28) continue;
-      const f = floors[i], y = f.y + h, dx = PULL[0] * dr.t, dz = PULL[2] * dr.t, c = new T.Color().setStyle(colourOf(painted, tone(f)));
-      const corners = [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]];
-      corners.forEach(([x, z], k) => { const [x1, z1] = corners[(k + 1) % 4]; put2(V(x, y, z), V(x1, y, z1), 0.5, c); });
-      // From the slot's front-left, front-right and back-right corners to the drawer's.
-      for (const [x, z] of corners.slice(0, 3)) put2(V(x, y, z), V(x + dx, y, z + dz), 0.45, c);
+      if (dr.t <= 0.001) continue;
+      const f = floors[i], y = f.y + h, dx = PULL[0] * dr.t, dz = PULL[2] * dr.t;
+      list.push({ points: [...corners, corners[0]].map(([x, z]) => [x, y, z]), dash: true });
+      looks.push([tone(f), RIBBON.slot]);
+      for (const [x, z] of corners.slice(0, 3)) { list.push({ points: [[x, y, z], [x + dx, y, z + dz]], dash: true }); looks.push([tone(f), RIBBON.drawer]); }
     }
-    dashGeometry.setDrawRange(0, v);
-    dashGeometry.attributes.position.needsUpdate = dashGeometry.attributes.color.needsUpdate = true;
-    dashes.computeLineDistances();
+    dashes = ribbons(T, list);
+    if (!dashes) return;
+    put(dashes.mesh, 2);
+    dashes.material.uniforms.fade.value = fade;
+    looks.forEach(([role, look], i) => { const c = colourOf(painted, role); dashes.style(i, c, c, look); });
   };
 
-  // Drawers.
-  const glowMap = keep(glowTexture(T));
+  // Drawers: the city standing on a floor out of the stack, which slides with it.
   const drawer = (i) => {
-    const f = floors[i], g = new T.Group(), parts = [];
-    const slab = slabMesh(1, g);
-    slab.setMatrixAt(0, m4.compose(new T.Vector3(), q, slabSize));
-    // Its rims, the floor's own glow lines, which slide with it.
-    const es = [], corners = [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]];
-    corners.forEach(([x, z], k) => { const [x1, z1] = corners[(k + 1) % 4]; for (const y of [0, h]) es.push({ a: V(x, y, z), b: V(x1, y, z1) }); es.push({ a: V(x, 0, z), b: V(x, h, z) }); });
-    const edges = glowLines(T, es);
-    put(edges.mesh, 5, g);
-    edges.material.uniforms.fade.value = fade;
-    const glow = put(new T.Mesh(new T.PlaneGeometry(w + 3, d + 3).rotateX(-Math.PI / 2), new T.MeshBasicMaterial({ alphaMap: glowMap, transparent: true, opacity: 0.25, depthWrite: false })), 0, g);
-    glow.position.y = -0.05;
-    parts.push(edges, glow.geometry, glow.material);
-    const dr = { g, slab, edges, glow, parts, city: null, holder: null, k: 1, t: 0, from: 0, to: 0, t0: 0 };
+    const f = floors[i], g = new T.Group();
+    const dr = { g, city: null, holder: null, k: 1, t: 0, from: 0, to: 0, t0: 0 };
     dr.place = () => g.position.copy(V(PULL[0] * dr.t, f.y, PULL[2] * dr.t));
-    dr.paint = () => {
-      slab.setColorAt(0, tint.setStyle(colourOf(painted, tone(f))));
-      slab.instanceColor.needsUpdate = true;
-      glow.material.color.setStyle(colourOf(painted, tone(f)));
-      dr.city?.paint(painted);
-    };
     dr.drop = () => { if (!dr.city) return; dr.holder.removeFromParent(); dr.city.dispose(); dr.city = dr.holder = null; };
-    dr.dispose = () => { dr.drop(); g.removeFromParent(); slab.dispose(); slab.geometry.dispose(); for (const x of parts) x.dispose(); };
+    dr.dispose = () => { dr.drop(); g.removeFromParent(); };
     group.add(g);
     dr.place();
-    dr.paint();
     return dr;
   };
-  let fade = 1, moving = 0;
   const slide = (now) => {
     moving = 0;
     let busy = false;
@@ -4365,9 +4660,11 @@ function buildTower(world, colours, request) {
       const k = dr.to === dr.from ? 1 : Math.min(1, (now - dr.t0) / 450);
       dr.t = dr.from + (dr.to - dr.from) * ease.out(k);
       dr.place();
-      if (k < 1) { busy = true; continue; }
-      if (dr.to === 0) { dr.dispose(); out.delete(i); writeSlabs(); look(i); }
+      if (k < 1) busy = true;
+      else if (dr.to === 0) { dr.dispose(); out.delete(i); }
+      rims?.shift(edgeRuns[i].start, edgeRuns[i].count, away(i));
     }
+    writeSlabs();
     writeDashes();
     self.moved?.();
     request();
@@ -4390,7 +4687,7 @@ function buildTower(world, colours, request) {
       const t = performance.now(), go = (dr, to) => Object.assign(dr, { from: dr.t, to, t0: t });
       if (was >= 0 && was !== i && out.has(was)) { out.get(was).drop(); go(out.get(was), 0); }
       if (i >= 0) {
-        if (!out.has(i)) { out.set(i, drawer(i)); writeSlabs(); look(i); }
+        if (!out.has(i)) { out.set(i, drawer(i)); writeSlabs(); }
         const dr = out.get(i);
         if (dr.city?.world !== city) {
           dr.drop();
@@ -4449,27 +4746,25 @@ function buildTower(world, colours, request) {
     /** Scales every alpha but the city's, for the tower to fade in or out round it. */
     fade(f) {
       fade = f;
-      slabMaterial.uniforms.fade.value = rims.material.uniforms.fade.value = f;
-      lineMaterial.opacity = dashMaterial.opacity = f;
-      tileMaterial.opacity = 0.42 * f;
-      for (const dr of out.values()) { dr.glow.material.opacity = 0.25 * f; dr.edges.material.uniforms.fade.value = f; }
+      for (const m of [slabs?.material, rims.material, dashes?.material]) if (m) m.uniforms.fade.value = f;
     },
     paint(c) {
       painted = c;
       writeSlabs();
-      for (const r of runs) refill(r);
+      if (slabs) paintText(slabs.material, c);
       for (const r of edgeLines) restyle(r);
       for (let i = 0; i < n; i++) look(i);
-      for (const dr of out.values()) dr.paint();
+      for (const dr of out.values()) dr.city?.paint(c);
       writeDashes();
     },
     dispose() {
       cancelAnimationFrame(moving);
       for (const dr of out.values()) dr.dispose();
       out.clear();
+      dashes?.dispose();
       for (const x of owned) x.dispose();
       slabs?.dispose();
-      tiles?.dispose();
+      mirror?.dispose();
     },
   };
   self.paint(colours);
@@ -5399,7 +5694,7 @@ function spaceStage(T, canvas) {
     last = now;
     const el = $("space-stats") ?? $("space").appendChild(Object.assign(document.createElement("div"), { id: "space-stats" }));
     const { geometries, textures } = renderer.info.memory;
-    el.textContent = `frame ${took.toFixed(1)} ms · last ${one.toFixed(1)} ms${every ? ` · every ${every.toFixed(1)} ms` : ""}\n${renderer.info.render.calls} draw calls · ${geometries} geometr${geometries === 1 ? "y" : "ies"} · ${plural(textures, "texture")}\n`
+    el.textContent = `frame ${took.toFixed(1)} ms · last ${one.toFixed(1)} ms${every ? ` · every ${every.toFixed(1)} ms` : ""}\n${renderer.info.render.calls} draw calls · ${geometries} geometr${geometries === 1 ? "y" : "ies"} · ${plural(textures, "texture")} · atlas ${self.atlasMs.toFixed(0)} ms\n`
       + (shown?.stats() ?? "nothing standing");
     // In the bottom right corner; where a panel reaches it (a long legend), above the bottom bars and left of the inspector.
     el.classList.remove("up");
@@ -5424,15 +5719,21 @@ function spaceStage(T, canvas) {
   canvas.addEventListener("webglcontextrestored", () => { if (canvas.isConnected) restoreStage(); });
   const self = {
     camera, canvas, request,
+    /** How long the faces' atlas took to draw, for the readout. */
+    atlasMs: 0,
     get lost() { return lost; },
     get shown() { return shown; },
     get city() { return shown?.kind === "city" ? shown : null; },
     get tower() { return shown?.kind === "tower" ? shown : null; },
     get skyline() { return shown?.kind === "skyline" ? shown : null; },
-    /** Lays the sky and the floor, again after a stay in Flat; what three.js's own materials draw fades into the same fog. */
+    /** Lays the sky and the floor and draws the faces' atlas, again after a stay in Flat; what three.js's own materials draw
+     *  fades into the same fog. */
     fill(colours) {
       if (!ground) {
-        ground = { sky: spaceSky(T, colours), floor: spaceFloor(T, colours) };
+        const t0 = performance.now(), atlas = faceAtlas(T, colours.mono);
+        self.atlasMs = performance.now() - t0;
+        ground = { sky: spaceSky(T, colours), floor: spaceFloor(T, colours), atlas };
+        SPACE_U.atlas.value = ground.atlas;
         scene.add(ground.sky, ground.floor);
         renderer.setClearColor(colours.void, 1);
         scene.fog = new T.Fog(colours.fog, SPACE_U.fogNear.value, SPACE_U.fogFar.value);
@@ -5488,6 +5789,8 @@ function spaceStage(T, canvas) {
       self.show(null);
       if (ground) {
         for (const m of [ground.sky, ground.floor]) { scene.remove(m); m.geometry.dispose(); m.material.dispose(); }
+        ground.atlas.dispose();
+        SPACE_U.atlas.value = null;
         ground = null;
       }
       // The readout ends with what is left on the GPU: nothing, once every geometry and texture is let go of.
@@ -5820,14 +6123,14 @@ const TOWER_EYE = [-14, 24, -44], TOWER_AT = [8, 11, 2], TOWER_FOV = 49.3;
 const towerAnchor = ({ W, H, top }) => [W / 2 - (20 * W) / 1440 + (document.body.classList.contains("docked") ? 64 : 0), (H + top) / 2 - (10 * (H + top)) / 900 - top];
 
 /** A folder's tower, built once: towerWorldFrom over its files, each drawn floor with its view (cityView's: a file's first use
- *  case or journey) and the plan of its city, or why that couldn't be built. */
+ *  case or journey) and, where its city can't be built, why. */
 function towerWorld(folder) {
   if (towerWorlds.has(folder)) return towerWorlds.get(folder);
   const world = towerWorldFrom(byFolder.get(folder) ?? [], { drawn: Object.keys(MODELS), order: KIND_ORDER, knowledge: KNOWLEDGE });
   for (const f of world.floors) {
     if (f.group !== "drawn") continue;
     f.view = cityView(folder, `view:${f.file}`);
-    try { f.plan = floorPlan(cityFor(f.view).world); } catch (e) { f.error = String(e.message ?? e); }
+    try { cityFor(f.view); } catch (e) { f.error = String(e.message ?? e); }
   }
   towerWorlds.set(folder, world);
   return world;
@@ -6208,9 +6511,10 @@ const repoName = () => repo.host.label(repo).split("/").pop();
 const skylineTitle = (folder) => { const { title } = folderNames(folder); return folder === "" && title === "/" ? repoName() : title; };
 
 /** The skyline's meshes (The skyline, How a building looks): every floor slab one instanced mesh of glass in its kind's colour,
- *  every shell another of cyan glass; the shells' edges and each slab's top outline one set of glow lines; and the lines to
- *  parent folders as traces and every building's pad, the address folder's lit and ringed, one geometry of ribbons. Six draw
- *  calls with the sky and the floor, however many folders. */
+ *  every shell another of cyan glass, its faces carrying its folder (buildingText, in a codes texture of the skyline's own), and
+ *  the shells again, mirrored in the floor; the shells' edges and each slab's top outline one set of glow lines; and the lines
+ *  to parent folders as traces and every building's pad, the address folder's lit and ringed, one geometry of ribbons. Seven
+ *  draw calls with the sky and the floor, however many folders. */
 function buildSkyline(world, colours) {
   const T = three, group = new T.Group(), owned = [], B = world.buildings, n = B.length;
   const keep = (x) => (owned.push(x), x);
@@ -6220,23 +6524,39 @@ function buildSkyline(world, colours) {
   const inset = 0.175;
   let painted = colours, fade = 1;
   const colourOf = (c, role) => (role === "hot" ? c.hot : c.kinds[role] ?? c.kinds.knowledge);
-  const glassBoxes = (count, rows, kind, order) => {
+  const glassBoxes = (count, rows, kind, order, text = false) => {
     const geometry = keep(new T.BoxGeometry(1, 1, 1).translate(0, 0.5, 0));
     geometry.setAttribute("aState", new T.InstancedBufferAttribute(new Float32Array(count), 1));
     geometry.setAttribute("aSolid", new T.InstancedBufferAttribute(new Float32Array(count), 1));
-    const mesh = put(new T.InstancedMesh(geometry, keep(glass(T, rows, kind)), count), order);
+    if (text) faceAttributes(T, geometry, count);
+    const mesh = put(new T.InstancedMesh(geometry, keep(glass(T, rows, kind, { text })), count), order);
     for (let i = 0; i < count; i++) mesh.setColorAt(i, tint.setStyle(colours.kinds.component));
     return mesh;
   };
   // A slab per file, their tops 0.5 apart from 0.5 up, in the building's shell.
   const floors = B.flatMap((b) => b.floors.map((kind, i) => ({ b, kind, y: BUILDING.floor * (i + 1) - BUILDING.plate })));
-  const plates = glassBoxes(floors.length, SKY_GLASS.plate, "plate", 1), shells = glassBoxes(n, SKY_GLASS.shell, "tower", 3);
+  const plates = glassBoxes(floors.length, SKY_GLASS.plate, "plate", 1), shells = glassBoxes(n, SKY_GLASS.shell, "tower", 3, true);
+  // The shells' faces: the folder along its radius, its views on the other two, in cells 1.6 times a tower's, with no echo,
+  // at 55% of a tower's brightness and thinning from 40 to 150 units to 30%: so many buildings of text far off are otherwise a
+  // glare. And their reflection, the same instances mirrored in the floor.
+  const kinds = { drawn: Object.keys(MODELS), order: KIND_ORDER, knowledge: KNOWLEDGE };
+  const faces = B.map((b) => {
+    const { docs, path } = folderNames(b.folder), own = docs.find((x) => x.kind === "folder")?.entities?.[0];
+    const views = floorOrder(docs, kinds).map(({ d, g }) => ({ word: d.kind.replace(/-/g, " "), tone: g === "knowledge" ? "knowledge" : d.kind, title: d.title ?? KNOWLEDGE[d.kind]?.name ?? d.kind }));
+    const f = { title: skylineTitle(b.folder), path, purpose: own?.purpose ?? own?.summary, views };
+    const cz = faceCols(BUILDING.w, FACE.building), cx = faceCols(BUILDING.d, FACE.building), rows = faceRows(b.h, FACE.building);
+    return { record: { cols: cz, lines: fitSection(buildingText(f, cz, SPACE_TONES).record, rows, cz) }, rels: { cols: cx, lines: fitSection(buildingText(f, cx, SPACE_TONES).rels, rows, cx) }, grid: [cz, cx, rows, FACE.building] };
+  });
+  Object.assign(shells.material.uniforms, { codes: { value: keep(faceCodes(T, faces.flatMap((f) => [f.record, f.rels]))) }, echo: { value: 0 }, gain: { value: 0.55 } });
+  shells.material.uniforms.thin.value.set(40, 150, 0.3);
+  const mirror = put(new T.InstancedMesh(shells.geometry, keep(glass(T, SKY_GLASS.shell, "tower", { text: true, mirror: true, share: shells.material })), n), 0);
+  Object.assign(mirror, { instanceMatrix: shells.instanceMatrix, instanceColor: shells.instanceColor });
   let slot = B.map((_, i) => i), pslot = floors.map((_, i) => i);
   const index = new Map(B.map((b, i) => [b.folder, i])), state = B.map(() => 0);
   const writeShells = () => {
-    const st = shells.geometry.attributes.aState;
-    slot.forEach((bi, i) => { const b = B[bi]; shells.setMatrixAt(i, m4.compose(V(b.x, 0, b.z), turn(b), new T.Vector3(BUILDING.w, b.h, BUILDING.d))); st.array[i] = state[bi]; });
-    shells.instanceMatrix.needsUpdate = st.needsUpdate = true;
+    const at = shells.geometry.attributes;
+    slot.forEach((bi, i) => { const b = B[bi]; shells.setMatrixAt(i, m4.compose(V(b.x, 0, b.z), turn(b), new T.Vector3(BUILDING.w, b.h, BUILDING.d))); at.aState.array[i] = state[bi]; writeFace(shells.geometry, i, faces[bi]); });
+    shells.instanceMatrix.needsUpdate = at.aState.needsUpdate = at.aText.needsUpdate = at.aGrid.needsUpdate = true;
   };
   const writePlates = () => {
     pslot.forEach((fi, i) => { const f = floors[fi]; plates.setMatrixAt(i, m4.compose(V(f.b.x, f.y, f.b.z), turn(f.b), new T.Vector3(BUILDING.w - 2 * inset, BUILDING.plate, BUILDING.d - 2 * inset))); plates.setColorAt(i, tint.setStyle(colourOf(painted, f.kind))); });
@@ -6320,13 +6640,14 @@ function buildSkyline(world, colours) {
     paint(c) {
       painted = c;
       writePlates();
+      paintText(shells.material, c);
       for (const r of runs) refill(r);
       for (const f of index.keys()) look(f);
       B.forEach((_, i) => paintPad(i));
       for (const i of traceStrips) floor.style(i, c.trace, c.traceHalo, RIBBON.trace);
       self.fade(fade);
     },
-    dispose() { for (const x of owned) x.dispose(); plates.dispose(); shells.dispose(); },
+    dispose() { for (const x of owned) x.dispose(); plates.dispose(); shells.dispose(); mirror.dispose(); },
   };
   writeShells();
   self.paint(colours);

@@ -1,0 +1,73 @@
+{
+  "about": "This repository's Loader as Cyberspace's faces read it: its label, its tower's side and height, the inspector's title and subtitle, the plate it stands on, the file it is declared in, and its inspector HTML (n.info.body) read by infoSections, as the page gave them on 2026-11-18 at main (eed710e).",
+  "label": "Loader",
+  "side": 2.2,
+  "h": 11.3,
+  "title": "Loader",
+  "sub": "Component",
+  "where": "Repository reading",
+  "file": ".dev/component-diagram.json",
+  "sections": [
+    {
+      "h": null,
+      "p": [
+        "Finds the .dev/*.json files under the folder asked for (or, where the root has a .cyberspace-explorer folder, the files in it, and nothing else), reads twelve at a time, keeps the views and knowledge files it knows and sorts each folder's files by kind."
+      ],
+      "li": []
+    },
+    {
+      "h": "Folder",
+      "p": [
+        "/"
+      ],
+      "li": []
+    },
+    {
+      "h": "Depends on",
+      "p": [],
+      "li": [
+        {
+          "name": "Address parser",
+          "kv": null,
+          "d": "Splits the address."
+        },
+        {
+          "name": "GitHub adapter",
+          "kv": null,
+          "d": "Lists and reads a GitHub repository."
+        },
+        {
+          "name": "GitLab adapter",
+          "kv": null,
+          "d": "Lists and reads a GitLab project."
+        },
+        {
+          "name": "Token store",
+          "kv": null,
+          "d": "Sends the narrowest token around the repository, to its own host only."
+        },
+        {
+          "name": "Status line",
+          "kv": null,
+          "d": "Reports progress, refusals and what was skipped."
+        },
+        {
+          "name": "Workspace adapter",
+          "kv": null,
+          "d": "Lists and reads a workspace a host serves."
+        }
+      ]
+    },
+    {
+      "h": "Used by",
+      "p": [],
+      "li": [
+        {
+          "name": "Landing page",
+          "kv": null,
+          "d": "Puts the address given into ?url=, which reloads the page and starts loading."
+        }
+      ]
+    }
+  ]
+}

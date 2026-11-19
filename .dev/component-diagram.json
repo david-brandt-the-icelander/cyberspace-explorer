@@ -130,10 +130,6 @@
     },
     {
       "path": "index.html",
-      "symbol": "floorPlan"
-    },
-    {
-      "path": "index.html",
       "symbol": "buildTower"
     },
     {
@@ -367,6 +363,42 @@
     {
       "path": "index.html",
       "symbol": "dockShow"
+    },
+    {
+      "path": "index.html",
+      "symbol": "faceText"
+    },
+    {
+      "path": "index.html",
+      "symbol": "fitSection"
+    },
+    {
+      "path": "index.html",
+      "symbol": "floorText"
+    },
+    {
+      "path": "index.html",
+      "symbol": "buildingText"
+    },
+    {
+      "path": "index.html",
+      "symbol": "floorNames"
+    },
+    {
+      "path": "index.html",
+      "symbol": "infoSections"
+    },
+    {
+      "path": "index.html",
+      "symbol": "cityFaces"
+    },
+    {
+      "path": "index.html",
+      "symbol": "faceAtlas"
+    },
+    {
+      "path": "index.html",
+      "symbol": "faceCodes"
     }
   ],
   "components": [
@@ -529,19 +561,19 @@
     {
       "id": "cyberspace",
       "name": "Cyberspace",
-      "responsibility": "The second way in: the repository in 3D, under a black-to-indigo sky on a glossy black floor, in place of the folder column and view; always dark, whatever the theme switch, the system or a host says, with the whole window in the page's dark colours while it shows, and the theme switch disabled. A folder opens as a tower of glass floors, one per .dev file, with a drawn view pulled out and its city small on it; entering that floor flies down into the city, and Esc flies back up. A drawn view stands as a city of cyan glass towers with glowing edges in its kind's colour and magenta beacons on the flat layout's ground plan, every relationship a glowing circuit trace on the floor between pads at the parts' bases; clicking a tower, plate or beacon selects it, lights its traces in place and raises them as beams, brightens its neighbours' pads, opens the inspector on it and puts it in the address. Above the towers, a repository with several folders is a skyline of buildings, one per folder, that the reader rises to and flies into. A city can stand other drawn views of its folder beside it. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
+      "responsibility": "The second way in: the repository in 3D, under a black-to-indigo sky on a glossy black floor, in place of the folder column and view; always dark, whatever the theme switch, the system or a host says, with the whole window in the page's dark colours while it shows, and the theme switch disabled. A folder opens as a tower of glass floors, one per .dev file, with a drawn view pulled out and its city small on it; entering that floor flies down into the city, and Esc flies back up. A drawn view stands as a city of cyan glass towers with glowing edges in its kind's colour and magenta beacons on the flat layout's ground plan, each tower's faces carrying its own record from the inspector in glowing monospace that thins to a haze with distance, and everything mirrored faintly in the floor; every relationship a glowing circuit trace on the floor between pads at the parts' bases; clicking a tower, plate or beacon selects it, lights its traces in place and raises them as beams, brightens its neighbours' pads, opens the inspector on it and puts it in the address. Above the towers, a repository with several folders is a skyline of buildings, one per folder, that the reader rises to and flies into. A city can stand other drawn views of its folder beside it. Opened by an address whose last segment is ~space; without WebGL 2 or three.js it says why and Flat shows instead.",
       "folder": "."
     },
     {
       "id": "stage",
       "name": "Stage",
-      "responsibility": "The WebGL renderer, scene and camera, in Cyberspace's palette read once (spaceTheme): a sky sphere round the eye and a glossy floor, fog in every material, unlit premultiplied glass (teal at a tower's base to cyan at its roof), and every edge a glow line drawn with its own falloff, no post-processing; multisampling only below a pixel ratio of 2. Stands a city's meshes (instanced glass plates, towers and beacons; one set of glow lines, beacons' uplinks among them; and one geometry of flat ribbons on the floor, blended by their maximum, holding every trace with the bright run where it arrives, every pad, a final state's second ring, a start point's ring and dot and the selection's dashed ring, recoloured in place as the selection and the pointer change: 3 to 5 draw calls a city, and the lit beams' core and glow while a part is selected) or a folder tower's (the floors as one instanced glass mesh, their rims and the rails as glow lines, their faces as one set of lines and one of tiles, and the pulled-out floor as a drawer with its glow, its ghost slot and its city scaled down) on the floor, or every city standing in a city scene, side by side, or the skyline's buildings (their floor slabs and shells instanced, their edges and slab outlines one set of glow lines, and the lines to parent folders as traces with every building's pad one geometry of ribbons: six draw calls with the sky and the floor), finds what is under the pointer (a part by its glass, a trace where the ray meets the floor or a plate's top, a lit beam by a hidden tube), slides floors out and back, fades the tower out behind the city that takes its place and in again, and out as the skyline fades in and back, fades an unticked city to dim before it goes, draws a frame only when something changed and none while hidden, follows the window's size, times each frame to the GPU's finish with a pixel read back under ?spacestats, lets go of the scene on leaving and of the context a minute later, and offers Restore it when the context is lost.",
+      "responsibility": "The WebGL renderer, scene and camera, in Cyberspace's palette read once (spaceTheme): a sky sphere round the eye and a glossy floor, fog in every material, unlit premultiplied glass (teal at a tower's base to cyan at its roof) whose faces carry text, drawn from a glyph atlas made with the sky and the floor (faceAtlas, in the page's monospace stack, mipmapped so that far text thins to its average) and a texture of each city's cells (faceCodes), with the echo under a short record and the fade with distance, and every edge a glow line drawn with its own falloff, no post-processing; multisampling only below a pixel ratio of 2. Stands a city's meshes (instanced glass plates, towers and beacons; one set of glow lines, beacons' uplinks among them; and one geometry of flat ribbons on the floor, blended by their maximum, holding every trace with the bright run where it arrives, every pad, a final state's second ring, a start point's ring and dot and the selection's dashed ring, recoloured in place as the selection and the pointer change; and the towers' glass and the glow lines again, mirrored in the floor: 5 to 7 draw calls a city, and the lit beams' core and glow while a part is selected) or a folder tower's (the floors as one instanced glass mesh, each floor's top carrying its view, their rims and the rails as glow lines, both mirrored in the floor, the pulled-out floor sliding its own slab and rims with the city on it scaled down, and its ghost slot and drawer lines as dashed ribbons) on the floor, or every city standing in a city scene, side by side, or the skyline's buildings (their floor slabs and shells instanced, the shells carrying their folders on their faces and mirrored in the floor, their edges and slab outlines one set of glow lines, and the lines to parent folders as traces with every building's pad one geometry of ribbons: seven draw calls with the sky and the floor), finds what is under the pointer (a part by its glass, a trace where the ray meets the floor or a plate's top, a lit beam by a hidden tube), slides floors out and back, fades the tower out behind the city that takes its place and in again, and out as the skyline fades in and back, fades an unticked city to dim before it goes, draws a frame only when something changed and none while hidden, follows the window's size, times each frame to the GPU's finish with a pixel read back under ?spacestats, lets go of the scene, the atlas among it, on leaving and of the context a minute later, and offers Restore it when the context is lost.",
       "folder": "."
     },
     {
       "id": "world-builders",
       "name": "World builders",
-      "responsibility": "Turn a drawn view into a city in world units, from the layout Flat draws it with (or a grid without one): groups as plates, parts as towers as tall as their beams make them, a component's or deployment's outside services as beacons, start points as rings with a dot, and every edge as a circuit trace on the floor, routed along the points dagre gave it in the flat drawing, squared off, in lanes where traces share an avenue, slid clear of towers and up and down plates' walls, between pins on pads at the parts' bases (and as an arc while it is lit, those between the same two parts fanned out); find the trace under a point of the floor. Turn a folder's files into a tower of floors in three groups (drawn, written, knowledge), each floor with what its top shows: a drawn view's plan from its city, a written view's cards as bars, a knowledge file's records as lines. Turn the repository's folders into a skyline: a building per folder on the radial tree of folders, each subtree given the angle its buildings need, the rings widened until they fit, a floor per file in its tower's order, each folder's line to its parent a trace square to the rings, siblings in lanes. Place the cities standing side by side, each 12 units right of the last, and join them into one world to walk in and map. Pure functions, tested in Node; built once per view and direction, once per folder, and once for the skyline.",
+      "responsibility": "Turn a drawn view into a city in world units, from the layout Flat draws it with (or a grid without one): groups as plates, parts as towers as tall as their beams make them, a component's or deployment's outside services as beacons, start points as rings with a dot, and every edge as a circuit trace on the floor, routed along the points dagre gave it in the flat drawing, squared off, in lanes where traces share an avenue, slid clear of towers and up and down plates' walls, between pins on pads at the parts' bases (and as an arc while it is lit, those between the same two parts fanned out); find the trace under a point of the floor. Lay out what a tower's faces carry, the part's own record as the inspector shows it, read from the inspector's HTML: its name framed, its kind and plate, description, headings and file for two faces, its relationships for the other two, wrapped to the face's columns and cut to its rows with an ellipsis, a glyph the atlas lacks drawn as its bare letter or a dot. Turn a folder's files into a tower of floors in three groups (drawn, written, knowledge), each floor carrying on its top its kind and title, its file and what it holds: a drawn view's parts, a written view's cards, a knowledge file's records. Turn the repository's folders into a skyline: a building per folder on the radial tree of folders, each subtree given the angle its buildings need, the rings widened until they fit, a floor per file in its tower's order, its faces carrying the folder's title, path and purpose and its views, each folder's line to its parent a trace square to the rings, siblings in lanes. Place the cities standing side by side, each 12 units right of the last, and join them into one world to walk in and map. Pure functions, tested in Node; built once per view and direction, once per folder, and once for the skyline.",
       "folder": "."
     },
     {
@@ -955,7 +987,7 @@
       "from": "cyberspace",
       "to": "inspector",
       "kind": "depends-on",
-      "description": "Writes the selected part into it through showInfo, with the text Flat shows."
+      "description": "Writes the selected part into it through showInfo, with the text Flat shows; and reads the same HTML, each part's, for what its tower's faces carry (infoSections)."
     },
     {
       "from": "models",

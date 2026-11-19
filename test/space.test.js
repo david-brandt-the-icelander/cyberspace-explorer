@@ -303,7 +303,7 @@ test("selecting writes the part's own address and clearing the view's, which rea
 
 // ── The folder tower ──────────────────────────────────────────────────────
 
-const { towerWorldFrom, floorPlan, floorScale, FLOOR } = vm.runInContext("({ towerWorldFrom, floorPlan, floorScale, FLOOR })", context);
+const { towerWorldFrom, floorScale, FLOOR } = vm.runInContext("({ towerWorldFrom, floorScale, FLOOR })", context);
 // The page's own kinds, which towerWorldFrom is given: KIND_ORDER, KNOWLEDGE (from its groups) and the drawn kinds (MODELS).
 const page = vm.createContext({});
 for (const re of [/^const KIND_ORDER = .*$/m, /^const KNOWLEDGE_GROUPS = \[[\s\S]*?^\];$/m, /^const KNOWLEDGE = .*$/m]) vm.runInContext(html.match(re)[0], page);
@@ -352,15 +352,20 @@ test("a taller stack opens climbed: by 1.05 with a 25th file", () => {
   assert.deepEqual(more.groups.map((g) => g.count), [8, 3, 14]);
 });
 
-test("a written floor shows a bar per card and a knowledge floor a line per record, as long as their titles, at most 4 and 6", () => {
+test("a floor holds its written view's cards by name, its knowledge file's records by title, and its drawn view's parts", () => {
   const w = towerOf(ROOT);
-  for (const f of w.floors) {
+  for (const f of w.floors.filter((x) => x.group !== "drawn")) {
     const records = ROOT.find((d) => d.path === f.path).entities ?? [];
-    assert.deepEqual(f.bars, f.group === "written" ? records.slice(0, 4).map((e) => String(e.name ?? e.title ?? e.id).length) : [], f.file);
-    assert.deepEqual(f.lines, f.group === "knowledge" ? records.slice(0, 6).map((e) => String(e.title ?? e.name ?? e.id).length) : [], f.file);
+    assert.deepEqual(f.names, records.map((e) => String((f.group === "written" ? e.name ?? e.title : e.title ?? e.name) ?? e.id)), f.file);
+    assert.equal(f.noun, f.group === "written" ? "card" : "record");
   }
-  assert.ok(w.floors.some((f) => f.lines.length === 6));
-  assert.ok(w.floors.filter((f) => f.group === "written").every((f) => f.bars.length > 0));
+  // A drawn view's parts: a component's name without the file it gives in brackets, a state's id, a use case's entities.
+  const drawn = towerOf([
+    { kind: "component", path: ".dev/component-diagram.json", title: "C", components: [{ id: "router", name: "Router (index.html)" }, { id: "loader", name: "Loader" }] },
+    { kind: "state", path: ".dev/page.state-diagram.json", title: "S", states: [{ id: "empty" }, { id: "opened" }] },
+    { kind: "use-case", path: ".dev/use-case.json", title: "U", entities: [{ id: "read", name: "Read a folder" }] },
+  ]);
+  assert.deepEqual(drawn.floors.map((f) => [f.names, f.noun]), [[["Router", "Loader"], "part"], [["empty", "opened"], "part"], [["Read a folder"], "use case"]]);
 });
 
 test("a folder with no drawn views has no drawer, and its first group starts on the ground", () => {
@@ -387,21 +392,6 @@ test("a city stands on its floor at k = min(0.36, 15 / width, 11 / depth): about
   assert.ok(near(k * 47.4, 11));
   assert.equal(floorScale({ x0: 0, x1: 10, z0: 0, z1: 10 }), 0.36);
   assert.ok(near(floorScale({ x0: 0, x1: 60, z0: 0, z1: 20 }), 0.25));
-});
-
-test("a drawn floor's plan is its city's flat layout, inside 13 × 9 units: a tile per part, an outline per plate, a line per beam", () => {
-  const plan = floorPlan(cityWorldFrom(TWO, TWO_L, "component", "LR"));
-  assert.equal(plan.outlines.length, 2);
-  assert.equal(plan.tiles.length, 6);
-  assert.equal(plan.lines.length, 7);
-  const all = [...plan.tiles, ...plan.outlines];
-  assert.ok(all.every((t) => t.x0 >= -6.5 - 1e-9 && t.x1 <= 6.5 + 1e-9 && t.z0 >= -4.5 - 1e-9 && t.z1 <= 4.5 + 1e-9));
-  // The sheet is 1000 × 600 px, so its width fills the 13 units: 0.013 a pixel.
-  assert.ok(near(Math.min(...all.map((t) => t.x0)), (40 - 500) * 0.013) && near(Math.max(...all.map((t) => t.x1)), (960 - 500) * 0.013));
-  // Without a layout, the grid's boxes are the plan.
-  const grid = floorPlan(cityWorldFrom({ dir: "LR", nodes: Array.from({ length: 9 }, (_, i) => leaf("n" + i)), edges: [] }, null, "component", "LR"));
-  assert.equal(grid.tiles.length, 9);
-  assert.equal(FLOOR.w * FLOOR.d, 192);
 });
 
 test("sliding a floor out, entering its city and going up again write addresses that read back the same", () => {
@@ -809,25 +799,28 @@ test("Tab walks a city's parts along its flow, a rank at a time, a plate before 
 
 test("a city's draw calls are counted from its world, as buildCity draws it", () => {
   const beam = (from, to) => ({ from, to });
-  // The component city of this repository: the glass of its plates, towers and beacons, their edges, and its ribbons.
+  // The component city of this repository: the glass of its plates, towers and beacons, their edges, its ribbons, and the
+  // towers' glass and the edges mirrored in the floor.
   const component = { plates: [{}], towers: [{ alt: false }], beacons: [{}], markers: [], beams: [beam("a", "b")], traces: [beam("a", "b")] };
-  assert.equal(cityCalls(component), 5);
-  // A state machine: towers, their edges, and the ribbons (traces, pads, the start point).
-  assert.equal(cityCalls({ plates: [], towers: [{ alt: false }], beacons: [], markers: [{}], beams: [beam("s", "a"), beam("a", "a")], traces: [beam("s", "a"), beam("a", "a")] }), 3);
+  assert.equal(cityCalls(component), 7);
+  // A state machine: towers, their edges, the ribbons (traces, pads, the start point) and the two reflections.
+  assert.equal(cityCalls({ plates: [], towers: [{ alt: false }], beacons: [], markers: [{}], beams: [beam("s", "a"), beam("a", "a")], traces: [beam("s", "a"), beam("a", "a")] }), 5);
   // A use case: an alternative outcome's dashed edges are glow lines like the rest; a city of towers alone still has their pads.
-  assert.equal(cityCalls({ plates: [], towers: [{ alt: false }, { alt: true }], beacons: [], markers: [], beams: [], traces: [] }), 3);
+  assert.equal(cityCalls({ plates: [], towers: [{ alt: false }, { alt: true }], beacons: [], markers: [], beams: [], traces: [] }), 5);
+  // A city of beacons alone mirrors its edges but has no towers' glass to mirror.
+  assert.equal(cityCalls({ plates: [], towers: [], beacons: [{}], markers: [], beams: [], traces: [] }), 4);
 });
 
 test("the Layers panel keeps a city scene within 40 draw calls, with a selection and a trace under the pointer", () => {
   assert.equal(DRAW_BUDGET, 40);
-  // This repository's drawn views of 2026-11-16: component 5, deployment 5, four state machines 3 each, a use case and a user
-  // journey 3 each; the scene keeps 4, the sky, the floor and the lit beams' core and glow. All of them stand in 32.
-  const standing = [5, 5, 3, 3, 3, 3, 3];
-  assert.ok(layerFits(standing, 3), "the last one fits: 28 standing, 32 with a part selected");
-  assert.ok(layerFits([5, 5, 5, 5, 5, 5, 3], 3));
-  assert.ok(!layerFits([5, 5, 5, 5, 5, 5, 3], 5), "one more component city would pass 40 with a part selected");
+  // This repository's drawn views of 2026-11-18: component 7, deployment 7, four state machines 5 each, a use case and a user
+  // journey 5 each; the scene keeps 4, the sky, the floor and the lit beams' core and glow (until step G4 makes them arcs).
+  // The component city, the deployment diagram and the four state machines stand in 38 with a part selected.
+  const standing = [7, 7, 5, 5, 5];
+  assert.ok(layerFits(standing, 5), "the fourth state machine fits: 34 standing, 38 with a part selected");
+  assert.ok(!layerFits([...standing, 5], 5), "a use case beside them would pass 40 with a part selected");
   // A view standing in the place of another counts only the difference.
-  assert.ok(layerFits([5, 5, 5, 5, 5, 5, 3], 5, 3));
+  assert.ok(layerFits([...standing, 5], 5, 5));
   assert.ok(!layerFits([33], 4));
 });
 
@@ -1104,4 +1097,97 @@ test("moving about: what a use case seems to touch in a city", () => {
   assert.deepEqual([...affectedBy([{ text: "reloads", paths: [], symbols: [] }], parts)], [], "whole words only: reloads is not Loader");
   assert.deepEqual([...affectedBy([{ text: "the gl canvas", paths: [], symbols: [] }], parts)], [], "names under three letters never match");
   assert.deepEqual([...affectedBy([{ text: "", paths: ["index.html"], symbols: [] }], parts)], [], "the root folder says nothing about which part");
+});
+
+// ── Faces (G3) ───────────────────────────────────────────────────────────
+
+const faces = vm.runInContext("({ faceText, fitSection, floorText, buildingText, faceCols, faceRows, GLYPHS, FACE })", context);
+const { faceCols, faceRows, FACE } = faces, GLYPHS = [...faces.GLYPHS];
+// Lines made in the other context are compared as plain data.
+const plain = (x) => JSON.parse(JSON.stringify(x));
+const faceText = (...a) => plain(faces.faceText(...a)), fitSection = (...a) => plain(faces.fitSection(...a));
+const floorText = (...a) => plain(faces.floorText(...a)), buildingText = (...a) => plain(faces.buildingText(...a));
+// This repository's Loader as the page reads it for its faces on 2026-11-18: its inspector's sections, from infoSections.
+const LOADER = JSON.parse(await readFile(new URL("./fixtures/space/loader-faces.json", import.meta.url), "utf8"));
+const loaderPart = { label: LOADER.label, info: { title: LOADER.title, sub: LOADER.sub, sections: LOADER.sections } };
+/** A section's text, its lines joined by spaces, blank lines left out. */
+const said = (lines) => lines.map((l) => l.t.trim()).filter(Boolean).join(" ");
+
+test("a tower's face is a grid of cells 0.08 by 0.16: Loader, 2.2 wide and 10.0 tall, has 24 columns and 59 rows", () => {
+  assert.equal(faceCols(2.2), 24);
+  assert.equal(faceRows(10), 59);
+  // A floor's cells are 3.75 times a tower's, a building's 1.6 times.
+  assert.equal(faceCols(16, FACE.floor), 50);
+  assert.equal(faceRows(12, FACE.floor), 17);
+  assert.equal(faceCols(4.5, FACE.building), 32);
+  assert.equal(GLYPHS.length, new Set(GLYPHS).size);
+  assert.ok(GLYPHS.length <= 256, "a glyph's index is a byte");
+  assert.equal(GLYPHS[0], " ");
+});
+
+test("Loader's faces carry its record, framed, on the front and its relationships on the sides, every line within 24 cells", () => {
+  const cols = faceCols(LOADER.side), { record, rels } = faceText(loaderPart, cols, { where: LOADER.where, file: LOADER.file });
+  assert.equal(cols, 24);
+  // The record: its name framed, in the accent, the name bright; its kind and plate; its description; its folder; its file.
+  assert.deepEqual(record.slice(0, 3).map((l) => l.t), ["┌" + "─".repeat(22) + "┐", "│ LOADER" + " ".repeat(15) + "│", "└" + "─".repeat(22) + "┘"]);
+  assert.equal(record[1].s, "22" + "1".repeat(20) + "22");
+  const text = said(record);
+  assert.ok(text.startsWith("┌"), text);
+  for (const part of ["COMPONENT · REPOSITORY READING", LOADER.sections[0].p[0], "FOLDER /", "FILE .dev/ component-diagram.json"]) assert.ok(text.includes(part), part);
+  assert.ok(text.indexOf("COMPONENT") < text.indexOf("Finds") && text.indexOf("Finds") < text.indexOf("FOLDER /") && text.indexOf("FOLDER /") < text.indexOf("FILE"));
+  // Its relationships: the same frame, then each list with a rule to its count, and an item a part, bright, under `› `.
+  assert.deepEqual(rels.slice(0, 3), record.slice(0, 3));
+  const heads = rels.filter((l) => /─ \d+$/.test(l.t)).map((l) => l.t);
+  assert.deepEqual(heads, ["DEPENDS ON " + "─".repeat(11) + " 6", "USED BY " + "─".repeat(14) + " 1"]);
+  const items = rels.filter((l) => l.t.startsWith("› ")).map((l) => l.t.slice(2));
+  assert.deepEqual(items, ["ADDRESS PARSER", "GITHUB ADAPTER", "GITLAB ADAPTER", "TOKEN STORE", "STATUS LINE", "WORKSPACE ADAPTER", "LANDING PAGE"]);
+  assert.ok(rels.filter((l) => l.t.startsWith("› ")).every((l) => l.s.startsWith("22") && /^1+$/.test(l.s.slice(2))));
+  assert.ok(said(rels).includes("Splits the address."));
+  for (const l of [...record, ...rels]) { assert.ok(l.t.length <= 24, l.t); assert.equal(l.s.length, l.t.length, l.t); }
+  // A section longer than its face is cut at the last row that fits, which ends in an ellipsis.
+  const cut = fitSection(rels, 20, cols);
+  assert.equal(cut.length, 20);
+  assert.ok(cut[19].t.endsWith("…") && cut[19].t.length <= 24 && cut[19].s.endsWith("3"));
+  assert.deepEqual(cut.slice(0, 19), rels.slice(0, 19));
+  assert.deepEqual(fitSection(record, 67, cols), record, "a section that fits is left as it is");
+});
+
+test("a face draws a glyph it lacks as its letter without accents, else as a dot; breaks a long word at a slash; a part with no relationships carries its record on four faces", () => {
+  const part = { label: "Café", info: { title: "Café", sub: "Component", sections: [{ h: null, p: ["Größe → ő ő 漢 é"], li: [] }, { h: "Folder", p: ["games/chess/worker/engine"], li: [] }] } };
+  const { record, rels } = faceText(part, 16, { file: "games/chess/worker/.dev/component-diagram.json" });
+  const text = said(record);
+  assert.ok(text.includes("CAFÉ"), "É is in the set");
+  assert.ok(text.includes("Größe → o o · é"), text);
+  assert.ok(!/[ő漢]/.test(text));
+  // A word longer than a line breaks after a slash.
+  assert.ok(record.some((l) => l.t === "FOLDER games/"), record.map((l) => l.t).join("\n"));
+  assert.ok(record.some((l) => l.t === "chess/worker/"));
+  assert.ok(record.every((l) => l.t.length <= 16));
+  // A word with no slash in a line's reach breaks where the line ends.
+  assert.deepEqual(faceText({ label: "x", info: { sections: [{ h: null, p: ["abcdefghijklmnopqrstuvwxyz"], li: [] }] } }, 10).record.slice(-3).map((l) => l.t), ["abcdefghij", "klmnopqrst", "uvwxyz"]);
+  const made = faces.faceText(part, 16, {});
+  assert.equal(made.rels, made.record, "no relationships: the record on all four faces");
+});
+
+test("a floor carries its kind and title framed, its file and count, then the names it holds, wrapped and cut to the floor", () => {
+  const floor = { word: "component", title: "Cyberspace explorer", file: "component-diagram.json", names: Array.from({ length: 60 }, (_, i) => "Part " + i), noun: "part" };
+  const lines = floorText(floor, 50);
+  assert.equal(lines[1].t, "│ " + "COMPONENT · CYBERSPACE EXPLORER".padEnd(46) + " │");
+  assert.equal(lines[3].t, "component-diagram.json · 60 parts");
+  assert.ok(lines.slice(4).every((l) => l.t.length <= 50 && l.t.startsWith("› ")));
+  assert.deepEqual(lines.slice(4).flatMap((l) => l.t.split("   ").map((n) => n.slice(2))), floor.names);
+  const cut = fitSection(lines, 17, 50);
+  assert.ok(cut.length === 17 && cut[16].t.endsWith("…"));
+});
+
+test("a building carries its folder along its radius and its views, each in its kind's colour, on its sides", () => {
+  const tones = ["component", "state", "knowledge"];
+  const f = { title: "The Worker", path: "./worker/.dev", purpose: "Serves the page.", views: [{ word: "component", tone: "component", title: "The Worker" }, { word: "backlog", tone: "knowledge", title: "Work wanted" }] };
+  const { record, rels } = buildingText(f, 32, tones);
+  assert.equal(record[1].t, "│ " + "THE WORKER".padEnd(28) + " │");
+  assert.equal(record[3].t, "./worker/.dev · 2 files");
+  assert.ok(said(record).endsWith("Serves the page."));
+  const views = rels.filter((l) => l.t.startsWith("› "));
+  assert.deepEqual(views.map((l) => [l.t, l.s[0]]), [["› COMPONENT", "4"], ["› BACKLOG", "6"]]);
+  assert.ok(said(rels).includes("Work wanted"));
 });
