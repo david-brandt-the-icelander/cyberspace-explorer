@@ -12,8 +12,16 @@
   "routes": [{ "pattern": "cyberspace-explorer.com", "custom_domain": true }],
   "vars": {
     // The OAuth App's registered callback is ${PUBLIC_ORIGIN}/auth/github/callback.
-    "PUBLIC_ORIGIN": "https://cyberspace-explorer.com"
+    "PUBLIC_ORIGIN": "https://cyberspace-explorer.com",
+    // The GitHub logins allowed into /admin, separated by commas.
+    "ADMIN_LOGINS": "david-brandt-the-icelander"
   },
+  // The protocol page (/crawler) is docs/cyberspace-protocol.md, imported as text.
+  "rules": [{ "type": "Text", "globs": ["**/*.md"], "fallthrough": true }],
+  // Shared with the crawler (crawler/wrangler.jsonc): its addresses and settings, what it collected, and its scan queue.
+  "d1_databases": [{ "binding": "DB", "database_name": "cyberspace", "database_id": "REPLACE-WITH-D1-DATABASE-ID" }],
+  "r2_buckets": [{ "binding": "SPACE", "bucket_name": "cyberspace" }],
+  "queues": { "producers": [{ "binding": "SCANS", "queue": "cyberspace-scans" }] },
   // Secrets, set with `wrangler secret put … -c wrangler.jsonc`, never here:
   //   GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET   the GitHub OAuth App; sign-in is off without them
   //   SESSION_SECRET                           a long random string that seals the cookies

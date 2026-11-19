@@ -45,9 +45,9 @@
       "id": "crawler-page",
       "title": "The /crawler page",
       "type": "feature",
-      "status": "accepted",
+      "status": "done",
       "priority": "high",
-      "summary": "The address in the user agent: what the crawler is, how it behaves, how to keep it out and how to cooperate.",
+      "summary": "The address in the user agent: what the crawler is, how it behaves, how to keep it out and how to cooperate. Served by worker/markdown.js from the protocol document.",
       "details": "Served by the explorer's Worker from docs/cyberspace-protocol.md.",
       "acceptanceCriteria": [
         "https://cyberspace-explorer.com/crawler answers with the protocol and the crawler's manners."

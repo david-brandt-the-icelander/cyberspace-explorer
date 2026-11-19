@@ -359,6 +359,10 @@
     {
       "path": "crawler/src/index.js",
       "symbol": "default"
+    },
+    {
+      "path": "index.html",
+      "symbol": "crawled"
     }
   ],
   "components": [
@@ -444,6 +448,12 @@
       "id": "workspace-adapter",
       "name": "Workspace adapter",
       "responsibility": "Lists and reads the views a host page hands over in window.cyberspaceWorkspace (the VS Code extension's workspace folder), with no token and no ?url=.",
+      "folder": "."
+    },
+    {
+      "id": "crawled-adapter",
+      "name": "Crawler adapter",
+      "responsibility": "Lists and reads the views the crawler made of a website, through the Worker's /api/space, and tells the Worker a player approached the address so stale data is rescanned.",
       "folder": "."
     },
     {
@@ -1044,6 +1054,18 @@
       "to": "screen",
       "kind": "depends-on",
       "description": "Shows the page in a webview, with the workspace and the theme."
+    },
+    {
+      "from": "crawled-adapter",
+      "to": "worker",
+      "kind": "depends-on",
+      "description": "GET /api/space and its files; POST approach."
+    },
+    {
+      "from": "loader",
+      "to": "crawled-adapter",
+      "kind": "depends-on",
+      "description": "For a website address, when the page is served by the Worker."
     }
   ],
   "folder": "."

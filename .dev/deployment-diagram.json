@@ -2,7 +2,7 @@
   "$schema": "../Meta/Agents/Skills/describe-deployment-diagram/schema.json",
   "kind": "deployment",
   "title": "Where the browser runs",
-  "description": "A page served by a Worker at cyberspace-explorer.com that runs in the reader's browser and reads public repositories straight from their hosts; for a reader signed in with GitHub, it reads GitHub through the Worker, which holds their token.",
+  "description": "A page served by a Worker at cyberspace-explorer.com that runs in the reader's browser and reads public repositories straight from their hosts; for a reader signed in with GitHub, it reads GitHub through the Worker, which holds their token. A second Worker, the crawler, explores websites and repositories into a database and bucket the first serves from.",
   "sources": [
     {
       "path": "index.html",
@@ -31,6 +31,10 @@
     {
       "path": "README.md",
       "symbol": "The service"
+    },
+    {
+      "path": "crawler/wrangler.jsonc",
+      "symbol": "queues"
     }
   ],
   "nodes": [
@@ -106,6 +110,26 @@
       "kind": "external-service",
       "description": "github.com/login/oauth: where the reader authorizes the app, and where the Worker exchanges the code for a token.",
       "condition": "the Worker's secrets are set and the reader signs in"
+    },
+    {
+      "id": "admin-browser",
+      "name": "Admin's browser",
+      "kind": "client",
+      "description": "/admin, signed in with GitHub as a login in ADMIN_LOGINS.",
+      "actor": "Actors/admin.md"
+    },
+    {
+      "id": "crawler",
+      "name": "cyberspace-crawler Worker",
+      "kind": "process",
+      "description": "Scans the addresses on its list on a schedule and from its queue (crawler/.dev/deployment-diagram.json)."
+    },
+    {
+      "id": "crawler-data",
+      "name": "Crawler's database, bucket and queue",
+      "kind": "database",
+      "description": "D1 cyberspace, R2 cyberspace and the queue cyberspace-scans, bound to both Workers.",
+      "condition": "the owner has created them"
     }
   ],
   "artifacts": [
@@ -208,6 +232,30 @@
       "to": "github-api",
       "kind": "connects-to",
       "description": "Looks up the signed-in account and forwards the page's reads, with the reader's token."
+    },
+    {
+      "from": "admin-browser",
+      "to": "worker",
+      "kind": "connects-to",
+      "description": "/admin and /api/admin over HTTPS, with the session cookie."
+    },
+    {
+      "from": "worker",
+      "to": "crawler-data",
+      "kind": "connects-to",
+      "description": "Bindings DB, SPACE and SCANS."
+    },
+    {
+      "from": "crawler",
+      "to": "crawler-data",
+      "kind": "connects-to",
+      "description": "The same bindings."
+    },
+    {
+      "from": "site",
+      "to": "crawler",
+      "kind": "hosts",
+      "description": "Runs the crawler beside the explorer's Worker."
     }
   ],
   "folder": "."

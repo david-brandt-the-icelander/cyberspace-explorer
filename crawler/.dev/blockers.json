@@ -7,10 +7,10 @@
     {
       "id": "cloudflare-resources",
       "title": "The database, bucket and queues don't exist yet",
-      "summary": "crawler/wrangler.jsonc names a D1 database, an R2 bucket and two queues that the owner creates once; until then neither Worker that binds them can be deployed.",
+      "summary": "crawler/wrangler.jsonc and wrangler.jsonc bind a D1 database, an R2 bucket and queues that the owner creates once; until then the deploy job stops before deploying either Worker.",
       "status": "open",
       "cause": "Creating them needs the owner's Cloudflare account on Workers Paid, and the deploy token needs D1, R2 and Queues permissions.",
-      "unblockWhen": "The steps in crawler/README.md, \"Setting it up once (the owner)\", are done and the database id replaces REPLACE-WITH-D1-DATABASE-ID.",
+      "unblockWhen": "The steps in crawler/README.md, \"Setting it up once (the owner)\", are done and the database id replaces REPLACE-WITH-D1-DATABASE-ID in both files.",
       "canUnblock": "owner",
       "since": "2026-11-19",
       "blocked": [
@@ -34,6 +34,10 @@
         {
           "path": "crawler/README.md",
           "symbol": "Setting it up once (the owner)"
+        },
+        {
+          "path": ".github/workflows/cyberspace-explorer.yml",
+          "symbol": "Check that the crawler's resources exist"
         }
       ]
     }

@@ -1,6 +1,9 @@
 // The cyberspace explorer as a service: serves the page, signs readers in with GitHub (OAuth 2.0 code
 // flow with PKCE) and reads GitHub for them. The access token never reaches the page: it is kept in an
 // encrypted HttpOnly cookie and added to the GitHub calls here. No dependencies; runs in Workers and Node.
+// space.js adds the crawler's side: /admin for the owner, /api/space for the page and /crawler for site owners.
+
+import { spaceRoutes } from "./space.js";
 
 // The app has a host of its own, so it lives at the root: BASE prefixes its routes, HOME is the page.
 export const BASE = "", HOME = "/";
@@ -151,8 +154,8 @@ async function proxy(request, env, path, fetcher) {
   return new Response(res.body, { status: res.status, headers });
 }
 
-/** The Worker's fetch handler, for the page's source text. */
-export function createHandler(html, fetcher = (...a) => fetch(...a)) {
+/** The Worker's fetch handler, for the page's source text; `pages` holds the admin page and the rendered protocol. */
+export function createHandler(html, fetcher = (...a) => fetch(...a), pages = {}) {
   return async function handle(request, env = {}) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
@@ -168,6 +171,8 @@ export function createHandler(html, fetcher = (...a) => fetch(...a)) {
     if (path === `${BASE}/auth/github/callback`) return callback(request, env, fetcher);
     if (path === `${BASE}/auth/sign-out`) return signOut(request, env);
     if (path.startsWith(`${BASE}/api/github/`)) return proxy(request, env, path.slice(`${BASE}/api/github/`.length), fetcher);
+    const crawled = await spaceRoutes(request, env, { path, session: await session(request, env), site: origin(request, env), pages });
+    if (crawled) return crawled;
     return new Response("Not found", { status: 404 });
   };
 }

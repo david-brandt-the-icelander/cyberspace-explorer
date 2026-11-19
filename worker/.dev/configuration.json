@@ -104,6 +104,51 @@
           "symbol": "vars"
         }
       ]
+    },
+    {
+      "id": "admin-logins",
+      "title": "Admin logins",
+      "summary": "The GitHub logins allowed into /admin.",
+      "key": "ADMIN_LOGINS",
+      "type": "string (logins separated by commas)",
+      "sensitive": false,
+      "default": "david-brandt-the-icelander",
+      "scope": "the Worker",
+      "takesEffect": "next deploy",
+      "details": "A var in wrangler.jsonc, compared without case. The admin page can't change it.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/space.js",
+          "symbol": "adminLogins"
+        },
+        {
+          "path": "wrangler.jsonc",
+          "symbol": "vars"
+        }
+      ]
+    },
+    {
+      "id": "crawler-bindings",
+      "title": "The crawler's database, bucket and queue",
+      "summary": "DB, SPACE and SCANS, the same D1 database, R2 bucket and queue the crawler uses.",
+      "key": "DB, SPACE, SCANS",
+      "type": "bindings",
+      "sensitive": false,
+      "scope": "the Worker",
+      "takesEffect": "next deploy",
+      "details": "Without them /api/space and the admin API answer 503 and the rest of the Worker works as before. The owner creates them once (crawler/README.md, \"Setting it up once\").",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "wrangler.jsonc",
+          "symbol": "d1_databases"
+        },
+        {
+          "path": "worker/space.js",
+          "symbol": "ready"
+        }
+      ]
     }
   ]
 }

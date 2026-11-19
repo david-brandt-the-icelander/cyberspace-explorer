@@ -152,6 +152,82 @@
           "symbol": "signOut"
         }
       ]
+    },
+    {
+      "id": "admin-door",
+      "title": "/admin writes only for listed logins, and only from its own page",
+      "summary": "The admin API changes the crawler's list and settings for a signed-in login in ADMIN_LOGINS, on requests whose Origin is the app's own.",
+      "status": "accepted",
+      "context": "The owner asked for an admin page at cyberspace-explorer.com/admin to change the address list and how often things are rescanned. Sign-in already exists, so a login is known; the session cookie is SameSite=Lax, which already keeps most cross-site requests from carrying it.",
+      "options": [
+        {
+          "title": "GitHub logins in a setting",
+          "consequences": "No new sign-in; the list of admins is changed by a deploy, never by the admin page."
+        },
+        {
+          "title": "Cloudflare Access in front of /admin",
+          "consequences": "A second sign-in, set up in the Cloudflare dashboard."
+        }
+      ],
+      "decision": "GitHub logins in ADMIN_LOGINS, chosen by the owner on 2026-11-19. Every admin request checks the session's login; every change also needs Origin to be the app's own, and the page is served with X-Frame-Options: DENY.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/space.js",
+          "symbol": "isAdmin"
+        },
+        {
+          "path": "worker/space.js",
+          "symbol": "spaceRoutes"
+        },
+        {
+          "path": "test/space-api.test.js",
+          "symbol": "admin API: signed in, allowed, and changes only from the page itself"
+        }
+      ]
+    },
+    {
+      "id": "approach-rescan",
+      "title": "Approaching stale data asks for a rescan",
+      "summary": "The page tells the Worker when a player opens an address; if its last scan is older than the address's staleness limit, a rescan is queued.",
+      "status": "accepted",
+      "context": "The owner asked for a rescan when a player approaches an address, with a setting for how stale is acceptable. Anyone can be a player, so the request must not let a visitor make the crawler work harder than the admin allowed.",
+      "options": [
+        {
+          "title": "Rescan only when stale, once at a time",
+          "consequences": "A visitor can at most bring a rescan forward to the moment the data went stale; requestScan never queues an address twice."
+        },
+        {
+          "title": "Rescan on every approach",
+          "consequences": "Visitors would set the crawler's pace."
+        }
+      ],
+      "decision": "Rescan only when stale, once at a time, and only for requests from the explorer's own origin.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/space.js",
+          "symbol": "space"
+        },
+        {
+          "path": "crawler/src/store.js",
+          "symbol": "isStale"
+        },
+        {
+          "path": "index.html",
+          "symbol": "approach"
+        }
+      ]
     }
   ]
 }

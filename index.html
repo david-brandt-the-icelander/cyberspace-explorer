@@ -840,6 +840,7 @@ ${Object.entries(ICONS).map(([k, v]) => `<symbol id="i-${k}" viewBox="0 0 24 24"
 function parseAddress(raw) {
   if (raw === LOCAL_ADDRESS && workspace) return { host: local, rest: [] };
   let s = raw.trim().replace(/^git@([^:]+):/, "https://$1/");
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(s)) s = `https://${s}`;
   const url = new URL(s);
   if (!/^https?:$/.test(url.protocol)) throw new Error("Give an http or https address.");
   const parts = url.pathname.replace(/\.git$/, "").split("/").filter(Boolean).map(decodeURIComponent);
@@ -847,6 +848,11 @@ function parseAddress(raw) {
     if (parts.length < 2) throw new Error("A GitHub address needs an owner and a repository.");
     const [owner, repo, mode, ...rest] = parts;
     return { host: github, owner, repo, rest: mode === "tree" || mode === "blob" ? rest : [] };
+  }
+  // A bare website (no project path) is one the crawler explores, read through the server; without a server there is nothing to read it with.
+  if (parts.length < 2 && url.hostname !== "gitlab.com") {
+    if (!service) throw new Error("A website can only be explored on cyberspace-explorer.com, where the crawler reads it.");
+    return { host: crawled, url: url.origin, rest: [] };
   }
   // Anything else is tried as GitLab (gitlab.com or a self-hosted GitLab with CORS).
   const dash = parts.indexOf("-");
@@ -929,7 +935,7 @@ async function detectService() {
 
 function showTokenButton() {
   const b = $("token"), using = repo && tokenScope(repo), any = heldTokens().length;
-  b.hidden = !repo || !any || viaService(repo) || repo.host === local;
+  b.hidden = !repo || !any || viaService(repo) || repo.host === local || repo.host === crawled;
   if (b.hidden) return;
   b.innerHTML = `${ic("key")}${using ? "Token added" : "Tokens"}`;
   b.title = using ? `The token for ${using.scope} is in use. Open to add, replace or forget tokens.` : "No token covers this repository. Open to add one or forget others.";
@@ -972,7 +978,7 @@ $("token").addEventListener("click", () => ($("token-panel").hidden ? openTokenP
 document.addEventListener("click", (e) => { if (!$("token-panel").hidden && !e.composedPath().some((n) => n.id === "token-panel" || n.id === "token")) closeTokenPanel(); });
 
 /** The button to offer when a host refuses, or null when a token wouldn't help. */
-const tokenOffer = (st) => service && repo?.host === github && [401, 403, 404].includes(st)
+const tokenOffer = (st) => repo?.host === crawled ? null : service && repo?.host === github && [401, 403, 404].includes(st)
   ? (service.user ? { label: "Include private repositories", run: () => { location.href = signInUrl(true); } } : { label: "Sign in with GitHub", run: () => { location.href = signInUrl(); } })
   : ([401, 403, 404].includes(st) ? { label: tokenFor(repo) ? "Replace or add a token" : "Add a token", run: openTokenPanel } : null);
 
@@ -1059,6 +1065,35 @@ const gitlab = {
   label: (r) => r.project,
 };
 
+/** An address cyberspace-crawler explores, a website for now, read through the server's /api/space (crawler/README.md):
+ *  the crawler's views of it, the time of its last scan, and an approach that asks for a rescan when its data is stale. */
+const crawled = {
+  name: "the crawler",
+  tokenHost: () => "crawler",
+  authHeader: () => ({}),
+  tokenHelp: "",
+  async list(r) {
+    let d;
+    try { d = await getJson(new URL(`${service.base}/api/space?url=${encodeURIComponent(r.url)}`, location.origin).href); }
+    catch (e) { if (e.status === 404) e.message = `${new URL(r.url).host} is not one of the addresses this server explores.`; throw e; }
+    Object.assign(r, { id: d.id, space: d, path: "", ref: d.scannedAt ? `scanned ${d.scannedAt.slice(0, 10)}` : "not scanned yet" });
+    await approach(r);
+    return d.paths.map((p) => (/(^|\/)\.dev\//.test(p) || p.startsWith(".cyberspace-explorer/") ? p : `.cyberspace-explorer/${p}`));
+  },
+  read: (r, path) => [`${service.base}/api/space/${r.id}/files/${path.replace(/^\.cyberspace-explorer\//, "").split("/").map(encodeURIComponent).join("/")}`, {}],
+  blob: (r) => r.url,
+  home: (r) => r.url,
+  label: (r) => r.space?.label ?? new URL(r.url).host,
+};
+/** Tells the server a player is at an address, which rescans it if its data is older than allowed; says so in the status line. */
+async function approach(r) {
+  try {
+    const res = await fetch(`${service.base}/api/space/${r.id}/approach`, { method: "POST", headers: { Accept: "application/json" } });
+    const d = res.ok ? await res.json() : null;
+    if (d?.rescanning) r.rescanning = true;
+  } catch { /* the views already shown stay */ }
+}
+
 /** A repository a host page serves itself (the VS Code extension's workspace folder). It sets window.cyberspaceWorkspace
  *  before this script runs: { label, ref, paths (every file, relative to the folder), base (a URL each path is fetched
  *  under), blob(path) (a link that opens a file, or a folder for "."), home }. No token and no ?url= are needed. */
@@ -1121,8 +1156,9 @@ async function load(address) {
   status(`Listing ${repo.host.label(repo)} on ${repo.host.name}…`, "loading");
   const drawing = import(DAGRE).then((m) => (dagre = m)).catch(() => null);
   let paths;
-  try { paths = await repo.host.list(repo); } catch (e) { status(`Couldn't list the repository. ${e.message}`, "error", tokenOffer(e.status)); return; }
-  $("repo").insertAdjacentHTML("beforeend", `<span class="ref" title="Branch, tag or commit">${esc(repo.ref)}</span>`);
+  try { paths = await repo.host.list(repo); } catch (e) { status(`Couldn't list ${repo.host === crawled ? "the address" : "the repository"}. ${e.message}`, "error", tokenOffer(e.status)); return; }
+  if (repo.host === crawled) $("repo").querySelector("a").textContent = repo.host.label(repo);
+  $("repo").insertAdjacentHTML("beforeend", `<span class="ref" title="${repo.host === crawled ? "When the crawler last read it" : "Branch, tag or commit"}">${esc(repo.ref)}</span>`);
   const base = repo.path ? repo.path.replace(/\/$/, "") : "";
   // A .cyberspace-explorer folder at the root holds every view, so the repository's folders are not searched for .dev folders.
   const tree = paths.some(inTree);
@@ -1130,6 +1166,14 @@ async function load(address) {
   const wanted = tree
     ? paths.filter((p) => inTree(p) && /\.json$/.test(p) && under(placeOf(p).folder))
     : paths.filter((p) => /(^|\/)\.dev\/[^/]+\.json$/.test(p) && under(placeOf(p).folder));
+  if (!wanted.length && repo.host === crawled) {
+    const d = repo.space;
+    status(d.status === "failed" ? `The crawler couldn't read ${repo.host.label(repo)} last time it tried.`
+      : !d.scannedAt ? `The crawler hasn't scanned ${repo.host.label(repo)} yet. Its first scan is queued; reload in a few minutes.`
+      : d.needsAi ? `The crawler has read ${repo.host.label(repo)}, and its views are waiting to be made from what it read.`
+      : `The crawler found nothing to show for ${repo.host.label(repo)}.`, "error");
+    return;
+  }
   if (!wanted.length) { status(`${repo.host.label(repo)}${base ? "/" + base : ""} has no views or knowledge files in ${tree ? TREE + "/" : ".dev/*.json"} at ${repo.ref}. The skills describe how to add them.`, "error"); return; }
   status(`Reading ${wanted.length} view and knowledge files…`, "loading");
   const problems = [];
@@ -1153,6 +1197,7 @@ async function load(address) {
   await Promise.race([Promise.all([F_NAME, F_HEAD, F_LABEL].map((f) => document.fonts.load(f))), new Promise((r) => setTimeout(r, 1500))]).catch(() => {});
   const notes = [];
   if (repo.truncated) notes.push("The repository is too large to list in full, so some diagrams may be missing.");
+  if (repo.rescanning) notes.push(`What is shown is from ${repo.space.scannedAt?.slice(0, 10) ?? "an earlier scan"}; the crawler is reading it again.`);
   if (problems.length) notes.push(`Skipped ${problems.join(", ")}.`);
   if (!dagre) notes.push("The drawing library couldn't load, so each diagram is shown as tables.");
   status(notes.join(" "));

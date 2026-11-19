@@ -28,6 +28,10 @@
     {
       "path": "worker/app.js",
       "symbol": "proxy"
+    },
+    {
+      "path": "worker/space.js",
+      "symbol": "spaceRoutes"
     }
   ],
   "components": [
@@ -74,6 +78,12 @@
       "folder": "."
     },
     {
+      "id": "space",
+      "name": "Crawler routes",
+      "responsibility": "/admin and its API for the admins, /api/space for the page, and /crawler for site owners, over the crawler's database, bucket and queue.",
+      "folder": "worker"
+    },
+    {
       "id": "github-oauth",
       "name": "GitHub OAuth",
       "responsibility": "github.com/login/oauth: the authorize page the reader is sent to, and the code exchange.",
@@ -83,6 +93,12 @@
       "id": "github-api",
       "name": "GitHub API",
       "responsibility": "api.github.com: the signed-in account, its repositories, and repositories' trees and contents.",
+      "external": true
+    },
+    {
+      "id": "crawler",
+      "name": "Crawler",
+      "responsibility": "cyberspace-crawler: its data layer, database, bucket and scan queue, shared with this Worker.",
       "external": true
     }
   ],
@@ -170,6 +186,24 @@
       "to": "github-api",
       "kind": "depends-on",
       "description": "Forwards the allowed reads, with the reader's token."
+    },
+    {
+      "from": "routes",
+      "to": "space",
+      "kind": "depends-on",
+      "description": "Every path the sign-in and the GitHub door don't answer."
+    },
+    {
+      "from": "space",
+      "to": "sign-in",
+      "kind": "depends-on",
+      "description": "Who is signed in, for /admin."
+    },
+    {
+      "from": "space",
+      "to": "crawler",
+      "kind": "depends-on",
+      "description": "Reads and changes addresses and settings, reads stored views, queues rescans."
     }
   ]
 }

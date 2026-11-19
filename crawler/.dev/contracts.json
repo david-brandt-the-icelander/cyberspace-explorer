@@ -38,7 +38,7 @@
       "summary": "What one scan of an address left, read first by the explorer's Worker.",
       "contractType": "persistence",
       "consumers": [
-        "worker/app.js (phase 2)",
+        "worker/space.js",
         "the AI step (backlog ai-step)"
       ],
       "guarantees": [
@@ -70,7 +70,7 @@
       "contractType": "message",
       "consumers": [
         "crawler/src/index.js queue",
-        "worker/app.js (phase 2)"
+        "worker/space.js"
       ],
       "guarantees": [
         "{ id, reason } with reason schedule, admin, approach, declared or continue; continue also has from.",
@@ -96,7 +96,7 @@
       "contractType": "persistence",
       "consumers": [
         "crawler",
-        "worker (phase 2)"
+        "worker (space.js)"
       ],
       "guarantees": [
         "addresses, scans, fetches and settings as in crawler/schema.sql; every statement is CREATE IF NOT EXISTS, so the file can be applied again."

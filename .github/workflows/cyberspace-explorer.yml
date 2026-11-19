@@ -54,18 +54,20 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+      # Both Workers bind a database, a bucket and queues the owner creates once (crawler/README.md, "Setting it up once").
+      - name: Check that the crawler's resources exist
+        run: |
+          if grep -q REPLACE-WITH-D1-DATABASE-ID wrangler.jsonc crawler/wrangler.jsonc; then
+            echo "::error::Create the crawler's database, bucket and queues first (crawler/README.md, Setting it up once), and put the database id in wrangler.jsonc and crawler/wrangler.jsonc."
+            exit 1
+          fi
       - name: Deploy the Worker
         run: npx --yes wrangler@4.156.1 deploy --config wrangler.jsonc
-      # The crawler binds a database, a bucket and queues the owner creates once (crawler/README.md, "Setting it up once").
       - name: Deploy the crawler
-        run: |
-          if grep -q REPLACE-WITH-D1-DATABASE-ID crawler/wrangler.jsonc; then
-            echo "::notice::The crawler is not set up yet (crawler/README.md, Setting it up once), so it was not deployed."
-          else
-            npx --yes wrangler@4.156.1 deploy --config crawler/wrangler.jsonc
-          fi
+        run: npx --yes wrangler@4.156.1 deploy --config crawler/wrangler.jsonc
       - name: Check that it answers
         run: |
           sleep 5
           curl --fail --silent --show-error --location https://cyberspace-explorer.com/ | grep -q "Cyberspace explorer"
           curl --fail --silent --show-error https://cyberspace-explorer.com/auth/me
+          curl --fail --silent --show-error https://cyberspace-explorer.com/crawler | grep -q "cyberspace-crawler"
