@@ -937,6 +937,82 @@
           "symbol": "local"
         }
       ]
+    },
+    {
+      "id": "dock-and-warp",
+      "title": "A dock, diagrams over the scene, and a warp between places",
+      "summary": "Cyberspace has a dock at the left edge: Back, Forward, History, a bookmark and the bookmarks, and a button per kind of drawn view. A kind's view is drawn in neon over the blurred scene, and its parts lead there through a turn, an afterglow, a warp and a moment of darkness.",
+      "status": "accepted",
+      "context": "The owner asked for this on 2026-11-19: a left sidebar with buttons for the diagram types; tapping one blurs the screen and overlays the diagram in neon; tapping a node that navigates shows the blurred scene turn to face the target, the diagram goes out leaving a little afterglow, the blur becomes a warp as the reader flies there at breakneck speed, and the warp ends with the screen opaque for a moment, except the HUD, fading to the cityscape. Also back and forward buttons, a history and bookmarks, as in a browser.",
+      "options": [
+        {
+          "title": "Build it on the address",
+          "consequences": "Every arrival is a new history entry, so the browser's Back and Forward are the dock's; history and bookmarks keep addresses. Nothing new to keep in step."
+        },
+        {
+          "title": "A navigation stack of its own",
+          "consequences": "Could remember camera poses, at the cost of a second source of truth beside the address."
+        }
+      ],
+      "decision": "Built on the address (decision address-is-state). The diagram is Flat's own drawing (sheetOf, drawSvg) restyled; a part that opens a folder leads to its tower, any other to itself in its view's city. With reduced motion there is no turn, warp or darkness: the address changes at once. The warp is motion the reader asked for, so it stays within cyberspace-motion. History and bookmarks are kept in this browser (localStorage), places as their address and hash. 'Leaving cyberspace' in the owner's words is read as leaving the warp, since what follows is the cityscape.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "dockShow"
+        },
+        {
+          "path": "index.html",
+          "symbol": "openDiagram"
+        },
+        {
+          "path": "index.html",
+          "symbol": "warpTo"
+        },
+        {
+          "path": "index.html",
+          "symbol": "showPop"
+        }
+      ]
+    },
+    {
+      "id": "inferred-reach",
+      "title": "What a use case touches is inferred, and says so",
+      "summary": "A use case or journey brought over a city lights the parts its steps seem to touch, matched from the sources each step cites and its words, and the diagram's note says the match is inferred.",
+      "status": "accepted",
+      "context": "The owner asked that constructs such as use cases highlight the things they affect. No field in describe-use-case links a step to a part of another view: a step has an actor, an action and sources, and relatedViews names whole files.",
+      "options": [
+        {
+          "title": "Infer, and say so",
+          "consequences": "Works on every repository today; can light too much or too little."
+        },
+        {
+          "title": "Add a field to the skill upstream",
+          "consequences": "Exact, but every repository's use cases would need it written (backlog step-touches)."
+        }
+      ],
+      "decision": "Infer, and say so: a part counts when a step's source lies in its folder (not the root), or a step's source symbol or words name it or its id as whole words of three letters or more (affectedBy). Hovering a step lights only its own matches.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "affectedBy"
+        },
+        {
+          "path": "test/space.test.js",
+          "symbol": "moving about: what a use case seems to touch in a city"
+        }
+      ]
     }
   ]
 }

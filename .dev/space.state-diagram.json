@@ -2,7 +2,7 @@
   "$schema": "../Meta/Agents/Skills/describe-state-diagram/schema.json",
   "kind": "state",
   "title": "Flat, the skyline, the folder tower, the city and the street",
-  "description": "Which of its ways in the page shows, and how the reader moves between them: Flat, Cyberspace's folder tower, its city and the city's street, and the flat view a ~space address gets where Cyberspace can't run. The address decides it: route() reads its last segment, and every move here either changes the address (a new history entry, so Back and Forward retrace it) or replaces the entry (a selection, a floor slid back, walking). A repository with several folders has a skyline above the folder towers. The views a city stands beside the one in the address (its layers) are not in the address: they last while the reader stays in that folder's city and its street.",
+  "description": "Which of its ways in the page shows, and how the reader moves between them: Flat, Cyberspace's folder tower, its city and the city's street, and the flat view a ~space address gets where Cyberspace can't run. The address decides it: route() reads its last segment, and every move here either changes the address (a new history entry, so Back and Forward retrace it) or replaces the entry (a selection, a floor slid back, walking). A repository with several folders has a skyline above the folder towers. The views a city stands beside the one in the address (its layers) are not in the address: they last while the reader stays in that folder's city and its street. A dock at the left edge brings any drawn view of the folder over the scene, and its parts lead there through a warp.",
   "sources": [
     {
       "path": "index.html",
@@ -163,6 +163,14 @@
     {
       "path": "index.html",
       "symbol": "flatPlace"
+    },
+    {
+      "path": "index.html",
+      "symbol": "openDiagram"
+    },
+    {
+      "path": "index.html",
+      "symbol": "warpTo"
     }
   ],
   "machine": "Cyberspace's scenes",
@@ -191,6 +199,14 @@
     {
       "id": "webgl-missing",
       "description": "A ~space address where Cyberspace can't run: the flat view of the place before the marker, with the status line saying Cyberspace needs WebGL, which this browser has turned off. Showing the flat view. The Flat / Cyberspace switch is hidden."
+    },
+    {
+      "id": "diagram",
+      "description": "A drawn view of the folder over the scene, in neon, opened from the dock's button for its kind: the scene behind blurs and dims, every panel but the dock is hidden where it stands (so the camera keeps its room), and a use case or journey over a city lights the parts its steps seem to touch (affectedBy). One view of the kind is shown, with a list to choose another; its parts are the ways to go."
+    },
+    {
+      "id": "warp",
+      "description": "The trip to a part chosen in the diagram: the camera turns to face it under the blur (a part of the standing city) or swings round (anywhere else); the drawing goes out with an afterglow; the blur becomes a warp of streaks as the camera plunges; the screen goes dark behind the HUD, the new address is set, and the darkness clears onto the place it names."
     }
   ],
   "transitions": [
@@ -449,6 +465,93 @@
       "to": "city",
       "trigger": "a click on a part of a city standing as a layer",
       "action": "that layer's view becomes the address's where it stands (the entry is replaced with #<folder>|<kind>:<part>|~space:city), the view that was there stays standing as a layer, and the part is selected in its own city; the camera turns toward it, as for any selection"
+    },
+    {
+      "from": "tower",
+      "to": "diagram",
+      "trigger": "a kind's button in the dock",
+      "action": "the scene blurs and the folder's view of that kind is drawn over it; the address does not change"
+    },
+    {
+      "from": "diagram",
+      "to": "tower",
+      "trigger": "Esc, the diagram's close button or its kind's button again",
+      "guard": "the scene under the diagram is the tower",
+      "action": "the drawing fades with an afterglow and the scene comes out of the blur; the selection's lights come back"
+    },
+    {
+      "from": "city",
+      "to": "diagram",
+      "trigger": "a kind's button in the dock",
+      "action": "the scene blurs and the folder's view of that kind is drawn over it; the address does not change"
+    },
+    {
+      "from": "diagram",
+      "to": "city",
+      "trigger": "Esc, the diagram's close button or its kind's button again",
+      "guard": "the scene under the diagram is the city",
+      "action": "the drawing fades with an afterglow and the scene comes out of the blur; the selection's lights come back"
+    },
+    {
+      "from": "street",
+      "to": "diagram",
+      "trigger": "a kind's button in the dock",
+      "action": "the scene blurs and the folder's view of that kind is drawn over it; the address does not change"
+    },
+    {
+      "from": "diagram",
+      "to": "street",
+      "trigger": "Esc, the diagram's close button or its kind's button again",
+      "guard": "the scene under the diagram is the street",
+      "action": "the drawing fades with an afterglow and the scene comes out of the blur; the selection's lights come back"
+    },
+    {
+      "from": "skyline",
+      "to": "diagram",
+      "trigger": "a kind's button in the dock",
+      "action": "the scene blurs and the folder's view of that kind is drawn over it; the address does not change"
+    },
+    {
+      "from": "diagram",
+      "to": "skyline",
+      "trigger": "Esc, the diagram's close button or its kind's button again",
+      "guard": "the scene under the diagram is the skyline",
+      "action": "the drawing fades with an afterglow and the scene comes out of the blur; the selection's lights come back"
+    },
+    {
+      "from": "diagram",
+      "to": "warp",
+      "trigger": "a click, Enter or Space on a part of the diagram",
+      "guard": "prefers-reduced-motion is not reduce",
+      "action": "turn (700 ms), afterglow and warp (650 ms), darkness (180 ms); then the address becomes the part's: #<folder>|~space for a part that opens a folder, else #<folder>|<kind>:<part>|~space:city (the street when the part is in the street's own city), a new history entry"
+    },
+    {
+      "from": "warp",
+      "to": "city",
+      "trigger": "the darkness, once the address is set",
+      "guard": "the address names a city",
+      "action": "the city stands with the part selected and the darkness clears onto it"
+    },
+    {
+      "from": "warp",
+      "to": "tower",
+      "trigger": "the darkness, once the address is set",
+      "guard": "the part opens a folder",
+      "action": "that folder's tower stands and the darkness clears onto it"
+    },
+    {
+      "from": "warp",
+      "to": "street",
+      "trigger": "the darkness, once the address is set",
+      "guard": "the part was chosen from the street's own city",
+      "action": "the eye stays in the street, facing the part"
+    },
+    {
+      "from": "diagram",
+      "to": "city",
+      "trigger": "a part of the diagram, with reduced motion",
+      "guard": "prefers-reduced-motion: reduce",
+      "action": "no turn, warp or darkness: the address changes at once"
     }
   ],
   "folder": "."

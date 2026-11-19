@@ -363,6 +363,10 @@
     {
       "path": "index.html",
       "symbol": "crawled"
+    },
+    {
+      "path": "index.html",
+      "symbol": "dockShow"
     }
   ],
   "components": [
@@ -556,6 +560,12 @@
       "id": "hud",
       "name": "HUD",
       "responsibility": "The panels over the scene, in Cyberspace's own colours (--space-panel, --space-rule, --space-pill, --space-hot) over the page's dark ones: over a city, the camera controls (orbit, pan, walk, zoom in and out, fit everything) and the legend, worded for the kind of view; over the tower, the folder's card (its name, path, purpose, counts of drawn, written and knowledge files, and the folders inside it) and the pulled-out floor's (its view, what its city holds, Enter the city and Slide back); in the street, in place of the city's, the breadcrumb (folder, view, plate and the part selected or ahead), the key hints, the map (plates, the traces as hairlines with the selection's lit, towers, beacons and the eye with its view cone; a click flies the eye there), the hover card by the part under the pointer (never under the inspector), a crosshair and a vignette. Over a city, the Layers panel on the left: the folder's views by kind, a tick box for a drawn view with a city of its own, radio buttons for a file's use cases or journeys, written and knowledge views listed but disabled. Over the tower, See the skyline, and the folders inside folded into a chip that opens it. Over the skyline, the address folder's card with what the repository holds and Enter <its title>, the camera controls with Walk off, the legend, and the street's hover card by a building, clear of the folder card. From the keyboard: a visually hidden list after the canvas, a button per part, floor or building, named after it, which Tab walks in the order of the flow and which lights what it names and does what a click does on Enter; and, per scene, what the scene shows and how to move in it, for screen readers. The Layers panel disables a view whose city would take the scene past 40 draw calls; below 1280 px wide it folds into a 40 px button that opens it as a popover, and the legend shows its icons alone.",
+      "folder": "."
+    },
+    {
+      "id": "dock",
+      "name": "Dock",
+      "responsibility": "Cyberspace's left edge: Back, Forward, History, bookmarks, and a button per kind of drawn view that draws it in neon over the blurred scene; its parts lead there through the warp.",
       "folder": "."
     },
     {
@@ -1066,6 +1076,24 @@
       "to": "crawled-adapter",
       "kind": "depends-on",
       "description": "For a website address, when the page is served by the Worker."
+    },
+    {
+      "from": "dock",
+      "to": "router",
+      "kind": "depends-on",
+      "description": "Every trip is a new address."
+    },
+    {
+      "from": "dock",
+      "to": "drawing",
+      "kind": "depends-on",
+      "description": "Draws a view with Flat's sheetOf and drawSvg, restyled in neon."
+    },
+    {
+      "from": "dock",
+      "to": "camera-rig",
+      "kind": "depends-on",
+      "description": "Turns and plunges the camera for the warp."
     }
   ],
   "folder": "."
