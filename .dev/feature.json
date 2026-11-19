@@ -191,7 +191,7 @@
           "symbol": "showTree"
         }
       ],
-      "behavior": "Each folder shows its name relative to its parent in the tree, and a small icon in its kind's colour for each kind of view it holds, with a count when there is more than one. The folder being read is marked and scrolled into sight. A filter narrows the tree to folders whose name, view titles, or part names and IDs match, keeping their parents.",
+      "behavior": "Each folder shows its name relative to its parent in the tree, and a small icon in its kind's colour for each kind of view it holds, with a count when there is more than one; a file of several use cases, journeys, capabilities, features or operations counts each of them. The folder being read is marked and scrolled into sight. A filter narrows the tree to folders whose name, view titles, or part names and IDs match, keeping their parents.",
       "outcome": "A reader sees at a glance where in the repository there is something to read, and of what kind.",
       "constraints": [
         "Folders without .dev files are not shown; a folder with views under a folder without them hangs from the nearest one above that has them.",
@@ -253,7 +253,7 @@
           "symbol": "selectKind"
         }
       ],
-      "behavior": "Each tab names its kind and how many of it the folder has, in that kind's colour. The open kind stays open when the reader moves to another folder that has it. Arrow keys, Home and End move between tabs. All knowledge files share one Knowledge tab. Opening a tab scrolls the tabs back into sight if the page was scrolled past them.",
+      "behavior": "Each tab names its kind in the plural, in that kind's colour. The open kind stays open when the reader moves to another folder that has it. Arrow keys, Home and End move between tabs. All knowledge files share one Knowledge tab, which has a second row of tabs beneath it, one per group (Direction, Requirements, Work and the rest) the folder has files in; only one group shows at a time, and the arrow keys, Home and End move between them. Opening a tab scrolls the tabs back into sight if the page was scrolled past them.",
       "outcome": "A folder with many views stays readable, and a reader following one kind through the tree stays on it.",
       "constraints": [
         "Structural diagrams come first, then use cases, journeys, capabilities, features and operations, then knowledge."
@@ -266,6 +266,14 @@
         {
           "path": "index.html",
           "symbol": "selectKind"
+        },
+        {
+          "path": "index.html",
+          "symbol": "knowledgePanel"
+        },
+        {
+          "path": "index.html",
+          "symbol": "selectGroup"
         },
         {
           "path": "index.html",
@@ -351,7 +359,7 @@
           "symbol": "journeyModel"
         }
       ],
-      "behavior": "A use case is its steps from top to bottom, a person's or outside system's steps apart from the system's by their icon, each alternative branching off its step as a dashed outcome with its condition on the line. A journey is its stages from left to right, each what the person does at a touchpoint. Above the drawing, a card names the actor or persona, anyone else involved, the goal and, for a use case, what holds before and after.",
+      "behavior": "A use case is its steps from top to bottom, a person's or outside system's steps apart from the system's by their icon, each alternative branching off its step as a dashed outcome with its condition on the line. A journey is its stages from left to right, each what the person does at a touchpoint. Every use case and every journey has its own card and its own drawing, one under the other. Above its drawing, the card names the actor or persona, anyone else involved, the goal and, for a use case, what holds before and after.",
       "outcome": "A reader follows a flow in order and sees where it can go another way.",
       "constraints": [
         "Several use cases or journeys in one file are laid out as separate pieces."
