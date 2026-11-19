@@ -1,0 +1,62 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/backlog.schema.json",
+  "kind": "backlog",
+  "title": "Wanted in the crawler",
+  "folder": "crawler",
+  "entities": [
+    {
+      "id": "ai-step",
+      "title": "The AI step: metadata into views",
+      "type": "feature",
+      "status": "accepted",
+      "priority": "high",
+      "summary": "Turn what a scan collected into views the explorer draws, with Claude Haiku 5.5, reading only what changed.",
+      "details": "For a website: classify each section as in the Festi prototype (function, audience, interaction, data sensitivity, lifecycle, topics), and write a component diagram of the site's parts, a deployment diagram of its infrastructure, and its use cases. For a repository without views: component and deployment diagrams from its layout and manifests. Batch API for scheduled scans, direct calls for approaches. Haiku has no server-side refusal fallback: a declined item is marked and skipped.",
+      "acceptanceCriteria": [
+        "Views written under files/ validate against Meta/Agents/Skills.",
+        "noAi sections are never sent.",
+        "An unchanged page is not sent again.",
+        "A refusal marks the item and the scan continues."
+      ],
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      }
+    },
+    {
+      "id": "more-web-sources",
+      "title": "Certificate Transparency and Common Crawl",
+      "type": "feature",
+      "status": "proposed",
+      "priority": "medium",
+      "summary": "Add the sources the Festi prototype used: hostnames from Certificate Transparency, and archived pages from Common Crawl for sites that refuse the crawler.",
+      "details": "The prototype read crt.sh and Common Crawl's index by byte-range binary search over its public files. Both work from a Worker; crt.sh is slow and needs a long timeout.",
+      "acceptanceCriteria": [
+        "A site walled off to crawlers shows its last public interior, marked with the crawl it came from."
+      ],
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      }
+    },
+    {
+      "id": "crawler-page",
+      "title": "The /crawler page",
+      "type": "feature",
+      "status": "accepted",
+      "priority": "high",
+      "summary": "The address in the user agent: what the crawler is, how it behaves, how to keep it out and how to cooperate.",
+      "details": "Served by the explorer's Worker from docs/cyberspace-protocol.md.",
+      "acceptanceCriteria": [
+        "https://cyberspace-explorer.com/crawler answers with the protocol and the crawler's manners."
+      ],
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      }
+    }
+  ]
+}

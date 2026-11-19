@@ -2,5 +2,7 @@
   "name": "cyberspace-explorer",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node --test test/*.test.js vscode/test/*.test.js" }
+  "scripts": {
+    "test": "node --no-warnings=ExperimentalWarning --test test/*.test.js vscode/test/*.test.js crawler/test/*.test.js"
+  }
 }

@@ -1,0 +1,41 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/blockers.schema.json",
+  "kind": "blockers",
+  "title": "What the crawler waits for",
+  "folder": "crawler",
+  "entities": [
+    {
+      "id": "cloudflare-resources",
+      "title": "The database, bucket and queues don't exist yet",
+      "summary": "crawler/wrangler.jsonc names a D1 database, an R2 bucket and two queues that the owner creates once; until then neither Worker that binds them can be deployed.",
+      "status": "open",
+      "cause": "Creating them needs the owner's Cloudflare account on Workers Paid, and the deploy token needs D1, R2 and Queues permissions.",
+      "unblockWhen": "The steps in crawler/README.md, \"Setting it up once (the owner)\", are done and the database id replaces REPLACE-WITH-D1-DATABASE-ID.",
+      "canUnblock": "owner",
+      "since": "2026-11-19",
+      "blocked": [
+        {
+          "path": "crawler/.dev/backlog.json",
+          "entityId": "ai-step",
+          "description": "Nothing to run the AI step on until scans run."
+        }
+      ],
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/wrangler.jsonc",
+          "symbol": "d1_databases"
+        },
+        {
+          "path": "crawler/README.md",
+          "symbol": "Setting it up once (the owner)"
+        }
+      ]
+    }
+  ]
+}

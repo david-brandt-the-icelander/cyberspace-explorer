@@ -79,6 +79,14 @@ The session is `explorer_session`, `Path=/; HttpOnly; Secure; SameSite=Lax`, 7 d
    `SESSION_SECRET` is any long random string (for example `openssl rand -base64 48`). Changing it signs everyone out.
 3. Add the repository secret `CLOUDFLARE_API_TOKEN` to this repository (**Settings → Secrets and variables → Actions**): an API token with **Account → Workers Scripts: Edit** and **Zone → Workers Routes: Edit** and **Zone → DNS: Edit** for cyberspace-explorer.com. Optionally add a required reviewer to the `production` environment to hold deploys for approval.
 
+## The crawler
+
+[`crawler/`](crawler/README.md) is a second Worker, cyberspace-crawler. It keeps a list of addresses to explore, which are git repositories and websites, and scans each on a schedule. It stores what the explorer needs to show them:
+- **A repository** is reread by its git history: only the views that changed since the last commit it read.
+- **A website** is reread by its own caching headers. A site that publishes [`/.well-known/cyberspace.json`](docs/cyberspace-protocol.md) is shown as it describes itself. For any other site, the crawler collects what the site makes public (robots.txt, sitemaps, a sample of its pages, DNS and registration), for an AI step to turn into views.
+
+It obeys robots.txt and keeps to a budget of requests per run. It needs a database, a bucket and queues that the owner creates once ([crawler/README.md](crawler/README.md), "Setting it up once").
+
 ## Deploying
 
 `.github/workflows/cyberspace-explorer.yml` tests the Worker on every pull request, and on a push to `main` it tests and then deploys with `wrangler deploy`, then checks that the live page answers. "Run workflow" in the Actions tab redeploys by hand. The icelander.net repository only links to the app, from its Apps page.

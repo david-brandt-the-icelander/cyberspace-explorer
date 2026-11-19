@@ -1,0 +1,200 @@
+{
+  "$schema": "../../Meta/Agents/Skills/describe-component-diagram/schema.json",
+  "kind": "component",
+  "title": "How the crawler is built",
+  "folder": "crawler",
+  "description": "A schedule and a queue consumer around one scan of one address. A scan reads a git repository through its host's API or a website through the polite fetcher, and writes the address's index, views and collected metadata to the bucket the explorer reads.",
+  "sources": [
+    {
+      "path": "crawler/src/index.js",
+      "symbol": "default"
+    },
+    {
+      "path": "crawler/src/scan.js",
+      "symbol": "runScan"
+    },
+    {
+      "path": "crawler/src/fetcher.js",
+      "symbol": "Fetcher"
+    },
+    {
+      "path": "crawler/src/git.js",
+      "symbol": "scanGit"
+    },
+    {
+      "path": "crawler/src/web.js",
+      "symbol": "scanWeb"
+    },
+    {
+      "path": "crawler/src/store.js",
+      "symbol": "requestScan"
+    }
+  ],
+  "components": [
+    {
+      "id": "worker",
+      "name": "Worker entry",
+      "responsibility": "The schedule queues due addresses every ten minutes; the queue consumer scans each message's address, one at a time.",
+      "folder": "crawler/src"
+    },
+    {
+      "id": "scan",
+      "name": "Scan",
+      "responsibility": "Scans one address, writes its index.json, records the outcome and the next due time, and queues the rest of a scan that ran out of requests.",
+      "folder": "crawler/src"
+    },
+    {
+      "id": "git",
+      "name": "Git source",
+      "responsibility": "Reads a repository's head; when it moved, asks the compare API what changed and rereads only those views, marking views whose cited sources changed as stale. Summarises a repository without views for the AI step.",
+      "folder": "crawler/src"
+    },
+    {
+      "id": "web",
+      "name": "Web source",
+      "responsibility": "Reads /.well-known/cyberspace.json first; otherwise robots.txt, sitemaps, the front page, a sample of each section, DNS and RDAP, kept for the AI step.",
+      "folder": "crawler/src"
+    },
+    {
+      "id": "fetcher",
+      "name": "Polite fetcher",
+      "responsibility": "Every request: robots.txt obeyed, caching headers honoured with conditional requests, requests to one host spaced, and a budget per run.",
+      "folder": "crawler/src"
+    },
+    {
+      "id": "store",
+      "name": "Store",
+      "responsibility": "The shared data layer over D1 and R2: addresses, scan state, settings, staleness and rescan requests.",
+      "folder": "crawler/src"
+    },
+    {
+      "id": "d1",
+      "name": "D1 database",
+      "responsibility": "Addresses, scans, settings and the HTTP cache state of every fetched URL.",
+      "external": true
+    },
+    {
+      "id": "r2",
+      "name": "R2 bucket",
+      "responsibility": "Each address's index, views and collected metadata, and the HTTP cache's bodies.",
+      "external": true
+    },
+    {
+      "id": "queue",
+      "name": "Scan queue",
+      "responsibility": "One message per scan, from the schedule, /admin, an approaching player or a scan continuing.",
+      "external": true
+    },
+    {
+      "id": "git-hosts",
+      "name": "GitHub and GitLab APIs",
+      "responsibility": "Repository metadata, head commits, trees, comparisons and raw files.",
+      "external": true
+    },
+    {
+      "id": "websites",
+      "name": "Websites",
+      "responsibility": "The sites on the list.",
+      "external": true,
+      "actor": "Actors/website.md"
+    },
+    {
+      "id": "dns",
+      "name": "DNS over HTTPS and RDAP",
+      "responsibility": "cloudflare-dns.com and rdap.org: a site's records and registration.",
+      "external": true
+    }
+  ],
+  "relationships": [
+    {
+      "from": "worker",
+      "to": "store",
+      "kind": "depends-on",
+      "description": "Finds due addresses and marks them queued."
+    },
+    {
+      "from": "worker",
+      "to": "queue",
+      "kind": "depends-on",
+      "description": "Sends scans and consumes them."
+    },
+    {
+      "from": "worker",
+      "to": "scan",
+      "kind": "depends-on",
+      "description": "Runs one scan per message."
+    },
+    {
+      "from": "scan",
+      "to": "git",
+      "kind": "depends-on",
+      "description": "For git addresses."
+    },
+    {
+      "from": "scan",
+      "to": "web",
+      "kind": "depends-on",
+      "description": "For web addresses."
+    },
+    {
+      "from": "scan",
+      "to": "store",
+      "kind": "depends-on",
+      "description": "Records the outcome and writes index.json."
+    },
+    {
+      "from": "git",
+      "to": "fetcher",
+      "kind": "depends-on",
+      "description": "Every API call and raw file."
+    },
+    {
+      "from": "web",
+      "to": "fetcher",
+      "kind": "depends-on",
+      "description": "Every request to the site, DNS and RDAP."
+    },
+    {
+      "from": "fetcher",
+      "to": "d1",
+      "kind": "depends-on",
+      "description": "Validators and freshness per URL."
+    },
+    {
+      "from": "fetcher",
+      "to": "r2",
+      "kind": "depends-on",
+      "description": "Cached bodies."
+    },
+    {
+      "from": "store",
+      "to": "d1",
+      "kind": "depends-on",
+      "description": "Addresses, scans and settings."
+    },
+    {
+      "from": "store",
+      "to": "r2",
+      "kind": "depends-on",
+      "description": "Indexes, views and metadata."
+    },
+    {
+      "from": "fetcher",
+      "to": "git-hosts",
+      "kind": "depends-on",
+      "description": "Conditional API requests."
+    },
+    {
+      "from": "fetcher",
+      "to": "websites",
+      "kind": "depends-on",
+      "description": "HTTPS, with the crawler's user agent."
+    },
+    {
+      "from": "fetcher",
+      "to": "dns",
+      "kind": "depends-on",
+      "description": "Records and registration."
+    }
+  ]
+}

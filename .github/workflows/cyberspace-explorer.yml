@@ -56,6 +56,14 @@ jobs:
           node-version: 22
       - name: Deploy the Worker
         run: npx --yes wrangler@4.156.1 deploy --config wrangler.jsonc
+      # The crawler binds a database, a bucket and queues the owner creates once (crawler/README.md, "Setting it up once").
+      - name: Deploy the crawler
+        run: |
+          if grep -q REPLACE-WITH-D1-DATABASE-ID crawler/wrangler.jsonc; then
+            echo "::notice::The crawler is not set up yet (crawler/README.md, Setting it up once), so it was not deployed."
+          else
+            npx --yes wrangler@4.156.1 deploy --config crawler/wrangler.jsonc
+          fi
       - name: Check that it answers
         run: |
           sleep 5
