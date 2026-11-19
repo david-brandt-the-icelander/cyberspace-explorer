@@ -33,7 +33,7 @@
       "default": "claude-haiku-5-5",
       "scope": "the crawler Worker",
       "takesEffect": "next scan",
-      "details": "Chosen by the owner on 2026-11-19. Used once the AI step is built (backlog ai-step).",
+      "details": "Chosen by the owner on 2026-11-19 (decision ai-model).",
       "evidenceStatus": "source-verified",
       "sources": [
         {
@@ -51,7 +51,7 @@
       "sensitive": true,
       "scope": "the crawler Worker",
       "takesEffect": "next scan",
-      "details": "A Worker secret. Without it addresses are scanned and nothing is turned into views.",
+      "details": "A Worker secret. Without it addresses are scanned, no ai message is sent, and inferred addresses have no views.",
       "evidenceStatus": "source-verified",
       "sources": [
         {
@@ -173,6 +173,25 @@
         {
           "path": "crawler/src/fetcher.js",
           "symbol": "Fetcher"
+        }
+      ]
+    },
+    {
+      "id": "ai-enabled",
+      "title": "AI step on or off",
+      "summary": "Whether a finished scan queues the AI step.",
+      "key": "ai_enabled",
+      "type": "0 or 1",
+      "sensitive": false,
+      "default": 1,
+      "scope": "settings table",
+      "takesEffect": "next scan",
+      "details": "Changed from /admin.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/scan.js",
+          "symbol": "runScan"
         }
       ]
     }

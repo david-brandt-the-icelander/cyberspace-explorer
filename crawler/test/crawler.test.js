@@ -107,7 +107,7 @@ test("fetcher: no-store bodies are not kept, and a network failure is status 0",
 test("well-known: a declaration names a repository or a tree, related addresses and sections not for AI", () => {
   assert.equal(readDeclaration(null, "https://x.is").error, "not a JSON object");
   assert.equal(readDeclaration({ cyberspace: 2 }, "https://x.is").error, "cyberspace must be 1");
-  assert.equal(readDeclaration({ cyberspace: 1 }, "https://x.is").error, "declare a repository or a tree");
+  assert.deepEqual(readDeclaration({ cyberspace: 1, noAi: ["/x"] }, "https://x.is").noAi, ["/x"], "no views of its own: the site is inferred, minus /x");
   assert.match(readDeclaration({ cyberspace: 1, repository: "https://evil.example/x/y" }, "https://x.is").error, /github\.com or gitlab\.com/);
   const d = readDeclaration({
     cyberspace: 1, name: "X", tree: { base: "/cyberspace/", files: ["component-diagram.json", "../etc/passwd.json", "shop/use-case.json", 5] },

@@ -13,7 +13,8 @@
         "websites (Actors/website.md)"
       ],
       "guarantees": [
-        "cyberspace: 1 is required; a file without it, or without repository or tree, is ignored and the site is read as if it had none.",
+        "cyberspace: 1 is required; a file without it is ignored and the site is read as if it had none.",
+        "A file with neither repository nor tree still counts: its related addresses and noAi sections apply while the crawler infers the site's views.",
         "tree.files are paths ending in .json without .., at most 500; tree.base may be relative to the site.",
         "repository must be on github.com or gitlab.com over https; it is added and crawled.",
         "related addresses, at most 50, are added disabled until the admin allows them.",
@@ -73,7 +74,7 @@
         "worker/space.js"
       ],
       "guarantees": [
-        "{ id, reason } with reason schedule, admin, approach, declared or continue; continue also has from.",
+        "{ id, reason } with reason schedule, admin, approach, declared, continue or ai; continue also has from. ai runs the AI step on what the last scan collected.",
         "A message for an unknown address is acknowledged and skipped; a disabled address is skipped only when the schedule sent it."
       ],
       "compatibility": "Senders mark the address queued with store.requestScan first, so one address is never queued twice.",
@@ -111,6 +112,32 @@
         {
           "path": "crawler/src/store.js",
           "symbol": "addAddress"
+        }
+      ]
+    },
+    {
+      "id": "section-reading",
+      "title": "A section's reading",
+      "summary": "What the AI step writes about each section of an inferred website, in <section>/folder.json, for the explorer to read and Cyberspace to shape buildings with.",
+      "contractType": "file-format",
+      "consumers": [
+        "index.html (phase 4: Cyberspace's archetypes)"
+      ],
+      "guarantees": [
+        "The folder record's one entity has title, summary and purpose, and evidenceStatus inferred.",
+        "It also has function, family (commerce, service, content, corporate or fine_print), audience, interaction, dataSensitivity (none, personal, payment or health), lifecycle, topics (at most five), confidence (0 to 1), evidence (pages or urls_only), urls and newestLastModified.",
+        "Values outside the scheme are never written: an unknown function becomes other, unknown audiences are dropped."
+      ],
+      "compatibility": "Fields are only added; the scheme's values are only added to.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/views.js",
+          "symbol": "siteViews"
+        },
+        {
+          "path": "crawler/src/ai.js",
+          "symbol": "tidy"
         }
       ]
     }

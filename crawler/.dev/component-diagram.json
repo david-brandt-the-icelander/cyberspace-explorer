@@ -3,7 +3,7 @@
   "kind": "component",
   "title": "How the crawler is built",
   "folder": "crawler",
-  "description": "A schedule and a queue consumer around one scan of one address. A scan reads a git repository through its host's API or a website through the polite fetcher, and writes the address's index, views and collected metadata to the bucket the explorer reads.",
+  "description": "A schedule and a queue consumer around one scan of one address. A scan reads a git repository through its host's API or a website through the polite fetcher, and writes the address's index, views and collected metadata to the bucket the explorer reads. An AI step classifies what was collected, and a view writer turns that into the explorer's views.",
   "sources": [
     {
       "path": "crawler/src/index.js",
@@ -28,6 +28,14 @@
     {
       "path": "crawler/src/store.js",
       "symbol": "requestScan"
+    },
+    {
+      "path": "crawler/src/ai.js",
+      "symbol": "runAi"
+    },
+    {
+      "path": "crawler/src/views.js",
+      "symbol": "siteViews"
     }
   ],
   "components": [
@@ -53,6 +61,18 @@
       "id": "web",
       "name": "Web source",
       "responsibility": "Reads /.well-known/cyberspace.json first; otherwise robots.txt, sitemaps, the front page, a sample of each section, DNS and RDAP, kept for the AI step.",
+      "folder": "crawler/src"
+    },
+    {
+      "id": "ai",
+      "name": "AI step",
+      "responsibility": "Asks Claude to classify each website section, or to propose a repository's parts, from what the scan collected; reuses a reading whose input is unchanged; never sends noAi sections.",
+      "folder": "crawler/src"
+    },
+    {
+      "id": "views",
+      "name": "View writer",
+      "responsibility": "Writes the component and deployment diagrams and the folder records from the readings and the collected facts, so they always follow the skills.",
       "folder": "crawler/src"
     },
     {
@@ -102,6 +122,12 @@
       "id": "dns",
       "name": "DNS over HTTPS and RDAP",
       "responsibility": "cloudflare-dns.com and rdap.org: a site's records and registration.",
+      "external": true
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic API",
+      "responsibility": "Claude Haiku 5.5, through Anthropic's SDK, with a JSON schema for every answer.",
       "external": true
     }
   ],
@@ -195,6 +221,30 @@
       "to": "dns",
       "kind": "depends-on",
       "description": "Records and registration."
+    },
+    {
+      "from": "scan",
+      "to": "ai",
+      "kind": "depends-on",
+      "description": "An ai message runs the AI step instead of a scan."
+    },
+    {
+      "from": "ai",
+      "to": "views",
+      "kind": "depends-on",
+      "description": "Turns readings into view files."
+    },
+    {
+      "from": "ai",
+      "to": "anthropic",
+      "kind": "depends-on",
+      "description": "One request per changed section, or per changed repository."
+    },
+    {
+      "from": "ai",
+      "to": "store",
+      "kind": "depends-on",
+      "description": "Reads the collected metadata, keeps readings with their input hash, writes the views."
     }
   ]
 }

@@ -64,7 +64,9 @@ jobs:
       - name: Deploy the Worker
         run: npx --yes wrangler@4.156.1 deploy --config wrangler.jsonc
       - name: Deploy the crawler
-        run: npx --yes wrangler@4.156.1 deploy --config crawler/wrangler.jsonc
+        run: |
+          npm ci --prefix crawler --no-audit --no-fund
+          npx --yes wrangler@4.156.1 deploy --config crawler/wrangler.jsonc
       - name: Check that it answers
         run: |
           sleep 5

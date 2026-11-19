@@ -24,6 +24,10 @@
     {
       "path": "crawler/README.md",
       "symbol": "Setting it up once (the owner)"
+    },
+    {
+      "path": "crawler/src/ai.js",
+      "symbol": "claudeAsker"
     }
   ],
   "nodes": [
@@ -81,6 +85,13 @@
       "name": "cloudflare-dns.com and rdap.org",
       "kind": "external-service",
       "description": "DNS over HTTPS and registration data."
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic API",
+      "kind": "external-service",
+      "description": "api.anthropic.com: Claude Haiku 5.5, called with ANTHROPIC_API_KEY.",
+      "condition": "the AI step is on and the key is set"
     }
   ],
   "artifacts": [
@@ -176,6 +187,12 @@
       "to": "dns",
       "kind": "connects-to",
       "description": "HTTPS."
+    },
+    {
+      "from": "crawler",
+      "to": "anthropic",
+      "kind": "connects-to",
+      "description": "HTTPS, through Anthropic's SDK."
     }
   ]
 }

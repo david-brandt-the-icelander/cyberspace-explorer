@@ -15,9 +15,9 @@
       "since": "2026-11-19",
       "blocked": [
         {
-          "path": "crawler/.dev/backlog.json",
-          "entityId": "ai-step",
-          "description": "Nothing to run the AI step on until scans run."
+          "path": ".github/.dev/pipeline.json",
+          "entityId": "deploy",
+          "description": "The deploy job stops before deploying either Worker."
         }
       ],
       "origin": {

@@ -4,6 +4,9 @@ export const WELL_KNOWN = "/.well-known/cyberspace.json";
 const RELATIONS = new Set(["subsidiary", "parent", "sibling", "partner", "same-owner", "service", "other"]);
 const MAX_FILES = 500, MAX_RELATED = 50;
 
+/** Whether a declaration gives views of its own (a repository or a tree), so nothing about the site is inferred. */
+export const givesViews = (d) => !!(d?.repository || d?.tree);
+
 /** Checks a site's cyberspace.json and returns what it declares, or { error } saying what is wrong with it. `origin` is the site it came from. */
 export function readDeclaration(data, origin) {
   if (!data || typeof data !== "object" || Array.isArray(data)) return { error: "not a JSON object" };
@@ -22,7 +25,7 @@ export function readDeclaration(data, origin) {
     const files = t.files.filter((f) => typeof f === "string" && /^[^/][^\\]*\.json$/.test(f) && !f.split("/").includes("..")).slice(0, MAX_FILES);
     out.tree = { base: base.href.endsWith("/") ? base.href : base.href + "/", files };
   }
-  if (!out.repository && !out.tree) return { error: "declare a repository or a tree" };
+  // A file with neither still counts: its related addresses and noAi sections apply while the crawler infers the site's views.
   for (const r of Array.isArray(data.related) ? data.related.slice(0, MAX_RELATED) : []) {
     const url = typeof r === "string" ? r : r?.url;
     if (typeof url !== "string" || !/^https?:\/\//.test(url)) continue;

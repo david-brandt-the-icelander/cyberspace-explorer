@@ -5,6 +5,7 @@ import { Fetcher } from "./fetcher.js";
 import { scanGit } from "./git.js";
 import { scanWeb } from "./web.js";
 import * as store from "./store.js";
+import { runAi } from "./ai.js";
 
 const OVERHEAD = 40; // requests a scan needs besides pages: robots.txt, sitemaps, DNS, RDAP, the well-known file
 
@@ -12,9 +13,10 @@ const OVERHEAD = 40; // requests a scan needs besides pages: robots.txt, sitemap
 export const userAgent = (env) => env.USER_AGENT ?? "cyberspace-crawler/1.0 (+https://cyberspace-explorer.com/crawler)";
 
 /** Scans the address a queue message names. Returns what happened, for the log. */
-export async function runScan(env, msg, { fetchImpl } = {}) {
+export async function runScan(env, msg, { fetchImpl, asker } = {}) {
   const row = await store.address(env.DB, msg.id);
   if (!row) return { id: msg.id, skipped: "unknown address" };
+  if (msg.reason === "ai") return { ...(await runAi(env, row.id, { asker })), reason: "ai" };
   if (!row.enabled && msg.reason === "schedule") return { id: msg.id, skipped: "disabled" };
   const s = await store.settings(env.DB);
   const interval = row.interval_minutes ?? Number(s.default_interval_minutes ?? 1440);
@@ -35,7 +37,10 @@ export async function runScan(env, msg, { fetchImpl } = {}) {
       return { id: row.id, continued: index.continueFrom, requests: fetcher.used };
     }
     await store.scanFinished(env.DB, row.id, { source: index.source, head: index.head ?? null, changed: index.changed ?? 0, needsAi: index.needsAi ?? 0, intervalMinutes: interval });
-    return { id: row.id, source: index.source, changed: index.changed, requests: fetcher.used };
+    // The AI step runs as a message of its own, so a scan's budget and the model's time never share an invocation.
+    const ai = !!index.needsAi && s.ai_enabled !== "0" && !!env.ANTHROPIC_API_KEY;
+    if (ai) await env.SCANS.send({ id: row.id, reason: "ai" });
+    return { id: row.id, source: index.source, changed: index.changed, requests: fetcher.used, ai };
   } catch (e) {
     await store.scanFailed(env.DB, row.id, e.message ?? e, interval);
     return { id: row.id, failed: String(e.message ?? e) };

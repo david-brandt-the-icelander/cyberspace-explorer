@@ -293,6 +293,112 @@
           "symbol": "api"
         }
       ]
+    },
+    {
+      "id": "ai-model",
+      "title": "Claude Haiku 5.5 reads, at low effort",
+      "summary": "The AI step calls claude-haiku-5-5 with adaptive thinking at effort low, and a JSON schema for every answer.",
+      "status": "accepted",
+      "context": "The owner chose Haiku 5.5 on 2026-11-19 over Opus 5.5 and Sonnet 5.5: reading the 446 Festi sections once costs about $0.18 with it, against about $7 with Opus. It is weaker on mixed Icelandic text and judgement calls, which every reading's confidence records. Haiku has no server-side refusal fallback.",
+      "options": [
+        {
+          "title": "Claude Haiku 5.5",
+          "consequences": "Cheapest; a declined or cut-off answer is recorded and that section skipped."
+        },
+        {
+          "title": "Claude Opus 5.5",
+          "consequences": "The most careful reader, about forty times the price."
+        },
+        {
+          "title": "Claude Sonnet 5.5",
+          "consequences": "Between the two."
+        }
+      ],
+      "decision": "Claude Haiku 5.5, set by AI_MODEL so it can change without a code change. A refusal, a cut-off answer or one that misses the schema skips that item; rate limits, server errors and lost connections send the message back to the queue.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/ai.js",
+          "symbol": "claudeAsker"
+        },
+        {
+          "path": "crawler/wrangler.jsonc",
+          "symbol": "vars"
+        }
+      ]
+    },
+    {
+      "id": "code-writes-views",
+      "title": "The model classifies; code writes the views",
+      "summary": "Claude answers small, schema-bound questions (a section's facets, a repository's parts); views.js builds the diagrams and records.",
+      "status": "accepted",
+      "context": "Views must follow Meta/Agents/Skills exactly, or the explorer can't draw them. A model asked for whole diagrams can leave out a required field or invent a folder.",
+      "options": [
+        {
+          "title": "Classify, then build in code",
+          "consequences": "Every view validates; a repository part whose folder doesn't exist is dropped."
+        },
+        {
+          "title": "Ask for whole views",
+          "consequences": "More freedom, and views that may not validate."
+        }
+      ],
+      "decision": "Classify, then build in code. The classification scheme is the one tried on Festi; its facets are carried on each section's folder record for Cyberspace to shape buildings with.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/views.js",
+          "symbol": "siteViews"
+        },
+        {
+          "path": "crawler/src/views.js",
+          "symbol": "repoViews"
+        },
+        {
+          "path": "crawler/test/ai.test.js",
+          "symbol": "AI step: the views it writes follow the skills' schemas"
+        }
+      ]
+    },
+    {
+      "id": "direct-calls",
+      "title": "Direct calls, not the Batch API",
+      "summary": "Each changed section is one Messages request, made from the queue consumer.",
+      "status": "accepted",
+      "context": "The Batch API halves the price but answers within hours, and its results would have to be collected by a later run. With Haiku a full read of a large site costs cents, and an approaching player wants fresh views soon.",
+      "options": [
+        {
+          "title": "Direct calls",
+          "consequences": "Views within a minute of a scan; full price."
+        },
+        {
+          "title": "Batch API for scheduled scans",
+          "consequences": "Half the price; views hours later; a poller to keep."
+        }
+      ],
+      "decision": "Direct calls, with prompt caching on the system prompt. Worth revisiting if the list grows to thousands of sites.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/ai.js",
+          "symbol": "runAi"
+        }
+      ]
     }
   ]
 }

@@ -35,12 +35,12 @@ How often the file is fetched again is set by its own HTTP caching headers (`Cac
 | --- | --- | --- |
 | `cyberspace` | yes | The protocol version: `1`. |
 | `name` | no | What to call the site in Cyberspace, at most 200 characters. |
-| `repository` | one of the two | A repository on github.com or gitlab.com whose `.dev` folders (or `.cyberspace-explorer/` tree) describe the site. The crawler adds it to its list and reads it from its git history. |
-| `tree` | one of the two | Views served by the site itself. `base` is a URL, absolute or relative to the site, and `files` lists paths under it, laid out like a repository's `.cyberspace-explorer/` folder: `x.json` describes the site as a whole and `shop/x.json` its `shop` part. At most 500 files. |
+| `repository` | no | A repository on github.com or gitlab.com whose `.dev` folders (or `.cyberspace-explorer/` tree) describe the site. The crawler adds it to its list and reads it from its git history. |
+| `tree` | no | Views served by the site itself. `base` is a URL, absolute or relative to the site, and `files` lists paths under it, laid out like a repository's `.cyberspace-explorer/` folder: `x.json` describes the site as a whole and `shop/x.json` its `shop` part. At most 500 files. |
 | `related` | no | Other addresses that belong together with this one, with how: `subsidiary`, `parent`, `sibling`, `partner`, `same-owner`, `service` or `other`. They are suggested to the explorer's admin, not crawled automatically. |
 | `noAi` | no | Path prefixes whose pages the crawler's AI step must not read. The crawler still counts them, so their place in the city is known, but their text is never sent to a model. |
 
-A site gives `repository`, `tree` or both. When both are given, the tree's views are shown and the repository is crawled as well.
+A site that gives `repository`, `tree` or both is shown as it describes itself. When both are given, the tree's views are shown and the repository is crawled as well. A site that gives neither, only `related` or `noAi`, is read like any other site, and the crawler infers its views without reading the `noAi` sections.
 
 ## What a view file holds
 

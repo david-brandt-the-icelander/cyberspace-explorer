@@ -1,7 +1,7 @@
 // Websites: what a cooperating site declares at /.well-known/cyberspace.json, or else what can be read from its robots.txt,
 // sitemaps, pages, DNS and registration, gathered for the AI step.
 
-import { WELL_KNOWN, readDeclaration, noAi } from "./wellknown.js";
+import { WELL_KNOWN, readDeclaration, noAi, givesViews } from "./wellknown.js";
 import { readPage, readSitemap, sectionOf } from "./html.js";
 import { putJson, getJson } from "./store.js";
 import { BudgetSpent } from "./fetcher.js";
@@ -78,12 +78,15 @@ async function sitemaps(fetcher, origin, named) {
  */
 export async function scanWeb({ fetcher, bucket, id, url: origin, prev, from = 0, addRelated }) {
   const wk = await fetcher.json(origin + WELL_KNOWN);
-  let declarationError = null;
+  let declarationError = null, partial = null;
   if (wk.status === 200) {
     const decl = readDeclaration(wk.data, origin);
-    if (!decl.error) return declared({ fetcher, bucket, id, origin, prev, decl, addRelated, changed: wk.changed });
-    declarationError = decl.error;
+    if (decl.error) declarationError = decl.error;
+    else if (givesViews(decl)) return declared({ fetcher, bucket, id, origin, prev, decl, addRelated, changed: wk.changed });
+    else partial = decl;
   }
+  const related = [];
+  if (partial && addRelated) for (const r of partial.related) related.push(await addRelated(r.url, r.relation, false));
 
   const raw = `space/${id}/raw/`;
   const before = (await getJson(bucket, raw + "site.json")) ?? { sections: {} };
@@ -135,8 +138,8 @@ export async function scanWeb({ fetcher, bucket, id, url: origin, prev, from = 0
   await putJson(bucket, raw + "site.json", site);
   return {
     kind: "web", url: origin, source: "inferred", paths: prev?.source === "inferred" ? prev.paths ?? [] : [],
-    label: frontPage?.title?.slice(0, 80) ?? host, changed: changedPages, needsAi: changedPages > 0 || (prev?.needsAi ?? 0) ? 1 : 0,
-    continueFrom, declarationError,
+    label: partial?.name ?? frontPage?.title?.slice(0, 80) ?? host, changed: changedPages, needsAi: changedPages > 0 || (prev?.needsAi ?? 0) ? 1 : 0,
+    continueFrom, declarationError, name: partial?.name ?? null, noAi: partial?.noAi ?? [], related: related.filter(Boolean),
   };
 }
 

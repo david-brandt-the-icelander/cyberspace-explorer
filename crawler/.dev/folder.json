@@ -13,10 +13,10 @@
         "It only reads. It never writes to a repository or a website, never logs in, submits forms or runs a page's scripts.",
         "Every request to a website obeys its robots.txt and its caching headers; a refusal such as 403 is final.",
         "It shares its D1 database and R2 bucket with the explorer's Worker, which edits the address list and settings and serves what the crawler stored. It has no HTTP routes of its own besides /health.",
-        "Turning collected metadata into views is the AI step, which is not built yet (backlog ai-step); until then, inferred addresses have metadata and no views.",
+        "The AI step (src/ai.js) asks Claude Haiku 5.5 to classify what a scan collected, and only what changed; code (src/views.js) writes the views from that, so they always follow the skills. Sections a site marks noAi are never sent to a model.",
         "Deployed separately from the explorer's Worker, from crawler/wrangler.jsonc."
       ],
-      "details": "`src/index.js` is the Worker: its schedule queues due addresses and its queue consumer scans them through `src/scan.js`. `src/git.js` and `src/web.js` read the two kinds of address, every request going through `src/fetcher.js`. `src/store.js` is the shared data layer, used by the explorer's Worker as well. `schema.sql` is the database. `test/` runs it all on Node with fakes for Cloudflare's bindings.",
+      "details": "`src/index.js` is the Worker: its schedule queues due addresses and its queue consumer scans them through `src/scan.js`. `src/git.js` and `src/web.js` read the two kinds of address, every request going through `src/fetcher.js`. `src/ai.js` is the AI step and `src/views.js` turns its readings into views. `src/store.js` is the shared data layer, used by the explorer's Worker as well. `schema.sql` is the database. `test/` runs it all on Node with fakes for Cloudflare's bindings.",
       "relationships": [
         {
           "relation": "part-of",

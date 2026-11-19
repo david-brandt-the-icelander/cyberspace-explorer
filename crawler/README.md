@@ -28,6 +28,24 @@ Every request goes through `src/fetcher.js`, which does four things:
 - spaces requests to one host;
 - stops at a budget of requests per run (`pages_per_scan` plus an allowance for robots.txt, sitemaps, DNS and RDAP). A site that needs more continues in a later run from where it stopped.
 
+## The AI step
+
+A scan that collected something new queues an `ai` message for the same address, if `ai_enabled` is on and `ANTHROPIC_API_KEY` is set. That message runs `src/ai.js`, which asks Claude Haiku 5.5 (`AI_MODEL`) small questions, each answered against a JSON schema:
+
+- **A website section:**
+  - **Input:** its path, its size, sample URLs, and the title, headings, description and first 900 characters of up to three of its pages, with the site's menus and footers removed.
+  - **Output:** what it is for, who it is for, what a visitor does there, what data they hand over, whether it is still alive, and its topics. This is the classification scheme tried on the Festi group.
+- **A repository without views:** its main parts, from its layout, README and manifests.
+
+Each answer is kept with a hash of its input, so a section whose pages didn't change is not asked about again. Sections a site lists under `noAi` are never sent. A refused or cut-off answer skips that item; a rate limit sends the message back to the queue.
+
+The views are then written by code (`src/views.js`), not by the model, so they always follow the skills:
+- a component diagram of the site's sections on zones, with the outside services their pages load;
+- a deployment diagram of where it runs, from DNS, mail and the hosts its pages load from;
+- a folder record per section that carries its reading.
+
+Cyberspace uses those readings to shape each section's building.
+
 ## Settings
 
 Changed from `/admin`, stored in the `settings` table:

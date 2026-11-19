@@ -8,10 +8,10 @@
       "id": "ai-step",
       "title": "The AI step: metadata into views",
       "type": "feature",
-      "status": "accepted",
+      "status": "done",
       "priority": "high",
       "summary": "Turn what a scan collected into views the explorer draws, with Claude Haiku 5.5, reading only what changed.",
-      "details": "For a website: classify each section as in the Festi prototype (function, audience, interaction, data sensitivity, lifecycle, topics), and write a component diagram of the site's parts, a deployment diagram of its infrastructure, and its use cases. For a repository without views: component and deployment diagrams from its layout and manifests. Batch API for scheduled scans, direct calls for approaches. Haiku has no server-side refusal fallback: a declined item is marked and skipped.",
+      "details": "Built as src/ai.js and src/views.js. A website's sections are classified with the Festi scheme and written as a component diagram (zones and sections, the outside services their pages load), a deployment diagram (DNS, mail, loaded providers) and a folder record per section. A repository without views gets a component diagram of the parts the model proposed whose folders exist. Direct calls rather than the Batch API (decision direct-calls).",
       "acceptanceCriteria": [
         "Views written under files/ validate against Meta/Agents/Skills.",
         "noAi sections are never sent.",
@@ -51,6 +51,24 @@
       "details": "Served by the explorer's Worker from docs/cyberspace-protocol.md.",
       "acceptanceCriteria": [
         "https://cyberspace-explorer.com/crawler answers with the protocol and the crawler's manners."
+      ],
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      }
+    },
+    {
+      "id": "ai-budget",
+      "title": "A monthly limit on the AI step's spending",
+      "type": "feature",
+      "status": "proposed",
+      "priority": "low",
+      "summary": "Count the tokens each reading used and stop asking once a monthly budget set in /admin is spent.",
+      "details": "Each answer's usage is already returned by claudeAsker; nothing adds it up yet.",
+      "acceptanceCriteria": [
+        "/admin shows the month's spend and the budget.",
+        "Over budget, scans continue and readings wait for the next month."
       ],
       "origin": {
         "kind": "conversation",
