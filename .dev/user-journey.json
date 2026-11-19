@@ -484,7 +484,7 @@
       "stages": [
         {
           "id": "choose",
-          "context": "A city: the view's parts as towers, the selected one lit with its beams.",
+          "context": "A city: the view's parts as towers, the selected one lit, its traces risen as arcs.",
           "touchpoint": "Inspector",
           "action": "Selects a part and presses Walk to <name>.",
           "outcome": "The eye flies down beside it, looking up at it, with its dependencies running left to right in front.",
@@ -539,7 +539,7 @@
         },
         {
           "id": "read",
-          "context": "A part under the pointer shows a card with what it does and how many beams it has.",
+          "context": "A part under the pointer shows a card with what it does and how many traces it has.",
           "touchpoint": "Hover card",
           "action": "Points at the parts nearby and clicks the one they want.",
           "outcome": "Its inspector opens with what Flat says about it.",

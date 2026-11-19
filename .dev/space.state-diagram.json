@@ -182,7 +182,7 @@
     },
     {
       "id": "city",
-      "description": "Cyberspace's city: one drawn view (#<folder>|view:<file>|~space:city, or a part's focus with it selected) standing full size on the ground, with its labels, legend and camera controls; a selected part lights its traces on the floor, raises them as beams and opens the inspector. The status line's hint is Esc goes up a level. The Layers panel on the left lists the folder's views: ticking a drawn view stands its city 12 units right of the last, unticking fades it out, and a file's use cases or journeys are radio buttons that change the address; written and knowledge views are listed, disabled."
+      "description": "Cyberspace's city: one drawn view (#<folder>|view:<file>|~space:city, or a part's focus with it selected) standing full size on the ground, with its labels, legend and camera controls; a selected part lights its traces on the floor, raises them as arcs and opens the inspector. The status line's hint is Esc goes up a level. The Layers panel on the left lists the folder's views: ticking a drawn view stands its city 12 units right of the last, unticking fades it out, and a file's use cases or journeys are radio buttons that change the address; written and knowledge views are listed, disabled."
     },
     {
       "id": "street",

@@ -813,15 +813,17 @@ test("a city's draw calls are counted from its world, as buildCity draws it", ()
 
 test("the Layers panel keeps a city scene within 40 draw calls, with a selection and a trace under the pointer", () => {
   assert.equal(DRAW_BUDGET, 40);
-  // This repository's drawn views of 2026-11-18: component 7, deployment 7, four state machines 5 each, a use case and a user
-  // journey 5 each; the scene keeps 4, the sky, the floor and the lit beams' core and glow (until step G4 makes them arcs).
-  // The component city, the deployment diagram and the four state machines stand in 38 with a part selected.
+  // This repository's drawn views of 2026-11-19: component 7, deployment 7, four state machines 5 each, a use case and a user
+  // journey 5 each; the scene keeps 3, the sky, the floor and the selection's lit arcs, one set of glow lines (step G4).
+  // The component city, the deployment diagram and the four state machines stand in 37 with a part selected.
   const standing = [7, 7, 5, 5, 5];
-  assert.ok(layerFits(standing, 5), "the fourth state machine fits: 34 standing, 38 with a part selected");
-  assert.ok(!layerFits([...standing, 5], 5), "a use case beside them would pass 40 with a part selected");
+  assert.ok(layerFits(standing, 5), "the fourth state machine fits: 34 standing, 37 with a part selected");
+  assert.ok(!layerFits([...standing, 5], 5), "a use case beside them would pass 40 with a part selected (42)");
   // A view standing in the place of another counts only the difference.
   assert.ok(layerFits([...standing, 5], 5, 5));
-  assert.ok(!layerFits([33], 4));
+  // 40 with a selection is within the budget, 41 is not.
+  assert.ok(layerFits([33], 4));
+  assert.ok(!layerFits([34], 4));
 });
 
 // ── Traces on the floor (G2) ─────────────────────────────────────────────

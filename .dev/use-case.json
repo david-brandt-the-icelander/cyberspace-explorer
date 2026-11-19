@@ -1033,7 +1033,7 @@
         {
           "id": "offer",
           "actor": "Browser",
-          "action": "Lights its beams, opens the inspector with Walk to <name> at its foot, and turns the view toward the part, which comes to the centre of the room beside the inspector.",
+          "action": "Lights its traces and raises them as arcs, opens the inspector with Walk to <name> at its foot, and turns the view toward the part, which comes to the centre of the room beside the inspector.",
           "sources": [
             {
               "path": "index.html",
@@ -1140,7 +1140,7 @@
         {
           "id": "card",
           "actor": "Browser",
-          "action": "Shows the hover card beside its top: its name, what it does and how many beams it has.",
+          "action": "Shows the hover card beside its top: its name, what it does and how many traces it has.",
           "sources": [
             {
               "path": "index.html",

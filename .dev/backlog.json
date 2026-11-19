@@ -171,10 +171,10 @@
       "id": "cyberspace-gibson",
       "title": "Cyberspace in the Gibson look",
       "type": "feature",
-      "status": "accepted",
+      "status": "done",
       "priority": "medium",
       "summary": "Cyberspace always dark, like the Gibson in Hackers: cyan glass towers carrying their own record, circuit traces on a glossy black floor, arcs when lit.",
-      "details": "Decision space-gibson-look says what the look is, and the [spec](docs/cyberspace-mode-spec.md)'s Rendering section how it is drawn; artboards 11 to 15 in [docs/cyberspace-design](docs/cyberspace-design/README.md) draw it. Plan cyberspace-gibson builds it in four pull requests.",
+      "details": "Decision space-gibson-look says what the look is, and the [spec](docs/cyberspace-mode-spec.md)'s Rendering section how it is drawn; artboards 11 to 15 in [docs/cyberspace-design](docs/cyberspace-design/README.md) draw it. Plan cyberspace-gibson builds it in four pull requests.\n\nDone on 2026-11-19, in four pull requests: G1 (#25, 2026-11-15), always dark, with the sky, the glossy floor, fog, the cyan glass, glowing edges and magenta beacons; G2 (#26, 2026-11-16), every relationship a circuit trace on the floor between pads, lit in place and picked on the floor; G3 (#29, 2026-11-18), every tower's faces carrying its own record, the folder tower's floors their views and the skyline's buildings their folders, all of it reflected in the floor; and G4 (2026-11-19), the selected part's relationships rising as arcs of light (one set of glow lines, one draw call, with a hidden pick tube), the fit framing what stands and the lit arcs, the street's towers within 18 units named on their faces rather than by pills, plate names glowing in their colour, the legend's `trace` and `arc` icons and words, and *traces* and *arcs* in every word a reader sees where Cyberspace said *beams*. The spec's acceptance checklist was run again in Chrome in the new look on 2026-11-19; its Safari and Firefox part stays with backlog item safari-firefox-checks. Between G2 and G3 the owner ruled that Cyberspace stays dark whatever Flat's theme switch says (#27, #28).",
       "origin": {
         "kind": "request",
         "by": "owner",

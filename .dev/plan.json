@@ -112,7 +112,7 @@
       "title": "Give Cyberspace the Gibson look",
       "summary": "Four pull requests after a design pass: the dark and the palette, the floor's traces, the towers' faces, then the arcs, labels and HUD.",
       "goal": "Cyberspace looks as artboards 11 to 15 draw it and docs/cyberspace-mode-spec.md says, always dark, within the budgets of quality requirement space-frame-rate.",
-      "status": "in-progress",
+      "status": "done",
       "scope": [
         {
           "path": ".dev/backlog.json",
@@ -144,7 +144,7 @@
         {
           "id": "gibson-arcs",
           "title": "G4 · Arcs, labels and HUD: lit beams as arcs, the labels' look and the street's rule for near towers, the legend and its icons, the words, the records and the acceptance checklist again",
-          "status": "todo"
+          "status": "done"
         }
       ],
       "outOfScope": [
