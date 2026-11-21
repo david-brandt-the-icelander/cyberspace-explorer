@@ -91,7 +91,7 @@ The session is `explorer_session`, `Path=/; HttpOnly; Secure; SameSite=Lax`, 7 d
    ```
 
    `SESSION_SECRET` is any long random string (for example `openssl rand -base64 48`). Changing it signs everyone out.
-3. Add the repository secret `CLOUDFLARE_API_TOKEN` to this repository (**Settings → Secrets and variables → Actions**): an API token with **Account → Workers Scripts: Edit** and **Zone → Workers Routes: Edit** and **Zone → DNS: Edit** for cyberspace-explorer.com. Optionally add a required reviewer to the `production` environment to hold deploys for approval.
+3. Give the CI/CD container (below, "Deploying") a Cloudflare API token, as its secret file `secrets/cloudflare_api_token`: **Account → Workers Scripts: Edit** and **Zone → Workers Routes: Edit** and **Zone → DNS: Edit** for cyberspace-explorer.com, and the crawler's permissions ([crawler/README.md](crawler/README.md), step 3). It is not a repository secret.
 
 ## The crawler
 
@@ -103,11 +103,16 @@ It obeys robots.txt and keeps to a budget of requests per run. It needs a databa
 
 ## Deploying
 
-`.github/workflows/cyberspace-explorer.yml` tests the Worker on every pull request, and on a push to `main` it tests and then deploys with `wrangler deploy`, then checks that the live page answers. "Run workflow" in the Actions tab redeploys by hand. The icelander.net repository only links to the app, from its Apps page.
+This repository has no GitHub Actions. Its CI, deploys and releases run in a Docker container defined in [`cyberspace-explorer/` of continuous_integration_and_delivery](https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/tree/main/cyberspace-explorer), a **private** repository; its README says how to set it up and run it by hand. The container polls this repository ([pipeline](.dev/pipeline.json), [decision `leave-github-actions`](.dev/decisions.json)):
+
+- **Every new commit on a branch** gets the checks: `npm test` (the Worker, the page's pure functions, the VS Code extension and the crawler), then `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo test --workspace --locked` and `cyberspace-generator validate`. The result is the commit status `ci/cyberspace-explorer`, which a pull request shows; branch protection makes it required.
+- **A green `main`** is deployed while the container's `DEPLOY_ENABLED` is `true`: it stops if `wrangler.jsonc` or `crawler/wrangler.jsonc` still holds `REPLACE-WITH-D1-DATABASE-ID` ([crawler/README.md](crawler/README.md), "Setting it up once"), deploys the explorer's Worker with `wrangler deploy --config wrangler.jsonc`, then the crawler, then checks that `/`, `/auth/me` and `/crawler` answer, and rolls back the Workers it deployed with `wrangler rollback` if they don't. The result is the commit status `deploy/cyberspace-explorer`. To redeploy by hand: `docker compose run --rm ci deploy <sha>` on the container's machine.
+
+The owner's one-time steps (the container on an always-on machine, its tokens, Actions turned off, `ci/cyberspace-explorer` required on `main`) are the runbook [`set-up-ci`](.dev/runbooks.json). The icelander.net repository only links to the app, from its Apps page.
 
 ## Its own description
 
-The explorer is described in its own `.dev/` folders, and [the explorer shows them](https://cyberspace-explorer.com/?url=https://github.com/david-brandt-the-icelander/cyberspace-explorer): the page in [`.dev/`](.dev) (its vision and stakeholders, the journeys and use cases of the [reader](Actors/reader.md), the states of the page, Cyberspace's scenes, the token panel and a drawing, its features, capabilities and entrypoints, its parts and where it runs, and its requirements, contracts, design decisions and limitations), the Worker in [`worker/.dev/`](worker/.dev), and the workflow in [`.github/.dev/`](.github/.dev). The [design pass](.dev/backlog.json) item says what to read in what order before changing the design. [AGENTS.md](AGENTS.md) says how agents keep these files, and how to check them.
+The explorer is described in its own `.dev/` folders, and [the explorer shows them](https://cyberspace-explorer.com/?url=https://github.com/david-brandt-the-icelander/cyberspace-explorer): the page in [`.dev/`](.dev) (its vision and stakeholders, the journeys and use cases of the [reader](Actors/reader.md), the states of the page, Cyberspace's scenes, the token panel and a drawing, its features, capabilities and entrypoints, its parts and where it runs, and its requirements, contracts, design decisions and limitations), the Worker in [`worker/.dev/`](worker/.dev), and the pipeline that tests and deploys it in [`.dev/pipeline.json`](.dev/pipeline.json). The [design pass](.dev/backlog.json) item says what to read in what order before changing the design. [AGENTS.md](AGENTS.md) says how agents keep these files, and how to check them.
 
 ## cyberspace-generator
 
@@ -126,4 +131,9 @@ cyberspace-generator stale origin/main # .dev files citing files changed since t
 
 Develop with `cargo fmt --all && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace`. The parity tests in `crates/cyberspace-generator/tests/parity.rs` break a copy of this repository in known ways and check that the Rust and, when `jsonschema` is installed, the Python validators report the same problem.
 
-To release, set `version` under `[workspace.package]` in `Cargo.toml`, merge, and push the tag `generator-v<that version>`: the release (`.github/workflows/cyberspace-generator-release.yml`) refuses a tag that does not match. It builds it for macOS and static Linux, both CPU types, and attaches the binaries and `SHA256SUMS` to a GitHub release. It is installed as part of zazzle (`brew install zazzcat/z/zazzle`): software-developers-toolbox's `bump-cyberspace-generator` workflow opens a pull request pinning each new release, and its release includes the binary.
+To release, set `version` under `[workspace.package]` in `Cargo.toml`, merge, and push the tag `generator-v<that version>`. The release is made in two halves, both of which refuse a tag that does not match ([runbook `release-generator`](.dev/runbooks.json)):
+
+1. The CI/CD container (above, "Deploying") sees the tag, runs `cargo test`, builds the static Linux binaries for both CPU types, and puts them with their `SHA256SUMS` lines in a **draft** GitHub release.
+2. On the owner's Mac, `cyberspace-explorer/release-macos.sh generator-v<version>` from a checkout of continuous_integration_and_delivery (private) builds the macOS binaries for both CPU types, adds them, completes `SHA256SUMS` and publishes the release.
+
+Either half can go first; the release stays a draft, which nobody else sees, until all four binaries are in. The assets are `cyberspace-generator-<target>` and `SHA256SUMS`, as before. It is installed as part of zazzle (`brew install zazzcat/z/zazzle`): zazzle's `bump-cyberspace-generator.sh` opens a pull request pinning each new release, and zazzle's release includes the binary.

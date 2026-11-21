@@ -1,6 +1,6 @@
 // The cyberspace explorer, a Worker on a domain of its own, cyberspace-explorer.com (README.md, "Deploying").
 // A custom domain: Cloudflare creates the DNS record and the certificate on deploy.
-// GitHub Actions deploys it on every push to main that changes this repository (.github/workflows/cyberspace-explorer.yml).
+// The CI/CD container deploys it when main is green (README.md, "Deploying"; .dev/pipeline.json).
 // No secrets belong in this file.
 {
   "name": "cyberspace-explorer",

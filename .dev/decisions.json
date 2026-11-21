@@ -1043,6 +1043,46 @@
           "symbol": "isAdmin"
         }
       ]
+    },
+    {
+      "id": "leave-github-actions",
+      "title": "CI, deploys and releases run in a container, not GitHub Actions",
+      "summary": "The two workflows are gone: a Docker container in continuous_integration_and_delivery tests every branch, deploys main and builds the Linux half of each cyberspace-generator release; the owner's Mac builds the macOS half.",
+      "status": "accepted",
+      "decidedBy": "The owner",
+      "decidedOn": "2026-11-21",
+      "context": "The owner is moving his repositories' CI/CD off GitHub Actions into containers, one folder per project in the private repository continuous_integration_and_delivery. Here Actions ran two workflows: cyberspace-explorer.yml (the jobs test and rust on every pull request, and deploy on main) and cyberspace-generator-release.yml (four builds and a GitHub release on a generator-v* tag). The macOS builds can't run in a Linux container.",
+      "options": [
+        {
+          "title": "Keep GitHub Actions",
+          "consequences": "Nothing to set up; unlike his other repositories."
+        },
+        {
+          "title": "A container that polls this repository, with the macOS builds on the owner's Mac",
+          "consequences": "The same checks and deploy, run on a machine the owner keeps on; a release needs the owner's Mac for its second half, and is a draft until then."
+        }
+      ],
+      "decision": "cyberspace-explorer/ in continuous_integration_and_delivery replaces each job. The jobs test and rust are its ci.sh, on every new branch tip, reporting the commit status ci/cyberspace-explorer. The job deploy is its deploy.sh: on a green main, while the container's DEPLOY_ENABLED is true, it checks the crawler's database id, deploys both Workers, smoke-tests the site, rolls back on a failure and reports deploy/cyberspace-explorer. cyberspace-generator-release.yml is split: on a new generator-v* tag, while RELEASE_ENABLED is true, the container checks the version, runs cargo test and builds the two static Linux binaries into a draft release; release-macos.sh on the owner's Mac builds the two macOS ones; whichever half completes the four binaries and SHA256SUMS publishes the release, with the same asset names as before. The Cloudflare token is the container's secret file, not a repository secret. DEPLOY_ENABLED and RELEASE_ENABLED are false until Actions is turned off in the repository.",
+      "rationale": "One way of running CI/CD across the owner's repositories, with the secrets on a machine he controls; a draft release keeps consumers from seeing one with binaries missing.",
+      "details": "What the owner does once (the container on an always-on machine, its tokens, Actions turned off, ci/cyberspace-explorer required in branch protection) is runbook set-up-ci; cutting a release is runbook release-generator. The pipeline is [pipeline.json](.dev/pipeline.json). There is no approval step before a deploy any more; the production environment's reviewer, if one was set, has no equivalent beyond leaving DEPLOY_ENABLED false. continuous_integration_and_delivery is a private repository.",
+      "evidenceStatus": "source-verified",
+      "links": [
+        {
+          "label": "The CI/CD container (private repository)",
+          "url": "https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/tree/main/cyberspace-explorer"
+        }
+      ],
+      "relationships": [
+        {
+          "relation": "relates-to",
+          "path": ".dev/pipeline.json"
+        },
+        {
+          "relation": "relates-to",
+          "path": ".dev/runbooks.json",
+          "entityId": "set-up-ci"
+        }
+      ]
     }
   ]
 }

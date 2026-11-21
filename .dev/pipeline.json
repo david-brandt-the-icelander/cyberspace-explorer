@@ -1,0 +1,122 @@
+{
+  "$schema": "../Meta/Agents/Knowledge/schemas/pipeline.schema.json",
+  "kind": "pipeline",
+  "title": "CI, deploys and releases, in a container",
+  "folder": ".",
+  "description": "The pipeline is defined outside this repository, in the folder cyberspace-explorer/ of the private repository continuous_integration_and_delivery (https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/tree/main/cyberspace-explorer): a Docker container that polls this repository, and a script the owner runs on a Mac for the macOS half of a release. GitHub Actions is not used (decision leave-github-actions).",
+  "entities": [
+    {
+      "id": "pull-request",
+      "title": "On every branch tip",
+      "summary": "The container tests each new commit on a branch of this repository, and reports the result as the commit status ci/cyberspace-explorer, which a pull request shows.",
+      "trigger": "A new commit at the tip of any branch of this repository, seen when the container polls (every minute by default). Branches from forks are never built. Runs queue one at a time.",
+      "checks": [
+        "npm test on Node 22: test/, vscode/test/ and crawler/test/",
+        "Python has jsonschema and referencing, so the parity tests compare with the Python validators instead of skipping them",
+        "cargo fmt --all --check",
+        "cargo clippy --workspace --all-targets --locked -- -D warnings",
+        "cargo test --workspace --locked",
+        "cargo run -q --locked -p cyberspace-generator -- validate"
+      ],
+      "blocks": "nothing by itself; merging waits for it when ci/cyberspace-explorer is a required status check in the branch protection of main",
+      "notChecked": [
+        "index.html in a browser: only its pure block is tested (test/space.test.js).",
+        "That wrangler can bundle the Workers: the deploy's own step finds that out."
+      ],
+      "details": "The repository's code runs in a clean environment, with no token, as an unprivileged user. A failure in the Node checks does not stop the Rust ones, or the other way round. The Rust toolchain is pinned in the container's image and moves when the image is rebuilt.",
+      "evidenceStatus": "source-verified",
+      "links": [
+        {
+          "label": "ci.sh (private repository)",
+          "url": "https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/blob/main/cyberspace-explorer/scripts/ci.sh"
+        },
+        {
+          "label": "watch.sh (private repository)",
+          "url": "https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/blob/main/cyberspace-explorer/scripts/watch.sh"
+        }
+      ]
+    },
+    {
+      "id": "deploy",
+      "title": "On main",
+      "summary": "When CI is green on main and DEPLOY_ENABLED is true, the container deploys both Workers and checks that the site answers, rolling back if it doesn't. The result is the commit status deploy/cyberspace-explorer.",
+      "trigger": "A green CI run of a new commit on main, when the container's DEPLOY_ENABLED is true (it is false by default). By hand: docker compose run --rm ci deploy <sha>, with --force for a commit CI has not passed.",
+      "checks": [
+        "Neither wrangler.jsonc nor crawler/wrangler.jsonc still holds REPLACE-WITH-D1-DATABASE-ID; otherwise nothing is deployed",
+        "wrangler deploy --config wrangler.jsonc, with wrangler 4.156.1",
+        "npm ci --prefix crawler, then wrangler deploy --config crawler/wrangler.jsonc",
+        "The page at https://cyberspace-explorer.com/ answers and contains \"Cyberspace explorer\"",
+        "https://cyberspace-explorer.com/auth/me answers",
+        "https://cyberspace-explorer.com/crawler answers and contains \"cyberspace-crawler\"",
+        "If any of the three fails, wrangler rollback of each Worker this run deployed"
+      ],
+      "blocks": "release to cyberspace-explorer.com: a red CI run, or a missing database id, stops the deploy",
+      "notChecked": [
+        "That sign-in works: /auth/me answers whether or not the secrets are set.",
+        "The crawler's database schema: crawler/schema.sql is applied by the owner, never from here, and a rollback does not undo it."
+      ],
+      "secrets": [
+        "The Cloudflare API token, the container's secret file cloudflare_api_token; only wrangler gets it"
+      ],
+      "details": "There is no approval step: a green main deploys while DEPLOY_ENABLED is true. Leaving it false and deploying by hand keeps a gate.",
+      "evidenceStatus": "source-verified",
+      "links": [
+        {
+          "label": "deploy.sh (private repository)",
+          "url": "https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/blob/main/cyberspace-explorer/scripts/deploy.sh"
+        }
+      ],
+      "sources": [
+        {
+          "path": "wrangler.jsonc",
+          "symbol": "d1_databases"
+        },
+        {
+          "path": "crawler/wrangler.jsonc",
+          "symbol": "d1_databases"
+        }
+      ]
+    },
+    {
+      "id": "generator-release",
+      "title": "On a generator-v* tag",
+      "summary": "A cyberspace-generator release is built in two halves, the Linux binaries in the container and the macOS ones on the owner's Mac, into one draft GitHub release that is published once both are in.",
+      "trigger": "A new tag generator-v<version> in this repository, seen by the container, when its RELEASE_ENABLED is true; otherwise the container only builds and tests it. On the Mac: release-macos.sh <tag>, run by the owner, before or after the container's half.",
+      "checks": [
+        "The tag names the version under [workspace.package] in Cargo.toml",
+        "cargo test --workspace --locked, in the container and on the Mac",
+        "cargo build --release for x86_64-unknown-linux-musl and aarch64-unknown-linux-musl (container), and for aarch64-apple-darwin and x86_64-apple-darwin (Mac); each binary is checked to be for its CPU, the Linux ones to be static",
+        "The draft release is published only once it has all four cyberspace-generator-<target> binaries and SHA256SUMS lists each with the checksum GitHub computed for it"
+      ],
+      "blocks": "the release, and so what zazzle can pin: a draft is not listed or downloadable",
+      "notChecked": [
+        "The macOS binaries are not signed or notarized, as before."
+      ],
+      "secrets": [
+        "A GitHub token with Contents: read and write on this repository, the container's secret file github_release_token; on the Mac, the owner's gh sign-in"
+      ],
+      "details": "The assets are named as before (cyberspace-generator-<target>, and SHA256SUMS with \"<sha256>  <name>\" lines), with generated release notes, so zazzle's bump-cyberspace-generator.sh and release/fetch-cyberspace-generator.sh read them unchanged. A release that is already published is never changed. The steps are runbook release-generator.",
+      "evidenceStatus": "source-verified",
+      "links": [
+        {
+          "label": "release.sh (private repository)",
+          "url": "https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/blob/main/cyberspace-explorer/scripts/release.sh"
+        },
+        {
+          "label": "release-macos.sh (private repository)",
+          "url": "https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/blob/main/cyberspace-explorer/release-macos.sh"
+        },
+        {
+          "label": "github-release.sh (private repository)",
+          "url": "https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/blob/main/cyberspace-explorer/scripts/github-release.sh"
+        }
+      ],
+      "sources": [
+        {
+          "path": "Cargo.toml",
+          "symbol": "workspace.package"
+        }
+      ]
+    }
+  ]
+}

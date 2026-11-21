@@ -7,17 +7,17 @@
     {
       "id": "cloudflare-resources",
       "title": "The database, bucket and queues don't exist yet",
-      "summary": "crawler/wrangler.jsonc and wrangler.jsonc bind a D1 database, an R2 bucket and queues that the owner creates once; until then the deploy job stops before deploying either Worker.",
+      "summary": "crawler/wrangler.jsonc and wrangler.jsonc bind a D1 database, an R2 bucket and queues that the owner creates once; until then the deploy stops before deploying either Worker.",
       "status": "open",
-      "cause": "Creating them needs the owner's Cloudflare account on Workers Paid, and the deploy token needs D1, R2 and Queues permissions.",
+      "cause": "Creating them needs the owner's Cloudflare account on Workers Paid, and the container's Cloudflare token needs D1, R2 and Queues permissions.",
       "unblockWhen": "The steps in crawler/README.md, \"Setting it up once (the owner)\", are done and the database id replaces REPLACE-WITH-D1-DATABASE-ID in both files.",
       "canUnblock": "owner",
       "since": "2026-11-19",
       "blocked": [
         {
-          "path": ".github/.dev/pipeline.json",
+          "path": ".dev/pipeline.json",
           "entityId": "deploy",
-          "description": "The deploy job stops before deploying either Worker."
+          "description": "The deploy stops before deploying either Worker."
         }
       ],
       "origin": {
@@ -36,8 +36,14 @@
           "symbol": "Setting it up once (the owner)"
         },
         {
-          "path": ".github/workflows/cyberspace-explorer.yml",
-          "symbol": "Check that the crawler's resources exist"
+          "path": "wrangler.jsonc",
+          "symbol": "d1_databases"
+        }
+      ],
+      "links": [
+        {
+          "label": "deploy.sh, which stops (private repository)",
+          "url": "https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/blob/main/cyberspace-explorer/scripts/deploy.sh"
         }
       ]
     }

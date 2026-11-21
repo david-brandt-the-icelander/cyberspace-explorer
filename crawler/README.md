@@ -85,7 +85,7 @@ The crawler needs Workers Paid for Queues. Run these from the repository root.
    npx wrangler@4.156.1 d1 execute cyberspace --remote --file crawler/schema.sql -c crawler/wrangler.jsonc
    ```
 
-3. Give the repository secret `CLOUDFLARE_API_TOKEN` these permissions as well: **Account → D1: Edit**, **Account → Workers R2 Storage: Edit** and **Account → Queues: Edit**.
+3. Give the deploy's Cloudflare API token these permissions as well: **Account → D1: Edit**, **Account → Workers R2 Storage: Edit** and **Account → Queues: Edit**. It is the CI/CD container's secret file `secrets/cloudflare_api_token` (the README's "Deploying"), not a repository secret.
 4. Set the crawler's secrets (after its first deploy). `ANTHROPIC_API_KEY` is needed for the AI step; the two tokens are optional, read-only, and only raise the hosts' rate limits.
 
    ```bash

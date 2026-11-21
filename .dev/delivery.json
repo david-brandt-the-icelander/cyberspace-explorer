@@ -10,8 +10,8 @@
       "summary": "The copy people use, at https://cyberspace-explorer.com.",
       "environment": "production",
       "purpose": "The page readers open and links point to.",
-      "deployedBy": "GitHub Actions (.github/workflows/cyberspace-explorer.yml): every push to main is tested and deployed to Cloudflare with wrangler deploy, as a Workers custom domain; Run workflow redeploys by hand.",
-      "rollback": "No rollback is recorded. Going back means reverting the change on main, which deploys the earlier version.",
+      "deployedBy": "The CI/CD container in cyberspace-explorer/ of the private repository continuous_integration_and_delivery: every new commit on main that passes CI is deployed to Cloudflare with wrangler deploy (the explorer's Worker, as a Workers custom domain, then the crawler) while the container's DEPLOY_ENABLED is true; docker compose run --rm ci deploy <sha> redeploys by hand.",
+      "rollback": "If the smoke test after a deploy fails, the container rolls back each Worker it deployed with wrangler rollback. Otherwise going back means reverting the change on main, which deploys the earlier version, or wrangler rollback by hand. The crawler's database schema is never rolled back.",
       "evidenceStatus": "source-verified",
       "sources": [
         {
@@ -19,18 +19,24 @@
           "symbol": "Deploying"
         },
         {
-          "path": ".github/workflows/cyberspace-explorer.yml",
-          "symbol": "jobs.deploy"
-        },
-        {
           "path": "wrangler.jsonc",
           "symbol": "routes"
+        },
+        {
+          "path": "crawler/wrangler.jsonc",
+          "symbol": "name"
+        }
+      ],
+      "links": [
+        {
+          "label": "The CI/CD container (private repository)",
+          "url": "https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/tree/main/cyberspace-explorer"
         }
       ],
       "relationships": [
         {
           "relation": "depends-on",
-          "path": ".github/.dev/pipeline.json",
+          "path": ".dev/pipeline.json",
           "entityId": "deploy"
         },
         {
