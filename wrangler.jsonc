@@ -10,9 +10,16 @@
   "workers_dev": false,
   "preview_urls": false,
   "routes": [{ "pattern": "cyberspace-explorer.com", "custom_domain": true }],
+  // Who the reader is: icelander.net's login service (the same Cloudflare account), app "explorer", callback
+  // https://cyberspace-explorer.com/identity/auth/callback registered in its APPS. No secret is needed for it.
+  "services": [{ "binding": "ACCOUNTS", "service": "accounts", "entrypoint": "Internal" }],
   "vars": {
-    // The OAuth App's registered callback is ${PUBLIC_ORIGIN}/auth/github/callback.
-    "PUBLIC_ORIGIN": "https://cyberspace-explorer.com"
+    // The GitHub OAuth App's registered callback is ${PUBLIC_ORIGIN}/auth/github/callback (unchanged: it only reads repositories).
+    "PUBLIC_ORIGIN": "https://cyberspace-explorer.com",
+    // "true": the page and the GitHub routes need a sign-in to icelander.net. Set it only after icelander.net's accounts
+    // Worker (with the app "explorer") is deployed; "false" is how it was before.
+    "REQUIRE_SIGN_IN": "true",
+    "ACCOUNTS_JWKS": "{\"keys\":[{\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"kid\":\"k2026a\",\"x\":\"WIEomi0LTalJvQndhD7abl8ty3YcliQ0vEz4XjLXayc\"}]}"
   },
   // Secrets, set with `wrangler secret put … -c wrangler.jsonc`, never here:
   //   GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET   the GitHub OAuth App; sign-in is off without them

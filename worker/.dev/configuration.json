@@ -104,6 +104,48 @@
           "symbol": "vars"
         }
       ]
+    },
+    {
+      "id": "require-sign-in",
+      "title": "REQUIRE_SIGN_IN",
+      "summary": "\"true\" makes the page, /auth/github/start and /api/github/* need a sign-in to icelander.net; \"false\" or unset leaves them open.",
+      "key": "REQUIRE_SIGN_IN",
+      "type": "Worker var",
+      "sensitive": false,
+      "scope": "Worker",
+      "takesEffect": "at-deploy",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "wrangler.jsonc",
+          "symbol": "vars"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "createHandler"
+        }
+      ]
+    },
+    {
+      "id": "accounts-binding",
+      "title": "ACCOUNTS and ACCOUNTS_JWKS",
+      "summary": "The service binding to icelander.net's login service (same Cloudflare account) and its public keys; without them nobody is signed in.",
+      "key": "ACCOUNTS",
+      "type": "service binding",
+      "sensitive": false,
+      "scope": "Worker",
+      "takesEffect": "at-deploy",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "wrangler.jsonc",
+          "symbol": "services"
+        },
+        {
+          "path": "worker/vendor/icelander-auth/index.js",
+          "symbol": "createAuth"
+        }
+      ]
     }
   ]
 }
