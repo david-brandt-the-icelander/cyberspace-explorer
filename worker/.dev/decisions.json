@@ -152,6 +152,103 @@
           "symbol": "signOut"
         }
       ]
+    },
+    {
+      "id": "admin-door",
+      "title": "/admin is for icelander.net's explorer:admin role, and writes only from its own page",
+      "summary": "The admin page and its API are for a user signed in to icelander.net who holds the login service's role explorer:admin, and changes need the app's own Origin.",
+      "status": "accepted",
+      "context": "The owner asked for an admin page at cyberspace-explorer.com/admin to change the address list and how often things are rescanned. On 2026-11-19 the owner chose GitHub logins in ADMIN_LOGINS, because the explorer's GitHub sign-in was then its only sign-in, so a login was known. On 2026-11-21 the owner decided that who the reader is comes from icelander.net's login service and that the GitHub OAuth App only reads repositories (the root's decision identity-sign-in; icelander.net docs/identity-app-plan.md, D9 and D22). When the two were merged, the admin check moved to that sign-in.",
+      "options": [
+        {
+          "title": "GitHub logins in ADMIN_LOGINS (the 2026-11-19 choice)",
+          "consequences": "Works without the login service, but lets the GitHub OAuth App say who the reader is, which identity-sign-in rules out."
+        },
+        {
+          "title": "icelander.net's sign-in and a role, explorer:admin",
+          "consequences": "The login service's own convention (games:admin, zingping:admin): its owners hold every role, anyone else is granted it on its admin page, and no address is written into this public repository. The role must first be added to the login service's ROLES in icelander.net."
+        },
+        {
+          "title": "icelander.net's sign-in and a list of addresses on this Worker",
+          "consequences": "Changed by a deploy, like ADMIN_LOGINS, but it puts the admins' addresses in wrangler.jsonc, or needs a secret."
+        },
+        {
+          "title": "Cloudflare Access in front of /admin",
+          "consequences": "A second sign-in, set up in the Cloudflare dashboard."
+        }
+      ],
+      "decision": "icelander.net's sign-in and the role explorer:admin, chosen on 2026-11-21 when PR #30 was merged with main, to follow identity-sign-in. It keeps the owner's 2026-11-19 choice of a list the admin page can't change: the role is granted only on the login service's admin page. Every admin request asks the login service (currentUser), whatever REQUIRE_SIGN_IN says. A reader who isn't signed in is sent to /identity/auth/sign-in and back to /admin; a signed-in reader without the role gets 403. Every change also needs Origin to be the app's own, and the page is served with X-Frame-Options: DENY. An address added here records the admin's icelander.net address as added_by.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/space.js",
+          "symbol": "isAdmin"
+        },
+        {
+          "path": "worker/space.js",
+          "symbol": "spaceRoutes"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "createHandler"
+        },
+        {
+          "path": "test/space-api.test.js",
+          "symbol": "admin API: signed in, allowed, and changes only from the page itself"
+        }
+      ],
+      "rationale": "The explorer's identity and its permission to read GitHub are different things (identity-sign-in), and a role keeps the list of admins with the rest of icelander.net's roles.",
+      "relationships": [
+        {
+          "relation": "depends-on",
+          "path": ".dev/decisions.json",
+          "entityId": "identity-sign-in",
+          "description": "Who the reader is comes from icelander.net's login service."
+        }
+      ]
+    },
+    {
+      "id": "approach-rescan",
+      "title": "Approaching stale data asks for a rescan",
+      "summary": "The page tells the Worker when a player opens an address; if its last scan is older than the address's staleness limit, a rescan is queued.",
+      "status": "accepted",
+      "context": "The owner asked for a rescan when a player approaches an address, with a setting for how stale is acceptable. Anyone can be a player, so the request must not let a visitor make the crawler work harder than the admin allowed.",
+      "options": [
+        {
+          "title": "Rescan only when stale, once at a time",
+          "consequences": "A visitor can at most bring a rescan forward to the moment the data went stale; requestScan never queues an address twice."
+        },
+        {
+          "title": "Rescan on every approach",
+          "consequences": "Visitors would set the crawler's pace."
+        }
+      ],
+      "decision": "Rescan only when stale, once at a time, and only for requests from the explorer's own origin.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/space.js",
+          "symbol": "space"
+        },
+        {
+          "path": "crawler/src/store.js",
+          "symbol": "isStale"
+        },
+        {
+          "path": "index.html",
+          "symbol": "approach"
+        }
+      ]
     }
   ]
 }

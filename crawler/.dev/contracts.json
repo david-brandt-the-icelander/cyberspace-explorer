@@ -1,0 +1,145 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/contracts.schema.json",
+  "kind": "contracts",
+  "title": "What the crawler promises",
+  "folder": "crawler",
+  "entities": [
+    {
+      "id": "well-known",
+      "title": "/.well-known/cyberspace.json",
+      "summary": "What a cooperating website may publish, and what the crawler does with it.",
+      "contractType": "file-format",
+      "consumers": [
+        "websites (Actors/website.md)"
+      ],
+      "guarantees": [
+        "cyberspace: 1 is required; a file without it is ignored and the site is read as if it had none.",
+        "A file with neither repository nor tree still counts: its related addresses and noAi sections apply while the crawler infers the site's views.",
+        "tree.files are paths ending in .json without .., at most 500; tree.base may be relative to the site.",
+        "repository must be on github.com or gitlab.com over https; it is added and crawled.",
+        "related addresses, at most 50, are added disabled until the admin allows them.",
+        "noAi paths are never sent to a model."
+      ],
+      "compatibility": "The version field lets a later version change the format; the crawler ignores fields it doesn't know.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/wellknown.js",
+          "symbol": "readDeclaration"
+        },
+        {
+          "path": "docs/cyberspace-protocol.md",
+          "symbol": "The file"
+        }
+      ]
+    },
+    {
+      "id": "address-index",
+      "title": "space/<id>/index.json",
+      "summary": "What one scan of an address left, read first by the explorer's Worker.",
+      "contractType": "persistence",
+      "consumers": [
+        "worker/space.js",
+        "the AI step (backlog ai-step)"
+      ],
+      "guarantees": [
+        "kind, url, id, source (well-known, repository or inferred), label, paths (views under files/), changed, needsAi, scannedAt, reason and requests are always there.",
+        "git: ref, head, stale (views whose cited sources changed) and truncated.",
+        "web: continueFrom while a scan is unfinished; declarationError when a well-known file was rejected; repository, related and noAi for a cooperating site."
+      ],
+      "compatibility": "Fields are only added. A view's path is its repository path (or tree path), so the explorer reads files/ as it reads a repository.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/scan.js",
+          "symbol": "runScan"
+        },
+        {
+          "path": "crawler/src/git.js",
+          "symbol": "scanGit"
+        },
+        {
+          "path": "crawler/src/web.js",
+          "symbol": "scanWeb"
+        }
+      ]
+    },
+    {
+      "id": "scan-message",
+      "title": "Scan queue message",
+      "summary": "What the schedule, /admin, an approaching player or a continuing scan send to cyberspace-scans.",
+      "contractType": "message",
+      "consumers": [
+        "crawler/src/index.js queue",
+        "worker/space.js"
+      ],
+      "guarantees": [
+        "{ id, reason } with reason schedule, admin, approach, declared, continue or ai; continue also has from. ai runs the AI step on what the last scan collected.",
+        "A message for an unknown address is acknowledged and skipped; a disabled address is skipped only when the schedule sent it."
+      ],
+      "compatibility": "Senders mark the address queued with store.requestScan first, so one address is never queued twice.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/store.js",
+          "symbol": "requestScan"
+        },
+        {
+          "path": "crawler/src/scan.js",
+          "symbol": "runScan"
+        }
+      ]
+    },
+    {
+      "id": "database",
+      "title": "The cyberspace database",
+      "summary": "The tables both Workers use.",
+      "contractType": "persistence",
+      "consumers": [
+        "crawler",
+        "worker (space.js)"
+      ],
+      "guarantees": [
+        "addresses, scans, fetches and settings as in crawler/schema.sql; every statement is CREATE IF NOT EXISTS, so the file can be applied again."
+      ],
+      "compatibility": "Columns are only added; a change is a new statement in schema.sql, applied by the owner.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/schema.sql",
+          "symbol": "addresses"
+        },
+        {
+          "path": "crawler/src/store.js",
+          "symbol": "addAddress"
+        }
+      ]
+    },
+    {
+      "id": "section-reading",
+      "title": "A section's reading",
+      "summary": "What the AI step writes about each section of an inferred website, in <section>/folder.json, for the explorer to read and Cyberspace to shape buildings with.",
+      "contractType": "file-format",
+      "consumers": [
+        "index.html (phase 4: Cyberspace's archetypes)"
+      ],
+      "guarantees": [
+        "The folder record's one entity has title, summary and purpose, and evidenceStatus inferred.",
+        "It also has function, family (commerce, service, content, corporate or fine_print), audience, interaction, dataSensitivity (none, personal, payment or health), lifecycle, topics (at most five), confidence (0 to 1), evidence (pages or urls_only), urls and newestLastModified.",
+        "Values outside the scheme are never written: an unknown function becomes other, unknown audiences are dropped."
+      ],
+      "compatibility": "Fields are only added; the scheme's values are only added to.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/views.js",
+          "symbol": "siteViews"
+        },
+        {
+          "path": "crawler/src/ai.js",
+          "symbol": "tidy"
+        }
+      ]
+    }
+  ]
+}

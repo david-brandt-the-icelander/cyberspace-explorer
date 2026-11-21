@@ -392,6 +392,39 @@
           "symbol": "parseSpaceHash"
         }
       ]
+    },
+    {
+      "id": "dock-navigation",
+      "title": "Move about Cyberspace from a dock",
+      "type": "feature",
+      "status": "done",
+      "priority": "high",
+      "summary": "The dock, diagrams over the scene, the warp, Back and Forward, history and bookmarks (decision dock-and-warp).",
+      "details": "Checked on 2026-11-19 in headless Chromium (SwiftShader) at 1440 × 900 and 1280 × 800 on this repository: the root's use case over its component city lit 9 parts; choosing its first step warped to that use case's city with the step selected; Back returned and Forward was enabled; a bookmark and the history listed the places; Esc closed the list and the diagram. From the root's tower, the Worker's part in the component diagram warped to the worker tower; with reduced motion the address changed at once (28 ms).",
+      "acceptanceCriteria": [
+        "A kind's button draws the view over the blurred scene; Esc, the close button or the button again takes it away.",
+        "A part leads to itself in its view's city, or to its folder's tower; Back returns.",
+        "Reduced motion: the address changes at once."
+      ],
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      }
+    },
+    {
+      "id": "step-touches",
+      "title": "Let a use case step name the parts it touches",
+      "type": "improvement",
+      "status": "proposed",
+      "priority": "low",
+      "summary": "Propose a field in describe-use-case (and describe-user-journey) upstream, such as touches: [{ path, kind, id }], so Cyberspace can light exactly what a step affects instead of inferring it (decision inferred-reach).",
+      "details": "The skills come from human-assisted-software-development; the change is made there and copied here (AGENTS.md).",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      }
     }
   ]
 }

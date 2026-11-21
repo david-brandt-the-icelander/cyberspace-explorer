@@ -12,11 +12,11 @@
       "boundaries": [
         "It reads .dev files (or the one .cyberspace-explorer tree that can stand in for them); it never writes to a repository.",
         "The page is one HTML file with no build step, and does its reading and drawing in the reader's browser. It also works served as a plain file, without sign-in.",
-        "The Worker in worker/ serves the page and, when set up, signs readers in with GitHub and reads GitHub for them; it holds no state of its own.",
+        "The Worker in worker/ serves the page and, when set up, signs readers in with GitHub and reads GitHub for them; it holds no state of its own. The crawler in crawler/ is a second Worker, with state: the address list and what it collected (crawler/.dev/folder.json).",
         "What it reads is defined by the skills in Meta/Agents/Skills and the catalogue in Meta/Agents/Knowledge; when they change, the page follows them.",
         "The copy people use is deployed to cyberspace-explorer.com from main; this repository is its source."
       ],
-      "details": "The root holds `index.html`, the whole page; `wrangler.jsonc`, which deploys the Worker in `worker/` with the page inside it; `package.json`, whose only script runs the tests in `test/`; `vscode/`, the VS Code extension that shows the page in the editor; and `README.md`, which says how to use it and how it works. Its `.dev/` folder describes the browser itself, as fully as a designer needs to make a pass at it: start with the [design pass](.dev/backlog.json) item, which says what to read in what order.",
+      "details": "The root holds `index.html`, the whole page; `wrangler.jsonc`, which deploys the Worker in `worker/` with the page inside it; `package.json`, whose only script runs the tests in `test/`; `vscode/`, the VS Code extension that shows the page in the editor; `crawler/`, the second Worker, which explores websites and repositories for the explorer (`docs/cyberspace-protocol.md` is what cooperating sites publish); and `README.md`, which says how to use it and how it works. Its `.dev/` folder describes the browser itself, as fully as a designer needs to make a pass at it: start with the [design pass](.dev/backlog.json) item, which says what to read in what order.",
       "relationships": [
         {
           "relation": "depends-on",
@@ -37,6 +37,11 @@
           "relation": "contains",
           "path": "vscode/.dev/folder.json",
           "description": "The VS Code extension that shows the page in the editor."
+        },
+        {
+          "relation": "contains",
+          "path": "crawler/.dev/folder.json",
+          "description": "The crawler that collects what the explorer shows of addresses without views."
         }
       ],
       "evidenceStatus": "source-verified",

@@ -409,6 +409,81 @@
   #space-labels, #space-hud { position: absolute; inset: 0; pointer-events: none; }
   #space-labels { z-index: 1; overflow: hidden; }
   #space-hud { z-index: 2; }
+  /* The dock at the left edge, and the panels that stood there one dock's width to the right of it. */
+  #space-dock { left: 20px; top: 44px; padding: 6px; display: flex; flex-direction: column; gap: 2px; max-height: calc(100% - 136px); overflow-y: auto; }
+  #space-dock button { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border: 0; border-radius: 6px; background: none; color: var(--ink2); cursor: pointer; }
+  #space-dock button:hover:not(:disabled) { color: var(--ink); background: color-mix(in srgb, var(--ink) 7%, transparent); }
+  #space-dock button:disabled { opacity: .35; cursor: default; }
+  #space-dock button[aria-pressed="true"], #space-dock button[aria-expanded="true"] { background: var(--rule); color: var(--hot); }
+  #space-dock .kinds { display: contents; }
+  #space-dock .kinds button { color: var(--k); }
+  #space-dock .ic { width: 20px; height: 20px; }
+  #space-dock .div { flex: none; height: 1px; margin: 5px 6px; background: var(--rule); }
+  body.space.docked #space-layers, body.space.docked #space-layers-btn, body.space.docked #space-crumbs, body.space.docked #space-controls, body.space.docked #space-keys { left: 84px; }
+  body.space.docked #space-legend { left: 404px; }
+  body.space.docked .sbr { left: 86px; }
+  body.space.docked .sbn { left: 92px; }
+  .space-pop { position: absolute; z-index: 4; left: 84px; top: 44px; width: 340px; max-height: min(480px, calc(100% - 64px)); overflow-y: auto; pointer-events: auto; padding: 14px; border: 1px solid var(--space-rule); border-radius: 10px; background: color-mix(in srgb, var(--space-panel) 96%, transparent); box-shadow: 0 12px 32px var(--space-shadow); color: var(--ink); }
+  .space-pop h3 { margin: 0 0 8px; font: 600 12px/1 var(--semi); letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+  .space-pop ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .space-pop li { display: flex; align-items: center; gap: 4px; }
+  .space-pop .go { flex: 1; min-width: 0; display: grid; gap: 2px; text-align: left; padding: 7px 8px; border: 0; border-radius: 6px; background: none; color: var(--ink); cursor: pointer; }
+  .space-pop .go:hover, .space-pop .go:focus-visible { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+  .space-pop .t { font: 500 14px/1.3 var(--semi); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .space-pop .w { font: 400 12px/1.2 var(--mono); color: var(--ink3); }
+  .space-pop .x { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border: 0; border-radius: 6px; background: none; color: var(--ink3); cursor: pointer; }
+  .space-pop .x:hover { color: var(--ink); }
+  .space-pop p { margin: 4px 0; color: var(--ink2); font-size: 14px; }
+  .space-pop .clear { margin-top: 10px; }
+  /* A diagram over the scene: the scene blurs and dims under it, and it is drawn in the Gibson's neon. */
+  #space-gl, #space-labels { transition: filter .35s ease, opacity .25s ease; }
+  #space.blurred #space-gl, #space.blurred #space-labels { filter: blur(10px) brightness(.45) saturate(1.25); }
+  /* While a diagram is over the scene, only the dock stays: the other panels keep their room (so the camera doesn't move) unseen. */
+  #space.blurred #space-hud > .hud:not(#space-dock), #space.warping #space-hud > .hud:not(#space-dock), body.diagramming #inspector, body.warping #inspector { visibility: hidden; }
+  #space.warping #space-gl { filter: blur(2.5px) brightness(1.2) saturate(1.5); }
+  #space.warping #space-labels { opacity: 0; }
+  #space-warp { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+  #space-flash { position: absolute; inset: 0; z-index: 1; pointer-events: none; background: var(--space-void); opacity: 0; transition: opacity .7s ease-out; }
+  #space-flash.on { opacity: 1; transition: opacity .12s ease-in; }
+  #space-diagram { position: absolute; z-index: 3; left: 84px; top: 44px; right: 20px; bottom: 20px; display: flex; flex-direction: column; pointer-events: auto; border: 1px solid color-mix(in srgb, var(--space-glass-high) 30%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--space-void) 30%, transparent); box-shadow: inset 0 0 60px color-mix(in srgb, var(--space-glass-glow) 12%, transparent); animation: dg-in .3s ease-out; }
+  #space-diagram header { display: flex; align-items: center; gap: 12px; padding: 12px 14px 4px 18px; font: 600 14px/1.2 var(--semi); color: var(--space-text); }
+  #space-diagram header .caps { letter-spacing: .1em; text-transform: uppercase; color: var(--space-glass-high); }
+  #space-diagram header .name { color: var(--space-text-bright); }
+  #space-diagram header .spacer { flex: 1; }
+  #space-diagram header .hint { font-weight: 500; color: var(--space-text-quiet); }
+  #space-diagram select { font: 500 14px/1.2 var(--semi); color: var(--space-text-bright); background: var(--space-pill); border: 1px solid var(--space-rule); border-radius: 6px; padding: 5px 8px; max-width: 40ch; }
+  #space-diagram .close { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--space-rule); border-radius: 8px; background: var(--space-pill); color: var(--space-text); cursor: pointer; }
+  #space-diagram .close .ic { width: 18px; height: 18px; }
+  #space-diagram .note { margin: 0; padding: 4px 18px 14px; font: 400 13px/1.4 var(--sans); color: var(--space-text-quiet); }
+  #space-diagram .note b { color: var(--space-trace-out); font-weight: 600; }
+  #space-diagram svg.neon { flex: 1; width: 100%; min-height: 0; overflow: visible; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--space-glass-glow) 70%, transparent)); }
+  #space-diagram .neon > rect:first-child, #space-diagram .neon .shadow { display: none; }
+  #space-diagram .neon .plate, #space-diagram .neon .box { fill: color-mix(in srgb, var(--space-void) 60%, transparent); stroke: var(--space-glass-high); stroke-width: 1.4; }
+  #space-diagram .neon .band { fill: color-mix(in srgb, var(--space-glass-high) 14%, transparent); stroke: none; }
+  #space-diagram .neon .tilebg { fill: none; stroke: color-mix(in srgb, var(--space-glass-high) 40%, transparent); }
+  #space-diagram .neon text { fill: var(--space-text-bright); }
+  #space-diagram .neon text.sub { fill: var(--space-text); }
+  #space-diagram .neon [data-key] { color: var(--space-glass-high); cursor: pointer; }
+  #space-diagram .neon .ext { color: var(--space-trace-out); }
+  #space-diagram .neon .ext .plate, #space-diagram .neon .ext .box { stroke: var(--space-trace-out); stroke-dasharray: 5 4; }
+  #space-diagram .neon .edge .line { fill: none; stroke: var(--space-trace); stroke-width: 1.6; }
+  #space-diagram .neon .edge .hit { fill: none; stroke: transparent; }
+  #space-diagram .neon .elabel rect { fill: var(--space-void); stroke: color-mix(in srgb, var(--space-trace) 55%, transparent); }
+  #space-diagram .neon .elabel text { fill: var(--space-text); }
+  #space-diagram .neon .drill circle { fill: var(--space-void); stroke: var(--space-glass-high); }
+  #space-diagram .neon [data-key]:hover > .plate, #space-diagram .neon [data-key]:focus-visible > .plate, #space-diagram .neon [data-key]:hover > .box, #space-diagram .neon [data-key]:focus-visible > .box { stroke: var(--space-hot); stroke-width: 2.4; }
+  #space-diagram .neon [data-key]:focus-visible { outline: none; }
+  #space-diagram.fading { pointer-events: none; animation: dg-out .9s ease-out forwards; }
+  @keyframes dg-in { from { opacity: 0; transform: scale(.985); } }
+  @keyframes dg-out {
+    0% { opacity: 1; filter: drop-shadow(0 0 2px var(--space-glass-glow)); }
+    25% { opacity: .9; filter: drop-shadow(0 0 16px var(--space-glass-glow)) brightness(1.5); }
+    100% { opacity: 0; filter: drop-shadow(0 0 32px var(--space-glass-glow)); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #space-gl, #space-labels, #space-flash, #space-flash.on { transition: none; }
+    #space-diagram, #space-diagram.fading { animation: none; }
+  }
   #status .hint { float: right; margin-left: 16px; color: var(--ink3); }
   /* Labels: a pill per part, each plate's name, and thin leaders from a part to a label pushed off it. */
   #space-labels > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -647,6 +722,9 @@
     <canvas id="space-gl" tabindex="0" role="application" aria-label="Cyberspace" aria-describedby="space-help"></canvas>
     <ul id="space-parts" class="sr" aria-label="Parts in this scene"></ul>
     <div id="space-labels" aria-hidden="true"></div>
+    <canvas id="space-warp" aria-hidden="true" hidden></canvas>
+    <div id="space-flash" aria-hidden="true"></div>
+    <div id="space-diagram" role="dialog" aria-label="Diagram over the scene" hidden></div>
     <div id="space-hud"></div>
     <p id="space-help" class="sr">The repository's .dev views in 3D, standing on a dark floor. Everything here can be read in the flat view too.</p>
     <p id="space-live" class="sr" aria-live="polite"></p>
@@ -722,6 +800,12 @@ const windowFrame = `<rect x="3" y="4" width="18" height="4.6" rx="2.2" ${F}/><r
 const ICONS = {
   // The browser's mark: a folder tree whose leaves are diagram plates.
   mark: `<rect x="2.5" y="2.5" width="9" height="6.5" rx="1.8" ${S}/><path d="M7 9v9.75h5.5M7 12.25h5.5"/><rect x="12.5" y="9" width="9" height="6.5" rx="1.8" ${F}/><rect x="12.5" y="9" width="9" height="6.5" rx="1.8"/><rect x="12.5" y="15.5" width="9" height="6.5" rx="1.8"/>`,
+  // Cyberspace's dock: back, forward, history, a bookmark and the bookmarks.
+  "nav-back": `<path d="M14.5 5.5 8 12l6.5 6.5"/><path d="M8.5 12H19"/>`,
+  "nav-forward": `<path d="M9.5 5.5 16 12l-6.5 6.5"/><path d="M15.5 12H5"/>`,
+  history: `<path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3"/><path d="M4 4.5v3.5h3.5"/><path d="M12 8v4.25l2.75 1.75"/>`,
+  bookmark: `<path d="M7 3.5h10a1 1 0 0 1 1 1V20.5l-6-4.25-6 4.25V4.5a1 1 0 0 1 1-1z"/>`,
+  bookmarks: `<path d="M9 3.5h9a1 1 0 0 1 1 1V18l-5-3.5L9 18z"/><path d="M5 7v13.5l5-3.5"/>`,
   // Diagram kinds
   "kind-component": `<rect x="9.5" y="3" width="11.5" height="11.5" rx="2.6" ${F}/><rect x="9.5" y="3" width="11.5" height="11.5" rx="2.6"/><rect x="3" y="9.5" width="11.5" height="11.5" rx="2.6"/>`,
   "kind-deployment": `<rect x="3.5" y="4" width="17" height="6.5" rx="1.8" ${F}/><rect x="3.5" y="4" width="17" height="6.5" rx="1.8"/><rect x="3.5" y="13.5" width="17" height="6.5" rx="1.8"/><circle cx="7" cy="7.25" r="1" ${S}/><circle cx="7" cy="16.75" r="1" ${S}/><path d="M11 7.25h6M11 16.75h6"/>`,
@@ -848,6 +932,7 @@ ${Object.entries(ICONS).map(([k, v]) => `<symbol id="i-${k}" viewBox="0 0 24 24"
 function parseAddress(raw) {
   if (raw === LOCAL_ADDRESS && workspace) return { host: local, rest: [] };
   let s = raw.trim().replace(/^git@([^:]+):/, "https://$1/");
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(s)) s = `https://${s}`;
   const url = new URL(s);
   if (!/^https?:$/.test(url.protocol)) throw new Error("Give an http or https address.");
   const parts = url.pathname.replace(/\.git$/, "").split("/").filter(Boolean).map(decodeURIComponent);
@@ -855,6 +940,11 @@ function parseAddress(raw) {
     if (parts.length < 2) throw new Error("A GitHub address needs an owner and a repository.");
     const [owner, repo, mode, ...rest] = parts;
     return { host: github, owner, repo, rest: mode === "tree" || mode === "blob" ? rest : [] };
+  }
+  // A bare website (no project path) is one the crawler explores, read through the server; without a server there is nothing to read it with.
+  if (parts.length < 2 && url.hostname !== "gitlab.com") {
+    if (!service) throw new Error("A website can only be explored on cyberspace-explorer.com, where the crawler reads it.");
+    return { host: crawled, url: url.origin, rest: [] };
   }
   // Anything else is tried as GitLab (gitlab.com or a self-hosted GitLab with CORS).
   const dash = parts.indexOf("-");
@@ -937,7 +1027,7 @@ async function detectService() {
 
 function showTokenButton() {
   const b = $("token"), using = repo && tokenScope(repo), any = heldTokens().length;
-  b.hidden = !repo || !any || viaService(repo) || repo.host === local;
+  b.hidden = !repo || !any || viaService(repo) || repo.host === local || repo.host === crawled;
   if (b.hidden) return;
   b.innerHTML = `${ic("key")}${using ? "Token added" : "Tokens"}`;
   b.title = using ? `The token for ${using.scope} is in use. Open to add, replace or forget tokens.` : "No token covers this repository. Open to add one or forget others.";
@@ -980,7 +1070,7 @@ $("token").addEventListener("click", () => ($("token-panel").hidden ? openTokenP
 document.addEventListener("click", (e) => { if (!$("token-panel").hidden && !e.composedPath().some((n) => n.id === "token-panel" || n.id === "token")) closeTokenPanel(); });
 
 /** The button to offer when a host refuses, or null when a token wouldn't help. */
-const tokenOffer = (st) => service && repo?.host === github && [401, 403, 404].includes(st)
+const tokenOffer = (st) => repo?.host === crawled ? null : service && repo?.host === github && [401, 403, 404].includes(st)
   ? (service.user ? { label: "Include private repositories", run: () => { location.href = signInUrl(true); } } : { label: "Sign in with GitHub", run: () => { location.href = signInUrl(); } })
   : ([401, 403, 404].includes(st) ? { label: tokenFor(repo) ? "Replace or add a token" : "Add a token", run: openTokenPanel } : null);
 
@@ -1067,6 +1157,35 @@ const gitlab = {
   label: (r) => r.project,
 };
 
+/** An address cyberspace-crawler explores, a website for now, read through the server's /api/space (crawler/README.md):
+ *  the crawler's views of it, the time of its last scan, and an approach that asks for a rescan when its data is stale. */
+const crawled = {
+  name: "the crawler",
+  tokenHost: () => "crawler",
+  authHeader: () => ({}),
+  tokenHelp: "",
+  async list(r) {
+    let d;
+    try { d = await getJson(new URL(`${service.base}/api/space?url=${encodeURIComponent(r.url)}`, location.origin).href); }
+    catch (e) { if (e.status === 404) e.message = `${new URL(r.url).host} is not one of the addresses this server explores.`; throw e; }
+    Object.assign(r, { id: d.id, space: d, path: "", ref: d.scannedAt ? `scanned ${d.scannedAt.slice(0, 10)}` : "not scanned yet" });
+    await approach(r);
+    return d.paths.map((p) => (/(^|\/)\.dev\//.test(p) || p.startsWith(".cyberspace-explorer/") ? p : `.cyberspace-explorer/${p}`));
+  },
+  read: (r, path) => [`${service.base}/api/space/${r.id}/files/${path.replace(/^\.cyberspace-explorer\//, "").split("/").map(encodeURIComponent).join("/")}`, {}],
+  blob: (r) => r.url,
+  home: (r) => r.url,
+  label: (r) => r.space?.label ?? new URL(r.url).host,
+};
+/** Tells the server a player is at an address, which rescans it if its data is older than allowed; says so in the status line. */
+async function approach(r) {
+  try {
+    const res = await fetch(`${service.base}/api/space/${r.id}/approach`, { method: "POST", headers: { Accept: "application/json" } });
+    const d = res.ok ? await res.json() : null;
+    if (d?.rescanning) r.rescanning = true;
+  } catch { /* the views already shown stay */ }
+}
+
 /** A repository a host page serves itself (the VS Code extension's workspace folder). It sets window.cyberspaceWorkspace
  *  before this script runs: { label, ref, paths (every file, relative to the folder), base (a URL each path is fetched
  *  under), blob(path) (a link that opens a file, or a folder for "."), home }. No token and no ?url= are needed. */
@@ -1129,8 +1248,9 @@ async function load(address) {
   status(`Listing ${repo.host.label(repo)} on ${repo.host.name}…`, "loading");
   const drawing = import(DAGRE).then((m) => (dagre = m)).catch(() => null);
   let paths;
-  try { paths = await repo.host.list(repo); } catch (e) { status(`Couldn't list the repository. ${e.message}`, "error", tokenOffer(e.status)); return; }
-  $("repo").insertAdjacentHTML("beforeend", `<span class="ref" title="Branch, tag or commit">${esc(repo.ref)}</span>`);
+  try { paths = await repo.host.list(repo); } catch (e) { status(`Couldn't list ${repo.host === crawled ? "the address" : "the repository"}. ${e.message}`, "error", tokenOffer(e.status)); return; }
+  if (repo.host === crawled) $("repo").querySelector("a").textContent = repo.host.label(repo);
+  $("repo").insertAdjacentHTML("beforeend", `<span class="ref" title="${repo.host === crawled ? "When the crawler last read it" : "Branch, tag or commit"}">${esc(repo.ref)}</span>`);
   const base = repo.path ? repo.path.replace(/\/$/, "") : "";
   // A .cyberspace-explorer folder at the root holds every view, so the repository's folders are not searched for .dev folders.
   const tree = paths.some(inTree);
@@ -1138,6 +1258,14 @@ async function load(address) {
   const wanted = tree
     ? paths.filter((p) => inTree(p) && /\.json$/.test(p) && under(placeOf(p).folder))
     : paths.filter((p) => /(^|\/)\.dev\/[^/]+\.json$/.test(p) && under(placeOf(p).folder));
+  if (!wanted.length && repo.host === crawled) {
+    const d = repo.space;
+    status(d.status === "failed" ? `The crawler couldn't read ${repo.host.label(repo)} last time it tried.`
+      : !d.scannedAt ? `The crawler hasn't scanned ${repo.host.label(repo)} yet. Its first scan is queued; reload in a few minutes.`
+      : d.needsAi ? `The crawler has read ${repo.host.label(repo)}, and its views are waiting to be made from what it read.`
+      : `The crawler found nothing to show for ${repo.host.label(repo)}.`, "error");
+    return;
+  }
   if (!wanted.length) { status(`${repo.host.label(repo)}${base ? "/" + base : ""} has no views or knowledge files in ${tree ? TREE + "/" : ".dev/*.json"} at ${repo.ref}. The skills describe how to add them.`, "error"); return; }
   status(`Reading ${wanted.length} view and knowledge files…`, "loading");
   const problems = [];
@@ -1161,6 +1289,7 @@ async function load(address) {
   await Promise.race([Promise.all([F_NAME, F_HEAD, F_LABEL].map((f) => document.fonts.load(f))), new Promise((r) => setTimeout(r, 1500))]).catch(() => {});
   const notes = [];
   if (repo.truncated) notes.push("The repository is too large to list in full, so some diagrams may be missing.");
+  if (repo.rescanning) notes.push(`What is shown is from ${repo.space.scannedAt?.slice(0, 10) ?? "an earlier scan"}; the crawler is reading it again.`);
   if (problems.length) notes.push(`Skipped ${problems.join(", ")}.`);
   if (!dagre) notes.push("The drawing library couldn't load, so each diagram is shown as tables.");
   status(notes.join(" "));
@@ -3401,6 +3530,39 @@ function streetWhere(world, x, z) {
   for (const q of [...world.towers, ...world.beacons]) { const d = Math.hypot(q.x - x, q.z - z); if (d < best) { best = d; near = q; } }
   // Among cities standing side by side each part knows its plate's name (districtWorld).
   return { over: over?.name ?? null, near: near ? ((near.plateName !== undefined ? near.plateName : cityPlateOf(world, near.key)?.name) ?? near.name) : null };
+}
+
+/** A place's name in history and bookmarks: the repository, the folder, what the address names and the scene. */
+function placeTitle(hash, where = "") {
+  const p = parseSpaceHash(hash);
+  const [kind, ...rest] = (p.focus ?? "").split(":"), name = rest.join(":");
+  const what = kind === "view" ? name.replace(/\.json$/, "").replace(/\.json#/, " #") : name.includes(":") ? name.split(":").pop() : name;
+  return [where, p.folder || "/", what, p.mode === "space" ? p.scene : "flat"].filter(Boolean).join(" · ");
+}
+/** History with a new visit first: the same place twice running is one visit, and at most `cap` are kept. */
+function pushVisit(list, visit, cap = 200) {
+  const rest = list.filter((v, i) => !(i === 0 && v.url === visit.url && v.hash === visit.hash));
+  return [visit, ...rest].slice(0, cap);
+}
+/** Bookmarks with the place added, or removed if it was there; the newest first. */
+function toggleBookmark(list, place) {
+  const at = list.findIndex((b) => b.url === place.url && b.hash === place.hash);
+  return at >= 0 ? list.filter((_, i) => i !== at) : [place, ...list];
+}
+/** The parts of a city a use case or journey seems to touch: no field links a step to a part (describe-use-case), so this is
+ *  inferred from what each step cites and says. A part counts when a step's source lies in the part's folder (not the root),
+ *  when a step's source symbol or its words name the part, or when they name its id. `steps`: [{ text, paths, symbols }];
+ *  `parts`: [{ key, name, folder }]. Returns part keys, each once, in the parts' order. */
+function affectedBy(steps, parts) {
+  const norm = (t) => String(t ?? "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  const words = steps.map((s) => ` ${norm([s.text, ...(s.symbols ?? [])].join(" "))} `);
+  const paths = steps.flatMap((s) => s.paths ?? []);
+  return parts.filter((p) => {
+    const folder = String(p.folder ?? "").replace(/\/$/, "");
+    if (folder && folder !== "." && paths.some((x) => x === folder || x.startsWith(folder + "/"))) return true;
+    const names = [norm(p.name), norm(p.key)].filter((n) => n.length >= 3);
+    return names.some((n) => words.some((w) => w.includes(` ${n} `)));
+  }).map((p) => p.key);
 }
 /* space-world:end */
 
@@ -6025,7 +6187,9 @@ function spaceTurn() {
 const TOWER_EYE = [-14, 24, -44], TOWER_AT = [8, 11, 2], TOWER_FOV = 49.3;
 /** The projection's centre in the tower: (700, 440) of the 1440 × 900 window the design draws, scaled to this one. The canvas
  *  is the window's part under the bar (`top` px), so the centre is that much higher on it. */
-const towerAnchor = ({ W, H, top }) => [W / 2 - (20 * W) / 1440, (H + top) / 2 - (10 * (H + top)) / 900 - top];
+/** Where the tower's projection centre stands: a little left of the window's middle, and one dock's width (64 px) to the right of
+ *  that while the dock is at the left edge, so the floors' names on the tower's left stay clear of it. */
+const towerAnchor = ({ W, H, top }) => [W / 2 - (20 * W) / 1440 + (document.body.classList.contains("docked") ? 64 : 0), (H + top) / 2 - (10 * (H + top)) / 900 - top];
 
 /** A folder's tower, built once: towerWorldFrom over its files, each drawn floor with its view (cityView's: a file's first use
  *  case or journey) and, where its city can't be built, why. */
@@ -7335,6 +7499,7 @@ function showSpace(folder, focus, scene) {
   // A floor slid back stays in until the reader goes somewhere.
   if (location.hash !== space.at) space.shut = false;
   space.at = location.hash;
+  if (diagram && diagram.folder !== space.folder) closeDiagram(true);
   if (!space.on) {
     space.on = true;
     closeInspector();
@@ -7345,6 +7510,8 @@ function showSpace(folder, focus, scene) {
     $("space").hidden = false;
     modeSwitch();
   }
+  dockShow();
+  rig?.reroom?.();
   if (!three) spaceSay(SPACE_SAYS.loading, "loading");
   loadThree().then((T) => {
     if (!space.on) return;
@@ -7360,6 +7527,7 @@ function showSpace(folder, focus, scene) {
 function leaveSpace(asked) {
   const was = space.on;
   if (was) {
+    dockHide();
     space.on = false;
     // Flat follows its theme again: the reader's choice, the system's setting or the host's.
     document.documentElement.classList.remove("space");
@@ -7414,6 +7582,8 @@ $("modes").addEventListener("click", (e) => {
 // (a new history entry). The skyline is the top: there it does nothing.
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape" || !space.on) return;
+  if ($("space-pop") && !$("space-pop").hidden) { e.preventDefault(); showPop(null); return; }
+  if (diagram) { e.preventDefault(); closeDiagram(); return; }
   if ($("space-layers-btn")?.offsetWidth && $("space-layers").classList.contains("open")) { e.preventDefault(); layersPop(false); }
   else if (space.selected != null || !$("inspector").hidden) { e.preventDefault(); closeInspector(); }
   else if (space.scene === "street" && standing && stage?.city) { e.preventDefault(); location.hash = cityHash(space.folder, viewOf(standing.v), null, "city"); }
@@ -7455,6 +7625,294 @@ systemDark.addEventListener("change", () => applyTheme());
 // Another tab's choice, or this one's own after a reload elsewhere.
 addEventListener("storage", (e) => { if (e.key === THEME_KEY) applyTheme(); });
 applyTheme();
+
+// ── Moving about Cyberspace: the dock, diagrams over the scene, the warp, history and bookmarks ──
+// The dock at the left edge holds Back and Forward, History, a bookmark for the place shown and the bookmarks, and a button per
+// kind of drawn view in the folder. A kind's button blurs the scene and draws the view over it in neon. A part of the drawing is
+// a way there: the camera turns toward it under the blur, the drawing goes out with an afterglow, the blur becomes a warp while
+// the camera plunges, and the new place stands behind a moment of darkness that clears onto it; the HUD stays lit throughout.
+// Every move is still a new address (decision address-is-state), so Back and Forward are the browser's own.
+
+const HISTORY_KEY = "cyberspace-explorer.history", BOOKMARKS_KEY = "cyberspace-explorer.bookmarks", NAV_MAX = "cyberspace-explorer.nav-max";
+const DOCK_KINDS = ["component", "deployment", "class", "state", "use-case", "user-journey"];
+const listOf = (k) => { try { const v = JSON.parse(localStorage.getItem(k) ?? "[]"); return Array.isArray(v) ? v : []; } catch { return []; } };
+const keepList = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* not kept: the list lasts as long as the page */ } };
+const pageAddress = () => (workspace ? LOCAL_ADDRESS : new URLSearchParams(location.search).get("url") ?? "");
+const placeNow = () => ({ url: pageAddress(), hash: location.hash, title: placeTitle(location.hash, repo ? repo.host.label(repo) : ""), at: new Date().toISOString() });
+const shortWhen = (t) => { try { return new Date(t).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" }); } catch { return ""; } };
+
+// Back and Forward: each history entry carries its place in the session (history.state.nav), so the dock knows whether there is
+// anywhere to go back or forward to. A new entry is one whose state has no place yet.
+let navAt = 0;
+if (history.state?.nav == null) history.replaceState({ ...(history.state ?? {}), nav: 0 }, "");
+navAt = history.state.nav;
+const navMax = () => { try { return Number(sessionStorage.getItem(NAV_MAX) ?? navAt); } catch { return navAt; } };
+addEventListener("hashchange", () => {
+  if (history.state?.nav == null) {
+    navAt += 1;
+    history.replaceState({ ...(history.state ?? {}), nav: navAt }, "");
+    try { sessionStorage.setItem(NAV_MAX, String(navAt)); } catch { /* Forward stays enabled */ }
+  } else navAt = history.state.nav;
+  if (parseSpaceHash(location.hash).mode === "space" && pageAddress()) keepList(HISTORY_KEY, pushVisit(listOf(HISTORY_KEY), placeNow()));
+  dockState();
+});
+
+/** Shows the dock for the folder Cyberspace stands in: its kinds, and Back, Forward and the bookmark as they now are. */
+function dockShow() {
+  let dock = $("space-dock");
+  if (!dock) {
+    $("space-hud").insertAdjacentHTML("beforeend", `<nav class="hud" id="space-dock" aria-label="Move about">`
+      + `<button type="button" data-dock="back" aria-label="Back" title="Back">${ic("nav-back")}</button>`
+      + `<button type="button" data-dock="forward" aria-label="Forward" title="Forward">${ic("nav-forward")}</button>`
+      + `<button type="button" data-dock="history" aria-label="History" title="History" aria-expanded="false" aria-controls="space-pop">${ic("history")}</button>`
+      + `<button type="button" data-dock="bookmark" aria-label="Bookmark this place" title="Bookmark this place" aria-pressed="false">${ic("bookmark")}</button>`
+      + `<button type="button" data-dock="bookmarks" aria-label="Bookmarks" title="Bookmarks" aria-expanded="false" aria-controls="space-pop">${ic("bookmarks")}</button>`
+      + `<span class="div"></span><div class="kinds" role="group" aria-label="Diagrams"></div></nav>`
+      + `<div id="space-pop" class="space-pop" role="dialog" hidden></div>`);
+    dock = $("space-dock");
+    dock.addEventListener("click", dockClick);
+    $("space-pop").addEventListener("click", popClick);
+  }
+  dock.hidden = false;
+  document.body.classList.add("docked");
+  const docs = byFolder.get(space.folder) ?? [];
+  dock.querySelector(".kinds").innerHTML = DOCK_KINDS.filter((k) => docs.some((d) => d.kind === k)).map((k) =>
+    `<button type="button" class="kind-${k}" data-kind="${k}" aria-label="${esc(KIND_NAME[k])}" title="${esc(KIND_NAME[k])} over the scene" aria-pressed="${diagram?.kind === k}">${ic("kind-" + k)}</button>`).join("");
+  dockState();
+}
+/** Takes the dock away, with what it opened. */
+function dockHide() {
+  closeDiagram(true);
+  showPop(null);
+  if ($("space-dock")) $("space-dock").hidden = true;
+  document.body.classList.remove("docked");
+}
+/** Back and Forward enabled as the session allows, and the bookmark pressed when this place is bookmarked. */
+function dockState() {
+  const dock = $("space-dock");
+  if (!dock) return;
+  dock.querySelector('[data-dock="back"]').disabled = navAt <= 0;
+  dock.querySelector('[data-dock="forward"]').disabled = navAt >= navMax();
+  const here = placeNow(), marked = listOf(BOOKMARKS_KEY).some((b) => b.url === here.url && b.hash === here.hash);
+  const b = dock.querySelector('[data-dock="bookmark"]');
+  b.setAttribute("aria-pressed", String(marked));
+  b.title = marked ? "Remove the bookmark for this place" : "Bookmark this place";
+}
+function dockClick(e) {
+  const b = e.target.closest("button");
+  if (!b || b.disabled) return;
+  const act = b.dataset.dock, kind = b.dataset.kind;
+  if (act === "back") history.back();
+  else if (act === "forward") history.forward();
+  else if (act === "history" || act === "bookmarks") showPop(act);
+  else if (act === "bookmark") {
+    keepList(BOOKMARKS_KEY, toggleBookmark(listOf(BOOKMARKS_KEY), placeNow()));
+    dockState();
+    if ($("space-pop").dataset.which === "bookmarks" && !$("space-pop").hidden) showPop("bookmarks", true);
+  } else if (kind) diagram?.kind === kind ? closeDiagram() : openDiagram(kind);
+}
+
+/** Opens History or Bookmarks beside the dock, or closes it (null, or the open one asked for again unless `again`). */
+function showPop(which, again = false) {
+  const pop = $("space-pop");
+  if (!pop) return;
+  const shut = !which || (!again && pop.dataset.which === which && !pop.hidden);
+  for (const b of document.querySelectorAll("#space-dock [aria-expanded]")) b.setAttribute("aria-expanded", String(!shut && b.dataset.dock === which));
+  if (shut) { pop.hidden = true; pop.dataset.which = ""; return; }
+  const list = listOf(which === "history" ? HISTORY_KEY : BOOKMARKS_KEY);
+  pop.dataset.which = which;
+  pop.setAttribute("aria-label", which === "history" ? "History" : "Bookmarks");
+  pop.innerHTML = `<h3>${which === "history" ? "History" : "Bookmarks"}</h3>`
+    + (list.length ? `<ol>${list.map((v, i) => `<li><button type="button" class="go" data-i="${i}"><span class="t">${esc(v.title || v.hash)}</span><span class="w">${esc(shortWhen(v.at))}</span></button>`
+      + (which === "bookmarks" ? `<button type="button" class="x" data-x="${i}" aria-label="Remove the bookmark ${esc(v.title)}">${ic("close")}</button>` : "") + `</li>`).join("")}</ol>`
+      : `<p>${which === "history" ? "The places you go in Cyberspace are listed here, newest first." : "Bookmark a place with the bookmark button, and it is listed here."}</p>`)
+    + (which === "history" && list.length ? `<button type="button" class="quiet clear">Clear history</button>` : "");
+  pop.hidden = false;
+}
+function popClick(e) {
+  const pop = $("space-pop"), which = pop.dataset.which, key = which === "history" ? HISTORY_KEY : BOOKMARKS_KEY, list = listOf(key);
+  const go = e.target.closest(".go"), x = e.target.closest(".x");
+  if (go) {
+    const v = list[Number(go.dataset.i)];
+    showPop(null);
+    if (!v) return;
+    if (v.url === pageAddress()) { if (v.hash !== location.hash) location.hash = v.hash; }
+    else location.href = `${location.pathname}?url=${encodeURIComponent(v.url)}${v.hash}`;
+  } else if (x) {
+    list.splice(Number(x.dataset.x), 1);
+    keepList(key, list);
+    showPop(which, true);
+    dockState();
+  } else if (e.target.closest(".clear")) {
+    keepList(HISTORY_KEY, []);
+    showPop("history", true);
+  }
+}
+
+/** The diagram drawn over the scene: { kind, v, folder, nodes (key → model node), parts (the city's, for lighting) }. */
+let diagram = null;
+/** The drawn views of one kind in the standing folder, one per use case or journey. */
+function kindViews(kind) {
+  return (byFolder.get(space.folder) ?? []).filter((d) => d.kind === kind).flatMap((d) => PER_ENTITY.has(d.kind)
+    ? (d.entities ?? []).map((e) => ({ key: `${d._path}#${e.id}`, d, e, doc: { ...d, entities: [e] } }))
+    : [{ key: d._path, d, e: null, doc: d }]);
+}
+/** The city standing behind the diagram, as parts with names and folders, for lighting what a use case touches. */
+function cityParts() {
+  const w = standing?.made.world;
+  if (!w || !stage?.city || space.scene === "tower" || space.scene === "skyline") return null;
+  const listed = [...(standing.v.d.components ?? []), ...(standing.v.d.nodes ?? []), ...(standing.v.d.types ?? [])];
+  return [...w.parts.keys()].map((key) => { const c = listed.find((x) => x.id === key); return { key, name: c?.name ?? w.parts.get(key)?.label ?? key, folder: c?.folder ?? null }; });
+}
+/** A use case's or journey's steps as affectedBy reads them. */
+const stepsOf = (e) => [...(e?.flow ?? []), ...(e?.stages ?? []), ...(e?.alternatives ?? [])].map((s) => ({
+  key: s.id, text: [s.action, s.actor, s.condition, s.outcome, s.name, s.touchpoint, s.goal].filter(Boolean).join(" "),
+  paths: (s.sources ?? []).map((x) => x.path), symbols: (s.sources ?? []).map((x) => x.symbol),
+}));
+/** Lights parts of the city behind the diagram, or puts back the selection's own lights (null). */
+function lightCity(keys) {
+  if (!stage?.city || !standing) return;
+  if (keys) { stage.city.mark({ sel: null, near: keys, lit: [] }); return; }
+  const sel = space.selected, hood = sel != null ? cityNeighbours(standing.made.world, sel) : null;
+  stage.city.mark({ sel: sel ?? null, near: hood?.near ?? [], lit: hood?.beams ?? [] });
+}
+
+/** Draws a kind's view over the blurred scene: the one standing if it is of that kind, else `key`'s, else the first. */
+function openDiagram(kind, key = null) {
+  const views = kindViews(kind);
+  if (!views.length) return;
+  if (!dagre) { spaceSay("The drawing library couldn't load, so diagrams can't be drawn over the scene."); return; }
+  showPop(null);
+  const v = views.find((x) => x.key === key) || (standing?.v.d.kind === kind && views.find((x) => x.key === standing.key)) || views[0];
+  const box = $("space-diagram");
+  box.classList.remove("fading");
+  box.hidden = false;
+  $("space").classList.add("blurred");
+  document.body.classList.add("diagramming");
+  const r = box.getBoundingClientRect();
+  let L;
+  try { ({ L } = sheetOf(v.doc, space.folder, Math.max(360, r.width - 40), Math.max(240, r.height - 90))); }
+  catch (e) { box.innerHTML = `<p class="note">This view couldn't be drawn (${esc(e.message ?? e)}).</p>`; return; }
+  const parts = PER_ENTITY.has(kind) ? cityParts() : null;
+  const touched = parts ? affectedBy(stepsOf(v.e), parts) : [];
+  diagram = { kind, v, folder: space.folder, nodes: new Map(L.nodes.map((n) => [n.key, n])), parts, steps: v.e ? new Map(stepsOf(v.e).map((s) => [`${v.e.id}:${s.key}`, s])) : new Map() };
+  const name = (x) => x.e ? x.e.name ?? x.e.title ?? x.e.id : x.d.title ?? x.d._path;
+  box.innerHTML = `<header><span class="caps">${esc(KIND_NAME[kind])}</span>`
+    + (views.length > 1 ? `<select aria-label="Which ${esc(KIND_NAME[kind].toLowerCase())}">${views.map((x) => `<option value="${esc(x.key)}"${x === v ? " selected" : ""}>${esc(name(x))}</option>`).join("")}</select>` : `<span class="name">${esc(name(v))}</span>`)
+    + `<span class="spacer"></span><span class="hint">Choose a part to go to it</span><button type="button" class="close" aria-label="Close the diagram" title="Close (Esc)">${ic("close")}</button></header>`
+    + `<svg class="dg neon kind-${kind}" viewBox="-12 -12 ${L.w + 24} ${L.h + 24}" preserveAspectRatio="xMidYMid meet" role="group" aria-label="${esc(KIND_NAME[kind])}: ${esc(name(v))}">${drawSvg(L)}</svg>`
+    + (parts ? `<p class="note">${touched.length ? `<b>${plural(touched.length, "part")}</b> lit in the city behind: what this ${esc(KIND_NAME[kind].toLowerCase())}'s steps seem to touch, inferred from the sources they cite and their words.` : `No part of the city behind is named by its steps' sources or words.`}</p>` : "");
+  lightCity(parts ? touched : null);
+  dockShow();
+  box.querySelector("svg [data-key]")?.focus({ preventScroll: true });
+}
+/** Takes the diagram away, with an afterglow unless `now` or reduced motion; the scene comes out of the blur. */
+function closeDiagram(now = false) {
+  const box = $("space-diagram");
+  if (!diagram || !box) return;
+  diagram = null;
+  $("space").classList.remove("blurred");
+  document.body.classList.remove("diagramming");
+  lightCity(null);
+  if (now || reducedMotion.matches) { box.hidden = true; box.innerHTML = ""; }
+  else {
+    box.classList.add("fading");
+    setTimeout(() => { if (!diagram) { box.hidden = true; box.innerHTML = ""; box.classList.remove("fading"); } }, 900);
+  }
+  if (space.on) dockShow();
+}
+$("space-diagram").addEventListener("click", (e) => {
+  if (e.target.closest(".close")) { closeDiagram(); return; }
+  const g = e.target.closest("svg [data-key]");
+  if (g && diagram) diagramGo(g.dataset.key);
+});
+$("space-diagram").addEventListener("keydown", (e) => {
+  const g = e.target.closest?.("svg [data-key]");
+  if (g && diagram && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); diagramGo(g.dataset.key); }
+});
+$("space-diagram").addEventListener("change", (e) => { if (diagram && e.target.matches("select")) openDiagram(diagram.kind, e.target.value); });
+// Hovering a step lights only what that step seems to touch.
+$("space-diagram").addEventListener("pointerover", (e) => {
+  if (!diagram?.parts) return;
+  const step = diagram.steps.get(e.target.closest("svg [data-key]")?.dataset.key);
+  lightCity(affectedBy(step ? [step] : stepsOf(diagram.v.e), diagram.parts));
+});
+
+/** Where a part of the diagram leads: a part that opens a folder goes to its tower; any other part, to itself in the view's city. */
+function diagramGo(key) {
+  const { v, nodes } = diagram, n = nodes.get(key);
+  if (n?.nav) { warpTo(spaceHash({ folder: parseSpaceHash(n.nav).folder }), null); return; }
+  const inCity = standing?.key === v.key && stage?.city && (space.scene === "city" || space.scene === "street");
+  warpTo(cityHash(space.folder, viewOf(v), key, space.scene === "street" && inCity ? "street" : "city"), inCity ? key : null);
+}
+
+/** Goes to an address the long way: turn, afterglow, warp, a moment of darkness, arrival. `key`: a part of the standing city to
+ *  face first. With reduced motion, or before the stage is up, it is just the address. */
+let warping = false;
+function warpTo(hash, key) {
+  if (warping) return;
+  if (reducedMotion.matches || !rig || !stage) { closeDiagram(true); location.hash = hash; return; }
+  warping = true;
+  const SWIRL = 700, WARP = 650, DARK = 180;
+  // 1. Under the blur and the drawing, the camera comes round to face where it is going.
+  if (key != null) spaceLook(key);
+  else if (rig.mode !== "walk") { const p = rig.pose(); rig.flyTo({ azimuth: p.azimuth + 150 }, SWIRL, { lift: 0 }); }
+  setTimeout(() => {
+    // 2. The drawing goes out, leaving its afterglow; the blur turns into the warp as the camera plunges.
+    $("space").classList.add("warping");
+    document.body.classList.add("warping");
+    closeDiagram();
+    warpStreaks(WARP + DARK + 240);
+    if (rig.mode !== "walk") { const p = rig.pose(); rig.flyTo({ distance: Math.max(6, p.distance * 0.3), elevation: Math.max(12, p.elevation - 10) }, WARP, { lift: 0 }); }
+    setTimeout(() => {
+      // 3. A moment of darkness behind the HUD, the new place stands in it, and it clears onto the cityscape.
+      const flash = $("space-flash");
+      flash.classList.add("on");
+      setTimeout(() => {
+        rig.flight = null;
+        location.hash = hash;
+        $("space").classList.remove("warping");
+        document.body.classList.remove("warping");
+        requestAnimationFrame(() => requestAnimationFrame(() => { flash.classList.remove("on"); warping = false; }));
+      }, DARK);
+    }, WARP);
+  }, SWIRL);
+}
+/** Streaks of light rushing out from the middle of the scene for `ms`, faster, then gone. */
+function warpStreaks(ms) {
+  const c = $("space-warp"), r = c.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+  if (!r.width) return;
+  c.width = Math.round(r.width * dpr); c.height = Math.round(r.height * dpr);
+  const g = c.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const css = getComputedStyle(document.documentElement), hues = ["--space-glass-high", "--space-glass-high", "--space-trace", "--space-text-bright"].map((t) => css.getPropertyValue(t).trim() || "#7eefff");
+  const cx = r.width / 2, cy = r.height / 2, far = Math.hypot(cx, cy);
+  const stars = Array.from({ length: 260 }, () => ({ a: Math.random() * Math.PI * 2, d: 6 + Math.random() * far * 0.8, s: 0.5 + Math.random() * 1.7, hue: hues[(Math.random() * hues.length) | 0] }));
+  c.hidden = false;
+  const t0 = performance.now();
+  const step = (now) => {
+    const t = (now - t0) / ms;
+    g.clearRect(0, 0, r.width, r.height);
+    if (t >= 1) { c.hidden = true; return; }
+    const speed = 1 + 9 * Math.sin(Math.PI * Math.min(1, t * 1.05)), fade = t < 0.8 ? Math.min(1, t * 6) : (1 - t) / 0.2;
+    g.globalCompositeOperation = "lighter";
+    for (const st of stars) {
+      st.d += st.s * speed * (1 + st.d / 70);
+      if (st.d > far) st.d = 6 + Math.random() * 30;
+      const len = Math.min(st.d * 0.45, 4 + speed * st.s * 9), cos = Math.cos(st.a), sin = Math.sin(st.a);
+      g.globalAlpha = Math.min(1, (st.d / far) * 1.8) * fade;
+      g.strokeStyle = st.hue;
+      g.lineWidth = 0.5 + (st.d / far) * 1.8;
+      g.beginPath();
+      g.moveTo(cx + cos * (st.d - len), cy + sin * (st.d - len));
+      g.lineTo(cx + cos * st.d, cy + sin * st.d);
+      g.stroke();
+    }
+    g.globalAlpha = 1;
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
 
 // ── Start: the address comes from ?url=; the form is only for choosing one ──
 

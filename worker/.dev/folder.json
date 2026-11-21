@@ -7,13 +7,14 @@
     {
       "id": "folder",
       "title": "The Worker",
-      "summary": "The Cloudflare Worker at cyberspace-explorer.com: it serves the page, signs readers in with GitHub and reads GitHub for them.",
+      "summary": "The Cloudflare Worker at cyberspace-explorer.com: it serves the page, signs readers in with GitHub and reads GitHub for them, serves what the crawler collected, and runs /admin, where the crawler's list is edited.",
       "purpose": "Lets a reader read private GitHub repositories in the page without the page ever holding their GitHub access: the token stays in a sealed, HttpOnly cookie and only this code adds it to GitHub calls.",
       "boundaries": [
         "The page itself is ../index.html, imported as text by index.js; this folder only serves it.",
-        "It reads GitHub and nothing else, and only the paths the page needs. GitLab, and readers who paste a token, never go through it.",
+        "With a reader's token it reads GitHub and nothing else, and only the paths the page needs; GitLab, and readers who paste a token, never go through it.",
+        "With its own bindings it shares the crawler's database, bucket and queue (space.js): it serves the crawler's views at /api/space, asks for rescans when a player approaches stale data, and lets readers signed in to icelander.net with its role explorer:admin change the address list and settings at /admin. It never scans anything itself.",
         "Without its three secrets /auth/me says sign-in isn't set up and starting a sign-in answers 503; the page then falls back to pasted tokens.",
-        "No dependencies: app.js runs in Workers and in Node, which is how test/app.test.js runs it."
+        "No dependencies: app.js and space.js run in Workers and in Node, which is how test/app.test.js and test/space-api.test.js run them. space.js imports the crawler's data layer (crawler/src/store.js, address.js), which has none either."
       ],
       "relationships": [
         {

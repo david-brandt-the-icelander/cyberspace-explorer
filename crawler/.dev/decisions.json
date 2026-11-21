@@ -1,0 +1,404 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/decisions.schema.json",
+  "kind": "decisions",
+  "title": "How the crawler reads",
+  "folder": "crawler",
+  "entities": [
+    {
+      "id": "own-worker",
+      "title": "A second Worker in this repository",
+      "summary": "The crawler is its own Worker, in crawler/, deployed beside the explorer's.",
+      "status": "accepted",
+      "context": "The owner split the visualization into two components, the crawler and the explorer. The explorer's Worker has no dependencies by decision (worker no-dependencies); the crawler's AI step needs Anthropic's SDK.",
+      "options": [
+        {
+          "title": "A second Worker in this repository",
+          "consequences": "Shares the database, bucket, tests and pipeline with the explorer; may have dependencies of its own."
+        },
+        {
+          "title": "A repository of its own",
+          "consequences": "Versioned and deployed apart; the shared data layer would be copied or published."
+        }
+      ],
+      "decision": "A second Worker in this repository, chosen by the owner on 2026-11-19.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/wrangler.jsonc",
+          "symbol": "name"
+        }
+      ]
+    },
+    {
+      "id": "cloudflare-queues",
+      "title": "Scans go through a queue, on Workers Paid",
+      "summary": "A cron trigger only queues work; every scan is a queue message.",
+      "status": "accepted",
+      "context": "A big site needs more requests than one invocation should make, and a player approaching a stale address should not wait for the next cron run.",
+      "options": [
+        {
+          "title": "Workers Paid with Queues",
+          "consequences": "$5 a month; a scan is one message, a long one continues as another, and rescans start within seconds."
+        },
+        {
+          "title": "The free plan only",
+          "consequences": "Small batches every few minutes; rescans wait for the next batch."
+        }
+      ],
+      "decision": "Workers Paid with Queues, chosen by the owner on 2026-11-19.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/index.js",
+          "symbol": "queue"
+        },
+        {
+          "path": "crawler/src/store.js",
+          "symbol": "requestScan"
+        }
+      ]
+    },
+    {
+      "id": "git-history",
+      "title": "Repositories are reread by their history",
+      "summary": "A scan reads the head commit; only when it moved does it ask what changed and reread those views.",
+      "status": "accepted",
+      "context": "The owner asked that repositories use git history to decide what to update. GitHub doesn't count a conditional request answered 304 against its rate limit.",
+      "options": [
+        {
+          "title": "Head, then compare",
+          "consequences": "One request when nothing changed; the changed views only otherwise. A compare of 300 files or more counts as everything changed."
+        },
+        {
+          "title": "Reread every view",
+          "consequences": "Simple, but a request per view per scan."
+        }
+      ],
+      "decision": "Head, then compare.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/git.js",
+          "symbol": "scanGit"
+        }
+      ]
+    },
+    {
+      "id": "client-caching",
+      "title": "Websites are reread by their caching headers",
+      "summary": "The crawler keeps each response's ETag, Last-Modified and lifetime, returns a fresh copy without a request and revalidates a stale one.",
+      "status": "accepted",
+      "context": "The owner asked that the web use the standard cache directives. As a client, the crawler follows RFC 9111: s-maxage or max-age, then Expires, then a tenth of the time since Last-Modified capped at a day; no-cache and no-store make a response stale at once, and a no-store body is not kept.",
+      "options": [
+        {
+          "title": "Honour the directives",
+          "consequences": "A site's own headers set how often it is read."
+        },
+        {
+          "title": "Fixed intervals",
+          "consequences": "Ignores what the site says."
+        }
+      ],
+      "decision": "Honour the directives; the address's interval only says when to look again.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/httpcache.js",
+          "symbol": "freshness"
+        },
+        {
+          "path": "crawler/src/fetcher.js",
+          "symbol": "get"
+        }
+      ]
+    },
+    {
+      "id": "robots-and-budget",
+      "title": "robots.txt, a pause and a budget",
+      "summary": "Every request to a site obeys its robots.txt, waits a moment after the last request to the same host, and counts against a budget per run.",
+      "status": "accepted",
+      "context": "A crawler that a site owner finds in their logs should behave as they would wish. A refusal such as 403 is final: nothing tries to look like a browser.",
+      "options": [
+        {
+          "title": "Polite by default",
+          "consequences": "Big sites take several runs."
+        },
+        {
+          "title": "Fetch as fast as allowed",
+          "consequences": "Faster, and the kind of crawler sites block."
+        }
+      ],
+      "decision": "Polite by default; a run out of requests queues the rest of the site.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/fetcher.js",
+          "symbol": "Fetcher"
+        },
+        {
+          "path": "crawler/src/robots.js",
+          "symbol": "allowed"
+        }
+      ]
+    },
+    {
+      "id": "well-known",
+      "title": "A fixed address for cooperating sites",
+      "summary": "/.well-known/cyberspace.json, read before anything else on a site.",
+      "status": "accepted",
+      "context": "The owner asked for a fixed URL from which cooperating websites give their cyberspace data. RFC 8615 reserves /.well-known/ for such files.",
+      "options": [
+        {
+          "title": "/.well-known/cyberspace.json",
+          "consequences": "A standard place; the file names a repository, serves a tree of views in the explorer's formats, or both."
+        },
+        {
+          "title": "A <link> in the front page",
+          "consequences": "Needs the page parsed first, and a change to every page template."
+        }
+      ],
+      "decision": "/.well-known/cyberspace.json, documented in docs/cyberspace-protocol.md.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/wellknown.js",
+          "symbol": "readDeclaration"
+        },
+        {
+          "path": "docs/cyberspace-protocol.md",
+          "symbol": "The file"
+        }
+      ]
+    },
+    {
+      "id": "related-wait",
+      "title": "Addresses a site names wait for the admin",
+      "summary": "A cooperating site's own repository is crawled at once; other related addresses are added disabled.",
+      "status": "accepted",
+      "context": "A well-known file is written by someone else, and could name any number of addresses.",
+      "options": [
+        {
+          "title": "Wait for the admin",
+          "consequences": "The list only grows by what the admin allows."
+        },
+        {
+          "title": "Crawl whatever is named",
+          "consequences": "A file could send the crawler anywhere."
+        }
+      ],
+      "decision": "Wait for the admin, except the site's own repository.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/scan.js",
+          "symbol": "addRelated"
+        }
+      ]
+    },
+    {
+      "id": "no-ai-sections",
+      "title": "A site can keep sections from the AI step",
+      "summary": "Paths a site lists under noAi are counted but their text is never sent to a model.",
+      "status": "accepted",
+      "context": "Some sites will accept being mapped and not being read by a model.",
+      "options": [
+        {
+          "title": "noAi in the well-known file",
+          "consequences": "The site decides."
+        },
+        {
+          "title": "No way to say it",
+          "consequences": "robots.txt would be the only tool, and it also hides the section's existence."
+        }
+      ],
+      "decision": "noAi in the well-known file.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/wellknown.js",
+          "symbol": "noAi"
+        }
+      ]
+    },
+    {
+      "id": "tokens-per-host",
+      "title": "Each host gets only its own token",
+      "summary": "GITHUB_TOKEN goes only to github.com, GITLAB_TOKEN only to gitlab.com.",
+      "status": "accepted",
+      "context": "A repository's host is taken from the address, which anyone allowed to add addresses chooses.",
+      "options": [
+        {
+          "title": "A token per host",
+          "consequences": "No host sees another's token."
+        },
+        {
+          "title": "One token",
+          "consequences": "Simpler, and leaks it to the other host."
+        }
+      ],
+      "decision": "A token per host.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/scan.js",
+          "symbol": "runScan"
+        },
+        {
+          "path": "crawler/src/git.js",
+          "symbol": "api"
+        }
+      ]
+    },
+    {
+      "id": "ai-model",
+      "title": "Claude Haiku 5.5 reads, at low effort",
+      "summary": "The AI step calls claude-haiku-5-5 with adaptive thinking at effort low, and a JSON schema for every answer.",
+      "status": "accepted",
+      "context": "The owner chose Haiku 5.5 on 2026-11-19 over Opus 5.5 and Sonnet 5.5: reading the 446 Festi sections once costs about $0.18 with it, against about $7 with Opus. It is weaker on mixed Icelandic text and judgement calls, which every reading's confidence records. Haiku has no server-side refusal fallback.",
+      "options": [
+        {
+          "title": "Claude Haiku 5.5",
+          "consequences": "Cheapest; a declined or cut-off answer is recorded and that section skipped."
+        },
+        {
+          "title": "Claude Opus 5.5",
+          "consequences": "The most careful reader, about forty times the price."
+        },
+        {
+          "title": "Claude Sonnet 5.5",
+          "consequences": "Between the two."
+        }
+      ],
+      "decision": "Claude Haiku 5.5, set by AI_MODEL so it can change without a code change. A refusal, a cut-off answer or one that misses the schema skips that item; rate limits, server errors and lost connections send the message back to the queue.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/ai.js",
+          "symbol": "claudeAsker"
+        },
+        {
+          "path": "crawler/wrangler.jsonc",
+          "symbol": "vars"
+        }
+      ]
+    },
+    {
+      "id": "code-writes-views",
+      "title": "The model classifies; code writes the views",
+      "summary": "Claude answers small, schema-bound questions (a section's facets, a repository's parts); views.js builds the diagrams and records.",
+      "status": "accepted",
+      "context": "Views must follow Meta/Agents/Skills exactly, or the explorer can't draw them. A model asked for whole diagrams can leave out a required field or invent a folder.",
+      "options": [
+        {
+          "title": "Classify, then build in code",
+          "consequences": "Every view validates; a repository part whose folder doesn't exist is dropped."
+        },
+        {
+          "title": "Ask for whole views",
+          "consequences": "More freedom, and views that may not validate."
+        }
+      ],
+      "decision": "Classify, then build in code. The classification scheme is the one tried on Festi; its facets are carried on each section's folder record for Cyberspace to shape buildings with.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/views.js",
+          "symbol": "siteViews"
+        },
+        {
+          "path": "crawler/src/views.js",
+          "symbol": "repoViews"
+        },
+        {
+          "path": "crawler/test/ai.test.js",
+          "symbol": "AI step: the views it writes follow the skills' schemas"
+        }
+      ]
+    },
+    {
+      "id": "direct-calls",
+      "title": "Direct calls, not the Batch API",
+      "summary": "Each changed section is one Messages request, made from the queue consumer.",
+      "status": "accepted",
+      "context": "The Batch API halves the price but answers within hours, and its results would have to be collected by a later run. With Haiku a full read of a large site costs cents, and an approaching player wants fresh views soon.",
+      "options": [
+        {
+          "title": "Direct calls",
+          "consequences": "Views within a minute of a scan; full price."
+        },
+        {
+          "title": "Batch API for scheduled scans",
+          "consequences": "Half the price; views hours later; a poller to keep."
+        }
+      ],
+      "decision": "Direct calls, with prompt caching on the system prompt. Worth revisiting if the list grows to thousands of sites.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-19"
+      },
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/ai.js",
+          "symbol": "runAi"
+        }
+      ]
+    }
+  ]
+}

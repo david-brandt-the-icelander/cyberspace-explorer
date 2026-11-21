@@ -1,0 +1,36 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/blockers.schema.json",
+  "kind": "blockers",
+  "title": "What the Worker waits for",
+  "folder": "worker",
+  "entities": [
+    {
+      "id": "explorer-admin-role",
+      "title": "The login service has no role explorer:admin yet",
+      "summary": "/admin is for readers signed in to icelander.net who hold the role explorer:admin (decision admin-door); the login service doesn't define that role yet, so nobody gets in, not even the owner.",
+      "status": "open",
+      "cause": "Roles are defined in icelander.net's login service (ROLES in accounts/src/config.js), in another repository, and a change to its sign-in is the owner's to approve.",
+      "unblockWhen": "icelander.net's ROLES has \"explorer:admin\" and its accounts Worker is deployed with the app explorer; the owners then hold the role, and anyone else is granted it on the login service's admin page.",
+      "canUnblock": "owner",
+      "since": "2026-11-21",
+      "blocked": [
+        {
+          "path": "worker/.dev/decisions.json",
+          "entityId": "admin-door",
+          "description": "/admin and its API refuse everyone until the role exists."
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/space.js",
+          "symbol": "ADMIN_ROLE"
+        },
+        {
+          "path": "crawler/README.md",
+          "symbol": "Setting it up once (the owner)"
+        }
+      ]
+    }
+  ]
+}

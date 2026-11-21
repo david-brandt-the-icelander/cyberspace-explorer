@@ -1062,6 +1062,45 @@ test("Flat's labels stand 4.5:1 against what they are drawn on, in light and dar
   }
 });
 
+test("moving about: place names, history and bookmarks", () => {
+  const { placeTitle, pushVisit, toggleBookmark } = vm.runInContext("({ placeTitle, pushVisit, toggleBookmark })", context);
+  assert.equal(placeTitle("#worker|component%3Aloader|~space:city", "o/r"), "o/r · worker · loader · city");
+  assert.equal(placeTitle("#|use-case%3Abrowse-repository%3Agive-address|~space:city"), "/ · give-address · city");
+  assert.equal(placeTitle("#|view:component-diagram.json|~space"), "/ · component-diagram · tower");
+  assert.equal(placeTitle("#|view:use-case.json#add-token|~space:city"), "/ · use-case #add-token · city");
+  assert.equal(placeTitle("#crawler"), "crawler · flat");
+  const a = { url: "u", hash: "#a" }, b = { url: "u", hash: "#b" };
+  assert.deepEqual([...pushVisit([a], a)].map((v) => v.hash), ["#a"], "the same place twice running is one visit");
+  assert.deepEqual([...pushVisit([a], b)].map((v) => v.hash), ["#b", "#a"]);
+  assert.deepEqual([...pushVisit([b, a], a)].map((v) => v.hash), ["#a", "#b", "#a"], "returning later is a new visit");
+  assert.equal(pushVisit(Array.from({ length: 5 }, (_, i) => ({ url: "u", hash: `#${i}` })), b, 3).length, 3);
+  const marked = toggleBookmark([], a);
+  assert.deepEqual([...marked].map((v) => v.hash), ["#a"]);
+  assert.deepEqual([...toggleBookmark(marked, { url: "u", hash: "#a", title: "again" })], [], "bookmarking it again removes it");
+  assert.deepEqual([...toggleBookmark(marked, { url: "other", hash: "#a" })].map((v) => v.url), ["other", "u"], "a place is its address and its hash");
+});
+
+test("moving about: what a use case seems to touch in a city", () => {
+  const { affectedBy } = vm.runInContext("({ affectedBy })", context);
+  const parts = [
+    { key: "worker", name: "Worker", folder: "worker" },
+    { key: "loader", name: "Loader", folder: "." },
+    { key: "token-store", name: "Token store", folder: "." },
+    { key: "gl", name: "GL", folder: "." },
+  ];
+  const steps = [
+    { text: "Splits the address", paths: ["index.html"], symbols: ["parseAddress"] },
+    { text: "The loader reads every file", paths: ["index.html"], symbols: ["load"] },
+    { text: "Asks the server", paths: ["worker/app.js"], symbols: ["me"] },
+    { text: "Keeps a token-store entry", paths: [], symbols: [] },
+  ];
+  assert.deepEqual([...affectedBy(steps, parts)], ["worker", "loader", "token-store"]);
+  assert.deepEqual([...affectedBy([steps[0]], parts)], [], "a step that names nothing touches nothing");
+  assert.deepEqual([...affectedBy([{ text: "reloads", paths: [], symbols: [] }], parts)], [], "whole words only: reloads is not Loader");
+  assert.deepEqual([...affectedBy([{ text: "the gl canvas", paths: [], symbols: [] }], parts)], [], "names under three letters never match");
+  assert.deepEqual([...affectedBy([{ text: "", paths: ["index.html"], symbols: [] }], parts)], [], "the root folder says nothing about which part");
+});
+
 // ── Faces (G3) ───────────────────────────────────────────────────────────
 
 const faces = vm.runInContext("({ faceText, fitSection, floorText, buildingText, faceCols, faceRows, GLYPHS, FACE })", context);

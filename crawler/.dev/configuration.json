@@ -1,0 +1,199 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/configuration.schema.json",
+  "kind": "configuration",
+  "title": "What the crawler is set up with",
+  "folder": "crawler",
+  "entities": [
+    {
+      "id": "user-agent",
+      "title": "User agent",
+      "summary": "What the crawler calls itself in every request.",
+      "key": "USER_AGENT",
+      "type": "string",
+      "sensitive": false,
+      "default": "cyberspace-crawler/1.0 (+https://cyberspace-explorer.com/crawler)",
+      "scope": "the crawler Worker",
+      "takesEffect": "next scan",
+      "details": "A var in crawler/wrangler.jsonc. The product token, cyberspace-crawler, is what robots.txt groups match.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/scan.js",
+          "symbol": "userAgent"
+        }
+      ]
+    },
+    {
+      "id": "ai-model",
+      "title": "AI model",
+      "summary": "The model the AI step uses.",
+      "key": "AI_MODEL",
+      "type": "string",
+      "sensitive": false,
+      "default": "claude-haiku-5-5",
+      "scope": "the crawler Worker",
+      "takesEffect": "next scan",
+      "details": "Chosen by the owner on 2026-11-19 (decision ai-model).",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/wrangler.jsonc",
+          "symbol": "vars"
+        }
+      ]
+    },
+    {
+      "id": "anthropic-api-key",
+      "title": "Anthropic API key",
+      "summary": "The key the AI step calls Claude with.",
+      "key": "ANTHROPIC_API_KEY",
+      "type": "secret",
+      "sensitive": true,
+      "scope": "the crawler Worker",
+      "takesEffect": "next scan",
+      "details": "A Worker secret. Without it addresses are scanned, no ai message is sent, and inferred addresses have no views.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/wrangler.jsonc",
+          "symbol": "vars"
+        }
+      ]
+    },
+    {
+      "id": "github-token",
+      "title": "GitHub token",
+      "summary": "Raises GitHub's limit from 60 to 5,000 requests an hour.",
+      "key": "GITHUB_TOKEN",
+      "type": "secret",
+      "sensitive": true,
+      "scope": "the crawler Worker",
+      "takesEffect": "next scan",
+      "details": "Optional, read-only, for public repositories; sent to github.com only (decision tokens-per-host).",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/scan.js",
+          "symbol": "runScan"
+        }
+      ]
+    },
+    {
+      "id": "gitlab-token",
+      "title": "GitLab token",
+      "summary": "The same for gitlab.com.",
+      "key": "GITLAB_TOKEN",
+      "type": "secret",
+      "sensitive": true,
+      "scope": "the crawler Worker",
+      "takesEffect": "next scan",
+      "details": "Optional; sent to gitlab.com only.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/scan.js",
+          "symbol": "runScan"
+        }
+      ]
+    },
+    {
+      "id": "default-interval",
+      "title": "Default rescan interval",
+      "summary": "How often an address without its own interval is scanned.",
+      "key": "default_interval_minutes",
+      "type": "integer (minutes)",
+      "sensitive": false,
+      "default": 1440,
+      "scope": "settings table",
+      "takesEffect": "next schedule run",
+      "details": "Changed from /admin.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/schema.sql",
+          "symbol": "settings"
+        },
+        {
+          "path": "crawler/src/scan.js",
+          "symbol": "runScan"
+        }
+      ]
+    },
+    {
+      "id": "default-max-stale",
+      "title": "Default staleness limit",
+      "summary": "How old an address's data may be when a player approaches before a rescan is asked for.",
+      "key": "default_max_stale_minutes",
+      "type": "integer (minutes)",
+      "sensitive": false,
+      "default": 10080,
+      "scope": "settings table",
+      "takesEffect": "next approach",
+      "details": "Changed from /admin.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/store.js",
+          "symbol": "isStale"
+        }
+      ]
+    },
+    {
+      "id": "pages-per-scan",
+      "title": "Pages per run",
+      "summary": "How many requests a run may make besides its allowance of 40 for robots.txt, sitemaps, DNS and RDAP.",
+      "key": "pages_per_scan",
+      "type": "integer",
+      "sensitive": false,
+      "default": 60,
+      "scope": "settings table",
+      "takesEffect": "next scan",
+      "details": "Changed from /admin. A site bigger than this continues in later runs, a minute apart.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/scan.js",
+          "symbol": "OVERHEAD"
+        }
+      ]
+    },
+    {
+      "id": "pause",
+      "title": "Pause between requests to a host",
+      "summary": "Milliseconds between two requests to the same host.",
+      "key": "PAUSE_MS",
+      "type": "integer (milliseconds)",
+      "sensitive": false,
+      "default": 250,
+      "scope": "the crawler Worker",
+      "takesEffect": "next scan",
+      "details": "Optional var; tests set it to 0.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/fetcher.js",
+          "symbol": "Fetcher"
+        }
+      ]
+    },
+    {
+      "id": "ai-enabled",
+      "title": "AI step on or off",
+      "summary": "Whether a finished scan queues the AI step.",
+      "key": "ai_enabled",
+      "type": "0 or 1",
+      "sensitive": false,
+      "default": 1,
+      "scope": "settings table",
+      "takesEffect": "next scan",
+      "details": "Changed from /admin.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/scan.js",
+          "symbol": "runScan"
+        }
+      ]
+    }
+  ]
+}

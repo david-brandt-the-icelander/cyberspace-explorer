@@ -1,0 +1,45 @@
+{
+  "$schema": "../../Meta/Agents/Knowledge/schemas/folder.schema.json",
+  "kind": "folder",
+  "title": "The crawler",
+  "folder": "crawler",
+  "entities": [
+    {
+      "id": "folder",
+      "title": "The crawler",
+      "summary": "cyberspace-crawler, a Cloudflare Worker with no public routes: it keeps a list of git repositories and websites, scans each on a schedule or when a player approaches it with stale data, and stores what the explorer needs to draw it.",
+      "purpose": "Gives the explorer something to show for addresses that are not repositories with .dev folders: websites, and repositories without views. It reads each address no more than its history or its caching says is needed.",
+      "boundaries": [
+        "It only reads. It never writes to a repository or a website, never logs in, submits forms or runs a page's scripts.",
+        "Every request to a website obeys its robots.txt and its caching headers; a refusal such as 403 is final.",
+        "It shares its D1 database and R2 bucket with the explorer's Worker, which edits the address list and settings and serves what the crawler stored. It has no HTTP routes of its own besides /health.",
+        "The AI step (src/ai.js) asks Claude Haiku 5.5 to classify what a scan collected, and only what changed; code (src/views.js) writes the views from that, so they always follow the skills. Sections a site marks noAi are never sent to a model.",
+        "Deployed separately from the explorer's Worker, from crawler/wrangler.jsonc."
+      ],
+      "details": "`src/index.js` is the Worker: its schedule queues due addresses and its queue consumer scans them through `src/scan.js`. `src/git.js` and `src/web.js` read the two kinds of address, every request going through `src/fetcher.js`. `src/ai.js` is the AI step and `src/views.js` turns its readings into views. `src/store.js` is the shared data layer, used by the explorer's Worker as well. `schema.sql` is the database. `test/` runs it all on Node with fakes for Cloudflare's bindings.",
+      "relationships": [
+        {
+          "relation": "part-of",
+          "path": ".dev/folder.json",
+          "description": "The second Worker of the cyberspace explorer."
+        },
+        {
+          "relation": "depends-on",
+          "path": "docs/cyberspace-protocol.md",
+          "description": "The well-known file it reads first on every website."
+        }
+      ],
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "crawler/src/index.js",
+          "symbol": "default"
+        },
+        {
+          "path": "crawler/wrangler.jsonc",
+          "symbol": "triggers"
+        }
+      ]
+    }
+  ]
+}

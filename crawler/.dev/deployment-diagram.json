@@ -1,0 +1,198 @@
+{
+  "$schema": "../../Meta/Agents/Skills/describe-deployment-diagram/schema.json",
+  "kind": "deployment",
+  "title": "Where the crawler runs",
+  "folder": "crawler",
+  "description": "A Worker on Cloudflare with no public route, woken by a cron trigger and by its queue, sharing a D1 database and an R2 bucket with the explorer's Worker.",
+  "sources": [
+    {
+      "path": "crawler/wrangler.jsonc",
+      "symbol": "triggers"
+    },
+    {
+      "path": "crawler/wrangler.jsonc",
+      "symbol": "queues"
+    },
+    {
+      "path": "crawler/wrangler.jsonc",
+      "symbol": "d1_databases"
+    },
+    {
+      "path": "crawler/wrangler.jsonc",
+      "symbol": "r2_buckets"
+    },
+    {
+      "path": "crawler/README.md",
+      "symbol": "Setting it up once (the owner)"
+    },
+    {
+      "path": "crawler/src/ai.js",
+      "symbol": "claudeAsker"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "cloudflare",
+      "name": "Cloudflare",
+      "kind": "host",
+      "description": "Workers Paid: the crawler Worker, its cron trigger and queue, the database and the bucket, in the account the explorer uses."
+    },
+    {
+      "id": "crawler",
+      "name": "cyberspace-crawler Worker",
+      "kind": "process",
+      "description": "No route; woken every ten minutes and by the scan queue."
+    },
+    {
+      "id": "explorer",
+      "name": "cyberspace-explorer Worker",
+      "kind": "process",
+      "description": "Edits addresses and settings from /admin, sends rescans, and serves what the crawler stored."
+    },
+    {
+      "id": "d1",
+      "name": "D1 cyberspace",
+      "kind": "database",
+      "description": "Addresses, scans, settings, HTTP cache state."
+    },
+    {
+      "id": "r2",
+      "name": "R2 cyberspace",
+      "kind": "database",
+      "description": "Indexes, views, collected metadata, cached bodies."
+    },
+    {
+      "id": "queue",
+      "name": "Queue cyberspace-scans",
+      "kind": "cache",
+      "description": "Scan messages; failures after three tries go to cyberspace-scans-failed."
+    },
+    {
+      "id": "websites",
+      "name": "Websites",
+      "kind": "external-service",
+      "description": "The web addresses on the list.",
+      "actor": "Actors/website.md"
+    },
+    {
+      "id": "git-hosts",
+      "name": "GitHub and GitLab",
+      "kind": "external-service",
+      "description": "api.github.com, raw.githubusercontent.com and gitlab.com/api/v4."
+    },
+    {
+      "id": "dns",
+      "name": "cloudflare-dns.com and rdap.org",
+      "kind": "external-service",
+      "description": "DNS over HTTPS and registration data."
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic API",
+      "kind": "external-service",
+      "description": "api.anthropic.com: Claude Haiku 5.5, called with ANTHROPIC_API_KEY.",
+      "condition": "the AI step is on and the key is set"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "crawler-bundle",
+      "name": "cyberspace-crawler",
+      "source": "crawler/src/index.js",
+      "deployedTo": "crawler",
+      "description": "Bundled and deployed by wrangler from crawler/wrangler.jsonc."
+    }
+  ],
+  "relationships": [
+    {
+      "from": "cloudflare",
+      "to": "crawler",
+      "kind": "hosts",
+      "description": "Runs the Worker."
+    },
+    {
+      "from": "cloudflare",
+      "to": "explorer",
+      "kind": "hosts",
+      "description": "Runs the explorer's Worker."
+    },
+    {
+      "from": "cloudflare",
+      "to": "d1",
+      "kind": "hosts",
+      "description": "Holds the database."
+    },
+    {
+      "from": "cloudflare",
+      "to": "r2",
+      "kind": "hosts",
+      "description": "Holds the bucket."
+    },
+    {
+      "from": "cloudflare",
+      "to": "queue",
+      "kind": "hosts",
+      "description": "Holds the queue."
+    },
+    {
+      "from": "queue",
+      "to": "crawler",
+      "kind": "routes",
+      "description": "Delivers scan messages in batches of four."
+    },
+    {
+      "from": "explorer",
+      "to": "queue",
+      "kind": "connects-to",
+      "description": "Sends rescans from /admin and approaching players."
+    },
+    {
+      "from": "crawler",
+      "to": "d1",
+      "kind": "connects-to",
+      "description": "Binding DB."
+    },
+    {
+      "from": "crawler",
+      "to": "r2",
+      "kind": "connects-to",
+      "description": "Binding SPACE."
+    },
+    {
+      "from": "explorer",
+      "to": "d1",
+      "kind": "connects-to",
+      "description": "Binding DB."
+    },
+    {
+      "from": "explorer",
+      "to": "r2",
+      "kind": "connects-to",
+      "description": "Binding SPACE."
+    },
+    {
+      "from": "crawler",
+      "to": "websites",
+      "kind": "connects-to",
+      "description": "HTTPS, robots.txt obeyed."
+    },
+    {
+      "from": "crawler",
+      "to": "git-hosts",
+      "kind": "connects-to",
+      "description": "HTTPS API calls."
+    },
+    {
+      "from": "crawler",
+      "to": "dns",
+      "kind": "connects-to",
+      "description": "HTTPS."
+    },
+    {
+      "from": "crawler",
+      "to": "anthropic",
+      "kind": "connects-to",
+      "description": "HTTPS, through Anthropic's SDK."
+    }
+  ]
+}

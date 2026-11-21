@@ -799,6 +799,78 @@
           "symbol": "prefers-reduced-motion: reduce"
         }
       ]
+    },
+    {
+      "id": "cyberspace-dock",
+      "name": "Move about Cyberspace",
+      "description": "A dock at the left edge of Cyberspace for going back and forward, finding places again, and bringing any drawn view over the scene.",
+      "sources": [
+        {
+          "path": "index.html",
+          "symbol": "dockShow"
+        },
+        {
+          "path": "index.html",
+          "symbol": "openDiagram"
+        },
+        {
+          "path": "index.html",
+          "symbol": "warpTo"
+        }
+      ],
+      "behavior": "Back and Forward follow the browser's history, enabled as far as there is somewhere to go. History lists the places visited in Cyberspace, newest first; a bookmark marks the place shown, and Bookmarks lists them. A button per kind of drawn view in the folder draws that view in neon over the blurred scene; a use case or journey over a city lights what its steps seem to touch. Choosing a part of the drawing turns the camera toward it, lets the drawing go with an afterglow, warps there and clears from darkness onto the place.",
+      "outcome": "A reader can go from any view of a folder straight to a part of it, and back, without leaving Cyberspace.",
+      "constraints": [
+        "History and bookmarks are kept in this browser only.",
+        "What a use case touches is inferred (decision inferred-reach).",
+        "With reduced motion, the trip is instant."
+      ],
+      "implementation": [
+        {
+          "path": "index.html",
+          "symbol": "dockShow"
+        },
+        {
+          "path": "index.html",
+          "symbol": "showPop"
+        },
+        {
+          "path": "index.html",
+          "symbol": "openDiagram"
+        },
+        {
+          "path": "index.html",
+          "symbol": "closeDiagram"
+        },
+        {
+          "path": "index.html",
+          "symbol": "diagramGo"
+        },
+        {
+          "path": "index.html",
+          "symbol": "warpTo"
+        },
+        {
+          "path": "index.html",
+          "symbol": "warpStreaks"
+        },
+        {
+          "path": "index.html",
+          "symbol": "placeTitle"
+        },
+        {
+          "path": "index.html",
+          "symbol": "pushVisit"
+        },
+        {
+          "path": "index.html",
+          "symbol": "toggleBookmark"
+        },
+        {
+          "path": "index.html",
+          "symbol": "affectedBy"
+        }
+      ]
     }
   ],
   "relatedViews": [

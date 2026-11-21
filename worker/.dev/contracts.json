@@ -99,6 +99,84 @@
           "symbol": "signInUrl"
         }
       ]
+    },
+    {
+      "id": "admin-api",
+      "title": "/api/admin/*",
+      "summary": "What /admin calls to read and change the crawler's list and settings.",
+      "contractType": "http-api",
+      "consumers": [
+        "worker/admin.html"
+      ],
+      "guarantees": [
+        "GET state answers { user: { name, email }, settings, addresses } with each address's scan state; user is the admin signed in to icelander.net.",
+        "PUT settings takes default_interval_minutes (15 to 525600), default_max_stale_minutes, pages_per_scan (1 to 500) and ai_enabled (0 or 1) as whole numbers; anything else is a 400.",
+        "POST addresses takes { url, label?, intervalMinutes?, maxStaleMinutes? }, normalizes the URL, answers 201 and queues a first scan, or 409 for an address already listed.",
+        "PATCH addresses/<id> changes label, enabled, intervalMinutes or maxStaleMinutes; POST addresses/<id>/rescan queues a scan unless one is queued; DELETE addresses/<id> removes it and everything collected for it.",
+        "401 without an icelander.net sign-in, 403 for a user without the role explorer:admin or a change from another origin, 503 when the crawler's bindings are missing."
+      ],
+      "compatibility": "Only /admin uses it, and both are served by the same Worker, so they change together.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/space.js",
+          "symbol": "admin"
+        },
+        {
+          "path": "test/space-api.test.js",
+          "symbol": "admin API: add, refuse a duplicate, change, rescan, stop and remove an address"
+        }
+      ]
+    },
+    {
+      "id": "space-api",
+      "title": "/api/space",
+      "summary": "The page's door to what the crawler collected.",
+      "contractType": "http-api",
+      "consumers": [
+        "index.html (crawled, approach)"
+      ],
+      "guarantees": [
+        "GET /api/space?url=<address> answers { id, url, kind, label, status, source, scannedAt, stale, paths, staleViews, needsAi, head } for an enabled address, and 404 for any other.",
+        "GET /api/space/<id>/files/<path> answers a view file of an enabled address; a path with an empty, . or .. segment, or not ending in .json, is a 400.",
+        "POST /api/space/<id>/approach answers { stale, rescanning }, queues a rescan only when the address is stale and not already queued, and only from the explorer's own origin."
+      ],
+      "compatibility": "Fields are only added. paths are the crawler's tree paths; the page reads them as a .cyberspace-explorer tree.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/space.js",
+          "symbol": "space"
+        },
+        {
+          "path": "test/space-api.test.js",
+          "symbol": "/api/space: what an explored address has, its view files, nothing for addresses not on the list"
+        }
+      ]
+    },
+    {
+      "id": "crawler-page",
+      "title": "/crawler",
+      "summary": "The page the crawler's user agent points site owners to.",
+      "contractType": "http-api",
+      "consumers": [
+        "site owners reading their logs (Actors/website.md)"
+      ],
+      "guarantees": [
+        "Answers docs/cyberspace-protocol.md as an HTML page: what the crawler is, how it behaves, how to keep it out and how to cooperate."
+      ],
+      "compatibility": "The URL is in every request the crawler makes, so it never moves.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/markdown.js",
+          "symbol": "protocolPage"
+        },
+        {
+          "path": "worker/index.js",
+          "symbol": "default"
+        }
+      ]
     }
   ]
 }

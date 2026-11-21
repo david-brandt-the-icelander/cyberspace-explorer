@@ -2,7 +2,7 @@
   "$schema": "../Meta/Agents/Skills/describe-component-diagram/schema.json",
   "kind": "component",
   "title": "Cyberspace explorer",
-  "description": "The parts of the page, which is one HTML file: what the reader sees, how a repository is read, how views are drawn and written, and the services it reaches from the reader's browser; and the Worker in worker/ that serves it and signs readers in with GitHub.",
+  "description": "The parts of the page, which is one HTML file: what the reader sees, how a repository is read, how views are drawn and written, and the services it reaches from the reader's browser; and the Worker in worker/ that serves it and signs readers in with GitHub; and the crawler in crawler/, a second Worker that collects what the explorer shows of websites and of repositories without views.",
   "sources": [
     {
       "path": "index.html",
@@ -353,6 +353,18 @@
       "symbol": "activate"
     },
     {
+      "path": "crawler/src/index.js",
+      "symbol": "default"
+    },
+    {
+      "path": "index.html",
+      "symbol": "crawled"
+    },
+    {
+      "path": "index.html",
+      "symbol": "dockShow"
+    },
+    {
       "path": "index.html",
       "symbol": "faceText"
     },
@@ -475,6 +487,12 @@
       "folder": "."
     },
     {
+      "id": "crawled-adapter",
+      "name": "Crawler adapter",
+      "responsibility": "Lists and reads the views the crawler made of a website, through the Worker's /api/space, and tells the Worker a player approached the address so stale data is rescanned.",
+      "folder": "."
+    },
+    {
       "id": "loader",
       "name": "Loader",
       "responsibility": "Finds the .dev/*.json files under the folder asked for (or, where the root has a .cyberspace-explorer folder, the files in it, and nothing else), reads twelve at a time, keeps the views and knowledge files it knows and sorts each folder's files by kind.",
@@ -577,6 +595,12 @@
       "folder": "."
     },
     {
+      "id": "dock",
+      "name": "Dock",
+      "responsibility": "Cyberspace's left edge: Back, Forward, History, bookmarks, and a button per kind of drawn view that draws it in neon over the blurred scene; its parts lead there through the warp.",
+      "folder": "."
+    },
+    {
       "id": "theme",
       "name": "Theme switch",
       "responsibility": "System, Light or Dark in the bar, for Flat: sets html[data-theme] before the first paint and whenever the choice or the system changes, keeps a choice in localStorage, and hides when a host owns the theme. Cyberspace is always dark: its buttons are disabled while it shows.",
@@ -607,6 +631,13 @@
       "responsibility": "Shows this page in a VS Code webview for a workspace folder, hands it the folder's views and the editor's theme, and opens the files it links to.",
       "folder": "vscode",
       "diagram": "vscode/.dev/component-diagram.json"
+    },
+    {
+      "id": "crawler",
+      "name": "Crawler",
+      "responsibility": "cyberspace-crawler, a second Worker: keeps the list of repositories and websites to explore, scans them on a schedule or on request, and stores what the explorer needs to draw them.",
+      "folder": "crawler",
+      "diagram": "crawler/.dev/component-diagram.json"
     },
     {
       "id": "dagre",
@@ -1065,6 +1096,36 @@
       "to": "screen",
       "kind": "depends-on",
       "description": "Shows the page in a webview, with the workspace and the theme."
+    },
+    {
+      "from": "crawled-adapter",
+      "to": "worker",
+      "kind": "depends-on",
+      "description": "GET /api/space and its files; POST approach."
+    },
+    {
+      "from": "loader",
+      "to": "crawled-adapter",
+      "kind": "depends-on",
+      "description": "For a website address, when the page is served by the Worker."
+    },
+    {
+      "from": "dock",
+      "to": "router",
+      "kind": "depends-on",
+      "description": "Every trip is a new address."
+    },
+    {
+      "from": "dock",
+      "to": "drawing",
+      "kind": "depends-on",
+      "description": "Draws a view with Flat's sheetOf and drawSvg, restyled in neon."
+    },
+    {
+      "from": "dock",
+      "to": "camera-rig",
+      "kind": "depends-on",
+      "description": "Turns and plunges the camera for the warp."
     }
   ],
   "folder": "."

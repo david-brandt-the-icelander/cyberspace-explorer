@@ -663,6 +663,42 @@ Every panel is ordinary HTML over the canvas, built from the page's own CSS vari
 - Below 900 px tall, the map shrinks to 180 px wide.
 - Checked in step 7 in every scene at 1280 × 800, 1440 × 900, 2560 × 1440 and 3440 × 1440: no panel overlaps another or leaves the window, the inspector included. Checked again in step G4 (2026-11-19) in the tower, the city with Loader selected, the street with a hover card and retro-games' skyline at the same four sizes: no panel overlaps another or leaves the window, and no label stands under a panel or outside the canvas. The component city's legend shows its words at 2560 and 3440, its badge as an icon at 1440 (it would end 5 px from the window's edge) and its icons alone at 1280 (with words it would reach 1,435 px); below 1280 its icons alone, as before. The street's hover card may cover the `?spacestats` readout, which is not a panel and shows only with that query.
 
+## Moving about: the dock, diagrams over the scene, and the warp
+
+Asked for by the owner on 2026-11-19 (decision `dock-and-warp`).
+
+**The dock** (`#space-dock`, a `.hud`, so `spaceRoom` counts it) stands at the left edge, left 20 and top 44, 52 px wide, in every scene. From the top:
+- **Back** and **Forward**, which are `history.back()` and `history.forward()`. Each history entry carries its place in the session as `history.state.nav`, so each button is disabled when there is nowhere to go.
+- **History**, the places visited in Cyberspace, newest first.
+- **A bookmark** for the place shown, pressed when it is bookmarked.
+- **Bookmarks**, the places bookmarked, each with a remove button.
+- A rule, then **a button per kind of drawn view** the folder has (component, deployment, class, state, use case, journey), in the kind's colour.
+
+History and Bookmarks open beside the dock (`.space-pop`, not a `.hud`) and close with Esc, a second press, or a choice. A place is the page's address (`?url=`) and its hash, and a choice goes there. Both lists are kept in this browser's localStorage: `cyberspace-explorer.history` holds at most 200 visits, and the same place twice running is one visit. `cyberspace-explorer.bookmarks` holds the bookmarks.
+
+While the dock shows, `body.docked` moves the panels that stood at the left edge one dock's width (64 px) to the right: Layers, the street's crumbs and keys, the camera controls, the legend and the tower's group bars. The tower's projection centre (`towerAnchor`) moves right by the same amount.
+
+**A diagram over the scene.** A kind's button draws one view of that kind over the scene (`#space-diagram`, z-index 3, from left 84 to 20 px from the other edges):
+- **Which view:** the standing view if it is of that kind, else the first. A list in its header changes it, and a use case or journey is drawn one entity at a time.
+- **Drawing:** Flat's own drawing (`sheetOf`, `drawSvg`) restyled in neon. Glass cyan plates and boxes, violet traces, magenta dashed outside parts, bright text, and a soft glow over the whole drawing.
+- **The scene behind:** it blurs and dims (`#space.blurred`: blur 10 px, brightness 0.45). Every panel but the dock, and the inspector, is hidden in place (`visibility: hidden`), so the free rectangle and the camera stay as they were.
+- **A use case or journey over a city:** it lights, as near, the parts its steps seem to touch (`affectedBy`). The diagram's note says how many and that the match is inferred (decision `inferred-reach`). Hovering a step lights only that step's.
+- **Closing:** Esc, the close button or the kind's button again fades the drawing over 900 ms with an afterglow (`dg-out`) and gives the selection its own lights back.
+
+**The warp.** Choosing a part of the diagram (click, Enter or Space) goes to it:
+
+1. **Turn, 700 ms, under the blur.** A part of the city standing behind is faced as a selection is (`spaceLook`); anywhere else the camera swings 150° round.
+2. **Afterglow and warp, 650 ms.** The drawing goes out with its afterglow. The blur becomes a warp: the scene sharpens and brightens (`#space.warping`), streaks of light rush out from the middle (`warpStreaks`, a 2D canvas over the scene under the HUD), and the camera plunges to 0.3 of its distance.
+3. **Darkness, 180 ms.** `#space-flash` covers the scene in the void colour within 120 ms, under the HUD, which stays lit. The address is set; route() stands the place in the dark.
+4. **Arrival.** The darkness clears over 700 ms onto the place.
+
+Where a part leads:
+- **A part that opens a folder** (it has `nav`) leads to that folder's tower.
+- **Any other part** leads to itself, selected, in its view's city: `#<folder>|<kind>:<part>|~space:city`, or the street when it was chosen from the street's own city.
+- **A new history entry:** every arrival is one, so Back returns.
+
+With `prefers-reduced-motion: reduce`, there is no turn, warp or darkness: the diagram closes and the address changes at once.
+
 ## Routing, state and links
 
 The mode, the scene and the selection live in the address as a **last `|` segment**, so every existing form keeps its meaning (contract `page-address`) and a Cyberspace link opened by an older copy of the page still lands on the same folder and part in Flat.

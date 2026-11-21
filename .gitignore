@@ -41,3 +41,6 @@ __pycache__/
 
 # rust
 /target/
+
+# the crawler's own dependencies (crawler/package.json)
+crawler/node_modules/
