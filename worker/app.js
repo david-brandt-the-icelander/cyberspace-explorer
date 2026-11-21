@@ -1,10 +1,19 @@
 // The cyberspace explorer as a service: serves the page, signs readers in with GitHub (OAuth 2.0 code
 // flow with PKCE) and reads GitHub for them. The access token never reaches the page: it is kept in an
 // encrypted HttpOnly cookie and added to the GitHub calls here. No dependencies; runs in Workers and Node.
+//
+// Who the reader is, is icelander.net's login service (the vendored library in vendor/icelander-auth, app "explorer",
+// routes under /identity/auth, cookie explorer_identity). With REQUIRE_SIGN_IN set to "true" (wrangler.jsonc) the page
+// and the GitHub routes need that sign-in; the explorer's own GitHub OAuth App stays as it was, only to read
+// repositories (the optional "connect your repositories" step), and its explorer_session cookie is unchanged.
+import { createAuth } from "./vendor/icelander-auth/index.js";
 
 // The app has a host of its own, so it lives at the root: BASE prefixes its routes, HOME is the page.
 export const BASE = "", HOME = "/";
 const SESSION = "explorer_session", PENDING = "explorer_oauth";
+export const IDENTITY_BASE = "/identity/auth";
+export const identity = createAuth({ app: "explorer", cookie: "explorer_identity", basePath: IDENTITY_BASE, home: HOME });
+const signInRequired = (env) => env.REQUIRE_SIGN_IN === "true";
 const SESSION_DAYS = 7;
 
 const enc = new TextEncoder(), dec = new TextDecoder();
@@ -156,18 +165,26 @@ export function createHandler(html, fetcher = (...a) => fetch(...a)) {
   return async function handle(request, env = {}) {
     const url = new URL(request.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
+    // The login service's routes: /identity/auth/sign-in, /callback, /sign-out, /me.
+    if (path === IDENTITY_BASE || path.startsWith(`${IDENTITY_BASE}/`)) {
+      const answered = await identity.handle(request, env);
+      if (answered) return answered;
+    }
+    // Signed in to icelander.net, or not: asked only when the owner has turned it on (REQUIRE_SIGN_IN).
+    const who = signInRequired(env) ? await identity.currentUser(request, env) : true;
     if (path === HOME || path === `${BASE}/index.html`) {
       if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405, headers: { allow: "GET, HEAD" } });
+      if (!who) return new Response(null, { status: 302, headers: { location: identity.signInPath(url.pathname + url.search), "cache-control": "no-store" } });
       return new Response(request.method === "HEAD" ? null : html, { headers: {
-        "content-type": "text/html; charset=utf-8", "cache-control": "no-cache",
+        "content-type": "text/html; charset=utf-8", "cache-control": signInRequired(env) ? "private, no-store" : "no-cache",
         "x-content-type-options": "nosniff", "referrer-policy": "strict-origin-when-cross-origin",
       } });
     }
     if (path === `${BASE}/auth/me`) return me(request, env);
-    if (path === `${BASE}/auth/github/start`) return start(request, env);
-    if (path === `${BASE}/auth/github/callback`) return callback(request, env, fetcher);
+    if (path === `${BASE}/auth/github/start`) return who ? start(request, env) : redirect(identity.signInPath(url.pathname + url.search));
+    if (path === `${BASE}/auth/github/callback`) return who ? callback(request, env, fetcher) : redirect(`${HOME}?signin=failed`);
     if (path === `${BASE}/auth/sign-out`) return signOut(request, env);
-    if (path.startsWith(`${BASE}/api/github/`)) return proxy(request, env, path.slice(`${BASE}/api/github/`.length), fetcher);
+    if (path.startsWith(`${BASE}/api/github/`)) return !who ? json({ error: "Sign in to icelander.net first." }, 401) : proxy(request, env, path.slice(`${BASE}/api/github/`.length), fetcher);
     return new Response("Not found", { status: 404 });
   };
 }
