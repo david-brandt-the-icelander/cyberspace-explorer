@@ -12,7 +12,7 @@
       "boundaries": [
         "The page itself is ../index.html, imported as text by index.js; this folder only serves it.",
         "With a reader's token it reads GitHub and nothing else, and only the paths the page needs; GitLab, and readers who paste a token, never go through it.",
-        "With its own bindings it shares the crawler's database, bucket and queue (space.js): it serves the crawler's views at /api/space, asks for rescans when a player approaches stale data, and lets the logins in ADMIN_LOGINS change the address list and settings at /admin. It never scans anything itself.",
+        "With its own bindings it shares the crawler's database, bucket and queue (space.js): it serves the crawler's views at /api/space, asks for rescans when a player approaches stale data, and lets readers signed in to icelander.net with its role explorer:admin change the address list and settings at /admin. It never scans anything itself.",
         "Without its three secrets /auth/me says sign-in isn't set up and starting a sign-in answers 503; the page then falls back to pasted tokens.",
         "No dependencies: app.js and space.js run in Workers and in Node, which is how test/app.test.js and test/space-api.test.js run them. space.js imports the crawler's data layer (crawler/src/store.js, address.js), which has none either."
       ],

@@ -1,4 +1,4 @@
-// The Worker's crawler routes: /admin for the allowed logins only, the admin API, the page's /api/space door, approaches that ask for rescans, and /crawler.
+// The Worker's crawler routes: /admin for icelander.net's explorer:admin role only, the admin API, the page's /api/space door, approaches that ask for rescans, and /crawler.
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -11,34 +11,48 @@ import * as store from "../crawler/src/store.js";
 import { d1, r2, queue } from "../crawler/test/fakes.js";
 
 const SITE = "https://cyberspace-explorer.com";
-const base = { GITHUB_CLIENT_ID: "cid", GITHUB_CLIENT_SECRET: "sec", SESSION_SECRET: "s3cret-s3cret", PUBLIC_ORIGIN: SITE, ADMIN_LOGINS: "Owner, second" };
+// The login service, as the ACCOUNTS binding answers for app "explorer": who a session is, with this app's roles.
+const JWKS = JSON.stringify({ keys: [{ kty: "OKP", crv: "Ed25519", kid: "k2026a", x: "WIEomi0LTalJvQndhD7abl8ty3YcliQ0vEz4XjLXayc" }] });
+const person = (name, roles) => ({ id: `a-${name}`, email: `${name}@example.com`, emails: [`${name}@example.com`], name, picture: null, roles: ["explorer:play", ...roles], via: "provider" });
+const people = { owner: person("owner", ["explorer:admin"]), someone: person("someone", []) };
+const PAD = "s".repeat(24);
+const ACCOUNTS = { session: async (value, app) => (app === "explorer" ? people[value.slice(PAD.length)] ?? null : null) };
+const base = { GITHUB_CLIENT_ID: "cid", GITHUB_CLIENT_SECRET: "sec", SESSION_SECRET: "s3cret-s3cret", PUBLIC_ORIGIN: SITE, ACCOUNTS, ACCOUNTS_JWKS: JWKS };
 const handle = createHandler("<html>page</html>", async () => new Response("{}"), { admin: "<html>admin</html>", protocol: "<html>protocol</html>" });
-const fresh = () => ({ ...base, DB: d1(), SPACE: r2(), SCANS: queue() });
-const sessionFor = async (login) => `explorer_session=${await seal({ t: "gho_x", l: login, a: "", x: Date.now() + 3600e3 }, base.SESSION_SECRET)}`;
-const call = (env, path, { method = "GET", body, login, origin = SITE } = {}) => (async () => handle(new Request(SITE + path, {
+const fresh = (extra = {}) => ({ ...base, DB: d1(), SPACE: r2(), SCANS: queue(), ...extra });
+const call = (env, path, { method = "GET", body, login, cookie, origin = SITE } = {}) => handle(new Request(SITE + path, {
   method, body: body === undefined ? undefined : JSON.stringify(body),
-  headers: { ...(login ? { cookie: await sessionFor(login) } : {}), ...(method !== "GET" ? { origin, "content-type": "application/json" } : {}) },
-}), env))();
+  headers: { ...(login ? { cookie: `explorer_identity=${PAD}${login}` } : cookie ? { cookie } : {}), ...(method !== "GET" ? { origin, "content-type": "application/json" } : {}) },
+}), env);
 
-test("admin logins: a list, compared without case", () => {
-  assert.equal(isAdmin(base, "owner"), true);
-  assert.equal(isAdmin(base, "SECOND"), true);
-  assert.equal(isAdmin(base, "someone"), false);
-  assert.equal(isAdmin({}, "owner"), false);
+test("admins: the login service's role explorer:admin, nothing else", () => {
+  assert.equal(isAdmin(people.owner), true);
+  assert.equal(isAdmin(people.someone), false);
+  assert.equal(isAdmin(null), false);
+  assert.equal(isAdmin({ ...people.someone, name: "explorer:admin", email: "explorer:admin@example.com" }), false);
 });
 
-test("/admin: sends the signed-out to sign in, refuses other logins, serves the page to an admin", async () => {
+test("/admin: sends the signed-out to icelander.net's sign-in, refuses users without the role, serves the page to an admin", async () => {
   const env = fresh();
   const out = await call(env, "/admin");
-  assert.equal(out.status, 303);
-  assert.equal(out.headers.get("location"), "/auth/github/start?return=%2Fadmin");
+  assert.equal(out.status, 302);
+  assert.equal(out.headers.get("location"), "/identity/auth/sign-in?return=%2Fadmin");
   const other = await call(env, "/admin", { login: "someone" });
   assert.equal(other.status, 403);
-  assert.match(await other.text(), /someone is signed in but is not allowed/);
+  assert.match(await other.text(), /someone@example\.com is signed in but is not allowed/);
   const ok = await call(env, "/admin", { login: "owner" });
   assert.equal(ok.status, 200);
   assert.equal(await ok.text(), "<html>admin</html>");
   assert.equal(ok.headers.get("x-frame-options"), "DENY");
+});
+
+test("/admin: a GitHub session says nothing about who the reader is, and without the login service nobody gets in", async () => {
+  const github = `explorer_session=${await seal({ t: "gho_x", l: "david-brandt-the-icelander", a: "", x: Date.now() + 3600e3 }, base.SESSION_SECRET)}`;
+  assert.equal((await call(fresh(), "/admin", { cookie: github })).status, 302);
+  assert.equal((await call(fresh(), "/api/admin/state", { cookie: github })).status, 401);
+  const noService = fresh({ ACCOUNTS: undefined });
+  assert.equal((await call(noService, "/admin", { login: "owner" })).status, 302, "fails closed");
+  assert.equal((await call(noService, "/api/admin/state", { login: "owner" })).status, 401);
 });
 
 test("admin API: signed in, allowed, and changes only from the page itself", async () => {
@@ -47,10 +61,22 @@ test("admin API: signed in, allowed, and changes only from the page itself", asy
   assert.equal((await call(env, "/api/admin/state", { login: "someone" })).status, 403);
   assert.equal((await call(env, "/api/admin/addresses", { method: "POST", body: { url: "https://festi.is" }, login: "owner", origin: "https://evil.example" })).status, 403);
   const st = await (await call(env, "/api/admin/state", { login: "owner" })).json();
-  assert.equal(st.login, "owner");
+  assert.deepEqual(st.user, { name: "owner", email: "owner@example.com" });
   assert.equal(st.settings.default_interval_minutes, "1440");
   const noSetup = await call({ ...base }, "/api/admin/state", { login: "owner" });
   assert.equal(noSetup.status, 503);
+});
+
+test("with REQUIRE_SIGN_IN on, the page's /api/space needs the sign-in too; /crawler and /admin are as they were", async () => {
+  const env = fresh({ REQUIRE_SIGN_IN: "true" });
+  const id = await addressId("https://festi.is");
+  await store.addAddress(env.DB, { id, url: "https://festi.is", kind: "web" });
+  assert.equal((await call(env, "/api/space?url=https://festi.is")).status, 401);
+  assert.equal((await call(env, `/api/space/${id}/approach`, { method: "POST" })).status, 401);
+  assert.equal((await call(env, "/api/space?url=https://festi.is", { login: "someone" })).status, 200);
+  assert.equal((await call(env, "/crawler")).status, 200);
+  assert.equal((await call(env, "/admin", { login: "someone" })).status, 403);
+  assert.equal((await call(env, "/admin", { login: "owner" })).status, 200);
 });
 
 test("admin API: add, refuse a duplicate, change, rescan, stop and remove an address", async () => {
@@ -60,7 +86,7 @@ test("admin API: add, refuse a duplicate, change, rescan, stop and remove an add
   const { address } = await add.json();
   assert.equal(address.url, "https://festi.is");
   assert.equal(address.kind, "web");
-  assert.equal(address.added_by, "owner");
+  assert.equal(address.added_by, "owner@example.com", "the admin's icelander.net address");
   assert.equal(address.max_stale_minutes, 60);
   assert.deepEqual(env.SCANS.sent.map((s) => s.body), [{ id: address.id, reason: "admin" }]);
   assert.equal((await call(env, "/api/admin/addresses", { method: "POST", body: { url: "https://festi.is" }, login: "owner" })).status, 409);

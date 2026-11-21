@@ -109,11 +109,11 @@
         "worker/admin.html"
       ],
       "guarantees": [
-        "GET state answers { login, settings, addresses } with each address's scan state.",
+        "GET state answers { user: { name, email }, settings, addresses } with each address's scan state; user is the admin signed in to icelander.net.",
         "PUT settings takes default_interval_minutes (15 to 525600), default_max_stale_minutes, pages_per_scan (1 to 500) and ai_enabled (0 or 1) as whole numbers; anything else is a 400.",
         "POST addresses takes { url, label?, intervalMinutes?, maxStaleMinutes? }, normalizes the URL, answers 201 and queues a first scan, or 409 for an address already listed.",
         "PATCH addresses/<id> changes label, enabled, intervalMinutes or maxStaleMinutes; POST addresses/<id>/rescan queues a scan unless one is queued; DELETE addresses/<id> removes it and everything collected for it.",
-        "401 without a session, 403 for a login not in ADMIN_LOGINS or a change from another origin, 503 when the crawler's bindings are missing."
+        "401 without an icelander.net sign-in, 403 for a user without the role explorer:admin or a change from another origin, 503 when the crawler's bindings are missing."
       ],
       "compatibility": "Only /admin uses it, and both are served by the same Worker, so they change together.",
       "evidenceStatus": "source-verified",

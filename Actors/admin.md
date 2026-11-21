@@ -1,7 +1,7 @@
 # Admin
 
 **Kind:** person in a role
-**Evidence:** `worker/space.js` (`isAdmin` lets in a signed-in GitHub login named in `ADMIN_LOGINS`; `spaceRoutes` serves `/admin` and the admin API only to them), `wrangler.jsonc` (`ADMIN_LOGINS`), `worker/admin.html` (the page they use)
+**Evidence:** `worker/space.js` (`isAdmin` lets in a user signed in to icelander.net who holds the role `explorer:admin`; `spaceRoutes` serves `/admin` and the admin API only to them), `worker/app.js` (`createHandler` asks the login service who is signed in), `worker/admin.html` (the page they use)
 
 ## What they want from the system
 
@@ -11,8 +11,8 @@
 
 ## How they reach it
 
-`https://cyberspace-explorer.com/admin` in a browser, after signing in with GitHub through the explorer's own sign-in. The Worker knows them only by their GitHub login; the list of allowed logins is a setting of the Worker, not something the admin page can change.
+`https://cyberspace-explorer.com/admin` in a browser, after signing in to icelander.net (its login service, app `explorer`). The Worker knows them by that sign-in, never by the explorer's GitHub OAuth App, which only reads repositories. Who holds `explorer:admin` is set in the login service (its owners hold every role; anyone else is granted it on its admin page), not something the explorer's admin page can change.
 
 ## Not to be confused with
 
-The [reader](reader.md). An admin is also a reader, with the same sign-in. What makes them an admin is their login being in `ADMIN_LOGINS`, and the Worker checks that on every admin request. A reader approaching an address in Cyberspace can trigger a rescan, but only within the staleness limits the admin set.
+The [reader](reader.md). An admin is also a reader, with the same sign-in. What makes them an admin is the role `explorer:admin`, and the Worker asks the login service for it on every admin request. A reader approaching an address in Cyberspace can trigger a rescan, but only within the staleness limits the admin set.

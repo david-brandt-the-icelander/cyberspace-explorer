@@ -1013,6 +1013,36 @@
           "symbol": "moving about: what a use case seems to touch in a city"
         }
       ]
+    },
+    {
+      "id": "identity-sign-in",
+      "title": "Readers sign in through icelander.net; the GitHub OAuth App stays for repositories",
+      "summary": "The page and the GitHub routes need an icelander.net sign-in (REQUIRE_SIGN_IN); the explorer's own GitHub OAuth App is unchanged.",
+      "status": "accepted",
+      "decidedBy": "The owner",
+      "decidedOn": "2026-11-21",
+      "context": "The owner decided that every app of his asks for the same sign-in and is unranked (icelander.net docs/identity-app-plan.md, D9), and that the explorer keeps its GitHub OAuth App for reading private repositories (D22), which the login service's GitHub sign-in cannot do (it asks for no repository access and hands out no token).",
+      "decision": "A vendored icelander-auth (app explorer, cookie explorer_identity, routes /identity/auth) and the ACCOUNTS service binding. REQUIRE_SIGN_IN=\"true\" gates the page, /auth/github/start and /api/github/*; /auth/me and the plain-file mode are untouched. The explorer_session cookie, the OAuth App, its callback and its secrets are not changed. Merged with the crawler's routes (PR #30, 2026-11-21): REQUIRE_SIGN_IN also gates the page's /api/space*, /crawler stays public for site owners, and /admin always needs this sign-in and the login service's role explorer:admin, whatever REQUIRE_SIGN_IN says (the worker's decision admin-door); a GitHub login no longer lets anyone into /admin.",
+      "rationale": "The explorer's identity and its permission to read GitHub are different things.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "worker/app.js",
+          "symbol": "createHandler"
+        },
+        {
+          "path": "test/identity.test.js",
+          "symbol": "the sign-in required"
+        },
+        {
+          "path": "wrangler.jsonc",
+          "symbol": "vars"
+        },
+        {
+          "path": "worker/space.js",
+          "symbol": "isAdmin"
+        }
+      ]
     }
   ]
 }

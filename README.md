@@ -61,15 +61,19 @@ dagre and the Barlow typefaces are loaded from jsDelivr, and so is [three.js](ht
 | `GET /auth/github/callback` | Back from GitHub: the state is checked, the code exchanged (with the client secret and the PKCE verifier), the account looked up, and a session cookie set |
 | `POST /auth/sign-out` | Forgets the session; only from the app's own origin |
 | `GET /api/github/<path>` | GitHub's API with the reader's token, for `user`, `user/repos`, a repository, its trees and its contents only; read only; the token is never sent to the page |
-| `GET /admin` | The crawler's admin page, for a signed-in GitHub login listed in `ADMIN_LOGINS`; anyone else is sent to sign in or refused |
+| `GET /admin` | The crawler's admin page, for a reader signed in to icelander.net who holds its role `explorer:admin` (the owners hold every role), whatever `REQUIRE_SIGN_IN` says; anyone else is sent to sign in or refused. A GitHub login doesn't count |
 | `/api/admin/…` | The admin page's API: the address list, each address's interval and staleness limit, rescans, and the defaults. Changes only from the app's own origin |
 | `GET /api/space?url=…` | What the crawler has for an address it explores: its views, when it was last scanned and whether that is stale. `/api/space/<id>/files/<path>` serves a view |
 | `POST /api/space/<id>/approach` | Sent by the page when a player opens an address; queues a rescan if its data is older than allowed |
 | `GET /crawler` | What the crawler is and how it behaves: [docs/cyberspace-protocol.md](docs/cyberspace-protocol.md) as a page |
 
-The session is `explorer_session`, `Path=/; HttpOnly; Secure; SameSite=Lax`, 7 days, AES-GCM sealed with a key derived from `SESSION_SECRET`. It has nothing to do with icelander.net's own sign-in: it exists to read GitHub, not to say who the reader is. Without the three secrets below the routes answer that sign-in isn't set up and the page falls back to pasted tokens. Nothing is logged about a sign-in. `npm test` runs the Worker's tests.
+**Who the reader is** is icelander.net's login service (decided 2026-11-21): with `REQUIRE_SIGN_IN` set to `"true"` (`wrangler.jsonc`; it is `"false"` until the owner has deployed icelander.net's login service with the app `explorer`, then flipped) the page, `/api/space*`, `/auth/github/start` and `/api/github/*` need a sign-in to icelander.net (Google or GitHub there; app `explorer`, cookie `explorer_identity`, routes under `/identity/auth`: `sign-in`, `callback`, `sign-out`, `me`), through the vendored `worker/vendor/icelander-auth/` (never edited here; `npm test` fails if it is) and the service binding `ACCOUNTS`. A visitor without it is sent there and back to the same place. **The explorer's own GitHub OAuth App is unchanged**: it is only the optional "connect your repositories" step, which reads GitHub, and says nothing about who the reader is. Opened as a plain file, or with `REQUIRE_SIGN_IN` off, nothing changes.
+
+The session is `explorer_session`, `Path=/; HttpOnly; Secure; SameSite=Lax`, 7 days, AES-GCM sealed with a key derived from `SESSION_SECRET`. It is not the sign-in to icelander.net (above): it exists to read GitHub, not to say who the reader is. Without the three secrets below the routes answer that sign-in isn't set up and the page falls back to pasted tokens. Nothing is logged about a sign-in. `npm test` runs the Worker's tests.
 
 ### Setting it up once (the owner)
+
+0. **Deploy icelander.net's `accounts` Worker first**, with the app `explorer` registered (callback `https://cyberspace-explorer.com/identity/auth/callback`, providers GitHub and Google; icelander.net PR #162). Then set `REQUIRE_SIGN_IN` to `"true"` in `wrangler.jsonc` and deploy. To go back, set it to `"false"` and redeploy.
 
 1. On GitHub, **Settings → Developer settings → OAuth Apps → New OAuth App**: name "Cyberspace explorer", homepage `https://cyberspace-explorer.com`, authorization callback URL `https://cyberspace-explorer.com/auth/github/callback`. Generate a client secret.
 2. Put the three secrets on the Worker (the first deploy creates it; run these after it, or deploy once by hand):

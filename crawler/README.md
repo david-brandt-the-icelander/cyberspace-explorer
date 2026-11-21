@@ -96,6 +96,8 @@ The crawler needs Workers Paid for Queues. Run these from the repository root.
    npx wrangler@4.156.1 secret put GITHUB_TOKEN -c crawler/wrangler.jsonc
    ```
 
+5. Let the admins into `/admin`. It is for readers signed in to icelander.net who hold its role `explorer:admin`. That role has to exist in icelander.net's login service (`ROLES` in its `accounts/src/config.js`), and its `accounts` Worker has to be deployed with the app `explorer` (README.md, "Setting it up once", step 0). The owners hold every role; grant it to anyone else on the login service's admin page. Until then nobody gets in, not even the owner.
+
 ## Tests
 
 `npm test` at the repository root runs `test/crawler.test.js` with the explorer's tests. The tests run the real SQL schema on Node's built-in SQLite, and use an R2 bucket in memory, a queue that records what it is sent, and a fake fetch (`test/fakes.js`). No test reaches the network.

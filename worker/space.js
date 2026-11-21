@@ -16,9 +16,14 @@ const json = (body, status = 200, headers = {}) => new Response(JSON.stringify(b
 });
 const ready = (env) => !!(env.DB && env.SPACE && env.SCANS);
 
-/** The GitHub logins allowed into /admin: ADMIN_LOGINS, separated by commas or spaces, compared without case. */
-export const adminLogins = (env) => new Set(String(env.ADMIN_LOGINS ?? "").split(/[\s,]+/).filter(Boolean).map((l) => l.toLowerCase()));
-export const isAdmin = (env, login) => !!login && adminLogins(env).has(login.toLowerCase());
+/**
+ * Who may use /admin: a user signed in to icelander.net who holds the login service's role explorer:admin. The owners
+ * hold every role; anyone else is granted it on the login service's admin page. The GitHub OAuth App says nothing
+ * about who the reader is (decision identity-sign-in), so a GitHub login never lets anyone in.
+ */
+export const ADMIN_ROLE = "explorer:admin";
+export const isAdmin = (user) => !!user?.roles?.includes(ADMIN_ROLE);
+const shown = (user) => String(user.email || user.name || user.id).replace(/[<&]/g, "");
 
 /** A whole number within a setting's or field's bounds, or undefined for an absent value; throws on anything else. */
 function whole(value, { min, max }, name) {
@@ -33,28 +38,34 @@ function whole(value, { min, max }, name) {
 const safeFile = (p) => !!p && !p.split("/").some((s) => s === "" || s === "." || s === "..") && /\.json$/.test(p);
 
 /**
- * Routes /admin, /api/admin/*, /api/space* and /crawler; returns null for any other path. `session` is the signed-in
- * reader's session or null; `site` is the app's own origin; `pages` holds the admin page and the protocol page as text.
+ * Routes /admin, /api/admin/*, /api/space* and /crawler; returns null for any other path. `user()` is the user signed
+ * in to icelander.net, or null; `signedIn` is false only when REQUIRE_SIGN_IN is on and the reader isn't signed in;
+ * `signIn(path)` is the sign-in that comes back to `path`; `site` is the app's own origin; `pages` holds the admin page
+ * and the protocol page as text.
  */
-export async function spaceRoutes(request, env, { path, session, site, pages }) {
+export async function spaceRoutes(request, env, { path, user, signedIn, signIn, site, pages }) {
   if (path === "/crawler") return new Response(pages.protocol ?? "Not found", { status: pages.protocol ? 200 : 404, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=3600" } });
 
   if (path === "/admin") {
-    if (!session) return new Response(null, { status: 303, headers: { location: "/auth/github/start?return=%2Fadmin", "cache-control": "private, no-store" } });
-    if (!isAdmin(env, session.l)) return new Response(`<!doctype html><meta charset="utf-8"><title>Not allowed</title><p>${session.l.replace(/[<&]/g, "")} is signed in but is not allowed into the admin page.</p><p><a href="/">Back to the explorer</a></p>`, { status: 403, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "private, no-store" } });
+    const who = await user();
+    if (!who) return new Response(null, { status: 302, headers: { location: signIn("/admin"), "cache-control": "private, no-store" } });
+    if (!isAdmin(who)) return new Response(`<!doctype html><meta charset="utf-8"><title>Not allowed</title><p>${shown(who)} is signed in but is not allowed into the admin page.</p><p><a href="/">Back to the explorer</a></p>`, { status: 403, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "private, no-store" } });
     return new Response(pages.admin, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "private, no-store", "x-content-type-options": "nosniff", "x-frame-options": "DENY", "referrer-policy": "same-origin" } });
   }
 
   if (path.startsWith("/api/admin/")) {
-    if (!session) return json({ error: "Not signed in." }, 401);
-    if (!isAdmin(env, session.l)) return json({ error: "Not allowed." }, 403);
+    const who = await user();
+    if (!who) return json({ error: "Not signed in." }, 401);
+    if (!isAdmin(who)) return json({ error: "Not allowed." }, 403);
     if (request.method !== "GET" && request.headers.get("origin") !== site) return json({ error: "Only from the admin page." }, 403);
     if (!ready(env)) return json({ error: NOT_SET_UP }, 503);
-    try { return await admin(request, env, path.slice("/api/admin/".length), session.l); }
+    try { return await admin(request, env, path.slice("/api/admin/".length), who); }
     catch (e) { return json({ error: e.message }, 400); }
   }
 
   if (path === "/api/space" || path.startsWith("/api/space/")) {
+    // The page's own door: it needs the page's sign-in when REQUIRE_SIGN_IN is on.
+    if (!signedIn) return json({ error: "Sign in to icelander.net first." }, 401);
     if (!ready(env)) return json({ error: NOT_SET_UP }, 503);
     return space(request, env, path, site);
   }
@@ -62,11 +73,11 @@ export async function spaceRoutes(request, env, { path, session, site, pages }) 
 }
 
 /** The admin API: the state, adding, changing, removing and rescanning addresses, and the settings. */
-async function admin(request, env, rest, login) {
+async function admin(request, env, rest, who) {
   const m = request.method, body = m === "GET" || m === "DELETE" ? {} : await request.json().catch(() => { throw new Error("Send JSON."); });
   if (rest === "state" && m === "GET") {
     const [settings, addresses] = await Promise.all([store.settings(env.DB), store.addresses(env.DB)]);
-    return json({ login, settings, addresses });
+    return json({ user: { name: who.name ?? null, email: who.email ?? null }, settings, addresses });
   }
   if (rest === "settings" && m === "PUT") {
     for (const [k, v] of Object.entries(body)) {
@@ -81,7 +92,7 @@ async function admin(request, env, rest, login) {
     const n = normalize(body.url ?? "");
     const id = await addressId(n.url);
     const added = await store.addAddress(env.DB, {
-      id, url: n.url, kind: n.kind, label: typeof body.label === "string" && body.label.trim() ? body.label.trim().slice(0, 120) : null, by: login,
+      id, url: n.url, kind: n.kind, label: typeof body.label === "string" && body.label.trim() ? body.label.trim().slice(0, 120) : null, by: who.email || who.id,
       intervalMinutes: whole(body.intervalMinutes, { min: 15, max: 525600 }, "intervalMinutes") ?? null,
       maxStaleMinutes: whole(body.maxStaleMinutes, { min: 1, max: 5256000 }, "maxStaleMinutes") ?? null,
     });

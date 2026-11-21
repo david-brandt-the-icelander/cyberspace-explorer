@@ -106,25 +106,24 @@
       ]
     },
     {
-      "id": "admin-logins",
-      "title": "Admin logins",
-      "summary": "The GitHub logins allowed into /admin.",
-      "key": "ADMIN_LOGINS",
-      "type": "string (logins separated by commas)",
+      "id": "admin-role",
+      "title": "Who may use /admin",
+      "summary": "A user signed in to icelander.net who holds the login service's role explorer:admin; the GitHub OAuth App's login no longer counts.",
+      "key": "explorer:admin",
+      "type": "a role of icelander.net's login service",
       "sensitive": false,
-      "default": "david-brandt-the-icelander",
-      "scope": "the Worker",
-      "takesEffect": "next deploy",
-      "details": "A var in wrangler.jsonc, compared without case. The admin page can't change it.",
+      "scope": "icelander.net's login service (accounts), app explorer",
+      "takesEffect": "at once: the Worker asks the login service on every request",
+      "details": "The owners (OWNER_EMAILS on the accounts Worker) hold every role there is; anyone else is granted it on the login service's admin page. The role has to be added to the login service's ROLES (accounts/src/config.js in icelander.net) before anyone holds it; until then, and without ACCOUNTS and ACCOUNTS_JWKS, nobody gets into /admin. It does not depend on REQUIRE_SIGN_IN. This Worker has no setting for it, and the admin page can't change it.",
       "evidenceStatus": "source-verified",
       "sources": [
         {
           "path": "worker/space.js",
-          "symbol": "adminLogins"
+          "symbol": "isAdmin"
         },
         {
-          "path": "wrangler.jsonc",
-          "symbol": "vars"
+          "path": "worker/app.js",
+          "symbol": "createHandler"
         }
       ]
     },
@@ -147,6 +146,48 @@
         {
           "path": "worker/space.js",
           "symbol": "ready"
+        }
+      ]
+    },
+    {
+      "id": "require-sign-in",
+      "title": "REQUIRE_SIGN_IN",
+      "summary": "\"true\" makes the page, /api/space*, /auth/github/start and /api/github/* need a sign-in to icelander.net; \"false\" or unset leaves them open.",
+      "key": "REQUIRE_SIGN_IN",
+      "type": "Worker var",
+      "sensitive": false,
+      "scope": "Worker",
+      "takesEffect": "at-deploy",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "wrangler.jsonc",
+          "symbol": "vars"
+        },
+        {
+          "path": "worker/app.js",
+          "symbol": "createHandler"
+        }
+      ]
+    },
+    {
+      "id": "accounts-binding",
+      "title": "ACCOUNTS and ACCOUNTS_JWKS",
+      "summary": "The service binding to icelander.net's login service (same Cloudflare account) and its public keys; without them nobody is signed in, and nobody gets into /admin.",
+      "key": "ACCOUNTS",
+      "type": "service binding",
+      "sensitive": false,
+      "scope": "Worker",
+      "takesEffect": "at-deploy",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "wrangler.jsonc",
+          "symbol": "services"
+        },
+        {
+          "path": "worker/vendor/icelander-auth/index.js",
+          "symbol": "createAuth"
         }
       ]
     }

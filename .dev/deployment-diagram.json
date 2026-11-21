@@ -115,7 +115,7 @@
       "id": "admin-browser",
       "name": "Admin's browser",
       "kind": "client",
-      "description": "/admin, signed in with GitHub as a login in ADMIN_LOGINS.",
+      "description": "/admin, signed in to icelander.net with its role explorer:admin.",
       "actor": "Actors/admin.md"
     },
     {

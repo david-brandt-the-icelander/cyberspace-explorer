@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS addresses (
   interval_minutes INTEGER,           -- how often to rescan; NULL takes settings.default_interval_minutes
   max_stale_minutes INTEGER,          -- how old data may be when a player approaches; NULL takes settings.default_max_stale_minutes
   added_at TEXT NOT NULL,
-  added_by TEXT,                      -- the GitHub login that added it, or 'crawler' when a cooperating site named it
+  added_by TEXT,                      -- the icelander.net address of the admin who added it, or 'crawler' when a cooperating site named it
   found_via TEXT                      -- the address whose /.well-known/cyberspace.json named it
 );
 

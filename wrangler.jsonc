@@ -10,11 +10,19 @@
   "workers_dev": false,
   "preview_urls": false,
   "routes": [{ "pattern": "cyberspace-explorer.com", "custom_domain": true }],
+  // Who the reader is: icelander.net's login service (the same Cloudflare account), app "explorer", callback
+  // https://cyberspace-explorer.com/identity/auth/callback registered in its APPS. No secret is needed for it.
+  // /admin needs that sign-in and its role explorer:admin, which the owners hold (worker/space.js), whatever
+  // REQUIRE_SIGN_IN says.
+  "services": [{ "binding": "ACCOUNTS", "service": "accounts", "entrypoint": "Internal" }],
   "vars": {
-    // The OAuth App's registered callback is ${PUBLIC_ORIGIN}/auth/github/callback.
+    // The GitHub OAuth App's registered callback is ${PUBLIC_ORIGIN}/auth/github/callback (unchanged: it only reads repositories).
     "PUBLIC_ORIGIN": "https://cyberspace-explorer.com",
-    // The GitHub logins allowed into /admin, separated by commas.
-    "ADMIN_LOGINS": "david-brandt-the-icelander"
+    // "true": the page, /api/space and the GitHub routes need a sign-in to icelander.net. It is "false" until
+    // icelander.net's accounts Worker (with the app "explorer", migrations 0002 and 0003) is deployed, because every
+    // merge to main deploys this Worker; then set it to "true" and deploy. "false" is how it always was.
+    "REQUIRE_SIGN_IN": "false",
+    "ACCOUNTS_JWKS": "{\"keys\":[{\"kty\":\"OKP\",\"crv\":\"Ed25519\",\"kid\":\"k2026a\",\"x\":\"WIEomi0LTalJvQndhD7abl8ty3YcliQ0vEz4XjLXayc\"}]}"
   },
   // The protocol page (/crawler) is docs/cyberspace-protocol.md, imported as text.
   "rules": [{ "type": "Text", "globs": ["**/*.md"], "fallthrough": true }],
