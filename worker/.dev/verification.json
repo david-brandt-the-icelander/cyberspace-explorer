@@ -103,7 +103,7 @@
           "command": "npm test"
         }
       ],
-      "details": "The workflow runs the same tests on every pull request and before every deploy ([pipeline](.github/.dev/pipeline.json)). Nothing tests the callback's 503, the 401 that clears a session, or the page's use of these routes.",
+      "details": "The CI/CD container runs the same tests on every branch tip, so before every deploy ([pipeline](.dev/pipeline.json)). Nothing tests the callback's 503, the 401 that clears a session, or the page's use of these routes.",
       "relationships": [
         {
           "relation": "verifies",

@@ -1,4 +1,4 @@
-// cyberspace-crawler: a Worker with no public routes, on Workers Paid (Queues). Deployed by .github/workflows/cyberspace-explorer.yml.
+// cyberspace-crawler: a Worker with no public routes, on Workers Paid (Queues). Deployed after the explorer's Worker by the CI/CD container (README.md, "Deploying").
 // The database, bucket and queues are created once by the owner (crawler/README.md, "Setting it up once"); their ids go below.
 // No secrets belong in this file.
 {

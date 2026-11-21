@@ -11,7 +11,7 @@
       "purpose": "Lets agents and CI check and maintain the .dev files the explorer shows, with one binary that needs no Python. cyberspace-common reads JSON strictly and walks a repository; cyberspace-diagrams and cyberspace-knowledge replace Meta/Agents/Skills/validate_diagrams.py and Meta/Agents/Knowledge/validate_knowledge.py; cyberspace-generator offers validate, scan and stale.",
       "boundaries": [
         "The schemas are read at run time from the checked repository's Meta/Agents, never embedded.",
-        "The tool is released from generator-v* tags and installed as part of zazzle by the software-developers-toolbox repository; this repository does not publish it to Homebrew itself."
+        "The tool is released from generator-v* tags, by the CI/CD container and the owner's Mac (.dev/pipeline.json, entity generator-release), and installed as part of zazzle, which pins each release; this repository does not publish it to Homebrew itself."
       ],
       "evidenceStatus": "source-verified",
       "sources": [

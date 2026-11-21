@@ -63,9 +63,6 @@
         },
         {
           "path": "test/.dev/folder.json"
-        },
-        {
-          "path": ".github/.dev/folder.json"
         }
       ],
       "criteria": [

@@ -53,30 +53,105 @@
     {
       "id": "publish",
       "title": "Publish a new version",
-      "summary": "Merge the change to main; GitHub Actions deploys it.",
+      "summary": "Merge the change to main; the CI/CD container tests it and deploys it.",
       "purpose": "deploy",
       "when": "When the owner wants a change live.",
       "steps": [
         "Merge the change to main",
-        "Wait for the Cyberspace explorer workflow to test and deploy it, or run it by hand from the Actions tab"
+        "Wait for the container to test it (the commit status ci/cyberspace-explorer) and deploy it (deploy/cyberspace-explorer); a poll takes up to a minute",
+        "To deploy by hand, or again, on the container's machine: docker compose run --rm ci deploy <sha> (add --force for a commit CI has not passed)"
       ],
-      "verify": "https://cyberspace-explorer.com shows the change; the workflow's last step checks that the page and /auth/me answer.",
+      "verify": "https://cyberspace-explorer.com shows the change; the deploy's last step checks that the page, /auth/me and /crawler answer, and rolls back if they don't.",
+      "details": "Nothing is deployed while the container's DEPLOY_ENABLED is false, or while wrangler.jsonc or crawler/wrangler.jsonc still holds REPLACE-WITH-D1-DATABASE-ID (crawler/README.md, \"Setting it up once (the owner)\"). The deploy's log is deploy-<sha>.log in the container's logs volume.",
       "evidenceStatus": "source-verified",
       "sources": [
         {
           "path": "README.md",
           "symbol": "Deploying"
-        },
+        }
+      ],
+      "links": [
         {
-          "path": ".github/workflows/cyberspace-explorer.yml",
-          "symbol": "jobs.deploy"
+          "label": "The CI/CD container (private repository)",
+          "url": "https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/tree/main/cyberspace-explorer"
         }
       ],
       "relationships": [
         {
           "relation": "uses",
-          "path": ".github/.dev/pipeline.json",
+          "path": ".dev/pipeline.json",
           "entityId": "deploy"
+        }
+      ]
+    },
+    {
+      "id": "release-generator",
+      "title": "Release cyberspace-generator",
+      "summary": "Push a generator-v* tag; the container builds the Linux half of the release, then release-macos.sh on the owner's Mac adds the macOS half and publishes it.",
+      "purpose": "release",
+      "when": "When a change to crates/ should reach zazzle.",
+      "steps": [
+        "Set version under [workspace.package] in Cargo.toml to the new version, and merge that to main",
+        "Tag the merged commit generator-v<that version> and push the tag: git tag generator-v<version> origin/main && git push origin generator-v<version>",
+        "Wait for the container (RELEASE_ENABLED=true) to build and test the Linux binaries and put them, with their SHA256SUMS lines, in a draft release of the tag; its log is release-generator-v<version>.log",
+        "On the Mac, from a checkout of continuous_integration_and_delivery: cyberspace-explorer/release-macos.sh generator-v<version>. It builds and tests the macOS binaries, adds them to the draft, completes SHA256SUMS and publishes the release"
+      ],
+      "verify": "The release generator-v<version> is published with cyberspace-generator-aarch64-apple-darwin, -x86_64-apple-darwin, -x86_64-unknown-linux-musl, -aarch64-unknown-linux-musl and SHA256SUMS; zazzle's bump-cyberspace-generator.sh then offers it.",
+      "details": "The two halves can run in either order: whichever finds all four binaries in place publishes, and until then the release is a draft that zazzle does not see. A tag that does not match Cargo.toml is refused by both. Either half can be run again; a published release is never changed. Without RELEASE_ENABLED, the container's half is run by hand: docker compose run --rm ci release generator-v<version>.",
+      "evidenceStatus": "source-verified",
+      "sources": [
+        {
+          "path": "README.md",
+          "symbol": "cyberspace-generator"
+        },
+        {
+          "path": "Cargo.toml",
+          "symbol": "workspace.package"
+        }
+      ],
+      "links": [
+        {
+          "label": "The CI/CD container and release-macos.sh (private repository)",
+          "url": "https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/tree/main/cyberspace-explorer"
+        }
+      ],
+      "relationships": [
+        {
+          "relation": "uses",
+          "path": ".dev/pipeline.json",
+          "entityId": "generator-release"
+        }
+      ]
+    },
+    {
+      "id": "set-up-ci",
+      "title": "Set up CI, deploys and releases (once)",
+      "summary": "The owner's one-time steps for the CI/CD container that replaced GitHub Actions.",
+      "purpose": "setup",
+      "when": "Once, when GitHub Actions is left (decision leave-github-actions), or when the container moves to another machine.",
+      "steps": [
+        "On a machine with Docker that stays on: clone continuous_integration_and_delivery and cd cyberspace-explorer",
+        "Make a fine-grained GitHub token for this repository only, with Contents: read and Commit statuses: read and write; save it as secrets/github_token",
+        "Make a second fine-grained token for this repository only, with Contents: read and write, for releases; save it as secrets/github_release_token",
+        "Make a Cloudflare API token with Workers Scripts: Edit, D1: Edit, Workers R2 Storage: Edit and Queues: Edit on the account, and Workers Routes: Edit and DNS: Edit on the zone cyberspace-explorer.com; save it as secrets/cloudflare_api_token. The repository secret CLOUDFLARE_API_TOKEN can't be read back from GitHub, so this is a new token (or the owner's own copy of the old one)",
+        "cp .env.example .env, then docker compose up -d --build",
+        "In this repository's settings on GitHub: Actions → General → Disable actions; delete the repository secret CLOUDFLARE_API_TOKEN (and the old token on Cloudflare, if it is not reused)",
+        "In the branch protection (or ruleset) of main, make ci/cyberspace-explorer a required status check, in place of the checks test and rust",
+        "Set DEPLOY_ENABLED=true and RELEASE_ENABLED=true in .env, then docker compose up -d"
+      ],
+      "verify": "docker compose logs shows the container watching this repository; the next commit on a branch gets the status ci/cyberspace-explorer, and the next green main gets deploy/cyberspace-explorer.",
+      "details": "The container's README says the same at more length, with what must come first on Cloudflare: icelander.net's login service (before REQUIRE_SIGN_IN is set to \"true\") and the crawler's resources (crawler/README.md). Until GitHub Actions is off, keep DEPLOY_ENABLED and RELEASE_ENABLED false, or both would deploy main and both would make a tag's release. continuous_integration_and_delivery is a private repository.",
+      "evidenceStatus": "documented",
+      "links": [
+        {
+          "label": "The CI/CD container's README (private repository)",
+          "url": "https://github.com/david-brandt-the-icelander/continuous_integration_and_delivery/tree/main/cyberspace-explorer"
+        }
+      ],
+      "relationships": [
+        {
+          "relation": "uses",
+          "path": ".dev/pipeline.json"
         }
       ]
     }
