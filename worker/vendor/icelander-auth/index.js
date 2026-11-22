@@ -17,7 +17,7 @@
 // pinned public keys in env.ACCOUNTS_JWKS. Without either, sign-in is off and nobody is signed in
 // (fail closed). Tokens, cookies and session values are never logged.
 
-export const VERSION = "2.1.0";
+export const VERSION = "2.2.0";
 /** The login service: icelander.net/accounts (a Worker of its own on that path). */
 export const ISSUER = "https://icelander.net/accounts";
 /** How long an app's sign-in lasts, unless the user signs out or is signed out. */
@@ -94,6 +94,17 @@ export async function verifyToken(token, { jwks, audience, nonce, now = Date.now
   }
 }
 
+/** The generic roles a person may hold in a tenant, least to most (docs/tenants.md); apps map them to their own permissions. */
+export const TENANT_ROLES = ["guest", "member", "admin", "owner"];
+const TENANT_ID = /^t-[a-z0-9][a-z0-9-]{1,38}$/;
+/** The person's role in this tenant, from the user the login service reported (an app that opted in), or undefined. */
+export const tenantRole = (user, tenantId) => user?.tenants?.find((t) => t.id === tenantId)?.role;
+/** Whether the person holds at least this role in the tenant. */
+export const tenantAtLeast = (user, tenantId, role) => {
+  const have = TENANT_ROLES.indexOf(tenantRole(user, tenantId));
+  return have >= 0 && have >= TENANT_ROLES.indexOf(role);
+};
+
 /** Where the identity app issues access tokens (its OAuth issuer). */
 export const OAUTH_ISSUER = "https://icelander.net/apps/identity";
 
@@ -118,6 +129,8 @@ export async function verifyAccessToken(token, { jwks, resource, now = Date.now(
     if (!c || c.iss !== issuer || typeof resource !== "string" || c.aud !== resource) return undefined;
     if (typeof c.exp !== "number" || typeof c.iat !== "number" || c.exp <= now || c.exp - c.iat > 900 || c.iat > now + 30) return undefined;
     if (typeof c.sub !== "string" || !c.sub || typeof c.scope !== "string" || typeof c.gid !== "string") return undefined;
+    // The tenant the token acts in, when it names one (docs/tenants.md): a malformed one voids the token.
+    if (c.tid !== undefined && !TENANT_ID.test(String(c.tid))) return undefined;
     return c;
   } catch {
     return undefined;
@@ -222,6 +235,13 @@ export function createAuth(options) {
     return (request.headers.get("authorization") ?? "").match(/^Bearer ([A-Za-z0-9_.-]{20,2000})$/)?.[1];
   }
 
+  /** The stand-in's tenants: "t-id:role[:handle]" each, like the login service reports them (docs/tenants.md). */
+  function devTenants(list) {
+    const tenants = (Array.isArray(list) ? list : []).map((t) => String(t).split(":")).filter(([id, role]) => TENANT_ID.test(id) && TENANT_ROLES.includes(role))
+      .map(([id, role, handle]) => ({ id, name: id, role, ...(handle ? { handle } : {}) }));
+    return { tenants, tenant: tenants.length === 1 ? tenants[0] : null };
+  }
+
   /** The stand-in sign-in's session: "dev." and base64url JSON of the user. Only ever read on a local host with DEV_SIGN_IN. */
   function devUser(value) {
     try {
@@ -235,6 +255,7 @@ export function createAuth(options) {
         roles: [`${app}:${options.implicitRole ?? "play"}`, ...(options.rolePrefixes ?? []).map((p) => `${p}:play`), ...roles].filter((r, i, all) => all.indexOf(r) === i),
         supporter: false, accountIds: {}, dev: true,
         via: u.via === "email" || u.via === "link" ? u.via : "provider",
+        ...devTenants(u.tenants),
       };
     } catch {
       return null;
@@ -316,7 +337,8 @@ export function createAuth(options) {
       if (!devOn(env, url)) return text("Not found.", 404);
       const email = (url.searchParams.get("email") || "tester@example.com").toLowerCase().slice(0, 254);
       const roles = (url.searchParams.get("roles") ?? "").split(",").map((r) => r.trim()).filter(Boolean);
-      const body = { id: url.searchParams.get("id") || `dev-${email}`, email, name: (url.searchParams.get("name") || "Tester").slice(0, 80), roles, via: url.searchParams.get("via") ?? "provider" };
+      const tenants = (url.searchParams.get("tenants") ?? "").split(",").map((t) => t.trim()).filter(Boolean);
+      const body = { id: url.searchParams.get("id") || `dev-${email}`, email, name: (url.searchParams.get("name") || "Tester").slice(0, 80), roles, via: url.searchParams.get("via") ?? "provider", ...(tenants.length ? { tenants } : {}) };
       const value = `dev.${base64url(encoder.encode(JSON.stringify(body)))}`;
       if (url.searchParams.get("format") === "token") return json({ token: value });
       return redirect(back(url.searchParams.get("return")), [cookie(name, value, SESSION_SECONDS, { secure, path: cookiePath })]);
@@ -351,6 +373,8 @@ export function createAuth(options) {
       const to = new URL(`${accountsOrigin}/sign-in`);
       to.search = new URLSearchParams({ app, return: back(url.searchParams.get("return")), state, callback: `${url.origin}${basePath}/callback` }).toString();
       if (url.searchParams.get("prompt") === "select") to.searchParams.set("prompt", "select");
+      // The tenant to act in (docs/tenants.md); the login service puts it in the token only if the person is a member.
+      if (TENANT_ID.test(url.searchParams.get("tenant") ?? "")) to.searchParams.set("tenant", url.searchParams.get("tenant"));
       return redirect(to.toString(), [cookie(stateCookie, state, STATE_SECONDS, { path: basePath, secure })]);
     }
 
