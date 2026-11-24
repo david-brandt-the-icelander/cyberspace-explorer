@@ -12,7 +12,7 @@
   "triggers": { "crons": ["*/10 * * * *"] },
   "d1_databases": [
     // Shared with the explorer's Worker (wrangler.jsonc), which edits addresses and settings from /admin.
-    { "binding": "DB", "database_name": "cyberspace", "database_id": "REPLACE-WITH-D1-DATABASE-ID" }
+    { "binding": "DB", "database_name": "cyberspace", "database_id": "e1a30fa2-23bf-4ecc-9555-862455ca55c2" }
   ],
   "r2_buckets": [
     // space/<address id>/: each address's index, its views and what was collected for the AI step. fetch/: the HTTP cache's bodies.

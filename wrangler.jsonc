@@ -27,7 +27,7 @@
   // The protocol page (/crawler) is docs/cyberspace-protocol.md, imported as text.
   "rules": [{ "type": "Text", "globs": ["**/*.md"], "fallthrough": true }],
   // Shared with the crawler (crawler/wrangler.jsonc): its addresses and settings, what it collected, and its scan queue.
-  "d1_databases": [{ "binding": "DB", "database_name": "cyberspace", "database_id": "REPLACE-WITH-D1-DATABASE-ID" }],
+  "d1_databases": [{ "binding": "DB", "database_name": "cyberspace", "database_id": "e1a30fa2-23bf-4ecc-9555-862455ca55c2" }],
   "r2_buckets": [{ "binding": "SPACE", "bucket_name": "cyberspace" }],
   "queues": { "producers": [{ "binding": "SCANS", "queue": "cyberspace-scans" }] },
   // Secrets, set with `wrangler secret put … -c wrangler.jsonc`, never here:

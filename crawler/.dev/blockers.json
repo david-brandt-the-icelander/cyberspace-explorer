@@ -5,25 +5,25 @@
   "folder": "crawler",
   "entities": [
     {
-      "id": "cloudflare-resources",
-      "title": "The database, bucket and queues don't exist yet",
-      "summary": "crawler/wrangler.jsonc and wrangler.jsonc bind a D1 database, an R2 bucket and queues that the owner creates once; until then the deploy stops before deploying either Worker.",
+      "id": "container-token-permissions",
+      "title": "The CI/CD container's Cloudflare token may lack D1, R2 and Queues",
+      "summary": "The database cyberspace, the bucket cyberspace and the queues cyberspace-scans and cyberspace-scans-failed exist (created 2026-11-24) and both configurations carry the database id, so a deploy by hand works. The container deploys both Workers with its own token, which also needs D1, R2 and Queues permissions.",
       "status": "open",
-      "cause": "Creating them needs the owner's Cloudflare account on Workers Paid, and the container's Cloudflare token needs D1, R2 and Queues permissions.",
-      "unblockWhen": "The steps in crawler/README.md, \"Setting it up once (the owner)\", are done and the database id replaces REPLACE-WITH-D1-DATABASE-ID in both files.",
+      "cause": "The container's token was made for the explorer's Worker alone; nobody has checked whether it was given D1, R2 and Queues permissions.",
+      "unblockWhen": "The container's secret cloudflare_api_token has Account → D1: Edit, Workers R2 Storage: Edit and Queues: Edit (crawler/README.md, \"Setting it up once (the owner)\", step 3).",
       "canUnblock": "owner",
-      "since": "2026-11-19",
+      "since": "2026-11-24",
       "blocked": [
         {
           "path": ".dev/pipeline.json",
           "entityId": "deploy",
-          "description": "The deploy stops before deploying either Worker."
+          "description": "The container's deploy of the crawler fails without these permissions; a deploy by hand does not."
         }
       ],
       "origin": {
         "kind": "conversation",
         "by": "owner",
-        "date": "2026-11-19"
+        "date": "2026-11-24"
       },
       "evidenceStatus": "source-verified",
       "sources": [
@@ -34,10 +34,6 @@
         {
           "path": "crawler/README.md",
           "symbol": "Setting it up once (the owner)"
-        },
-        {
-          "path": "wrangler.jsonc",
-          "symbol": "d1_databases"
         }
       ],
       "links": [
