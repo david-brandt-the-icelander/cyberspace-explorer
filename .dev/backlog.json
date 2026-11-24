@@ -425,6 +425,20 @@
         "by": "owner",
         "date": "2026-11-19"
       }
+    },
+    {
+      "id": "zizd-pipelines",
+      "title": "Move CI, deploys and releases to zizd's step pipelines",
+      "type": "chore",
+      "status": "proposed",
+      "priority": "medium",
+      "summary": "Register the pipelines site, crawler and generator (.zazzle/zizd/README.md) with zazzle's builders and deployers, then retire the legacy container in continuous_integration_and_delivery.",
+      "details": "The step containers are in `.zazzle/zizd/`, with the pipeline files and the config key names in its README. Left to do: the parent session registers the pipeline files and config in the orchestrator; a deployer serves `:site`, `:crawler` and `:generator@release`; once they have deployed, the legacy runner's folder goes (apart from `release-macos.sh`, until zazzle has a Tart VM step for the macOS half of a release), and README.md \"Deploying\", `.dev/pipeline.json` and the runbooks `set-up-ci` and `release-generator` are rewritten for zizd. A release then comes from the branch `release/generator` instead of a pushed `generator-v*` tag: its release step creates the tag itself.",
+      "origin": {
+        "kind": "conversation",
+        "by": "owner",
+        "date": "2026-11-24"
+      }
     }
   ]
 }
